@@ -1,0 +1,83 @@
+{
+  "format": "repopact-wi074-semantic-authority-inventory-v1",
+  "work_item": "074",
+  "criterion": "RPS-007",
+  "source_revision": "e194946c9e80a9ca8de0ae317988df175836773f",
+  "reviewed_at": "2026-09-25T19:53:20Z",
+  "disposition": "partial; criterion remains pending",
+  "authoritative_rust_surfaces": [
+    {
+      "semantic": "Canonical repository validation and lifecycle interpretation",
+      "entry_points": ["repopact validate", "python -m repopact.validate_repo", "repopact-engine protocol operation validate"],
+      "implementation": "rust/crates/repopact-validation and the repopact-engine protocol dispatcher",
+      "python_role": "The direct validator entry point delegates to Rust. legacy_validate and validate_repo.validate remain an explicitly named comparator used by conformance tests, not a product fallback."
+    },
+    {
+      "semantic": "Governed work-item creation, proposal and typed edits/transitions",
+      "entry_points": ["repopact new work-item", "repopact work propose/amend/status operations", "repopact-engine work.* protocol operations"],
+      "implementation": "repopact-engine typed work operations backed by the Rust schema, validation, repository and analysis crates",
+      "python_role": "The CLI adapter preflights engine capabilities and validates the complete mutation response before reporting success."
+    },
+    {
+      "semantic": "Repository graph semantics",
+      "entry_points": ["repopact graph", "repopact-engine graph.* protocol operations"],
+      "implementation": "Rust repopact-graph and graph protocol handlers",
+      "python_role": "graph_cli transports typed requests and renders responses; it does not calculate graph results."
+    },
+    {
+      "semantic": "Derived dashboard projection",
+      "entry_points": ["repopact dashboard", "python -m repopact.generate_dashboard"],
+      "implementation": "repopact-engine dashboard.write",
+      "python_role": "Product entry points use the Rust writer. generate_dashboard.write_dashboard remains a Python comparator/test utility and is used to create disposable conformance fixtures."
+    }
+  ],
+  "remaining_python_authoritative_surfaces": [
+    {
+      "entry_points": ["repopact adopt", "repopact import-plan"],
+      "behavior": "Python constructs and writes adopted/imported governance records; canonical Rust validation is checked afterward.",
+      "risk": "These workflows still own record-authoring and migration semantics and can write before final Rust validation rejects the resulting repository."
+    },
+    {
+      "entry_points": ["repopact doctor --fix"],
+      "behavior": "Python applies repository repairs; canonical Rust validation is the final validity authority.",
+      "risk": "Repair selection and mutation remain Python-owned."
+    },
+    {
+      "entry_points": ["repopact takeover"],
+      "behavior": "Python decides and performs legacy-directory archival/retirement after canonical pre-validation, then asks Rust to validate the result.",
+      "risk": "Retirement semantics and filesystem mutation remain Python-owned; post-validation cannot undo a completed retirement."
+    },
+    {
+      "entry_points": ["repopact new decision", "repopact new policy"],
+      "behavior": "Python selects templates, allocates IDs and writes Markdown; Rust validates the repository and writes the derived dashboard.",
+      "risk": "Decision/policy authoring semantics remain Python-owned."
+    },
+    {
+      "entry_points": ["repopact check-frozen", "repopact fleet verification", "repopact evidence recording", "repopact init"],
+      "behavior": "These specialized or compatibility workflows retain Python policy/orchestration and file-write behavior, while applicable final repository validation/dashboard output uses Rust.",
+      "risk": "They have not been proven to be thin adapters to a single Rust mutation authority."
+    }
+  ],
+  "negative_and_parity_checks": {
+    "commands": [
+      "python -m unittest discover -s tests -v",
+      "python -m repopact.run_conformance",
+      "python -m unittest tests.test_engine_client tests.test_verification tests.test_conformance"
+    ],
+    "results": [
+      "Direct validator has no Python fallback; incompatible/malformed engine responses, inconsistent counts/diagnostics, missing required operations, unavailable engine preflight and conflicting mutation results fail closed.",
+      "Canonical Rust conformance: 37/37 cases passed; WI050 admission corpus: 8/8 vectors passed.",
+      "Complete Windows Python suite: 380 passed, 4 skipped."
+    ]
+  },
+  "architecture_conflict": {
+    "source": "Decision 0042, section describing the surface-by-surface authority boundary",
+    "recorded_boundary": "init, adopt, import-plan, doctor, takeover, spec, generic decision/policy creation and check-frozen remain Python-authoritative or unmigrated unless WI056 independently proves a narrower migration.",
+    "conflict": "RPS-007 requires Core alone to own governed mutation, while these accepted surfaces still make mutation or policy decisions in Python.",
+    "required_resolution": "An operator-approved governance/API decision defining whether RPS-007 is narrowed to the already-migrated Rust surfaces or authorizing a separately scoped migration of the remaining Python-authoritative surfaces. No resolution is inferred here."
+  },
+  "limitations": [
+    "Published Workbench was inspected read-only; no Workbench parity or mutation-authority claim is made.",
+    "The full criterion is not satisfied because accepted Python-authoritative mutation surfaces remain."
+  ]
+}

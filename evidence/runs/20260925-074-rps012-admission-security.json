@@ -1,0 +1,61 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20260925-074-rps012-admission-security",
+  "timestamp": "2026-09-25T19:53:20Z",
+  "work_item": "074",
+  "result": "partial",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "python -m unittest tests.test_admission tests.test_admission_security tests.test_guard_authority tests.test_landlock_confinement",
+      "exit_code": 0,
+      "summary": "Windows security regression subset: 51/51 passed. The full suite separately passed 380 tests with 4 skips."
+    },
+    {
+      "command": "cargo test --workspace --locked",
+      "exit_code": 0,
+      "summary": "Linux WSL2 Debian 13.5; all Rust workspace test targets passed, including engine, graph, validation and confinement crates."
+    },
+    {
+      "command": "cargo run --locked -p repopact-sandbox -- --probe",
+      "exit_code": 0,
+      "summary": "Linux Landlock native probe passed; kernel 6.18.33.2-microsoft-standard-WSL2, Landlock ABI 7 (minimum ABI 3). A child process could not modify an outside sentinel."
+    },
+    {
+      "command": "python -m unittest tests.test_admission tests.test_admission_security tests.test_guard_authority tests.test_landlock_confinement tests.test_engine_client tests.test_conformance -v",
+      "exit_code": 0,
+      "summary": "Linux WSL2 disposable ext4 source copy: 70 tests passed, 3 platform-specific skips."
+    },
+    {
+      "command": "python -m repopact.run_admission_platform_conformance --root .",
+      "exit_code": 0,
+      "summary": "Seven Linux semantic/pre-action boundary cases passed. Protected native service was unavailable and explicitly reported not-run. Equivalent Windows semantic/pre-action harness passed seven cases; Windows protected native service was also not installed and not-run."
+    },
+    {
+      "command": "python -m repopact.run_conformance",
+      "exit_code": 0,
+      "summary": "Canonical Rust conformance 37/37 and WI050 admission corpus 8/8 passed."
+    }
+  ],
+  "artifacts": [],
+  "environment": {
+    "coding_model": "GPT-5",
+    "source_revision": "e194946c9e80a9ca8de0ae317988df175836773f",
+    "operating_systems": [
+      "Windows 11 x64",
+      "Linux WSL2 Debian 13.5, kernel 6.18.33.2-microsoft-standard-WSL2"
+    ],
+    "security_facilities": [
+      "Linux Landlock ABI 7 native confinement probe",
+      "Disposable repositories and test-only keys",
+      "Windows and Linux test-only pre-action semantic harnesses"
+    ],
+    "result": "partial; RPS-012 remains pending",
+    "limitations": [
+      "The production protected-service implementation was not installed on Windows or Linux, so process-enforced service execution was not tested; only its unavailable/not-run classification was observed.",
+      "macOS has no verified native service/confinement run in this pass. Cross-platform source compilation is not a macOS runtime test.",
+      "Native Landlock probe evidence is distinct from production protected-service installation, operator authorization and end-to-end service enforcement."
+    ],
+    "cleanup": "Disposable repository fixtures and test credentials were removed by their test cleanup paths; no production credentials or protected repositories were used."
+  }
+}
