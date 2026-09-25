@@ -1,0 +1,35 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20260925-181439-074-rps006-install-identity",
+  "timestamp": "2026-09-25T18:14:39Z",
+  "work_item": "074",
+  "result": "passed",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "Inspect installed candidate distribution metadata, package version, CLI --version, EngineClient handshake and bundled engine identity",
+      "exit_code": 0,
+      "summary": "Distribution name and CLI identity are repopact; distribution/package/CLI/engine handshake all report 3.1.3.dev1, valid=true. Bundled engine hash matches the standalone Cargo engine."
+    },
+    {
+      "command": "Run focused tests.test_engine_client and tests.test_cli_version against installed candidate engine",
+      "exit_code": 0,
+      "summary": "10 tests passed, including protocol/product mismatch rejection, missing-engine no-fallback, and governed package-version output."
+    },
+    {
+      "command": "Set REPOPACT_ENGINE to installed stable 3.1.3 engine and invoke candidate 3.1.3.dev1 validation",
+      "exit_code": 1,
+      "summary": "Candidate failed closed as required with a Rust engine product-version mismatch ('3.1.3' != '3.1.3.dev1'); no fallback occurred. This is an intentional negative compatibility test, not an unresolved release-version mismatch."
+    }
+  ],
+  "artifacts": [],
+  "environment": {
+    "coding_model": "GPT-5",
+    "os": "Windows x64",
+    "source_commit": "e806b48479e17d20c053bc176774cd1185aa99c5",
+    "identity_contract": "VERSION=3.1.3; RELEASE_LABEL=3.1.3-dev.1; PEP 440 distribution/candidate CLI/engine product identity=3.1.3.dev1",
+    "stable_oracle_version": "3.1.3",
+    "candidate_version": "3.1.3.dev1",
+    "interpretation": "The stable release base plus the governed development release label intentionally yields the next development identity. All candidate components agree; stable/candidate engine mixing is rejected."
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20260925-181439-074-rps014-conformance",
+  "timestamp": "2026-09-25T18:14:39Z",
+  "work_item": "074",
+  "result": "passed",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "python -m repopact.run_conformance --command '<installed candidate repopact.exe> validate --root {repo}' --legacy-python (candidate engine explicitly selected through REPOPACT_ENGINE)",
+      "exit_code": 0,
+      "summary": "Frozen 3.1.3 conformance fixture oracle: 37/37 passed. Rust canonical validator and Python compatibility comparator produced no mismatches."
+    },
+    {
+      "command": "Run WI050 admission conformance corpus through the candidate engine",
+      "exit_code": 0,
+      "summary": "All 8/8 admission vectors passed."
+    },
+    {
+      "command": "Run full Python unittest discovery with candidate engine pinned",
+      "exit_code": 0,
+      "summary": "373 passed, 0 failed, 4 skipped; includes conformance manifest/coverage and validator regression checks."
+    }
+  ],
+  "artifacts": [
+    "evidence/WI074-core-compatibility/20260925-stable-cli-inventory.json"
+  ],
+  "environment": {
+    "coding_model": "GPT-5",
+    "os": "Windows x64",
+    "source_commit": "e806b48479e17d20c053bc176774cd1185aa99c5",
+    "candidate": "repopact 3.1.3.dev1 standalone Core wheel and native engine",
+    "python_comparator": "Enabled explicitly with --legacy-python",
+    "scope": "Frozen fixture oracle, diagnostic parity, Python comparator and WI050 admission corpus",
+    "limitation": "Windows host evidence; other operating systems were not exercised in this slice."
+  }
+}

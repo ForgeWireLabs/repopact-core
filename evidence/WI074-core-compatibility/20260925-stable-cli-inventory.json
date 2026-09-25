@@ -1,0 +1,1100 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "report_id": "20260925-rps005-stable-cli-inventory",
+  "result": "passed",
+  "oracle": {
+    "distribution": "repopact",
+    "version": "3.1.3",
+    "source": "public PyPI Windows wheel",
+    "filename": "repopact-3.1.3-py3-none-win_amd64.whl",
+    "sha256": "FD4D407BC529786E51DF2970A7E3AAB128B2C239A42C53878D966A3BEE6969EB",
+    "observed_cli_version": "repopact 3.1.3"
+  },
+  "candidate": {
+    "distribution": "repopact",
+    "version": "3.1.3.dev1",
+    "source_commit": "e806b48479e17d20c053bc176774cd1185aa99c5",
+    "filename": "repopact-3.1.3.dev1-py3-none-win_amd64.whl",
+    "sha256": "E453B29BB9E32F6D597D92AE3D37A2F1FC0C2B3142365335717AF38A3BCADBC6",
+    "observed_cli_version": "repopact 3.1.3.dev1"
+  },
+  "stable_help_inventory": [
+    {
+      "path": "<root>",
+      "usage": [
+        "usage: repopact [-h] [--version]",
+        "{init,adopt,import-plan,doctor,takeover,validate,dashboard,spec,new,check-frozen,fleet-verify,release-closeout,release-build,verify,release,graph,admission,guard,work,assurance,approval}",
+        "..."
+      ],
+      "positionals": [
+        "{init,adopt,import-plan,doctor,takeover,validate,dashboard,spec,new,check-frozen,fleet-verify,release-closeout,release-build,verify,release,graph,admission,guard,work,assurance,approval}"
+      ],
+      "options": [
+        "--help",
+        "--version",
+        "-h"
+      ]
+    },
+    {
+      "path": "admission",
+      "usage": [
+        "usage: repopact admission [-h] {setup,status,begin,revoke} ..."
+      ],
+      "positionals": [
+        "{setup,status,begin,revoke}"
+      ],
+      "options": [
+        "--help",
+        "-h"
+      ]
+    },
+    {
+      "path": "admission begin",
+      "usage": [
+        "usage: repopact admission begin [-h] [--root ROOT] --work-item WORK_ITEM",
+        "--session SESSION [--profile PROFILE]",
+        "[--protected-dir PROTECTED_DIR]"
+      ],
+      "positionals": [],
+      "options": [
+        "--help",
+        "--profile PROFILE",
+        "--protected-dir PROTECTED_DIR",
+        "--root ROOT",
+        "--session SESSION",
+        "--work-item WORK_ITEM",
+        "-h"
+      ]
+    },
+    {
+      "path": "admission revoke",
+      "usage": [
+        "usage: repopact admission revoke [-h] [--root ROOT]",
+        "[--protected-dir PROTECTED_DIR]",
+        "[--key-file KEY_FILE]"
+      ],
+      "positionals": [],
+      "options": [
+        "--help",
+        "--key-file KEY_FILE",
+        "--protected-dir PROTECTED_DIR",
+        "--root ROOT",
+        "-h"
+      ]
+    },
+    {
+      "path": "admission setup",
+      "usage": [
+        "usage: repopact admission setup [-h] [--root ROOT]",
+        "[--protected-dir PROTECTED_DIR]",
+        "[--key-file KEY_FILE]"
+      ],
+      "positionals": [],
+      "options": [
+        "--help",
+        "--key-file KEY_FILE",
+        "--protected-dir PROTECTED_DIR",
+        "--root ROOT",
+        "-h"
+      ]
+    },
+    {
+      "path": "admission status",
+      "usage": [
+        "usage: repopact admission status [-h] [--root ROOT]",
+        "[--protected-dir PROTECTED_DIR]"
+      ],
+      "positionals": [],
+      "options": [
+        "--help",
+        "--protected-dir PROTECTED_DIR",
+        "--root ROOT",
+        "-h"
+      ]
+    },
+    {
+      "path": "adopt",
+      "usage": [
+        "usage: repopact adopt [-h] --target TARGET [--dry-run] [--admission]",
+        "[--key-file KEY_FILE]"
+      ],
+      "positionals": [],
+      "options": [
+        "--admission",
+        "--dry-run",
+        "--help",
+        "--key-file KEY_FILE",
+        "--target TARGET",
+        "-h"
+      ]
+    },
+    {
+      "path": "approval",
+      "usage": [
+        "usage: repopact approval [-h] {request,approve,pending,show,deny} ..."
+      ],
+      "positionals": [
+        "{request,approve,pending,show,deny}"
+      ],
+      "options": [
+        "--help",
+        "-h"
+      ]
+    },
+    {
+      "path": "approval approve",
+      "usage": [
+        "usage: repopact approval approve [-h] --request REQUEST --key-file KEY_FILE",
+        "[--output OUTPUT]",
+        "[--protected-dir PROTECTED_DIR]"
+      ],
+      "positionals": [],
+      "options": [
+        "--help",
+        "--key-file KEY_FILE",
+        "--output OUTPUT",
+        "--protected-dir PROTECTED_DIR",
+        "--request REQUEST",
+        "-h"
+      ]
+    },
+    {
+      "path": "approval deny",
+      "usage": [
+        "usage: repopact approval deny [-h] record"
+      ],
+      "positionals": [
+        "record"
+      ],
+      "options": [
+        "--help",
+        "-h"
+      ]
+    },
+    {
+      "path": "approval pending",
+      "usage": [
+        "usage: repopact approval pending [-h] [--root ROOT]"
+      ],
+      "positionals": [],
+      "options": [
+        "--help",
+        "--root ROOT",
+        "-h"
+      ]
+    },
+    {
+      "path": "approval request",
+      "usage": [
+        "usage: repopact approval request [-h] [--root ROOT] --work-item WORK_ITEM",
+        "--session SESSION [--output OUTPUT]",
+        "[--protected-dir PROTECTED_DIR]"
+      ],
+      "positionals": [],
+      "options": [
+        "--help",
+        "--output OUTPUT",
+        "--protected-dir PROTECTED_DIR",
+        "--root ROOT",
+        "--session SESSION",
+        "--work-item WORK_ITEM",
+        "-h"
+      ]
+    },
+    {
+      "path": "approval show",
+      "usage": [
+        "usage: repopact approval show [-h] record"
+      ],
+      "positionals": [
+        "record"
+      ],
+      "options": [
+        "--help",
+        "-h"
+      ]
+    },
+    {
+      "path": "assurance",
+      "usage": [
+        "usage: repopact assurance [-h] {snapshot} ..."
+      ],
+      "positionals": [
+        "{snapshot}"
+      ],
+      "options": [
+        "--help",
+        "-h"
+      ]
+    },
+    {
+      "path": "assurance snapshot",
+      "usage": [
+        "usage: repopact assurance snapshot [-h] [--root ROOT] mapping_id"
+      ],
+      "positionals": [
+        "mapping_id"
+      ],
+      "options": [
+        "--help",
+        "--root ROOT",
+        "-h"
+      ]
+    },
+    {
+      "path": "check-frozen",
+      "usage": [
+        "usage: repopact check-frozen [-h] [--root ROOT] [--base BASE] [--ack]"
+      ],
+      "positionals": [],
+      "options": [
+        "--ack",
+        "--base BASE",
+        "--help",
+        "--root ROOT",
+        "-h"
+      ]
+    },
+    {
+      "path": "dashboard",
+      "usage": [
+        "usage: repopact dashboard [-h] [--root ROOT]"
+      ],
+      "positionals": [],
+      "options": [
+        "--help",
+        "--root ROOT",
+        "-h"
+      ]
+    },
+    {
+      "path": "doctor",
+      "usage": [
+        "usage: repopact doctor [-h] [--root ROOT] [--fix]"
+      ],
+      "positionals": [],
+      "options": [
+        "--fix",
+        "--help",
+        "--root ROOT",
+        "-h"
+      ]
+    },
+    {
+      "path": "fleet-verify",
+      "usage": [
+        "usage: repopact fleet-verify [-h] [--root ROOT] [--manifest MANIFEST]",
+        "[--discover-root DISCOVER_ROOT] [--json]"
+      ],
+      "positionals": [],
+      "options": [
+        "--discover-root DISCOVER_ROOT",
+        "--help",
+        "--json",
+        "--manifest MANIFEST",
+        "--root ROOT",
+        "-h"
+      ]
+    },
+    {
+      "path": "graph",
+      "usage": [
+        "usage: graph_cli.py [-h]",
+        "{status,build,verify,update,disable,reconcile-merge,resolve,search,context,neighbors,path,dependencies,dependents,impact,tests,governance,orient}",
+        "..."
+      ],
+      "positionals": [
+        "{status,build,verify,update,disable,reconcile-merge,resolve,search,context,neighbors,path,dependencies,dependents,impact,tests,governance,orient}"
+      ],
+      "options": [
+        "--help",
+        "-h"
+      ]
+    },
+    {
+      "path": "graph build",
+      "usage": [
+        "usage: graph_cli.py build [-h] [--root ROOT] [--json]"
+      ],
+      "positionals": [],
+      "options": [
+        "--help",
+        "--json",
+        "--root ROOT",
+        "-h"
+      ]
+    },
+    {
+      "path": "graph context",
+      "usage": [
+        "usage: graph_cli.py context [-h] [--root ROOT] [--json]",
+        "[--max-nodes MAX_NODES] [--max-edges MAX_EDGES]",
+        "[--max-depth MAX_DEPTH] [--page-size PAGE_SIZE]",
+        "[--cursor CURSOR] [--compact] [--allow-stale]",
+        "(--id ID | --path PATH | --work-item WORK_ITEM | --package PACKAGE | --module MODULE | --symbol SYMBOL)",
+        "[--symbol-path SYMBOL_PATH]"
+      ],
+      "positionals": [],
+      "options": [
+        "--allow-stale",
+        "--compact",
+        "--cursor CURSOR",
+        "--help",
+        "--id ID",
+        "--json",
+        "--max-depth MAX_DEPTH",
+        "--max-edges MAX_EDGES",
+        "--max-nodes MAX_NODES",
+        "--module MODULE",
+        "--package PACKAGE",
+        "--page-size PAGE_SIZE",
+        "--path PATH",
+        "--root ROOT",
+        "--symbol SYMBOL",
+        "--symbol-path SYMBOL_PATH",
+        "--work-item WORK_ITEM",
+        "-h"
+      ]
+    },
+    {
+      "path": "graph dependencies",
+      "usage": [
+        "usage: graph_cli.py dependencies [-h] [--root ROOT] [--json]",
+        "[--max-nodes MAX_NODES]",
+        "[--max-edges MAX_EDGES]",
+        "[--max-depth MAX_DEPTH]",
+        "[--page-size PAGE_SIZE] [--cursor CURSOR]",
+        "[--compact] [--allow-stale]",
+        "(--id ID | --path PATH | --work-item WORK_ITEM | --package PACKAGE | --module MODULE | --symbol SYMBOL)",
+        "[--symbol-path SYMBOL_PATH] [--transitive]"
+      ],
+      "positionals": [],
+      "options": [
+        "--allow-stale",
+        "--compact",
+        "--cursor CURSOR",
+        "--help",
+        "--id ID",
+        "--json",
+        "--max-depth MAX_DEPTH",
+        "--max-edges MAX_EDGES",
+        "--max-nodes MAX_NODES",
+        "--module MODULE",
+        "--package PACKAGE",
+        "--page-size PAGE_SIZE",
+        "--path PATH",
+        "--root ROOT",
+        "--symbol SYMBOL",
+        "--symbol-path SYMBOL_PATH",
+        "--transitive",
+        "--work-item WORK_ITEM",
+        "-h"
+      ]
+    },
+    {
+      "path": "graph dependents",
+      "usage": [
+        "usage: graph_cli.py dependents [-h] [--root ROOT] [--json]",
+        "[--max-nodes MAX_NODES] [--max-edges MAX_EDGES]",
+        "[--max-depth MAX_DEPTH] [--page-size PAGE_SIZE]",
+        "[--cursor CURSOR] [--compact] [--allow-stale]",
+        "(--id ID | --path PATH | --work-item WORK_ITEM | --package PACKAGE | --module MODULE | --symbol SYMBOL)",
+        "[--symbol-path SYMBOL_PATH]"
+      ],
+      "positionals": [],
+      "options": [
+        "--allow-stale",
+        "--compact",
+        "--cursor CURSOR",
+        "--help",
+        "--id ID",
+        "--json",
+        "--max-depth MAX_DEPTH",
+        "--max-edges MAX_EDGES",
+        "--max-nodes MAX_NODES",
+        "--module MODULE",
+        "--package PACKAGE",
+        "--page-size PAGE_SIZE",
+        "--path PATH",
+        "--root ROOT",
+        "--symbol SYMBOL",
+        "--symbol-path SYMBOL_PATH",
+        "--work-item WORK_ITEM",
+        "-h"
+      ]
+    },
+    {
+      "path": "graph disable",
+      "usage": [
+        "usage: graph_cli.py disable [-h] [--root ROOT] [--json]"
+      ],
+      "positionals": [],
+      "options": [
+        "--help",
+        "--json",
+        "--root ROOT",
+        "-h"
+      ]
+    },
+    {
+      "path": "graph governance",
+      "usage": [
+        "usage: graph_cli.py governance [-h] [--root ROOT] [--json]",
+        "[--max-nodes MAX_NODES] [--max-edges MAX_EDGES]",
+        "[--max-depth MAX_DEPTH] [--page-size PAGE_SIZE]",
+        "[--cursor CURSOR] [--compact] [--allow-stale]",
+        "(--id ID | --path PATH | --work-item WORK_ITEM | --package PACKAGE | --module MODULE | --symbol SYMBOL)",
+        "[--symbol-path SYMBOL_PATH]"
+      ],
+      "positionals": [],
+      "options": [
+        "--allow-stale",
+        "--compact",
+        "--cursor CURSOR",
+        "--help",
+        "--id ID",
+        "--json",
+        "--max-depth MAX_DEPTH",
+        "--max-edges MAX_EDGES",
+        "--max-nodes MAX_NODES",
+        "--module MODULE",
+        "--package PACKAGE",
+        "--page-size PAGE_SIZE",
+        "--path PATH",
+        "--root ROOT",
+        "--symbol SYMBOL",
+        "--symbol-path SYMBOL_PATH",
+        "--work-item WORK_ITEM",
+        "-h"
+      ]
+    },
+    {
+      "path": "graph impact",
+      "usage": [
+        "usage: graph_cli.py impact [-h] [--root ROOT] [--json] [--max-nodes MAX_NODES]",
+        "[--max-edges MAX_EDGES] [--max-depth MAX_DEPTH]",
+        "[--page-size PAGE_SIZE] [--cursor CURSOR]",
+        "[--compact] [--allow-stale]",
+        "(--id ID | --path PATH | --work-item WORK_ITEM | --package PACKAGE | --module MODULE | --symbol SYMBOL)",
+        "[--symbol-path SYMBOL_PATH]"
+      ],
+      "positionals": [],
+      "options": [
+        "--allow-stale",
+        "--compact",
+        "--cursor CURSOR",
+        "--help",
+        "--id ID",
+        "--json",
+        "--max-depth MAX_DEPTH",
+        "--max-edges MAX_EDGES",
+        "--max-nodes MAX_NODES",
+        "--module MODULE",
+        "--package PACKAGE",
+        "--page-size PAGE_SIZE",
+        "--path PATH",
+        "--root ROOT",
+        "--symbol SYMBOL",
+        "--symbol-path SYMBOL_PATH",
+        "--work-item WORK_ITEM",
+        "-h"
+      ]
+    },
+    {
+      "path": "graph neighbors",
+      "usage": [
+        "usage: graph_cli.py neighbors [-h] [--root ROOT] [--json]",
+        "[--max-nodes MAX_NODES] [--max-edges MAX_EDGES]",
+        "[--max-depth MAX_DEPTH] [--page-size PAGE_SIZE]",
+        "[--cursor CURSOR] [--compact] [--allow-stale]",
+        "(--id ID | --path PATH | --work-item WORK_ITEM | --package PACKAGE | --module MODULE | --symbol SYMBOL)",
+        "[--symbol-path SYMBOL_PATH]",
+        "[--direction {outgoing,incoming,both}]"
+      ],
+      "positionals": [],
+      "options": [
+        "--allow-stale",
+        "--compact",
+        "--cursor CURSOR",
+        "--direction {outgoing",
+        "--help",
+        "--id ID",
+        "--json",
+        "--max-depth MAX_DEPTH",
+        "--max-edges MAX_EDGES",
+        "--max-nodes MAX_NODES",
+        "--module MODULE",
+        "--package PACKAGE",
+        "--page-size PAGE_SIZE",
+        "--path PATH",
+        "--root ROOT",
+        "--symbol SYMBOL",
+        "--symbol-path SYMBOL_PATH",
+        "--work-item WORK_ITEM",
+        "-h"
+      ]
+    },
+    {
+      "path": "graph orient",
+      "usage": [
+        "usage: graph_cli.py orient [-h] [--root ROOT] [--json] [--max-nodes MAX_NODES]",
+        "[--max-edges MAX_EDGES] [--max-depth MAX_DEPTH]",
+        "[--page-size PAGE_SIZE] [--cursor CURSOR]",
+        "[--compact] [--allow-stale]",
+        "(--id ID | --path PATH | --work-item WORK_ITEM | --package PACKAGE | --module MODULE | --symbol SYMBOL)",
+        "[--symbol-path SYMBOL_PATH]"
+      ],
+      "positionals": [],
+      "options": [
+        "--allow-stale",
+        "--compact",
+        "--cursor CURSOR",
+        "--help",
+        "--id ID",
+        "--json",
+        "--max-depth MAX_DEPTH",
+        "--max-edges MAX_EDGES",
+        "--max-nodes MAX_NODES",
+        "--module MODULE",
+        "--package PACKAGE",
+        "--page-size PAGE_SIZE",
+        "--path PATH",
+        "--root ROOT",
+        "--symbol SYMBOL",
+        "--symbol-path SYMBOL_PATH",
+        "--work-item WORK_ITEM",
+        "-h"
+      ]
+    },
+    {
+      "path": "graph path",
+      "usage": [
+        "usage: graph_cli.py path [-h] [--root ROOT] [--json] [--max-nodes MAX_NODES]",
+        "[--max-edges MAX_EDGES] [--max-depth MAX_DEPTH]",
+        "[--page-size PAGE_SIZE] [--cursor CURSOR] [--compact]",
+        "[--allow-stale]",
+        "(--from-id FROM_ID | --from-path FROM_PATH | --from-work-item FROM_WORK_ITEM | --from-package FROM_PACKAGE | --from-module FROM_MODULE | --from-symbol FROM_SYMBOL)",
+        "[--from-symbol-path FROM_SYMBOL_PATH]",
+        "(--to-id TO_ID | --to-path TO_PATH | --to-work-item TO_WORK_ITEM | --to-package TO_PACKAGE | --to-module TO_MODULE | --to-symbol TO_SYMBOL)",
+        "[--to-symbol-path TO_SYMBOL_PATH]"
+      ],
+      "positionals": [],
+      "options": [
+        "--allow-stale",
+        "--compact",
+        "--cursor CURSOR",
+        "--from-id FROM_ID",
+        "--from-module FROM_MODULE",
+        "--from-package FROM_PACKAGE",
+        "--from-path FROM_PATH",
+        "--from-symbol FROM_SYMBOL",
+        "--from-symbol-path FROM_SYMBOL_PATH",
+        "--from-work-item FROM_WORK_ITEM",
+        "--help",
+        "--json",
+        "--max-depth MAX_DEPTH",
+        "--max-edges MAX_EDGES",
+        "--max-nodes MAX_NODES",
+        "--page-size PAGE_SIZE",
+        "--root ROOT",
+        "--to-id TO_ID",
+        "--to-module TO_MODULE",
+        "--to-package TO_PACKAGE",
+        "--to-path TO_PATH",
+        "--to-symbol TO_SYMBOL",
+        "--to-symbol-path TO_SYMBOL_PATH",
+        "--to-work-item TO_WORK_ITEM",
+        "-h"
+      ]
+    },
+    {
+      "path": "graph reconcile-merge",
+      "usage": [
+        "usage: graph_cli.py reconcile-merge [-h] [--root ROOT] [--json]"
+      ],
+      "positionals": [],
+      "options": [
+        "--help",
+        "--json",
+        "--root ROOT",
+        "-h"
+      ]
+    },
+    {
+      "path": "graph resolve",
+      "usage": [
+        "usage: graph_cli.py resolve [-h] [--root ROOT] [--json]",
+        "[--max-nodes MAX_NODES] [--max-edges MAX_EDGES]",
+        "[--max-depth MAX_DEPTH] [--page-size PAGE_SIZE]",
+        "[--cursor CURSOR] [--compact] [--allow-stale]",
+        "(--id ID | --path PATH | --work-item WORK_ITEM | --package PACKAGE | --module MODULE | --symbol SYMBOL)",
+        "[--symbol-path SYMBOL_PATH]"
+      ],
+      "positionals": [],
+      "options": [
+        "--allow-stale",
+        "--compact",
+        "--cursor CURSOR",
+        "--help",
+        "--id ID",
+        "--json",
+        "--max-depth MAX_DEPTH",
+        "--max-edges MAX_EDGES",
+        "--max-nodes MAX_NODES",
+        "--module MODULE",
+        "--package PACKAGE",
+        "--page-size PAGE_SIZE",
+        "--path PATH",
+        "--root ROOT",
+        "--symbol SYMBOL",
+        "--symbol-path SYMBOL_PATH",
+        "--work-item WORK_ITEM",
+        "-h"
+      ]
+    },
+    {
+      "path": "graph search",
+      "usage": [
+        "usage: graph_cli.py search [-h] [--root ROOT] [--json] [--max-nodes MAX_NODES]",
+        "[--max-edges MAX_EDGES] [--max-depth MAX_DEPTH]",
+        "[--page-size PAGE_SIZE] [--cursor CURSOR]",
+        "[--compact] [--allow-stale]",
+        "text"
+      ],
+      "positionals": [
+        "text"
+      ],
+      "options": [
+        "--allow-stale",
+        "--compact",
+        "--cursor CURSOR",
+        "--help",
+        "--json",
+        "--max-depth MAX_DEPTH",
+        "--max-edges MAX_EDGES",
+        "--max-nodes MAX_NODES",
+        "--page-size PAGE_SIZE",
+        "--root ROOT",
+        "-h"
+      ]
+    },
+    {
+      "path": "graph status",
+      "usage": [
+        "usage: graph_cli.py status [-h] [--root ROOT] [--json]"
+      ],
+      "positionals": [],
+      "options": [
+        "--help",
+        "--json",
+        "--root ROOT",
+        "-h"
+      ]
+    },
+    {
+      "path": "graph tests",
+      "usage": [
+        "usage: graph_cli.py tests [-h] [--root ROOT] [--json] [--max-nodes MAX_NODES]",
+        "[--max-edges MAX_EDGES] [--max-depth MAX_DEPTH]",
+        "[--page-size PAGE_SIZE] [--cursor CURSOR]",
+        "[--compact] [--allow-stale]",
+        "(--id ID | --path PATH | --work-item WORK_ITEM | --package PACKAGE | --module MODULE | --symbol SYMBOL)",
+        "[--symbol-path SYMBOL_PATH]"
+      ],
+      "positionals": [],
+      "options": [
+        "--allow-stale",
+        "--compact",
+        "--cursor CURSOR",
+        "--help",
+        "--id ID",
+        "--json",
+        "--max-depth MAX_DEPTH",
+        "--max-edges MAX_EDGES",
+        "--max-nodes MAX_NODES",
+        "--module MODULE",
+        "--package PACKAGE",
+        "--page-size PAGE_SIZE",
+        "--path PATH",
+        "--root ROOT",
+        "--symbol SYMBOL",
+        "--symbol-path SYMBOL_PATH",
+        "--work-item WORK_ITEM",
+        "-h"
+      ]
+    },
+    {
+      "path": "graph update",
+      "usage": [
+        "usage: graph_cli.py update [-h] [--root ROOT] [--json]"
+      ],
+      "positionals": [],
+      "options": [
+        "--help",
+        "--json",
+        "--root ROOT",
+        "-h"
+      ]
+    },
+    {
+      "path": "graph verify",
+      "usage": [
+        "usage: graph_cli.py verify [-h] [--root ROOT] [--json]"
+      ],
+      "positionals": [],
+      "options": [
+        "--help",
+        "--json",
+        "--root ROOT",
+        "-h"
+      ]
+    },
+    {
+      "path": "guard",
+      "usage": [
+        "usage: repopact guard [-h] {install,status,register,uninstall} ..."
+      ],
+      "positionals": [
+        "{install,status,register,uninstall}"
+      ],
+      "options": [
+        "--help",
+        "-h"
+      ]
+    },
+    {
+      "path": "guard install",
+      "usage": [
+        "usage: repopact guard install [-h] [--root ROOT] [--interpreter INTERPRETER]",
+        "[--preflight]"
+      ],
+      "positionals": [],
+      "options": [
+        "--help",
+        "--interpreter INTERPRETER",
+        "--preflight",
+        "--root ROOT",
+        "-h"
+      ]
+    },
+    {
+      "path": "guard register",
+      "usage": [
+        "usage: repopact guard register [-h] [--root ROOT] --key-file KEY_FILE",
+        "[--protected-dir PROTECTED_DIR]"
+      ],
+      "positionals": [],
+      "options": [
+        "--help",
+        "--key-file KEY_FILE",
+        "--protected-dir PROTECTED_DIR",
+        "--root ROOT",
+        "-h"
+      ]
+    },
+    {
+      "path": "guard status",
+      "usage": [
+        "usage: repopact guard status [-h] [--root ROOT] [--json]"
+      ],
+      "positionals": [],
+      "options": [
+        "--help",
+        "--json",
+        "--root ROOT",
+        "-h"
+      ]
+    },
+    {
+      "path": "guard uninstall",
+      "usage": [
+        "usage: repopact guard uninstall [-h] [--root ROOT]"
+      ],
+      "positionals": [],
+      "options": [
+        "--help",
+        "--root ROOT",
+        "-h"
+      ]
+    },
+    {
+      "path": "import-plan",
+      "usage": [
+        "usage: repopact import-plan [-h] [--root ROOT] [--dry-run] [--issues]"
+      ],
+      "positionals": [],
+      "options": [
+        "--dry-run",
+        "--help",
+        "--issues",
+        "--root ROOT",
+        "-h"
+      ]
+    },
+    {
+      "path": "init",
+      "usage": [
+        "usage: repopact init [-h] --target TARGET [--admission] [--key-file KEY_FILE]"
+      ],
+      "positionals": [],
+      "options": [
+        "--admission",
+        "--help",
+        "--key-file KEY_FILE",
+        "--target TARGET",
+        "-h"
+      ]
+    },
+    {
+      "path": "new",
+      "usage": [
+        "usage: repopact new [-h] [--root ROOT]",
+        "[--status {proposed,active,blocked,deferred,completed}]",
+        "{work-item,decision,policy} title"
+      ],
+      "positionals": [
+        "title",
+        "{work-item,decision,policy}"
+      ],
+      "options": [
+        "--help",
+        "--root ROOT",
+        "--status {proposed",
+        "-h"
+      ]
+    },
+    {
+      "path": "release",
+      "usage": [
+        "usage: release_local.py [-h] {verify,build,inspect,publish,readiness} ..."
+      ],
+      "positionals": [
+        "{verify,build,inspect,publish,readiness}"
+      ],
+      "options": [
+        "--help",
+        "-h"
+      ]
+    },
+    {
+      "path": "release build",
+      "usage": [
+        "usage: release_local.py build [-h] [--root ROOT] --outdir OUTDIR",
+        "[--revision REVISION] [--skip-verify] [--json]"
+      ],
+      "positionals": [],
+      "options": [
+        "--help",
+        "--json",
+        "--outdir OUTDIR",
+        "--revision REVISION",
+        "--root ROOT",
+        "--skip-verify",
+        "-h"
+      ]
+    },
+    {
+      "path": "release inspect",
+      "usage": [
+        "usage: release_local.py inspect [-h] --dist DIST [--json]"
+      ],
+      "positionals": [],
+      "options": [
+        "--dist DIST",
+        "--help",
+        "--json",
+        "-h"
+      ]
+    },
+    {
+      "path": "release publish",
+      "usage": [
+        "usage: release_local.py publish [-h] --dist DIST",
+        "[--repository-url REPOSITORY_URL]",
+        "[--confirm-publish] [--dry-run] [--json]"
+      ],
+      "positionals": [],
+      "options": [
+        "--confirm-publish",
+        "--dist DIST",
+        "--dry-run",
+        "--help",
+        "--json",
+        "--repository-url REPOSITORY_URL",
+        "-h"
+      ]
+    },
+    {
+      "path": "release readiness",
+      "usage": [
+        "usage: release_local.py readiness [-h] --evidence EVIDENCE [EVIDENCE ...]",
+        "[--json]"
+      ],
+      "positionals": [],
+      "options": [
+        "--evidence EVIDENCE [EVIDENCE ...]",
+        "--help",
+        "--json",
+        "-h"
+      ]
+    },
+    {
+      "path": "release verify",
+      "usage": [
+        "usage: release_local.py verify [-h] [--root ROOT] [--json]"
+      ],
+      "positionals": [],
+      "options": [
+        "--help",
+        "--json",
+        "--root ROOT",
+        "-h"
+      ]
+    },
+    {
+      "path": "release-build",
+      "usage": [
+        "usage: repopact release-build [-h] [--root ROOT] --outdir OUTDIR",
+        "[--revision REVISION]"
+      ],
+      "positionals": [],
+      "options": [
+        "--help",
+        "--outdir OUTDIR",
+        "--revision REVISION",
+        "--root ROOT",
+        "-h"
+      ]
+    },
+    {
+      "path": "release-closeout",
+      "usage": [
+        "usage: repopact release-closeout [-h] [--root ROOT] [--manifest MANIFEST]",
+        "[--discover-root DISCOVER_ROOT]",
+        "[--package-evidence PACKAGE_EVIDENCE]",
+        "[--json]"
+      ],
+      "positionals": [],
+      "options": [
+        "--discover-root DISCOVER_ROOT",
+        "--help",
+        "--json",
+        "--manifest MANIFEST",
+        "--package-evidence PACKAGE_EVIDENCE",
+        "--root ROOT",
+        "-h"
+      ]
+    },
+    {
+      "path": "spec",
+      "usage": [
+        "usage: repopact spec [-h] [--root ROOT]"
+      ],
+      "positionals": [],
+      "options": [
+        "--help",
+        "--root ROOT",
+        "-h"
+      ]
+    },
+    {
+      "path": "takeover",
+      "usage": [
+        "usage: repopact takeover [-h] [--root ROOT] [--delete] [--dry-run]"
+      ],
+      "positionals": [],
+      "options": [
+        "--delete",
+        "--dry-run",
+        "--help",
+        "--root ROOT",
+        "-h"
+      ]
+    },
+    {
+      "path": "validate",
+      "usage": [
+        "usage: repopact validate [-h] [--root ROOT]"
+      ],
+      "positionals": [],
+      "options": [
+        "--help",
+        "--root ROOT",
+        "-h"
+      ]
+    },
+    {
+      "path": "verify",
+      "usage": [
+        "usage: verify_cli.py [-h] [--root ROOT] [--json] [--evidence-work-item ID]",
+        "[--evidence-id EVIDENCE_ID]",
+        "[profile]"
+      ],
+      "positionals": [
+        "profile"
+      ],
+      "options": [
+        "--evidence-id EVIDENCE_ID",
+        "--evidence-work-item ID",
+        "--help",
+        "--json",
+        "--root ROOT",
+        "-h"
+      ]
+    },
+    {
+      "path": "work",
+      "usage": [
+        "usage: repopact work [-h] {propose,amend-proposal} ..."
+      ],
+      "positionals": [
+        "{propose,amend-proposal}"
+      ],
+      "options": [
+        "--help",
+        "-h"
+      ]
+    },
+    {
+      "path": "work amend-proposal",
+      "usage": [
+        "usage: repopact work amend-proposal [-h] [--root ROOT] work_item title"
+      ],
+      "positionals": [
+        "title",
+        "work_item"
+      ],
+      "options": [
+        "--help",
+        "--root ROOT",
+        "-h"
+      ]
+    },
+    {
+      "path": "work propose",
+      "usage": [
+        "usage: repopact work propose [-h] [--root ROOT] title"
+      ],
+      "positionals": [
+        "title"
+      ],
+      "options": [
+        "--help",
+        "--root ROOT",
+        "-h"
+      ]
+    }
+  ],
+  "comparison": {
+    "stable_path_count": 60,
+    "candidate_path_count": 60,
+    "stable_inventory_sha256": "34cdc87f0862543925acf6a89ec886a8fc31374c866466d9bf5fec0f492dd5e8",
+    "candidate_inventory_sha256": "34cdc87f0862543925acf6a89ec886a8fc31374c866466d9bf5fec0f492dd5e8",
+    "stable_only_paths": [],
+    "candidate_only_paths": [],
+    "stable_missing_from_candidate": [],
+    "candidate_added_options": [],
+    "help_output_differences": []
+  },
+  "method": "Invoked --help on both installed console scripts from an external directory. Collected root and top-level command help plus one level of each supported nested command group; the inventory includes invocation path, usage, positional arguments and options. No recursive inference from free-form argument choices."
+}

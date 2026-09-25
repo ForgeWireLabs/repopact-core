@@ -1,0 +1,36 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20260925-181439-074-rps005-cli-compatibility",
+  "timestamp": "2026-09-25T18:14:39Z",
+  "work_item": "074",
+  "result": "passed",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "Install public PyPI repopact==3.1.3 and candidate wheel into separate fresh virtual environments; invoke both console scripts from an external directory",
+      "exit_code": 0,
+      "summary": "Oracle imports resolved exclusively to its installed 3.1.3 wheel; candidate imports resolved exclusively to the installed 3.1.3.dev1 wheel."
+    },
+    {
+      "command": "Collect root and supported nested --help surfaces for stable and candidate CLIs; compare normalized machine-readable inventory",
+      "exit_code": 0,
+      "summary": "All 60 stable help paths are present in the candidate; no candidate-only or missing paths, options, positionals or help-output differences. Both normalized inventory SHA-256 values are 34cdc87f0862543925acf6a89ec886a8fc31374c866466d9bf5fec0f492dd5e8."
+    },
+    {
+      "command": "Run installed stable/candidate init, validate, dashboard, --root/--target paths containing spaces, invalid-root and unknown-command smoke cases in disposable external repositories",
+      "exit_code": 0,
+      "summary": "Command exit codes and validation diagnostics matched for exercised cases; both dashboards were byte-idempotent across repeat generation."
+    }
+  ],
+  "artifacts": [
+    "evidence/WI074-core-compatibility/20260925-stable-cli-inventory.json"
+  ],
+  "environment": {
+    "coding_model": "GPT-5",
+    "os": "Windows x64",
+    "stable_oracle": "Public PyPI repopact 3.1.3 Windows wheel; SHA-256 FD4D407BC529786E51DF2970A7E3AAB128B2C239A42C53878D966A3BEE6969EB",
+    "candidate": "Standalone Core commit e806b48479e17d20c053bc176774cd1185aa99c5; repopact 3.1.3.dev1",
+    "external_test_root": "C:\\Projects\\repopact-wi074-rps-004-005-006-014-build-20260925",
+    "limitation": "Compatibility evidence covers all collected CLI help paths and representative real command behaviors; it does not claim every command's domain behavior was exhaustively replayed."
+  }
+}
