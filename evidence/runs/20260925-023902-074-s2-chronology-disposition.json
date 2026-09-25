@@ -1,0 +1,40 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20260925-023902-074-s2-chronology-disposition",
+  "timestamp": "2026-09-25T02:39:02Z",
+  "work_item": "074",
+  "result": "passed",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "git show -s --format='%H %cI' eaae21319488cd04effe9ff0362bb8f30495a3d6",
+      "exit_code": 0,
+      "summary": "Confirmed the S2 Core extraction commit and its original 2026-09-24T19:58:30Z commit time."
+    },
+    {
+      "command": "git show -s --format='%H %cI' 6aff2c376efb5ddf236bd11cd1d700f873ec6a4f",
+      "exit_code": 0,
+      "summary": "Confirmed the S2 source-map correction commit and its original 2026-09-24T20:31:40Z commit time."
+    },
+    {
+      "command": "Read the unchanged WI074 preflight marker, architecture approval evidence, and decision 0073",
+      "exit_code": 0,
+      "summary": "Verified registration preceded S2; architecture approval came later and authorized prospective S3 only."
+    }
+  ],
+  "artifacts": [
+    "decisions/0073-wi074-s2-pre-activation-chronology.md",
+    "decisions/0074-wi074-s2-pre-activation-deviation-disposition.md",
+    "evidence/runs/20260924-074-s2-chronology.json",
+    "evidence/runs/20260924-213154-074-architecture-approval.json"
+  ],
+  "environment": {
+    "coding_model": "GPT-5",
+    "governance_checkout": "[local path withheld]",
+    "governance_branch": "codex/wi074-s4-1-s5-gates",
+    "base_commit": "eceba879952e830ba596ff13d410684e3ffb2afb",
+    "disposition_recorded_at_utc": "2026-09-25T02:39:02Z",
+    "s2_retroactively_authorized": false,
+    "scope": "Chronology disposition only; no S2 timestamps, commits, work-item preflight fields, or acceptance states were changed."
+  }
+}

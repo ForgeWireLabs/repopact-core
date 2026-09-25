@@ -1,0 +1,85 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20260925-074-canonical-governance-transfer",
+  "timestamp": "2026-09-25T14:19:54Z",
+  "work_item": "074",
+  "result": "blocked",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "repopact dashboard --root <isolated Core transfer worktree>",
+      "exit_code": 0,
+      "summary": "Regenerated the branch-local dashboard from the active Core WI074 record."
+    },
+    {
+      "command": "repopact validate --root <isolated Core transfer worktree>",
+      "exit_code": 1,
+      "summary": "19 errors, reproduced on the exact published baseline: one malformed inherited WI057 evidence JSON record and 18 dependent unknown-evidence diagnostics. No WI074-specific structural or decision-reference error was reported. Publication gate remains blocked."
+    },
+    {
+      "command": "repopact validate --root <detached worktree at e15fbcfa4a29e1e6df7339bfed56c15c19185f9a>",
+      "exit_code": 1,
+      "summary": "Same 19 baseline errors as the transfer candidate; establishes that the failure predates this branch."
+    },
+    {
+      "command": "repopact check-frozen --root <isolated Core transfer worktree> --base e15fbcfa4a29e1e6df7339bfed56c15c19185f9a",
+      "exit_code": 0,
+      "summary": "No frozen-surface changes detected."
+    },
+    {
+      "command": "python -m unittest discover -s tests -p test_validate_repo.py -v",
+      "exit_code": 1,
+      "summary": "156 tests: 13 failures, 62 errors, 2 skips. Tracebacks show inherited malformed WI057 evidence JSON breaks fixture repository loading and cascades into validation assertions."
+    },
+    {
+      "command": "python -m unittest discover -s tests -p test_takeover_refs.py -v",
+      "exit_code": 0,
+      "summary": "7 tests passed."
+    },
+    {
+      "command": "jsonschema.validate(WI074 work-item.json, repopact/schemas/work-item.schema.json)",
+      "exit_code": 0,
+      "summary": "Active WI074 schema-valid; 24 criteria, 5 satisfied and 19 pending; original preflight timestamp preserved."
+    },
+    {
+      "command": "SHA-256 and Git object verification for imported records and S2-S5 source snapshots",
+      "exit_code": 0,
+      "summary": "16 imported source objects and four summarized source snapshots matched the transfer manifest; zero provenance/hash discrepancies."
+    },
+    {
+      "command": "gitleaks 8.30.1 dir --redact=100 on published-baseline and transfer trees",
+      "exit_code": 1,
+      "summary": "Three detector-pattern findings in each tree. Relative-path/line comparison found zero new findings in the transfer tree. Redacted reports remain outside this repository."
+    },
+    {
+      "command": "GitHub API readback: ForgeWireLabs/repopact-core Actions permissions and workflow run count",
+      "exit_code": 0,
+      "summary": "Actions enabled=false; workflow runs=0. No workflow was triggered."
+    }
+  ],
+  "artifacts": [
+    "decisions/0075-wi074-canonical-ledger-transfer.md",
+    "decisions/0067-wi074-consolidated-architecture-and-migration-plan.md",
+    "decisions/0073-wi074-s2-pre-activation-chronology.md",
+    "decisions/0074-wi074-s2-pre-activation-deviation-disposition.md",
+    "evidence/WI074-transfer/20260925-transfer-manifest.json",
+    "evidence/WI074-transfer/20260925-s2-s5-summary.md",
+    "evidence/WI074-transfer/baseline-validation-blocker.md",
+    "evidence/WI074-transfer/next-slice.md",
+    "work/active/074-extract-repopact-core-and-independent-workbench/README.md",
+    "work/active/074-extract-repopact-core-and-independent-workbench/work-item.json",
+    "audits/reports/dashboard.md"
+  ],
+  "environment": {
+    "coding_model": "GPT-5",
+    "repository": "ForgeWireLabs/repopact-core",
+    "baseline_commit": "e15fbcfa4a29e1e6df7339bfed56c15c19185f9a",
+    "branch": "codex/wi074-canonical-transfer-20260925",
+    "repopact_cli": "3.1.3.dev1",
+    "gitleaks": "8.30.1; official Windows x64 archive digest verified",
+    "published_main_changed": false,
+    "push_attempted": false,
+    "original_dirty_checkout_or_source_repositories_modified": false,
+    "github_actions_enabled": false
+  }
+}

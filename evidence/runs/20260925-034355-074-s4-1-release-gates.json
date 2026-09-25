@@ -1,0 +1,69 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20260925-034355-074-s4-1-release-gates",
+  "timestamp": "2026-09-25T03:43:55Z",
+  "work_item": "074",
+  "result": "partial",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "gitleaks version",
+      "exit_code": 0,
+      "summary": "Official Gitleaks 8.30.1 binary installed; official release archive checksum verified."
+    },
+    {
+      "command": "gitleaks git --redact=100 --log-level=error --report-format=json <Core and Workbench inherited source histories>",
+      "exit_code": 1,
+      "summary": "Three private-key-rule marker-only false positives per inherited history; all redacted and reviewed. No actual key content identified in the reports."
+    },
+    {
+      "command": "gitleaks git/dir --redact=100 --log-level=error --report-format=json <final Core and Workbench candidates>",
+      "exit_code": 1,
+      "summary": "Final Core history/tree: three documented synthetic marker false positives each. Final Workbench history/tree: zero findings. Reports use 100 percent redaction."
+    },
+    {
+      "command": "cargo test --workspace --all-targets (final Workbench source candidate, Windows x64; debug symbols and incremental compilation disabled)",
+      "exit_code": 0,
+      "summary": "243 passed, 10 ignored, 0 failed."
+    },
+    {
+      "command": "dbus-run-session -- cargo test -p repopact-remote-provider credential_os::tests::delete_removes_the_real_os_entry -- --exact --nocapture (Debian WSL2)",
+      "exit_code": 1,
+      "summary": "Test could not access org.freedesktop.secrets; the test then aborted in its cleanup guard after deletion retries against the unavailable service. Not a pass; no credential could be written."
+    },
+    {
+      "command": "cargo metadata --format-version 1 --locked; cargo tree --workspace --locked; inspect Cargo.lock",
+      "exit_code": 0,
+      "summary": "All eight direct Core crates resolve from one HTTPS URL and exact revision e15fbcfa4a29e1e6df7339bfed56c15c19185f9a; eight lock source entries agree. The test invocation used a command-scoped rewrite to the local bare Core candidate, so public clean-clone reachability remains unproven."
+    },
+    {
+      "command": "Regenerate Workbench publication provenance from the committed Git index and verify each listed Git blob SHA-256",
+      "exit_code": 0,
+      "summary": "Corrected the candidate to 206 payload paths/207 tracked files; zero missing paths, extras, or blob-hash mismatches. Six tracked Tauri schemas are included."
+    },
+    {
+      "command": "cargo clean (Windows Workbench target); cargo clean (WSL temporary test target); git clean -fdX -- node_modules dist",
+      "exit_code": 0,
+      "summary": "Removed generated Rust targets, node_modules, dist, and the temporary WSL target. The final source candidates are clean and contain no build output."
+    }
+  ],
+  "artifacts": [
+    "evidence/WI074-transfer/20260925-s2-s5-summary.md"
+  ],
+  "environment": {
+    "coding_model": "GPT-5",
+    "windows": "Windows x64; Rust/Cargo; candidate source only",
+    "linux": "Debian WSL2; D-Bus session present; Secret Service provider absent",
+    "source_checkouts": {
+      "integrated": "8f1ce8deb139287655afcc8479dc69dd621d8720",
+      "core": "6aff2c376efb5ddf236bd11cd1d700f873ec6a4f",
+      "workbench": "5678bdb1d04f8582fcf5ddc5b3fc8cb884199342"
+    },
+    "candidates": {
+      "core": "e15fbcfa4a29e1e6df7339bfed56c15c19185f9a",
+      "workbench": "a1876b08b78f169a79597ec3099d9840ace55e06"
+    },
+    "remote_side_effects": "none; no repository, remote, push, release, Actions job, or paid service was created or invoked",
+    "disk_cleanup": "Approximately 3.2 GiB of generated build/dependency outputs were removed during this pass; about 4.8 GiB remained free after cleanup."
+  }
+}

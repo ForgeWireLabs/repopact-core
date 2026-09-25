@@ -1,0 +1,44 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20260925-041018-074-s4-1-governance-validation",
+  "timestamp": "2026-09-25T04:10:18Z",
+  "work_item": "074",
+  "result": "passed",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "[local path withheld] dashboard --root [local path withheld]",
+      "exit_code": 0,
+      "summary": "Regenerated the derived dashboard from the authoritative work item, decision, and evidence records."
+    },
+    {
+      "command": "[local path withheld] validate --root [local path withheld]",
+      "exit_code": 0,
+      "summary": "Canonical repository governance validation passed."
+    },
+    {
+      "command": "[local path withheld] check-frozen --root [local path withheld] --base eceba879952e830ba596ff13d410684e3ffb2afb",
+      "exit_code": 0,
+      "summary": "No frozen-surface changes detected."
+    },
+    {
+      "command": "[local path withheld] -m unittest discover -s tests -v",
+      "exit_code": 0,
+      "summary": "Full RepoPact Python suite: 373 tests run, 0 failures/errors, 4 documented skips; 1287.023 seconds."
+    }
+  ],
+  "artifacts": [
+    "evidence/WI074-transfer/20260925-s2-s5-summary.md",
+    "decisions/0073-wi074-s2-pre-activation-chronology.md",
+    "decisions/0074-wi074-s2-pre-activation-deviation-disposition.md",
+    "work/active/074-extract-repopact-core-and-independent-workbench/work-item.json"
+  ],
+  "environment": {
+    "coding_model": "GPT-5",
+    "governance_checkout": "[local path withheld]",
+    "governance_branch": "codex/wi074-s4-1-s5-gates",
+    "base_commit": "eceba879952e830ba596ff13d410684e3ffb2afb",
+    "validator_version": "3.1.3.dev1",
+    "scope": "Local WI074 governance and evidence validation only; no source extraction checkout or remote changed."
+  }
+}

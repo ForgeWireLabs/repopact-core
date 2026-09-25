@@ -1,0 +1,63 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20260925-050555-074-s5-publication-closeout",
+  "timestamp": "2026-09-25T05:05:55Z",
+  "work_item": "074",
+  "result": "passed",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "gh repo create ForgeWireLabs/repopact-core --public; PUT /repos/ForgeWireLabs/repopact-core/actions/permissions enabled=false; read back setting; git push candidate HEAD:refs/heads/main",
+      "exit_code": 0,
+      "summary": "Created the authorized Core repository, verified Actions disabled before push, then pushed only candidate e15fbcfa4a29e1e6df7339bfed56c15c19185f9a. GitHub API ref and independent git ls-remote matched; 0 Actions runs and 0 releases."
+    },
+    {
+      "command": "gh repo create ForgeWireLabs/repopact-workbench --public; PUT /repos/ForgeWireLabs/repopact-workbench/actions/permissions enabled=false; read back setting; git push candidate HEAD:refs/heads/main",
+      "exit_code": 0,
+      "summary": "Created the authorized Workbench repository, verified Actions disabled before push, then pushed only candidate a1876b08b78f169a79597ec3099d9840ace55e06. GitHub API ref and independent git ls-remote matched; 0 Actions runs and 0 releases."
+    },
+    {
+      "command": "In isolated Debian 13 dbus-run-session with disposable GNOME Keyring: secret-tool store/lookup/clear; cargo test -p repopact-remote-provider credential_os::tests::delete_removes_the_real_os_entry -- --exact --nocapture; cargo test --workspace --all-targets --locked --quiet",
+      "exit_code": 0,
+      "summary": "Secret Service read/write/clear passed. Focused test passed 1/1. Full Linux suite passed 243, 10 intentionally ignored, 0 failed. Disposable keyring, canary, clone and targets removed."
+    },
+    {
+      "command": "From a fresh public Workbench Git clone and fresh Cargo Git cache: cargo metadata --format-version 1 --locked; cargo build --workspace --locked --quiet",
+      "exit_code": 0,
+      "summary": "Public Workbench clean-clone Linux build passed. Eight Core dependency packages resolved from the public ForgeWireLabs/repopact-core HTTPS URL at exact commit e15fbcfa4a29e1e6df7339bfed56c15c19185f9a; no local Core rewrite or checkout was available."
+    },
+    {
+      "command": "RepoPact 3.1.3 virtual-environment CLI: dashboard --root .; validate",
+      "exit_code": 0,
+      "summary": "Regenerated the derived dashboard after adding evidence and passed canonical RepoPact governance validation."
+    }
+  ],
+  "artifacts": [
+    "evidence/WI074-transfer/20260925-s2-s5-summary.md"
+  ],
+  "environment": {
+    "coding_model": "GPT-5",
+    "governance_worktree": "[local path withheld]",
+    "linux": "Debian 13 WSL2 x86_64; Rust/Cargo 1.97.1; dbus-run-session; GNOME Keyring 48.0-1; libsecret-tools 0.21.7-1",
+    "published_repositories": {
+      "core": {
+        "url": "https://github.com/ForgeWireLabs/repopact-core",
+        "main": "e15fbcfa4a29e1e6df7339bfed56c15c19185f9a",
+        "actions_enabled": false,
+        "workflow_runs": 0,
+        "releases": 0
+      },
+      "workbench": {
+        "url": "https://github.com/ForgeWireLabs/repopact-workbench",
+        "main": "a1876b08b78f169a79597ec3099d9840ace55e06",
+        "actions_enabled": false,
+        "workflow_runs": 0,
+        "releases": 0
+      }
+    },
+    "production_credentials": "none used",
+    "source_candidates": "unchanged and clean at recorded commits",
+    "financial_side_effects": "no paid services invoked; hosted Actions disabled and no runs",
+    "binary_release": "none; target-specific binary notices remain required before future executable or installer distribution"
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "id": "20260924-074-s2-chronology",
+  "timestamp": "2026-09-24T21:33:09Z",
+  "work_item": "074",
+  "result": "blocked",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "git show -s --format='%H %cI %s' eaae21319488cd04effe9ff0362bb8f30495a3d6",
+      "exit_code": 0,
+      "summary": "S2 Core extraction commit timestamp: 2026-09-24T14:58:30-05:00."
+    },
+    {
+      "command": "git show -s --format='%H %cI %s' 6aff2c376efb5ddf236bd11cd1d700f873ec6a4f",
+      "exit_code": 0,
+      "summary": "S2 source-map ownership correction timestamp: 2026-09-24T15:31:40-05:00."
+    }
+  ],
+  "artifacts": [
+    "decisions/0073-wi074-s2-pre-activation-chronology.md",
+    "evidence/runs/20260924-213154-074-architecture-approval.json",
+    "work/active/074-extract-repopact-core-and-independent-workbench/work-item.json"
+  ],
+  "environment": {
+    "formal_approval_at_utc": "2026-09-24T21:31:54Z",
+    "s2_execution_preceded_approval": true,
+    "s2_authorized_retroactively": false,
+    "required_disposition": "Operator/work-coordinator must separately determine whether corrective or audit action is required; this remains deferred and unresolved.",
+    "activation_effect": "WI074 active for prospective S3 only."
+  }
+}
