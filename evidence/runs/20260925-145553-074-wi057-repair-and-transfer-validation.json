@@ -1,0 +1,93 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20260925-145553-074-wi057-repair-and-transfer-validation",
+  "timestamp": "2026-09-25T14:55:53Z",
+  "work_item": "074",
+  "result": "passed",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "jsonschema.validate(evidence/runs/20260910-057-process-amplification-remediation.json, repopact/schemas/evidence-run.schema.json)",
+      "exit_code": 0,
+      "summary": "The repaired WI057 record parses and validates; its historical ID, 2026-09-10 timestamp, partial result, summaries, and exit codes are unchanged."
+    },
+    {
+      "command": "repopact validate --root <isolated Core transfer worktree>",
+      "exit_code": 0,
+      "summary": "Canonical RepoPact validation passed after the serialization repair; the inherited 18 unknown-evidence errors cleared without editing dependent references."
+    },
+    {
+      "command": "python -m unittest discover -s tests -p test_validate_repo.py -v",
+      "exit_code": 0,
+      "summary": "156 tests passed; 2 documented formal-model tests skipped; 0 failures and 0 errors."
+    },
+    {
+      "command": "python -m unittest discover -s tests -p test_takeover_refs.py -v",
+      "exit_code": 0,
+      "summary": "7 tests passed."
+    },
+    {
+      "command": "repopact check-frozen --root <isolated Core transfer worktree> --base e15fbcfa4a29e1e6df7339bfed56c15c19185f9a",
+      "exit_code": 0,
+      "summary": "No frozen-surface changes detected."
+    },
+    {
+      "command": "Transfer-manifest source/destination blob SHA-256 reconciliation",
+      "exit_code": 0,
+      "summary": "All 16 imported records, 6 created records, and 4 summarized S2-S5 source snapshots matched their recorded hashes; no discrepancies."
+    },
+    {
+      "command": "gitleaks 8.30.1 git --redact=100 --log-opts=e15fbcfa4a29e1e6df7339bfed56c15c19185f9a..c84bc52",
+      "exit_code": 0,
+      "summary": "Two outgoing commits scanned; no history findings."
+    },
+    {
+      "command": "gitleaks 8.30.1 dir --redact=100 <candidate and published-baseline trees>",
+      "exit_code": 1,
+      "summary": "Three private-key detector patterns in each tree, identical rule/path/line signatures; all are pre-existing negative-test/parser material. No new findings."
+    },
+    {
+      "command": "Redacted outgoing-path disclosure review",
+      "exit_code": 0,
+      "summary": "No former-account identifier, operator home path, or private backup/bundle path found in the outgoing changes."
+    },
+    {
+      "command": "GitHub API readback: ForgeWireLabs/repopact-core Actions permissions and workflow run count",
+      "exit_code": 0,
+      "summary": "Repository Actions enabled=false; workflow runs=0. No workflow was triggered."
+    }
+  ],
+  "artifacts": [
+    "evidence/WI057-repair/20260925-143904-wi057-evidence-serialization-repair.json",
+    "evidence/runs/20260910-057-process-amplification-remediation.json",
+    "evidence/WI074-transfer/20260925-transfer-manifest.json",
+    "evidence/WI074-transfer/20260925-s2-s5-summary.md",
+    "evidence/WI074-transfer/next-slice.md",
+    "decisions/0067-wi074-consolidated-architecture-and-migration-plan.md",
+    "decisions/0068-wi074-adr-a-release-topology-and-packaging.md",
+    "decisions/0069-wi074-adr-b-immutable-rust-dependencies.md",
+    "decisions/0070-wi074-adr-c-canonical-semantic-interface.md",
+    "decisions/0071-wi074-adr-d-optional-platform-functionality.md",
+    "decisions/0072-wi074-adr-e-cross-repository-governance.md",
+    "decisions/0073-wi074-s2-pre-activation-chronology.md",
+    "decisions/0074-wi074-s2-pre-activation-deviation-disposition.md",
+    "decisions/0075-wi074-canonical-ledger-transfer.md",
+    "work/active/074-extract-repopact-core-and-independent-workbench/work-item.json",
+    "audits/reports/dashboard.md"
+  ],
+  "environment": {
+    "repository": "ForgeWireLabs/repopact-core",
+    "branch": "codex/wi074-canonical-transfer-20260925",
+    "base_commit": "e15fbcfa4a29e1e6df7339bfed56c15c19185f9a",
+    "repair_commit": "c84bc52",
+    "tested_candidate_tree": "45e92e96f9a24915a98c40d708e26d64aeaa3a75",
+    "repopact_cli": "3.1.3dev1",
+    "published_actions_enabled": false,
+    "published_workflow_runs": 0,
+    "prior_transfer_commit_preserved": "5a5d48bb6cb35ed9f7a5df389fa62efab2084d22"
+  },
+  "limitations": [
+    "The historical command's executable path remains redacted and was not recovered.",
+    "The three Gitleaks tree findings are inherited from the published baseline; the outgoing history is clean."
+  ]
+}
