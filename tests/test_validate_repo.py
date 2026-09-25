@@ -1392,17 +1392,16 @@ class RepositoryValidationTests(unittest.TestCase):
         from repopact.engine_client import EngineUnavailableError
 
         repo = self._seed_existing_repo()
+        real_client = engine_client_module.EngineClient
 
-        class _AlwaysFailsClient:
-            def call(self, *args, **kwargs):
-                raise EngineUnavailableError("simulated engine failure for this test")
+        class _GraphFailureClient(real_client):
+            def call(self, operation, **kwargs):
+                if operation.startswith("graph."):
+                    raise EngineUnavailableError("simulated graph engine failure for this test")
+                return super().call(operation, **kwargs)
 
-        real_client_cls = engine_client_module.EngineClient
-        engine_client_module.EngineClient = _AlwaysFailsClient
-        try:
+        with mock.patch.object(engine_client_module, "EngineClient", _GraphFailureClient):
             rep = adopt_repo.adopt(repo, graph=True)
-        finally:
-            engine_client_module.EngineClient = real_client_cls
 
         self.assertTrue(rep.graph_requested)
         self.assertIsNotNone(rep.graph_error)

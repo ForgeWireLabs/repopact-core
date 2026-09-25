@@ -25,6 +25,34 @@
   the Python package. WI050 admission/guard/enforcement remains protected and
   Python-owned.
 
+## 2026-09-25 WI074 semantic-authority and admission review
+
+- Re-audited packaged CLI and direct Python module entry points against WI056's
+  surface-scoped authority map. `validate_repo.main`, dashboard generation,
+  direct `new work-item`, graph queries, and typed work mutations route through
+  the versioned Rust engine; the Python validator/generator remain explicit
+  comparator and test-fixture utilities only.
+- Retained `init`, `adopt`, `import-plan`, `doctor`, and `takeover` are Python
+  workflow adapters as WI056 specifies. Mutating paths check the required
+  engine operations before the first write, use Rust for final repository
+  validation and dashboard projection, and fail closed if the engine is
+  missing, incompatible, or returns inconsistent results. `takeover` validates
+  before archiving or deleting any source.
+- Generic decision/policy template authoring remains the explicit Python-owned
+  exception recorded in WI056; public entry points require canonical engine
+  capability for dashboard projection and validate the completed repository
+  through Rust. No generic file-write or arbitrary patch operation was added.
+- WI050 admission, approval, guard, enforcement, IPC, platform, and protected
+  operator authority remains its separately governed Python/protected-provider
+  subsystem (WI056 PCC-017), not a Rust-engine fallback. Its evidence continues
+  to distinguish pre-action authorization from OS-enforced Linux Landlock
+  confinement.
+- Regression coverage rejects malformed/inconsistent engine validation and
+  mutation results, missing required capabilities, Python fallback, and
+  `takeover` side effects when canonical validation is unavailable. The current
+  Linux WSL kernel's Landlock ABI/probe is recorded separately from the
+  historical WI050 native Linux/Windows service matrices.
+
 ## 2026-09-03 WI050 opt-in provider boundary
 
 - `admission.evaluate_action` checks the adopter-owned policy before guard or

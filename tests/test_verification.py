@@ -396,7 +396,7 @@ class VerificationRunnerTests(unittest.TestCase):
         dashboard.write_bytes(b"prior dashboard content\n")
         report = verification.run_profile(root)
         with unittest.mock.patch(
-            "repopact.generate_dashboard.write_dashboard",
+            "repopact.engine_client.write_dashboard_canonically",
             side_effect=RuntimeError("simulated dashboard failure"),
         ):
             with self.assertRaises(verification.VerificationConfigError):

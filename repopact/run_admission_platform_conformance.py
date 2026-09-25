@@ -33,7 +33,7 @@ def _fixture(source: Path) -> tuple[FixtureRepo, Path, Path, Ed25519Signer]:
     return holder, root, protected, signer
 
 
-def _reference_process_matrix(fixture: Path, guard: ProtectedGuard) -> dict[str, Any]:
+def _reference_process_matrix(fixture: Path, guard: ProtectedGuard, work_id: str) -> dict[str, Any]:
     """Exercise real process-shaped attempts through the pre-action seam.
 
     These cases intentionally use the explicit testing backend. They prove
@@ -46,7 +46,7 @@ def _reference_process_matrix(fixture: Path, guard: ProtectedGuard) -> dict[str,
     before = hashlib.sha256(sentinel.read_bytes()).hexdigest()
     nested = fixture / "src" / "nested"
     nested.mkdir(parents=True, exist_ok=True)
-    action = {"kind": "process", "work_item": "050", "paths": ["src/pre-action-sentinel.txt"], "scopes": ["src"]}
+    action = {"kind": "process", "work_item": work_id, "paths": ["src/pre-action-sentinel.txt"], "scopes": ["src"]}
     launcher = LauncherAdapter(guard)
     commands: dict[str, list[str]] = {
         "python-filesystem": [sys.executable, "-c", f"open(r'{sentinel}', 'wb').write(b'changed')"],
@@ -78,7 +78,7 @@ def _reference_process_matrix(fixture: Path, guard: ProtectedGuard) -> dict[str,
         sentinel.write_bytes(b"callback\n")
 
     direct_decision, _ = pre_action.before(
-        {"kind": "mutation", "work_item": "050", "paths": ["src/pre-action-sentinel.txt"], "scopes": ["src"]},
+        {"kind": "mutation", "work_item": work_id, "paths": ["src/pre-action-sentinel.txt"], "scopes": ["src"]},
         write_callback,
     )
     return {
@@ -100,19 +100,30 @@ def run(root: Path) -> dict[str, Any]:
     backend = current_backend(root)
     holder, fixture, protected, signer = _fixture(root)
     try:
+        active_items = sorted(fixture.glob("work/active/*/work-item.json"))
+        active_record = None
+        for path in active_items:
+            candidate = json.loads(path.read_text(encoding="utf-8"))
+            if (candidate.get("status") == "active"
+                    and candidate.get("preflight", {}).get("created_before_work_started") is True):
+                active_record = candidate
+                break
+        work_id = active_record.get("id") if isinstance(active_record, dict) else None
+        if not isinstance(work_id, str) or not work_id:
+            raise RuntimeError("platform conformance fixture needs an active work item with mandatory preflight")
         guard = ProtectedGuard(fixture, protected, backend=TestingBackend(protected))
-        request = make_request(fixture, "050", "platform-session", scopes=["src"], paths=["src/a.py"], protected_dir=protected)
+        request = make_request(fixture, work_id, "platform-session", scopes=["src"], paths=["src/a.py"], protected_dir=protected)
         receipt = issue_receipt(request, signer)
         proof, lease = issue_lease(request, receipt, fixture, protected)
         cases: dict[str, bool] = {
             "service_attestation_is_explicit": backend.attest(root).record().get("testing_only") is False,
-            "no_lease_mutation_denied": evaluate_action(fixture, {"kind": "mutation", "work_item": "050", "paths": ["src/a.py"]}, protected_dir=protected).code == "NO_OPERATOR_PROOF",
-            "valid_lease_allowed": bool(proof.allowed and lease and guard.check({"kind": "mutation", "work_item": "050", "paths": ["src/a.py"], "scopes": ["src"], "session_id": "platform-session", "principal": "agent"}, lease).allowed),
-            "wrong_lease_denied": bool(lease and guard.check({"kind": "mutation", "work_item": "050", "paths": ["src/a.py"], "scopes": ["src"], "session_id": "other-session"}, lease).code == "WRONG_SESSION"),
+            "no_lease_mutation_denied": evaluate_action(fixture, {"kind": "mutation", "work_item": work_id, "paths": ["src/a.py"]}, protected_dir=protected).code == "NO_OPERATOR_PROOF",
+            "valid_lease_allowed": bool(proof.allowed and lease and guard.check({"kind": "mutation", "work_item": work_id, "paths": ["src/a.py"], "scopes": ["src"], "session_id": "platform-session", "principal": "agent"}, lease).allowed),
+            "wrong_lease_denied": bool(lease and guard.check({"kind": "mutation", "work_item": work_id, "paths": ["src/a.py"], "scopes": ["src"], "session_id": "other-session"}, lease).code == "WRONG_SESSION"),
             "expiry_or_revocation_semantics_present": bool(lease and "expires_at" in lease and "revocation_epoch" in lease),
             "guard_health_is_backend_owned": guard.health().backend_id == "testing-only-attested-backend" and guard.health().testing_only,
         }
-        process_matrix = _reference_process_matrix(fixture, guard)
+        process_matrix = _reference_process_matrix(fixture, guard, work_id)
         cases["real_subprocess_pre_action_matrix"] = bool(
             process_matrix["nested_working_directory"]
             and process_matrix["child_creation_denied"]

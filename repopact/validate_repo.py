@@ -54,14 +54,11 @@ class Problem:
 
 
 def blocking_problems(problems: list[Problem]) -> list[Problem]:
-    """Problems whose severity gates repository validity.
+    """Return error-severity findings for the explicit legacy comparator only.
 
-    Mirrors the Rust engine's ``valid = error_count == 0`` contract (Decision
-    0055): 'warning' and 'info' diagnostics are advisory -- they surface
-    potential issues or coverage limits but never make a repository invalid.
-    Every caller that decides pass/fail from ``validate_repo.validate()``
-    output must gate on this, not on the raw problem list, once any
-    non-error-severity diagnostic exists.
+    Product entry points must make pass/fail decisions through the canonical Rust
+    engine client. This helper remains for the named Python compatibility oracle
+    and historical comparator tests; it is not a fallback validation authority.
     """
     return [p for p in problems if p.severity == "error"]
 
@@ -1963,16 +1960,13 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Validate repository governance records")
     parser.add_argument("--root", type=Path, default=Path(__file__).resolve().parents[1])
     args = parser.parse_args()
-    root = args.root.resolve()
-    problems = validate(root)
-    for problem in problems:
-        print(f"{problem.severity.upper()} {problem.path.relative_to(root)}: {problem.message}")
-    blocking = blocking_problems(problems)
-    if blocking:
-        print(f"\nValidation failed with {len(blocking)} error(s).")
+    from .engine_client import EngineClient, EngineError, render_validation
+
+    try:
+        return render_validation(EngineClient().call("validate", root=args.root.resolve()))
+    except EngineError as exc:
+        print(f"Rust engine compatibility error: {exc}", file=sys.stderr)
         return 1
-    print("Repository governance validation passed.")
-    return 0
 
 
 if __name__ == "__main__":

@@ -18,7 +18,6 @@ from importlib.resources.abc import Traversable
 from pathlib import Path
 
 from . import __version__
-from . import generate_dashboard
 from . import verification
 
 HERE = Path(__file__).resolve().parent          # the installed/checked-out package
@@ -66,6 +65,8 @@ def _json(path: Path, data: object) -> None:
 
 def bootstrap(target: Path, today: date | None = None) -> Path:
     today = today or date.today()
+    from .engine_client import EngineClient
+    EngineClient().check_compatibility("dashboard.write")
     next_review = (today + timedelta(days=90)).isoformat()
     target.mkdir(parents=True, exist_ok=True)
 
@@ -155,7 +156,8 @@ def bootstrap(target: Path, today: date | None = None) -> Path:
            "# Repository\n\nBootstrapped with RepoPact. Run `repopact validate` to check "
            "the records, `python -m repopact.verify_cli governance` for the local verification profile, "
            "and `repopact dashboard` to regenerate the derived projection.\n")
-    generate_dashboard.write_dashboard(target, today=today)
+    from .engine_client import write_dashboard_canonically
+    write_dashboard_canonically(target)
     return target
 
 
@@ -164,17 +166,23 @@ def main() -> int:
     parser.add_argument("--target", type=Path, required=True)
     args = parser.parse_args()
     target = args.target.resolve()
-    bootstrap(target)
+    from .engine_client import EngineClient, EngineError, render_validation
 
-    from . import validate_repo
-
-    problems = validate_repo.validate(target)
-    blocking = validate_repo.blocking_problems(problems)
-    if blocking:
-        for problem in blocking:
-            print(f"ERROR {problem.path.relative_to(target)}: {problem.message}")
-        print(f"\nBootstrap produced an invalid repository: {len(blocking)} error(s).")
+    client = EngineClient()
+    try:
+        client.check_compatibility()
+    except EngineError as exc:
+        print(f"Rust engine compatibility error: {exc}", file=sys.stderr)
         return 1
+    bootstrap(target)
+    try:
+        result = render_validation(client.call("validate", root=target))
+    except EngineError as exc:
+        print(f"Rust engine compatibility error: {exc}", file=sys.stderr)
+        return 1
+    if result:
+        print("\nBootstrap produced an invalid repository.")
+        return result
     print(f"Bootstrapped a valid RepoPact at {target}")
     return 0
 

@@ -22,7 +22,6 @@ from datetime import date, timedelta
 from pathlib import Path
 
 from . import adopt_repo
-from . import generate_dashboard
 from . import validate_repo
 
 
@@ -302,6 +301,8 @@ def _ratchet_provisional(root: Path) -> list[str]:
 def fix(root: Path, today: date | None = None) -> list[str]:
     """Apply safe repairs. Returns a list of actions taken."""
     today = today or date.today()
+    from .engine_client import EngineClient
+    EngineClient().check_compatibility("validate", "dashboard.write")
     next_review = (today + timedelta(days=90)).isoformat()
     actions: list[str] = []
 
@@ -381,10 +382,11 @@ def fix(root: Path, today: date | None = None) -> list[str]:
 
     # 8. derived output is safe to repair because it is fully reproducible.
     dashboard = root / "audits" / "reports" / "dashboard.md"
-    expected = generate_dashboard.generate(root, today=today)
     actual = dashboard.read_text(encoding="utf-8") if dashboard.is_file() else None
-    if actual != expected:
-        generate_dashboard.write_dashboard(root, today=today)
+    from .engine_client import write_dashboard_canonically
+    write_dashboard_canonically(root)
+    updated = dashboard.read_text(encoding="utf-8") if dashboard.is_file() else None
+    if actual != updated:
         actions.append("regenerated audits/reports/dashboard.md")
 
     return actions
@@ -398,6 +400,13 @@ def main() -> int:
     root = args.root.resolve()
 
     if args.fix:
+        from .engine_client import EngineClient, EngineError
+        try:
+            engine = EngineClient()
+            engine.check_compatibility()
+        except EngineError as exc:
+            print(f"Rust engine compatibility error: {exc}", file=sys.stderr)
+            return 1
         actions = fix(root)
         if actions:
             print("repopact doctor applied:")
@@ -407,8 +416,12 @@ def main() -> int:
             print("repopact doctor: nothing to fix.")
 
     findings = diagnose(root)
-    problems = validate_repo.validate(root)
-    blocking = validate_repo.blocking_problems(problems)
+    from .engine_client import EngineClient, EngineError, render_validation
+    try:
+        validation_rc = render_validation(EngineClient().call("validate", root=root))
+    except EngineError as exc:
+        print(f"Rust engine compatibility error: {exc}", file=sys.stderr)
+        return 1
     errors = [f for f in findings if f.severity == "error"]
     warns = [f for f in findings if f.severity == "warn"]
 
@@ -416,14 +429,11 @@ def main() -> int:
         print(f"ERROR  [{f.code}] {f.message}" + ("  (fixable: --fix)" if f.fixable and not args.fix else ""))
     for f in warns:
         print(f"WARN   [{f.code}] {f.message}" + ("  (fixable: --fix)" if f.fixable and not args.fix else ""))
-    for p in problems:
-        print(f"{'INVALID' if p.severity == 'error' else p.severity.upper()} {p.path.relative_to(root)}: {p.message}")
-
-    if not errors and not warns and not blocking:
+    if not errors and not warns and validation_rc == 0:
         print("repopact doctor: healthy - no drift detected; repository validates.")
         return 0
-    print(f"\n{len(errors)} error(s), {len(warns)} warning(s), {len(blocking)} validation issue(s).")
-    return 1 if errors or blocking else 0
+    print(f"\n{len(errors)} error(s), {len(warns)} warning(s), canonical validation exit={validation_rc}.")
+    return 1 if errors or validation_rc else 0
 
 
 if __name__ == "__main__":

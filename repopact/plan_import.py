@@ -31,7 +31,6 @@ from datetime import date
 from pathlib import Path
 
 from . import adopt_repo  # reuse Report and _slug
-from . import generate_dashboard
 
 PLAN_DIR_NAMES = ("todos", "todo", "tasks", "plan", "planning", "backlog")
 CHECKLIST_FILES = ("TODO.md", "TODOS.md", "ROADMAP.md", "BACKLOG.md", "PLAN.md", "TASKS.md")
@@ -319,6 +318,9 @@ def _rewrite_narrative_links(narrative: str, source_rel: str, wi_rel: str,
 def import_plan(root: Path, today: date | None = None, dry_run: bool = False,
                 import_issues: bool = False) -> adopt_repo.Report:
     today = today or date.today()
+    if not dry_run:
+        from .engine_client import EngineClient
+        EngineClient().check_compatibility("validate", "dashboard.write")
     rep = adopt_repo.Report(dry_run)
     used_ids, used_slugs = _existing(root)
     # Pass 1: allocate ids and target work dirs for every item up front, so the
@@ -363,7 +365,8 @@ def import_plan(root: Path, today: date | None = None, dry_run: bool = False,
     from . import track_import
     track_import.import_tracking(root, rep, today)
     if not dry_run:
-        generate_dashboard.write_dashboard(root, today=today)
+        from .engine_client import write_dashboard_canonically
+        write_dashboard_canonically(root)
     return rep
 
 
@@ -393,14 +396,15 @@ def main() -> int:
     if args.dry_run:
         print("\nDry run: nothing written.")
         return 0
-    from . import validate_repo
-    problems = validate_repo.validate(root)
-    blocking = validate_repo.blocking_problems(problems)
-    if blocking:
-        for p in blocking:
-            print(f"ERROR {p.path.relative_to(root)}: {p.message}")
-        print(f"\nImport produced {len(blocking)} validation error(s).")
+    from .engine_client import EngineClient, EngineError, render_validation
+    try:
+        validation_rc = render_validation(EngineClient().call("validate", root=root))
+    except EngineError as exc:
+        print(f"Rust engine compatibility error: {exc}", file=sys.stderr)
         return 1
+    if validation_rc:
+        print("\nImport produced validation errors to resolve.")
+        return validation_rc
     print("\nwork/ ledger imported; repository validates as a conformant RepoPact.")
     return 0
 

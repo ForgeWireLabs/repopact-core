@@ -30,16 +30,32 @@ def _rust_validate(root: Path) -> int:
         return 1
 
 
+def _require_engine_compatibility() -> bool:
+    """Fail before retained Python workflows write if canonical Core is absent."""
+    from .engine_client import EngineClient, EngineError
+
+    try:
+        EngineClient().check_compatibility("validate", "dashboard.write")
+        return True
+    except EngineError as exc:
+        print(f"Rust engine compatibility error: {exc}", file=sys.stderr)
+        return False
+
+
 def _rust_mutation(root: Path, operation: str, params: dict[str, Any], label: str) -> int:
-    from .engine_client import EngineError, EngineClient
+    from .engine_client import EngineError, EngineClient, validated_mutation_result
 
     try:
         response = EngineClient().call(operation, root=root, params=params)
     except EngineError as exc:
         print(f"Rust engine compatibility error: {exc}", file=sys.stderr)
         return 1
-    result = response.get("result") or {}
-    diagnostics = response.get("diagnostics") or result.get("diagnostics") or []
+    try:
+        result = validated_mutation_result(response)
+    except EngineError as exc:
+        print(f"Rust engine returned an invalid mutation result: {exc}", file=sys.stderr)
+        return 1
+    diagnostics = result["diagnostics"]
     if not result.get("success", False):
         for diagnostic in diagnostics:
             code = diagnostic.get("code", "engine.diagnostic")
@@ -259,6 +275,8 @@ def main(argv: list[str] | None = None) -> int:
         if args.admission and args.key_file is None:
             print("init --admission requires an external --key-file and interactive operator presence", file=sys.stderr)
             return 1
+        if not _require_engine_compatibility():
+            return 1
         init_repo.bootstrap(target)
         if args.admission:
             from . import admission
@@ -276,6 +294,8 @@ def main(argv: list[str] | None = None) -> int:
         target = args.target.resolve()
         if args.admission and args.key_file is None:
             print("adopt --admission requires an external --key-file and interactive operator presence", file=sys.stderr)
+            return 1
+        if not args.dry_run and not _require_engine_compatibility():
             return 1
         rep = adopt_repo.adopt(target, dry_run=args.dry_run)
         adopt_repo._print_report(rep)
@@ -472,6 +492,8 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "doctor":
         from . import doctor
         if args.fix:
+            if not _require_engine_compatibility():
+                return 1
             for a in (doctor.fix(root) or ["nothing to fix"]):
                 print(f"  ~ {a}")
         findings = doctor.diagnose(root)
@@ -495,6 +517,8 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "import-plan":
         from . import plan_import
+        if not args.dry_run and not _require_engine_compatibility():
+            return 1
         rep = plan_import.import_plan(root, dry_run=args.dry_run, import_issues=args.issues)
         plan_import._print(rep)
         if args.dry_run:
@@ -547,7 +571,12 @@ def main(argv: list[str] | None = None) -> int:
             )
         else:
             from . import new
+            if not _require_engine_compatibility():
+                return 1
             path = new.new_markdown(args.kind, args.title, date.today(), root)
+            validation_rc = _rust_validate(root)
+            if validation_rc:
+                return validation_rc
         print(f"Created {path.relative_to(root)}")
         return 0
 

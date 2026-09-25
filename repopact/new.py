@@ -13,10 +13,9 @@ from __future__ import annotations
 import argparse
 import re
 import sys
-from datetime import date, datetime
+from datetime import date
 from pathlib import Path
 
-from . import generate_dashboard
 from . import init_repo
 from .repo_model import STATUSES
 
@@ -44,41 +43,26 @@ def _template_text(root: Path, name: str) -> str:
 
 
 def new_work_item(title: str, today: date, root: Path = ROOT, status: str = "active") -> Path:
-    if status not in STATUSES:
-        raise ValueError(f"unknown work-item status '{status}'")
-    slug = slugify(title)
-    existing = list((root / "work").glob("*/*/work-item.json"))
-    item_id = _next_numeric([p.parent for p in existing], 3, 1)
-    directory = root / "work" / status / f"{item_id}-{slug}"
-    directory.mkdir(parents=True)
-    # Mandatory preflight (decision 0021): creating the work item with `new` IS the
-    # preflight act, so stamp the marker and concrete provenance up front. No work
-    # should begin until this record exists and propagates through the pact.
-    created_at = datetime.combine(today, datetime.min.time()).isoformat() + "Z"
-    schema_root = "repopact/schemas" if (root / "repopact" / "schemas").is_dir() else "schemas"
-    manifest = {
-        "$schema": f"../../../{schema_root}/work-item.schema.json",
-        "id": item_id, "title": title, "status": status,
-        "owner_scope": "governance", "affected_scopes": [], "depends_on": [],
-        "provenance": "concrete",
-        "preflight": {
-            "created_before_work_started": True,
-            "created_at": created_at,
-            "note": "Stamped by `repopact new`; the work item was recorded before implementation began.",
-        },
-        "acceptance_criteria": [{"id": "AC-1", "text": "TODO: observable outcome", "state": "pending", "evidence": []}],
-        "created": today.isoformat(), "updated": today.isoformat(),
-    }
-    import json
-    (manifest_path := directory / "work-item.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-    (directory / "README.md").write_text(
-        _template_text(root, "work-item.README.md")
-        .replace("NNN", item_id).replace("Title Of The Work", title), encoding="utf-8")
-    generate_dashboard.write_dashboard(root, today=today)
-    return manifest_path
+    from .engine_client import EngineClient, EngineProtocolError, validated_mutation_result
+
+    response = EngineClient().call(
+        "work.create", root=root,
+        params={"title": title, "date": today.isoformat(), "status": status},
+    )
+    result = validated_mutation_result(response)
+    paths = result["changed_paths"]
+    record = next((item for item in paths if isinstance(item, str) and item.endswith("/work-item.json")), None)
+    if record is None:
+        raise EngineProtocolError("Rust engine work.create omitted the created work-item path")
+    relative = Path(record)
+    if relative.is_absolute() or ".." in relative.parts:
+        raise EngineProtocolError("Rust engine work.create returned a path outside the repository")
+    return root.resolve() / relative
 
 
 def new_markdown(kind: str, title: str, today: date, root: Path = ROOT) -> Path:
+    from .engine_client import EngineClient, write_dashboard_canonically
+    EngineClient().check_compatibility("validate", "dashboard.write")
     slug = slugify(title)
     if kind == "decision":
         directory, width, template = root / "decisions", 4, "decision.md"
@@ -91,7 +75,7 @@ def new_markdown(kind: str, title: str, today: date, root: Path = ROOT) -> Path:
     text = text.replace("Decision Title", title).replace("Policy Title", title)
     path = directory / f"{record_id}-{slug}.md"
     path.write_text(text, encoding="utf-8")
-    generate_dashboard.write_dashboard(root, today=today)
+    write_dashboard_canonically(root)
     return path
 
 
@@ -103,10 +87,18 @@ def main() -> int:
                         help="Lifecycle status for a new work item")
     args = parser.parse_args()
     today = date.today()
-    if args.kind == "work-item":
-        path = new_work_item(args.title, today, status=args.status)
-    else:
-        path = new_markdown(args.kind, args.title, today)
+    from .engine_client import EngineClient, EngineError, render_validation
+    try:
+        if args.kind == "work-item":
+            path = new_work_item(args.title, today, status=args.status)
+        else:
+            path = new_markdown(args.kind, args.title, today)
+        result = render_validation(EngineClient().call("validate", root=ROOT))
+    except EngineError as exc:
+        print(f"Rust engine compatibility error: {exc}", file=sys.stderr)
+        return 1
+    if result:
+        return result
     print(f"Created {path.relative_to(ROOT)}")
     return 0
 

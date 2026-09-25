@@ -36,11 +36,9 @@ import sys
 from datetime import date
 from pathlib import Path
 
-from . import generate_dashboard
-
 from . import adopt_repo
 from . import plan_import
-from . import validate_repo
+from .engine_client import EngineClient, EngineError, validate_repository, write_dashboard_canonically
 
 
 def _git(root: Path, args: list[str]) -> str | None:
@@ -306,11 +304,19 @@ def takeover(root: Path, delete: bool = False, dry_run: bool = False) -> dict:
     report: dict = {"validated": True, "retired": [], "skipped": [], "review": [],
                     "actions": [], "decisions": [], "downgraded": [], "blocked": []}
 
-    problems = validate_repo.validate(root)
-    blocking = validate_repo.blocking_problems(problems)
-    if blocking:
+    try:
+        EngineClient().check_compatibility("validate", "dashboard.write")
+        validation = validate_repository(root)
+    except EngineError as exc:
         report["validated"] = False
-        report["problems"] = [f"{p.path.relative_to(root)}: {p.message}" for p in blocking]
+        report["problems"] = [f"canonical Rust validation unavailable: {exc}"]
+        return report
+    if not validation["valid"]:
+        report["validated"] = False
+        report["problems"] = [
+            f"{item.get('path') or item.get('record') or '<repository>'}: {item.get('message', '')}"
+            for item in validation["diagnostics"] if item.get("severity") == "error"
+        ]
         return report
 
     archive_root = root / "archive"
@@ -369,8 +375,12 @@ def takeover(root: Path, delete: bool = False, dry_run: bool = False) -> dict:
             report["review"].append(hint)
 
     if not dry_run and report["retired"]:
-        generate_dashboard.write_dashboard(root)
-        report["post_validate_ok"] = not validate_repo.blocking_problems(validate_repo.validate(root))
+        try:
+            write_dashboard_canonically(root)
+            report["post_validate_ok"] = validate_repository(root)["valid"]
+        except EngineError as exc:
+            report["post_validate_ok"] = False
+            report["post_validate_error"] = f"canonical Rust engine failed after retirement: {exc}"
     return report
 
 
@@ -413,6 +423,8 @@ def _print(report: dict, dry_run: bool) -> int:
         print("repopact takeover: no legacy plan directories to retire.")
     if report.get("post_validate_ok") is False:
         print("\nWARNING: repository no longer validates after retirement — inspect.")
+        if report.get("post_validate_error"):
+            print(f"  {report['post_validate_error']}")
         return 1
     if not dry_run and report["retired"]:
         print(f"\nRetired {len(report['retired'])} legacy plan dir(s); repository still validates.")

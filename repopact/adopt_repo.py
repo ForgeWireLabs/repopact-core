@@ -29,7 +29,6 @@ import sys
 from datetime import date, datetime, timedelta
 from pathlib import Path
 
-from . import generate_dashboard
 from . import init_repo  # reuse _seed_dir, _json/_write semantics, LIFECYCLE
 from . import verification
 
@@ -252,6 +251,9 @@ def adopt(
     graph: bool = False,
 ) -> Report:
     today = today or date.today()
+    if not dry_run:
+        from .engine_client import EngineClient
+        EngineClient().check_compatibility("validate", "dashboard.write")
     next_review = (today + timedelta(days=90)).isoformat()
     rep = Report(dry_run)
     target.mkdir(parents=True, exist_ok=True)
@@ -409,11 +411,13 @@ def adopt(
               "makes durable governance explicit without treating provider configuration as proof of effective enforcement.\n\n## Decision\n\n"
               "Adopt RepoPact. Ownership becomes scopes/roles; existing hosted workflows are recorded as candidate executor adapters only; and a provider-neutral local verification contract is seeded with hosted execution disabled by default. Existing files are preserved and RepoPact records are added around them.\n", target)
 
-    # The dashboard is derived, but adoption remains non-destructive: create the
-    # canonical projection only when the reserved path is absent. An existing file
-    # is preserved and validation will identify it if it is not canonical.
-    dashboard_text = "" if dry_run else generate_dashboard.generate(target, today=today)
-    rep.write(target / "audits" / "reports" / "dashboard.md", dashboard_text, target)
+    # The dashboard is derived and Rust-owned. Preserve a pre-existing file;
+    # otherwise create it through the canonical engine after source records exist.
+    dashboard_path = target / "audits" / "reports" / "dashboard.md"
+    if not dry_run and not dashboard_path.exists():
+        rep.write(dashboard_path, "", target)
+        from .engine_client import write_dashboard_canonically
+        write_dashboard_canonically(target)
 
     rep.gitignored = gitignored_records(target, rep.created)
 
@@ -479,14 +483,15 @@ def main() -> int:
         print("\nDry run: nothing written. Re-run without --dry-run to apply.")
         return 0
 
-    from . import validate_repo
-    problems = validate_repo.validate(target)
-    blocking = validate_repo.blocking_problems(problems)
-    if blocking:
-        for p in blocking:
-            print(f"ERROR {p.path.relative_to(target)}: {p.message}")
-        print(f"\nAdoption produced {len(blocking)} validation error(s) to resolve.")
+    from .engine_client import EngineClient, EngineError, render_validation
+    try:
+        validation_rc = render_validation(EngineClient().call("validate", root=target))
+    except EngineError as exc:
+        print(f"Rust engine compatibility error: {exc}", file=sys.stderr)
         return 1
+    if validation_rc:
+        print("\nAdoption produced validation errors to resolve.")
+        return validation_rc
     print("\nAdopted repository validates as a conformant RepoPact.")
     # A graph bootstrap failure is distinct from governance-adoption
     # success: the repository is still a valid RepoPact repository, but

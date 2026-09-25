@@ -735,6 +735,12 @@ def record_evidence(
     refresh failure restores the prior dashboard and removes the new evidence file.
     """
     root = root.resolve()
+    if refresh_dashboard:
+        from .engine_client import EngineClient, EngineError
+        try:
+            EngineClient().check_compatibility("dashboard.write")
+        except EngineError as exc:
+            raise VerificationConfigError(f"canonical Rust engine unavailable: {exc}") from exc
     record = build_evidence(root, report, work_item, evidence_id=evidence_id)
     evidence_dir = root / "evidence" / "runs"
     evidence_dir.mkdir(parents=True, exist_ok=True)
@@ -748,9 +754,8 @@ def record_evidence(
             json.dump(record, handle, indent=2)
             handle.write("\n")
         if refresh_dashboard:
-            from . import generate_dashboard
-
-            generate_dashboard.write_dashboard(root)
+            from .engine_client import write_dashboard_canonically
+            write_dashboard_canonically(root)
     except Exception as exc:
         path.unlink(missing_ok=True)
         if previous_dashboard is None:

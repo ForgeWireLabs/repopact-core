@@ -3,6 +3,7 @@ from __future__ import annotations
 from collections import Counter
 from datetime import date
 from pathlib import Path
+import sys
 
 from .repo_model import STATUSES, discover_evidence_ids, discover_work_items, iter_contracts, load_json
 
@@ -121,11 +122,18 @@ def write_dashboard(root: Path, today: date | None = None) -> Path:
     return output
 
 
-def main() -> None:
+def main() -> int:
     root = Path(__file__).resolve().parents[1]
-    output = write_dashboard(root)
+    from .engine_client import EngineError, write_dashboard_canonically
+    try:
+        write_dashboard_canonically(root)
+    except EngineError as exc:
+        print(f"Rust engine compatibility error: {exc}", file=sys.stderr)
+        return 1
+    output = root / "audits" / "reports" / "dashboard.md"
     print(f"Generated {output.relative_to(root)}")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

@@ -116,6 +116,16 @@ class EngineClient:
         self.engine = engine.resolve() if engine is not None else locate_engine()
         self.timeout = timeout
         self._handshaken = False
+        self._operations: frozenset[str] = frozenset()
+
+    def check_compatibility(self, *required_operations: str) -> None:
+        """Verify the installed engine before a retained Python workflow writes."""
+        self._handshake()
+        missing = sorted(set(required_operations) - self._operations)
+        if missing:
+            raise EngineProtocolError(
+                "Rust engine does not advertise required operation(s): " + ", ".join(missing)
+            )
 
     def call(
         self,
@@ -165,6 +175,10 @@ class EngineClient:
         capabilities = response.get("capabilities")
         if not isinstance(capabilities, dict) or not isinstance(capabilities.get("operations"), list):
             raise EngineProtocolError("Rust engine handshake omitted capabilities")
+        operations = capabilities["operations"]
+        if any(not isinstance(operation, str) for operation in operations):
+            raise EngineProtocolError("Rust engine handshake returned malformed operation capabilities")
+        self._operations = frozenset(operations)
         self._handshaken = True
 
     def _invoke(self, request: dict[str, Any]) -> dict[str, Any]:
@@ -240,21 +254,104 @@ def client() -> EngineClient:
     return EngineClient()
 
 
+def validate_repository(root: Path) -> dict[str, Any]:
+    """Return a structurally consistent canonical Rust validation result.
+
+    This boundary is used by retained Python workflows when their safe execution
+    depends on repository validity. It deliberately has no Python fallback.
+    """
+    return _validated_result(EngineClient().call("validate", root=root))
+
+
+def validate_canonically(root: Path) -> tuple[bool, list[dict[str, Any]]]:
+    result = validate_repository(root)
+    return result["valid"], result["diagnostics"]
+
+
+def write_dashboard_canonically(root: Path) -> None:
+    """Write the derived dashboard through the canonical Rust projection."""
+    response = EngineClient().call("dashboard.write", root=root)
+    result = response.get("result")
+    if not isinstance(result, dict) or result.get("path") != "audits/reports/dashboard.md":
+        raise EngineProtocolError("Rust engine dashboard response omitted its canonical path")
+
+
+def validated_mutation_result(response: dict[str, Any]) -> dict[str, Any]:
+    """Reject malformed or internally inconsistent canonical mutation results."""
+    if response.get("ok") is not True:
+        raise EngineProtocolError("Rust engine mutation response is not successful")
+    result = response.get("result")
+    if not isinstance(result, dict) or not isinstance(result.get("success"), bool):
+        raise EngineProtocolError("Rust engine mutation result omitted boolean success")
+    paths = result.get("changed_paths")
+    diagnostics = result.get("diagnostics")
+    if not isinstance(paths, list) or any(not isinstance(path, str) for path in paths):
+        raise EngineProtocolError("Rust engine mutation result returned malformed changed paths")
+    if not isinstance(diagnostics, list):
+        raise EngineProtocolError("Rust engine mutation result omitted diagnostics")
+    top_level = response.get("diagnostics")
+    if "diagnostics" not in response:
+        if diagnostics:
+            raise EngineProtocolError("Rust engine omitted non-empty top-level mutation diagnostics")
+    elif not isinstance(top_level, list) or top_level != diagnostics:
+        raise EngineProtocolError("Rust engine mutation diagnostics are inconsistent")
+    if any(not isinstance(item, dict) or item.get("severity") not in {"error", "warning", "info"}
+           for item in diagnostics):
+        raise EngineProtocolError("Rust engine mutation returned malformed diagnostics")
+    has_errors = any(item["severity"] == "error" for item in diagnostics)
+    if result["success"] != (not has_errors):
+        raise EngineProtocolError("Rust engine mutation success conflicts with its diagnostics")
+    return result
+
+
 def render_validation(response: dict[str, Any]) -> int:
     """Render the structured validation result using the historical CLI shape."""
-    result = response.get("result") or {}
-    diagnostics = response.get("diagnostics") or result.get("diagnostics") or []
+    result = _validated_result(response)
+    diagnostics = result["diagnostics"]
     for diagnostic in diagnostics:
         code = diagnostic.get("code", "engine.diagnostic")
         severity = str(diagnostic.get("severity", "error")).upper()
         location = diagnostic.get("path") or diagnostic.get("record") or "<repository>"
         print(f"{severity} [{code}] {location}: {diagnostic.get('message', '')}")
-    valid = bool(result.get("valid"))
+    valid = result["valid"]
     if valid:
         print("Repository governance validation passed.")
         return 0
     print(f"\nValidation failed with {result.get('error_count', len(diagnostics))} error(s).")
     return 1
+
+
+def _validated_result(response: dict[str, Any]) -> dict[str, Any]:
+    """Validate an already received validation response before interpreting it."""
+    if response.get("ok") is not True:
+        raise EngineProtocolError("Rust engine validation response is not successful")
+    result = response.get("result")
+    if not isinstance(result, dict) or not isinstance(result.get("valid"), bool):
+        raise EngineProtocolError("Rust engine validation result omitted boolean validity")
+    nested = result.get("diagnostics")
+    if not isinstance(nested, list):
+        raise EngineProtocolError("Rust engine validation result omitted diagnostics")
+    diagnostics = response.get("diagnostics")
+    if "diagnostics" not in response:
+        if nested:
+            raise EngineProtocolError("Rust engine omitted non-empty top-level diagnostics")
+        diagnostics = nested
+    elif not isinstance(diagnostics, list) or diagnostics != nested:
+        raise EngineProtocolError("Rust engine validation diagnostics are inconsistent")
+    if any(not isinstance(item, dict) or item.get("severity") not in {"error", "warning", "info"}
+           for item in diagnostics):
+        raise EngineProtocolError("Rust engine validation returned malformed diagnostics")
+    errors = sum(item["severity"] == "error" for item in diagnostics)
+    warnings = sum(item["severity"] == "warning" for item in diagnostics)
+    error_count = result.get("error_count")
+    warning_count = result.get("warning_count")
+    if type(error_count) is not int or type(warning_count) is not int:
+        raise EngineProtocolError("Rust engine validation result omitted diagnostic counts")
+    if error_count != errors or warning_count != warnings:
+        raise EngineProtocolError("Rust engine validation diagnostic counts are inconsistent")
+    if result["valid"] != (error_count == 0):
+        raise EngineProtocolError("Rust engine validity conflicts with its error count")
+    return result
 
 
 def main(argv: list[str] | None = None) -> int:
