@@ -42,7 +42,7 @@
   ],
   "environment": {
     "coding_model": "GPT-5",
-    "source_revision": "e194946c9e80a9ca8de0ae317988df175836773f",
+    "source_revision": "e194946b54b0e0e980c70b253efe3676df924dd5",
     "os": "Windows 11 x64; Linux WSL2 Debian 13.5 source and Rust checks also completed",
     "python": "Project-local Core development virtual environment; matching repopact-engine 3.1.3.dev1",
     "gitleaks": "8.30.1; inherited tree findings exactly match the published baseline by rule, path and detected-line hash; outgoing history has zero findings; raw redacted reports remain outside the repository.",

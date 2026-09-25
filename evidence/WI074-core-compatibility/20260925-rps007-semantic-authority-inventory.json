@@ -2,7 +2,7 @@
   "format": "repopact-wi074-semantic-authority-inventory-v1",
   "work_item": "074",
   "criterion": "RPS-007",
-  "source_revision": "e194946c9e80a9ca8de0ae317988df175836773f",
+  "source_revision": "e194946b54b0e0e980c70b253efe3676df924dd5",
   "reviewed_at": "2026-09-25T19:53:20Z",
   "disposition": "partial; criterion remains pending",
   "authoritative_rust_surfaces": [

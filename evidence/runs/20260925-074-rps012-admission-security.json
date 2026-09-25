@@ -40,7 +40,7 @@
   "artifacts": [],
   "environment": {
     "coding_model": "GPT-5",
-    "source_revision": "e194946c9e80a9ca8de0ae317988df175836773f",
+    "source_revision": "e194946b54b0e0e980c70b253efe3676df924dd5",
     "operating_systems": [
       "Windows 11 x64",
       "Linux WSL2 Debian 13.5, kernel 6.18.33.2-microsoft-standard-WSL2"
