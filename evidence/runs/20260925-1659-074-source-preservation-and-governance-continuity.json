@@ -1,0 +1,101 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20260925-1659-074-source-preservation-and-governance-continuity",
+  "timestamp": "2026-09-25T16:59:30Z",
+  "work_item": "074",
+  "result": "passed",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "git bundle verify <each of five external private bundles>; fetch each into a disposable bare repository; git fsck --full --no-reflogs --connectivity-only",
+      "exit_code": 0,
+      "summary": "All five bundles passed integrity, disposable-fetch and connectivity checks. SHA-256 values, exact byte sizes, advertised refs, ref-inventory digests and reachable commit counts are recorded in the preservation manifest. The additive integrated-source all-refs bundle contains every one of 65 checkout refs with identical OIDs; no previous bundle was overwritten."
+    },
+    {
+      "command": "Independent raw Git-object/source-manifest and extracted/published provenance SHA-256 reconciliation",
+      "exit_code": 0,
+      "summary": "All 1,048 immutable S2 source entries (853 Core, 194 Workbench, 1 historical archive) were reconciled to source, extraction and publication dispositions. No unexplained missing path, mismatch, duplicate S2 ownership or Core source copied into Workbench was found. Per-path hashes and exceptions are in the machine-readable reconciliation report."
+    },
+    {
+      "command": "git ls-remote origin refs/heads/main",
+      "exit_code": 0,
+      "summary": "ForgeWireLabs/repopact-core main was 7d761f6733b1de5078d08bc64ea076cf10cee58e before implementation and remained at that revision before publication."
+    },
+    {
+      "command": "python -m unittest discover -s tests -p test_validate_repo.py -v",
+      "exit_code": 1,
+      "summary": "Diagnostic run with the global Python/PATH selected repopact-engine 3.1.0.dev1 against the 3.1.3.dev1 package: 156 tests, 6 failures, 1 error, 2 skips. All seven failures/errors were the same engine-version mismatch; no repository version was changed."
+    },
+    {
+      "command": "Prefix the project virtual-environment Scripts directory to PATH; run its Python: python -m unittest discover -s tests -p test_validate_repo.py -v",
+      "exit_code": 0,
+      "summary": "Corrected environment selected the matching RepoPact 3.1.3.dev1 package and native engine. All 156 validator tests passed; 2 documented formal-model tests skipped; no failures or errors. The seven mismatch-affected tests passed."
+    },
+    {
+      "command": "python -m unittest discover -s tests -p test_takeover_refs.py -v",
+      "exit_code": 0,
+      "summary": "Seven takeover-reference regression tests passed."
+    },
+    {
+      "command": "python -m unittest discover -s tests -p test_validate_repo.py -k satisfied_criterion_requires_evidence -v; python -m unittest discover -s tests -p test_validate_repo.py -k unknown_evidence_run -v",
+      "exit_code": 0,
+      "summary": "Both focused evidence-reference regression tests passed."
+    },
+    {
+      "command": "repopact dashboard --root .",
+      "exit_code": 0,
+      "summary": "Derived dashboard regenerated from authoritative WI074 records."
+    },
+    {
+      "command": "repopact validate --root .",
+      "exit_code": 0,
+      "summary": "Canonical governance validation passed with RPS-001, RPS-002 and RPS-017 linked to this run record."
+    },
+    {
+      "command": "repopact check-frozen --root . --base 7d761f6733b1de5078d08bc64ea076cf10cee58e",
+      "exit_code": 0,
+      "summary": "No frozen-surface changes."
+    },
+    {
+      "command": "gitleaks 8.30.1 dir --redact=100 --report-format json on published baseline and final candidate trees",
+      "exit_code": 1,
+      "summary": "Three findings in each tree; normalized redacted rule/path/line signatures are identical. They are inherited private-key detector matches in negative-test/parser material, with no new tree finding. Raw redacted reports remain outside the repository."
+    },
+    {
+      "command": "GitHub API read-only: repository Actions permissions and workflow-run count",
+      "exit_code": 0,
+      "summary": "Core Actions enabled=false; workflow runs=0. No workflow was triggered."
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "summary": "No whitespace errors."
+    }
+  ],
+  "artifacts": [
+    "evidence/WI074-source-preservation/20260925-preservation-verification.json",
+    "evidence/WI074-source-preservation/20260925-governance-continuity.md",
+    "evidence/WI074-source-reconciliation/20260925-source-reconciliation.json",
+    "evidence/WI074-source-preservation/next-slice-rps004-005-006-014.md",
+    "work/active/074-extract-repopact-core-and-independent-workbench/work-item.json",
+    "audits/reports/dashboard.md"
+  ],
+  "environment": {
+    "repository": "ForgeWireLabs/repopact-core",
+    "branch": "codex/wi074-source-preservation-20260925",
+    "base_commit": "7d761f6733b1de5078d08bc64ea076cf10cee58e",
+    "package_version": "3.1.3.dev1",
+    "native_engine_version": "3.1.3.dev1",
+    "python": "3.12.4",
+    "git": "2.53.0.windows.3",
+    "gitleaks": "8.30.1",
+    "published_actions_enabled": false,
+    "published_workflow_runs": 0
+  },
+  "limitations": [
+    "Git bundles preserve Git objects and refs, not hosted issues/comments, pull requests/reviews, discussions, release assets, branch protections/rulesets, Actions configuration/history or hosted artifacts. Current Core and Workbench API checks report Actions disabled and zero workflow runs; that does not establish that other hosted metadata never existed.",
+    "The disabled former personal-repository remote was not accessed; its current hosted state was not checked.",
+    "The original dirty WI073 checkout remains outside this worktree, with its two tracked modifications and three untracked files preserved separately. Git bundles do not contain that uncommitted content; no WI073 files were copied.",
+    "The three Gitleaks matches are pre-existing negative-test/parser patterns identical to the published baseline. Their raw redacted reports are stored outside the repository."
+  ]
+}

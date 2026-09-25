@@ -85,11 +85,13 @@ change the Workbench Core pin, alter PyPI, or begin unrelated acceptance work.
 ## Current acceptance state and next slice
 
 The canonical 24-criterion matrix is in [work-item.json](work-item.json). Its
-states are transferred without inflation: **5 satisfied, 19 pending**. In
-particular, S2-S5 publication does not imply full Android feature acceptance,
+current state is **8 satisfied, 16 pending**. RPS-001, RPS-002 and RPS-017 were
+closed with the source-preservation, complete path/hash reconciliation and
+governance-continuity evidence recorded in the linked immutable run. S2-S5
+publication still does not imply full Android feature acceptance,
 cross-platform native acceptance, release readiness, downstream migration, or
 rollback proof. Evidence references for satisfied criteria point to immutable
-run IDs imported with provenance and portable artifact links.
+run IDs with source provenance and portable artifact links.
 
 The [next-slice directive](../../../evidence/WI074-transfer/next-slice.md)
 defines the next bounded work: complete the Core-side governance-continuity
