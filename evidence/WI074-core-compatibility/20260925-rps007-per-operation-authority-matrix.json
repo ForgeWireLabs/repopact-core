@@ -1,0 +1,120 @@
+{
+  "format": "repopact-wi074-authority-matrix-v1",
+  "work_item": "074",
+  "criterion": "RPS-007",
+  "source_revision": "054bd9832dfce8a668212b409b34645593747b9c",
+  "reviewed_at": "2026-09-25T20:28:42Z",
+  "disposition": "satisfied under the accepted per-operation authority model in Decisions 0042 and 0070",
+  "product_authority": "ForgeWireLabs/repopact-core owns the RepoPact product and its complete governance boundary. Within Core, Decision 0042 assigns one normative implementation to each operation: Rust for migrated validation, dashboard, graph/analysis and typed work mutation; Python for expressly unmigrated Core operations. Workbench is a consumer and owns no competing governance semantics.",
+  "matrix": [
+    {
+      "operation": "Canonical repository validation and lifecycle/schema interpretation",
+      "authoritative_implementation": "Rust repopact-validation and the repopact-engine validate operation.",
+      "callers_and_adapters": ["repopact.cli validate", "repopact.validate_repo.main", "the final-validation paths of init, adopt, import-plan, doctor, takeover, and decision/policy creation"],
+      "permitted_delegation": "Python compatibility entry points send a versioned validate request to the matching Core engine and render its structured diagnostics.",
+      "non_authoritative_code": "repopact.validate_repo.validate / repopact.legacy_validate are explicit compatibility-comparison code used by tests/conformance only; they are not the product validator and are never a fallback from migrated commands.",
+      "tests": ["tests.test_engine_client.EngineClientContractTests.test_public_validate_uses_engine_without_legacy_fallback", "tests.test_engine_client.EngineClientContractTests.test_missing_engine_does_not_fallback_to_python", "tests.test_engine_client.EngineClientContractTests.test_direct_validator_entrypoint_has_no_python_fallback", "tests.test_conformance.ConformanceTests.test_manifest_matches_reference_suite"]
+    },
+    {
+      "operation": "Derived dashboard generation",
+      "authoritative_implementation": "Rust repopact-engine dashboard.write, backed by the Core repository/schema projection.",
+      "callers_and_adapters": ["repopact dashboard", "python -m repopact.generate_dashboard", "Core Python workflows that refresh the derived dashboard"],
+      "permitted_delegation": "Callers request dashboard.write and check its canonical result; the Python writer is retained only as a test/reference utility for disposable conformance fixtures.",
+      "tests": ["tests.test_validate_repo.RepositoryValidationTests.test_stale_dashboard_is_rejected_and_doctor_repairs_it", "tests.test_engine_client.EngineClientContractTests.test_preflight_requires_advertised_canonical_operations"]
+    },
+    {
+      "operation": "Repository discovery, graph construction, graph queries and deterministic analysis",
+      "authoritative_implementation": "Rust repopact-repository, repopact-graph, and repopact-analysis crates, exposed by typed repopact-engine graph/analyze operations.",
+      "callers_and_adapters": ["repopact.graph CLI adapter", "Core doctor graph-status check", "Workbench DesktopSession graph query path"],
+      "permitted_delegation": "Python and Workbench callers send typed requests/results to Core; presentation layers may filter/display returned facts but do not recompute graph meaning.",
+      "tests": ["tests.test_graph_cli", "published Workbench rust/crates/repopact-desktop-api/src/lib.rs uses GraphQueryEngine"]
+    },
+    {
+      "operation": "Typed work-item creation, proposal, editing and lifecycle mutation",
+      "authoritative_implementation": "Rust repopact-mutation and repopact-engine work.create/work.propose/work.amend_proposal; Workbench calls the same Core mutation crate through DesktopSession plan/apply.",
+      "callers_and_adapters": ["repopact new work-item", "repopact work propose/amend-proposal", "Workbench Tauri plan_mutation/apply_mutation_plan commands"],
+      "permitted_delegation": "Callers submit typed intent; Core plans, validates and applies it. No caller-provided arbitrary patch or Python lifecycle fallback is accepted.",
+      "tests": ["tests.test_engine_client.EngineClientContractTests.test_direct_new_work_item_uses_typed_engine_mutation", "tests.test_engine_client.EngineClientContractTests.test_work_commands_send_typed_intents_to_engine", "tests.test_engine_client.EngineClientContractTests.test_mutation_result_conflicts_fail_closed", "published Workbench Rust desktop-api mutation plan/apply integration tests"]
+    },
+    {
+      "operation": "init",
+      "authoritative_implementation": "Python Core bootstrap/orchestration, explicitly unmigrated by Decision 0042.",
+      "callers_and_adapters": ["repopact init", "repopact.init_repo.bootstrap"],
+      "permitted_delegation": "Bootstrap creates the accepted seed structure; the shipped CLI preflights the Rust engine, uses Rust dashboard.write and uses Rust validate as the final repository-validity decision.",
+      "tests": ["tests.test_engine_client.EngineClientContractTests.test_bootstrap_does_not_write_without_required_engine", "tests.test_validate_repo.RepositoryValidationTests.test_bootstrap_produces_valid_repo"]
+    },
+    {
+      "operation": "adopt",
+      "authoritative_implementation": "Python Core adoption/mapping workflow, explicitly unmigrated by Decision 0042.",
+      "callers_and_adapters": ["repopact adopt", "repopact.adopt_repo.adopt"],
+      "permitted_delegation": "Non-dry-run CLI preflights Rust validate/dashboard.write; the Python adopter maps source records; Rust validate decides final repository validity. Dry-run remains read-only.",
+      "tests": ["tests.test_validate_repo.RepositoryValidationTests.test_adopt_existing_repo_validates", "tests.test_validate_repo.RepositoryValidationTests.test_adopt_dry_run_writes_nothing", "tests.test_validate_repo.RepositoryValidationTests.test_adopt_graph_bootstrap_failure_does_not_fabricate_or_rollback_governance"]
+    },
+    {
+      "operation": "import-plan",
+      "authoritative_implementation": "Python Core legacy-plan import/mapping workflow, explicitly unmigrated by Decision 0042.",
+      "callers_and_adapters": ["repopact import-plan", "repopact.plan_import.import_plan"],
+      "permitted_delegation": "Non-dry-run preflights Rust validate/dashboard.write; Python maps incoming plans; the shipped CLI delegates final repository validity to Rust. Dry-run writes nothing.",
+      "tests": ["tests.test_validate_repo.RepositoryValidationTests.test_import_plan_populates_and_validates", "tests.test_validate_repo.RepositoryValidationTests.test_import_plan_dry_run_writes_nothing"]
+    },
+    {
+      "operation": "doctor diagnosis and repair",
+      "authoritative_implementation": "Python Core doctor policy and repair selection, explicitly unmigrated by Decision 0042.",
+      "callers_and_adapters": ["repopact doctor", "repopact doctor --fix", "repopact.doctor.fix"],
+      "permitted_delegation": "Fix preflights the required engine capabilities; graph facts are obtained from Rust where used; the CLI delegates final repository validity to Rust. Python-specific drift findings remain doctor findings, not replacement canonical validation.",
+      "tests": ["tests.test_validate_repo.RepositoryValidationTests.test_doctor_fix_makes_repo_valid", "tests.test_validate_repo.RepositoryValidationTests.test_stale_dashboard_is_rejected_and_doctor_repairs_it"]
+    },
+    {
+      "operation": "takeover / legacy source retirement",
+      "authoritative_implementation": "Python Core retirement eligibility, archive/delete orchestration, and filesystem operation, explicitly unmigrated by Decision 0042.",
+      "callers_and_adapters": ["repopact takeover", "repopact.takeover.takeover"],
+      "permitted_delegation": "Rust validate is required before retirement and after dashboard refresh. If the engine is unavailable or the pre-state is invalid, no retirement proceeds; Python owns the specific retirement policy.",
+      "tests": ["tests.test_engine_client.EngineClientContractTests.test_takeover_preserves_source_when_canonical_engine_is_unavailable", "tests.test_validate_repo.RepositoryValidationTests.test_takeover_aborts_when_invalid", "tests.test_validate_repo.RepositoryValidationTests.test_takeover_archives_fully_migrated_plan_dir"]
+    },
+    {
+      "operation": "Decision and policy document creation",
+      "authoritative_implementation": "Python Core template selection, ID allocation and document-authoring workflow, explicitly unmigrated by Decision 0042.",
+      "callers_and_adapters": ["repopact new decision", "repopact new policy", "repopact.new.new_markdown"],
+      "permitted_delegation": "The shipped CLI requires validate/dashboard.write capabilities; Rust writes the derived dashboard and makes the final repository-validity decision.",
+      "tests": ["tests.test_validate_repo.RepositoryValidationTests.test_decision_status_must_be_valid", "tests.test_validate_repo.RepositoryValidationTests.test_policy_requires_front_matter", "canonical Rust conformance decision/policy fixtures"]
+    },
+    {
+      "operation": "check-frozen",
+      "authoritative_implementation": "Python Core check_frozen_surface, explicitly unmigrated by Decision 0042; it evaluates the dedicated frozen-surface diff/acknowledgement rule, not general repository validity.",
+      "callers_and_adapters": ["repopact check-frozen", "frozen-surface test suite"],
+      "permitted_delegation": "No Rust validation delegation is required for this separate read-only diff guard. It cannot silently acknowledge or rewrite frozen files.",
+      "tests": ["tests.test_validate_repo.RepositoryValidationTests.test_check_frozen_detects_working_tree_change", "tests.test_validate_repo.RepositoryValidationTests.test_frozen_entry_requires_reason"]
+    },
+    {
+      "operation": "WI050 admission, approval, guard, authorization and enforcement",
+      "authoritative_implementation": "Python Core admission/approval protocol plus protected native-provider implementations; deliberately separate from the general Rust validation/mutation protocol under Decision 0042.",
+      "callers_and_adapters": ["repopact admission", "repopact approval", "repopact guard", "pre-action adapters", "Windows/Linux protected service integrations"],
+      "permitted_delegation": "The dedicated operator authorization and protected-service/confinement path remains authoritative. Rust assurance.snapshot is read-only and does not claim to enforce WI050 admission.",
+      "tests": ["tests.test_admission", "tests.test_admission_security", "tests.test_guard_authority", "tests.test_windows_service", "tests.test_landlock_confinement", "Linux Landlock ABI 7 probe and platform pre-action conformance evidence"],
+      "assurance_limit": "Semantic/pre-action tests and Linux Landlock probe passed; installed production protected-service enforcement remains unverified as documented by RPS-012 evidence."
+    },
+    {
+      "operation": "Other explicitly unmigrated Core operations (spec, fleet/release orchestration, evidence-record construction)",
+      "authoritative_implementation": "The Python Core command/module named by Decision 0042 or the specific verification contract.",
+      "callers_and_adapters": ["repopact spec", "repopact fleet-verify/release-closeout/release", "RepoPact local verification/evidence runner"],
+      "permitted_delegation": "They do not implement a second canonical validator; where repository validity or derived dashboard generation is part of the operation, they delegate that result/projection to Rust."
+    }
+  ],
+  "workbench_read_only_boundary": {
+    "repository": "https://github.com/ForgeWireLabs/repopact-workbench",
+    "verified_main": "a1876b08b78f169a79597ec3099d9840ace55e06",
+    "core_crates_in_manifest": ["repopact-analysis", "repopact-core", "repopact-graph", "repopact-mutation", "repopact-repository", "repopact-schema", "repopact-types", "repopact-validation"],
+    "declared_core_revision": "e15fbcfa4a29e1e6df7339bfed56c15c19185f9a",
+    "source_boundary": "Published Workbench Rust imports Core validation snapshots, GraphQueryEngine, Repository/Core APIs, and repopact_mutation plan/apply; Tauri commands are typed adapters and the React surface presents DTOs and lifecycle choices rather than applying governance rules.",
+    "unresolved_dependency_observation": "The declared e15fbcfa revision is not currently retrievable from ForgeWireLabs/repopact-core (GitHub API returned 422 No commit found; Git fetch returned remote error not our ref). This does not reveal a competing semantic implementation, but it is an existing clean-clone/buildability risk that the next separately authorized Workbench slice must resolve. No Workbench file was changed."
+  },
+  "version_identity": {
+    "stable_release": "3.1.3 (VERSION unchanged)",
+    "development_python_display": "3.1.3dev1",
+    "development_pep440_and_engine_handshake": "3.1.3.dev1",
+    "normalization": "Packaging normalizes 3.1.3dev1 to 3.1.3.dev1; EngineClient.expected_product_version returns 3.1.3.dev1; semantic version comparison is equal.",
+    "engine_protocol": "repopact-engine v1; required validate/dashboard/work/graph capabilities present"
+  },
+  "decision_basis": ["0042", "0070", "0072"],
+  "supersedes_assessment": "The earlier partial RPS-007 inventory remains immutable historical evidence of the initial ambiguity. This operation-by-operation review resolves that ambiguity using the operator's explicit direction and accepted Decisions 0042/0070; it is not a change to those decisions or a blanket narrowing of RPS-007."
+}

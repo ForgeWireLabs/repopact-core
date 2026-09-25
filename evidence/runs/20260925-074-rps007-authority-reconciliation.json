@@ -1,0 +1,48 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20260925-074-rps007-authority-reconciliation",
+  "timestamp": "2026-09-25T20:28:42Z",
+  "work_item": "074",
+  "result": "passed",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "python -m unittest tests.test_engine_client tests.test_graph_cli tests.test_conformance tests.test_validate_repo.RepositoryValidationTests.test_adopt_existing_repo_validates tests.test_validate_repo.RepositoryValidationTests.test_import_plan_populates_and_validates tests.test_validate_repo.RepositoryValidationTests.test_takeover_aborts_when_invalid tests.test_validate_repo.RepositoryValidationTests.test_doctor_fix_makes_repo_valid tests.test_validate_repo.RepositoryValidationTests.test_cli_validate_returns_zero_on_valid_repo tests.test_validate_repo.RepositoryValidationTests.test_stale_dashboard_is_rejected_and_doctor_repairs_it tests.test_validate_repo.RepositoryValidationTests.test_cli_new_can_stamp_proposed_work_item -v",
+      "exit_code": 0,
+      "summary": "47 focused tests passed in 63.812 seconds. This included engine unavailability/protocol/result mismatch denial, no Python validation fallback, typed work mutation, graph semantics and Python-authoritative workflows' behavior."
+    },
+    {
+      "command": "python -m unittest discover -s tests -v",
+      "exit_code": 0,
+      "summary": "Previously completed against the same product-code commit: 380 passed, 4 skipped. The only later Core commits add governance/evidence records; no source changed after this full run."
+    },
+    {
+      "command": "python -m repopact.cli validate --root .; python -m repopact.run_conformance; python -m repopact.cli check-frozen --root . --base a5275bc4289c802ba40e04b77ab9123792915096",
+      "exit_code": 0,
+      "summary": "Canonical Rust validation passed; frozen conformance 37/37 and WI050 admission corpus 8/8 passed; no frozen-surface changes."
+    },
+    {
+      "command": "Read-only clone/inspection of ForgeWireLabs/repopact-workbench main and its Cargo manifest, desktop API, Tauri adapters and frontend call sites",
+      "exit_code": 0,
+      "summary": "Verified main a1876b08b78f169a79597ec3099d9840ace55e06 uses the Core APIs for validation, graph and typed mutation. All eight direct Core crates declare one exact revision e15fbcfa4a29e1e6df7339bfed56c15c19185f9a. That SHA is currently unavailable from the Core remote, recorded as a separate next-slice buildability risk; Workbench was not modified."
+    },
+    {
+      "command": "python -m repopact.cli --version; repopact-engine v1 handshake; PEP 440 normalization/equality check",
+      "exit_code": 0,
+      "summary": "VERSION remains stable 3.1.3. CLI development spelling 3.1.3dev1 normalizes to 3.1.3.dev1, exactly matching engine handshake and client expectation; protocol v1 advertises validate, dashboard, typed work and graph operations."
+    }
+  ],
+  "artifacts": [
+    "evidence/WI074-core-compatibility/20260925-rps007-per-operation-authority-matrix.json",
+    "evidence/runs/20260925-074-rps007-authority-reconciliation.json"
+  ],
+  "environment": {
+    "coding_model": "GPT-5",
+    "source_revision": "054bd9832dfce8a668212b409b34645593747b9c",
+    "python": "Project-local Core development virtual environment",
+    "native_engine": "Matching repopact-engine 3.1.3.dev1",
+    "workbench_read_only_revision": "a1876b08b78f169a79597ec3099d9840ace55e06",
+    "result": "RPS-007 fully satisfied under the per-operation Python/Rust ownership already specified by Decisions 0042 and 0070.",
+    "limitations": "RPS-012 remains pending independently. Workbench's existing immutable Core Cargo SHA is currently unavailable from the published Core remote; no claim of a fresh Workbench clean-clone build is made."
+  }
+}
