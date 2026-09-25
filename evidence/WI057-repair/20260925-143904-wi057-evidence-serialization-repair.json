@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "id": "20260925-143904-wi057-evidence-serialization-repair",
+  "recorded_at": "2026-09-25T14:39:04Z",
+  "purpose": "Repair only the malformed serialization of inherited WI057 evidence so it can be parsed and validated during canonical WI074 transfer.",
+  "subject": "evidence/runs/20260910-057-process-amplification-remediation.json",
+  "historical_source": {
+    "repository": "ForgeWireLabs/repopact-core",
+    "commit": "e15fbcfa4a29e1e6df7339bfed56c15c19185f9a",
+    "git_blob": "2b81e1a5d3657de34cbfd58664a05319995e02af",
+    "content_sha256": "fb8200331985cb08c7be062b34cb9d304bd18c187bea7ddb5efe5222c17691f3",
+    "defect": "Invalid JSON at line 15, column 90, in a redacted command string."
+  },
+  "repair": {
+    "git_blob": "a3fe2a882bb6f8f1ed4b1b92a02fc2c541d19dd2",
+    "content_sha256": "ada92d0a39693d693426c262b58169021c26e52660dd53c02767a8c0dfdc7b82",
+    "scope": "Corrected the command-string JSON encoding and retained a generic executable-path redaction marker. The unknown historical filesystem path and redacted information were not reconstructed.",
+    "historical_fields_preserved": [
+      "id",
+      "timestamp",
+      "work_item",
+      "result",
+      "all report summaries and exit codes",
+      "all other evidence fields"
+    ],
+    "dependent_evidence_references_modified": false,
+    "historical_event_time": "2026-09-10T18:00:00Z",
+    "present_day_repair_time": "2026-09-25T14:39:04Z"
+  },
+  "interpretation": "This record documents a present-day serialization repair only. It does not alter, recreate, or claim to re-run the historical WI057 activity or its reported results."
+}
