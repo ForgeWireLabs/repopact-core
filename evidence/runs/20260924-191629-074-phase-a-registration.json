@@ -1,0 +1,60 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20260924-191629-074-phase-a-registration",
+  "timestamp": "2026-09-24T19:16:29Z",
+  "work_item": "074",
+  "result": "passed",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "python -m unittest tests.test_research_metadata -v",
+      "exit_code": 0,
+      "summary": "All 15 focused research-metadata tests passed after the date-dependent expiry assertion was corrected to derive the first expired day from fixture metadata."
+    },
+    {
+      "command": "C:\\local-path-redacted dashboard --root .",
+      "exit_code": 0,
+      "summary": "Canonical dashboard regenerated after WI074 and its evidence record were present in the branch-local ledger."
+    },
+    {
+      "command": "C:\\local-path-redacted validate --root .",
+      "exit_code": 0,
+      "summary": "Final canonical repository governance validation passed with WI074 registered as proposed and all 24 criteria pending."
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "summary": "No whitespace errors in the research-maintenance and WI074 working changes."
+    }
+  ],
+  "artifacts": [
+    "research/README.md",
+    "research/findings.md",
+    "research/gap-audit-2026-07.md",
+    "research/paper.md",
+    "research/arxiv-submission-prep.md",
+    "research/release-runbook.md",
+    "research/metadata.json",
+    "tests/test_research_metadata.py",
+    "work/proposed/074-extract-repopact-core-and-independent-workbench/README.md",
+    "work/proposed/074-extract-repopact-core-and-independent-workbench/work-item.json"
+  ],
+  "environment": {
+    "platform": "Windows",
+    "python": "3.12.4",
+    "repopact": "3.1.3dev1",
+    "isolated_branch": "codex/wi074-register-planning",
+    "source_baseline": "92251565459dd28e3f74d44782ec14ad41758508",
+    "research_maintenance_commit": "8516d87d6f5fd116fc4fc5601da85682839c91d9",
+    "research_freshness": {
+      "verified_on": "2026-09-24",
+      "review_by": "2026-10-24"
+    },
+    "wi050_f019_boundary": "Linux and Windows native guard evidence is recorded; macOS proof remains blocked and WI050 AC-18 remains pending.",
+    "limitations": [
+      "The supplied source review was applied; this pass did not rerun experiments, perform independent replication, or complete S7/S8 comparative studies.",
+      "The September 14 manuscript and frozen 3.1.0 implementation/evidence identity were preserved; it was not rebuilt or submitted.",
+      "No acceptance criterion in WI074 is satisfied by this registration evidence."
+    ]
+  }
+}

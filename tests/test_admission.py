@@ -1,0 +1,107 @@
+from __future__ import annotations
+
+import json
+import unittest
+from datetime import datetime, timedelta, timezone
+
+from repopact.admission import (
+    Ed25519Signer, canonical_json, delegation_subset, digest, evaluate_action,
+    issue_lease, issue_receipt, make_request, operator_revoke, setup_admission, verify_receipt,
+    verify_registration,
+)
+from repopact.adapters import AdapterCapabilities, PreActionAdapter, LauncherAdapter
+from repopact.dev_fixtures import open_fixture_repo, pin_work_item_status
+from repopact.guard import ProtectedGuard
+from repopact.platform_backends import LinuxBackend, MacOSBackend, WindowsBackend, TestingBackend
+
+
+class AdmissionTests(unittest.TestCase):
+    def setUp(self):
+        self.root = open_fixture_repo(self, prefix="repopact-admission-")
+        self.tmp = self.root.parent
+        self.protected = self.tmp / "protected"
+        self.signer = Ed25519Signer.generate("key-1", "operator-1")
+        setup_admission(self.root, self.protected, self.signer)
+        # WI050 is used purely as a stable, lifecycle-gated admission target;
+        # pin it "active" here rather than depending on its real, evolving
+        # status in the live checkout this fixture copies from.
+        pin_work_item_status(self.root, "050", "active")
+
+    def request(self, **kwargs):
+        return make_request(self.root, "050", "session-1", scopes=["src"], paths=["src/example.py"], protected_dir=self.protected, **kwargs)
+
+    def test_canonicalization_and_signature(self):
+        self.assertEqual(canonical_json({"b": 2, "a": 1}), canonical_json({"a": 1, "b": 2}))
+        self.assertNotEqual(digest({"a": 1}), digest({"a": 2}))
+        req = self.request(); receipt = issue_receipt(req, self.signer)
+        authority = json.loads((self.root / "governance/operator-authority.json").read_text())
+        self.assertTrue(verify_receipt(req, receipt, authority).allowed)
+        req["paths"].append("src/other.py")
+        self.assertFalse(verify_receipt(req, receipt, authority).allowed)
+
+    def test_invalid_lifecycle_and_scope_denied(self):
+        denied = evaluate_action(self.root, {"work_item": "050", "paths": ["governance/owners.json"], "scopes": ["governance"]}, protected_dir=self.protected)
+        self.assertEqual(denied.code, "NO_OPERATOR_PROOF")
+        pin_work_item_status(self.root, "050", "proposed")
+        self.assertEqual(evaluate_action(self.root, {"work_item": "050"}, protected_dir=self.protected).code, "NO_OPERATOR_PROOF")
+
+    def test_receipt_lease_and_revocation(self):
+        req = self.request(); rec = issue_receipt(req, self.signer)
+        d, lease = issue_lease(req, rec, self.root, self.protected)
+        self.assertTrue(d.allowed); self.assertTrue(lease)
+        replay, _ = issue_lease(req, rec, self.root, self.protected)
+        self.assertEqual(replay.code, "RECEIPT_REPLAY")
+        operator_revoke(self.root, self.signer, self.protected)
+        health = ProtectedGuard(self.root, self.protected, backend=TestingBackend(self.protected)).health()
+        self.assertEqual(evaluate_action(self.root, {"work_item": "050"}, lease, guard_health=health, protected_dir=self.protected).code, "REVOKED_AUTHORIZATION")
+
+    def test_pre_action_callback_never_runs_on_denial(self):
+        called = []
+        adapter = PreActionAdapter(ProtectedGuard(self.root, self.protected, backend=TestingBackend(self.protected)))
+        decision, result = adapter.before({"work_item": "050", "paths": ["outside.txt"]}, lambda: called.append(1))
+        self.assertFalse(decision.allowed); self.assertIsNone(result); self.assertEqual(called, [])
+        target = self.root / "src" / "admission-sentinel.txt"
+        target.parent.mkdir(exist_ok=True)
+        req = make_request(self.root, "050", "session-1", scopes=["src"], paths=["src/admission-sentinel.txt"], protected_dir=self.protected)
+        rec = issue_receipt(req, self.signer); proof, lease = issue_lease(req, rec, self.root, self.protected)
+        self.assertTrue(proof.allowed)
+        allowed, _ = adapter.before({"work_item": "050", "paths": ["src/admission-sentinel.txt"], "scopes": ["src"]}, lambda: target.write_text("authorized"), lease)
+        self.assertTrue(allowed.allowed); self.assertEqual(target.read_text(), "authorized")
+
+    def test_reference_adapters_truthful(self):
+        caps = AdapterCapabilities("x", path_confinement=False, process_confinement=False)
+        self.assertEqual(caps.enforcement_class("sandbox/process-enforced"), "pre-action")
+        self.assertFalse(LauncherAdapter(ProtectedGuard(self.root, self.protected), caps).capabilities.path_confinement)
+        self.assertEqual(WindowsBackend().security_level, "not-covered")
+        self.assertEqual(LinuxBackend().os_name, "linux"); self.assertEqual(MacOSBackend().os_name, "macos")
+
+    def test_protected_tamper_fails_closed(self):
+        state = next(self.protected.rglob("registration.json"))
+        state.write_text("{}")
+        self.assertEqual(verify_registration(self.root, self.protected).code, "AUTHORITY_DRIFT")
+
+    def test_request_expiry_cannot_exceed_profile_ceiling(self):
+        with self.assertRaisesRegex(ValueError, "duration ceiling"):
+            self.request(expires_at=datetime.now(timezone.utc) + timedelta(hours=2))
+        bounded = self.request(expires_at=datetime.now(timezone.utc) + timedelta(minutes=29))
+        self.assertLessEqual(
+            datetime.fromisoformat(bounded["expires_at"].replace("Z", "+00:00")),
+            datetime.fromisoformat(bounded["issued_at"].replace("Z", "+00:00")) + timedelta(minutes=30),
+        )
+
+    def test_lease_rejects_capability_not_enabled_by_profile(self):
+        request = self.request(capabilities={"process": True})
+        receipt = issue_receipt(request, self.signer)
+        decision, lease = issue_lease(request, receipt, self.root, self.protected)
+        self.assertFalse(decision.allowed)
+        self.assertEqual(decision.code, "PROFILE_ESCALATION")
+        self.assertIsNone(lease)
+
+    def test_delegation_only_subsets(self):
+        parent = {"lease_id": "parent", "repository_identity": "r", "work_item": "050", "principal": "operator", "approval_class": "activate", "profile": "bounded", "mode": "normal", "delegation_ceiling": 2, "scopes": ["src"], "paths": ["src/a.py"], "capabilities": [], "delegation_lineage": [], "expires_at": "2030-01-01T00:00:00Z"}
+        child = {**parent, "lease_id": "child", "principal": "subagent", "parent_lease_id": "parent", "delegation_lineage": ["parent"], "delegation_ceiling": 1, "scopes": ["src"], "paths": ["src/a.py"], "expires_at": "2029-01-01T00:00:00Z"}
+        self.assertTrue(delegation_subset(parent, child).allowed)
+        self.assertFalse(delegation_subset(parent, {**child, "paths": ["src/a.py", "src/b.py"]}).allowed)
+
+
+if __name__ == "__main__": unittest.main()

@@ -1,0 +1,64 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20260923-072-personal-repository-identity-followup",
+  "timestamp": "2026-09-23T22:09:52Z",
+  "work_item": "072",
+  "result": "partial",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "gh api repos/JeremyShows/repopact-proving-ground; gh api orgs/ForgeWireLabs/repos",
+      "exit_code": 0,
+      "summary": "GitHub API reports JeremyShows/repopact-proving-ground as current owner and the ForgeWireLabs repository listing contains no RepoPact Proving Ground. ForgeWireLabs still owns separate repositories, including ForgeWireLabs/forgewire."
+    },
+    {
+      "command": "git ls-remote --symref https://github.com/ForgeWireLabs/forgewire.git HEAD",
+      "exit_code": 0,
+      "summary": "Git transport works for a live organization-owned repository."
+    },
+    {
+      "command": "git ls-remote --symref https://github.com/JeremyShows/repopact.git HEAD",
+      "exit_code": 128,
+      "summary": "GitHub still returns HTTP 403 with 'Repository JeremyShows/repopact is disabled' for the direct canonical personal URL, independent of correcting the remote. The GitHub API simultaneously reports disabled=false and repository permissions admin=true for the authenticated JeremyShows account."
+    },
+    {
+      "command": "git ls-remote --symref https://github.com/JeremyShows/ForgeLink.git HEAD",
+      "exit_code": 128,
+      "summary": "A second personal-account-owned repository also returns the same HTTP 403, while organization-owned Git access succeeds. The evidence points to a restriction affecting Git access to repositories owned by JeremyShows, not a wrong repository URL or lack of ForgeWireLabs membership."
+    },
+    {
+      "command": "rg -n -i --hidden -g '!\\.git/**' -g '!evidence/**' -g '!work/completed/**' -g '!research/case-studies/**' 'ForgeWireLabs/repopact(-proving-ground)?' .",
+      "exit_code": 0,
+      "summary": "Current RepoPact self-links and current Proving Ground links now use their direct personal URLs. Remaining old-owner references are confined to dated decision/research history and old evidence."
+    },
+    {
+      "command": ".venv\\Scripts\\repopact.exe --version; .venv\\Scripts\\repopact-engine.exe; .venv\\Scripts\\python.exe -m unittest discover -s tests -p test_graph_cli.py -v; .venv\\Scripts\\python.exe -m unittest discover -s tests -p test_engine_client.py -v",
+      "exit_code": 0,
+      "summary": "The repository-local virtual environment reports package 3.1.3dev1 and Rust engine 3.1.3.dev1; all 21 graph CLI tests and all 6 engine-client tests pass without using the stale system executable."
+    },
+    {
+      "command": ".venv\\Scripts\\repopact.exe validate",
+      "exit_code": 1,
+      "summary": "After dashboard regeneration and linking this evidence, repository validation reports only the pre-existing research freshness expiry dated 2026-09-18. That research record was not refreshed as part of the repository-identity work."
+    }
+  ],
+  "artifacts": [
+    "README.md",
+    "governance/adopters.json",
+    "work/active/020-pactbench/README.md",
+    "work/active/020-pactbench/work-item.json",
+    "research/release-runbook.md",
+    "work/completed/072-personal-repository-identity/work-item.json"
+  ],
+  "environment": {
+    "os": "Windows",
+    "python": "3.12",
+    "repository": "C:\\local-path-redacted",
+    "main_commit": "686c986de9f8fa1e73679e5d34d51cfc99af5363",
+    "package_identity": "3.1.3.dev1",
+    "checkout_engine": "3.1.3.dev1",
+    "personal_git_access": "HTTP 403 for JeremyShows-owned repositories",
+    "organization_git_access": "verified for ForgeWireLabs/forgewire",
+    "github_actions": "not triggered"
+  }
+}

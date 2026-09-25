@@ -1,0 +1,71 @@
+{
+  "$schema": "../repopact/schemas/adopter-fleet.schema.json",
+  "version": 1,
+  "upstream": {
+    "repository": "JeremyShows/repopact",
+    "version_file": "VERSION"
+  },
+  "adopters": [
+    {
+      "id": "forgelink",
+      "repository": "JeremyShows/ForgeLink",
+      "default_branch": "main",
+      "consumption": {
+        "type": "pypi",
+        "package": "repopact",
+        "version_file": "requirements-repopact.txt"
+      },
+      "validation_commands": ["python .local/validate_system.py"]
+    },
+    {
+      "id": "skillforge-academy",
+      "repository": "JeremyShows/skillforge-academy",
+      "default_branch": "main",
+      "consumption": {
+        "type": "pypi",
+        "package": "repopact",
+        "version_file": "requirements-repopact.txt"
+      },
+      "validation_commands": ["repopact validate --root .", "npm run validate:content"]
+    },
+    {
+      "id": "forgewire",
+      "repository": "ForgeWireLabs/forgewire",
+      "default_branch": "main",
+      "consumption": {
+        "type": "pypi",
+        "package": "repopact",
+        "version_file": "requirements-repopact.txt"
+      },
+      "validation_commands": ["repopact validate --root .", "python scripts/validate_audit.py"]
+    },
+    {
+      "id": "moto-one-hyper",
+      "repository": "JeremyShows/moto-one-hyper-forgewire-rom-lab",
+      "default_branch": "main",
+      "consumption": {
+        "type": "pypi",
+        "package": "repopact",
+        "version_file": "requirements-repopact.txt",
+        "local_extension": {
+          "path": "scripts/validate_moto.py",
+          "validation_command": "python scripts/validate_moto.py",
+          "canonical_command": "python -m repopact.cli validate --root <root>",
+          "composition": "canonical-first"
+        }
+      },
+      "validation_commands": ["repopact validate --root .", "python scripts/validate_moto.py", "python -m unittest discover -s tests -v"]
+    },
+    {
+      "id": "repopact-proving-ground",
+      "repository": "JeremyShows/repopact-proving-ground",
+      "default_branch": "master",
+      "consumption": {
+        "type": "pypi",
+        "package": "repopact",
+        "version_file": "requirements-repopact.txt"
+      },
+      "validation_commands": ["repopact validate --root .", "python -m unittest discover -s tests -v", "python benchmarks/harness/run.py --selftest"]
+    }
+  ]
+}

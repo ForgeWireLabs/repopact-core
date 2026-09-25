@@ -1,0 +1,43 @@
+{
+  "$schema": "../../../repopact/schemas/work-item.schema.json",
+  "id": "073",
+  "title": "Ecosystem Repository Owner Routing Reconciliation",
+  "status": "completed",
+  "owner_scope": "governance",
+  "affected_scopes": ["governance", "work", "evidence", "docs"],
+  "depends_on": [],
+  "provenance": "concrete",
+  "preflight": {
+    "created_before_work_started": true,
+    "created_at": "2026-09-24T03:20:06Z",
+    "note": "Created before modifying the adopter registry or making further ecosystem link corrections. Lead: governance-owner; affected scopes are named in affected_scopes. Current owner mapping is verified through GitHub API responses, not redirect behavior."
+  },
+  "acceptance_criteria": [
+    {
+      "id": "OWN-001",
+      "text": "RepoPact's current adopter registry identifies each repository using its canonical owner verified from GitHub metadata.",
+      "state": "satisfied",
+      "evidence": ["20260923-073-ecosystem-owner-routing"]
+    },
+    {
+      "id": "OWN-002",
+      "text": "In-scope local Git remotes and current-facing references use verified canonical owner paths; SCOUT-3 is explicitly excluded by operator direction and left untouched.",
+      "state": "satisfied",
+      "evidence": ["20260923-073-ecosystem-owner-routing"]
+    },
+    {
+      "id": "OWN-003",
+      "text": "Dated evidence and historical records remain unmodified, and validation results plus any unresolved routing are recorded.",
+      "state": "satisfied",
+      "evidence": ["20260923-073-ecosystem-owner-routing"]
+    }
+  ],
+  "created": "2026-09-23",
+  "documentation_impact": {
+    "state": "affected",
+    "surfaces": ["configuration", "contributor_workflow", "operations"],
+    "evidence": ["20260923-073-ecosystem-owner-routing"]
+  },
+  "updated": "2026-09-23",
+  "notes": "The operator explicitly excluded SCOUT-3 as irrelevant. Its checkout and remote remain untouched."
+}

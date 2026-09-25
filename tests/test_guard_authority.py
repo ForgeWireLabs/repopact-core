@@ -1,0 +1,375 @@
+from __future__ import annotations
+
+import os
+import unittest
+from unittest.mock import Mock, patch
+from pathlib import Path
+import sys
+
+from repopact.admission import Ed25519Signer, issue_receipt, make_request, setup_admission
+from repopact.dev_fixtures import open_fixture_repo, pin_work_item_status
+from repopact.guard import GuardService, ProtectedGuard
+from repopact.guard_ipc import (
+    IPCIdentity,
+    NativeGuardClient,
+    WindowsPipeListener,
+    _windows_server_verified,
+    local_peer_binding,
+    windows_peer_image_path,
+)
+import repopact.guard_ipc as guard_ipc
+from repopact.platform_backends import TestingBackend, WindowsBackend, _windows_install_acl_commands
+import repopact.platform_backends as platform_backends
+
+
+class GuardAuthorityTests(unittest.TestCase):
+    def setUp(self):
+        self.root = open_fixture_repo(self, prefix="repopact-lease-authority-")
+        self.tmp = self.root.parent
+        self.protected = self.tmp / "protected"
+        self.signer = Ed25519Signer.generate("key", "operator")
+        setup_admission(self.root, self.protected, self.signer)
+        pin_work_item_status(self.root, "050", "active")
+        self.guard = ProtectedGuard(self.root, self.protected, backend=TestingBackend(self.protected))
+
+    def _request(self):
+        request = make_request(self.root, "050", "session-a", scopes=["src"], paths=["src/a.py"], protected_dir=self.protected)
+        return request, issue_receipt(request, self.signer)
+
+    def test_authorize_returns_opaque_token_and_restart_invalidates(self):
+        request, receipt = self._request()
+        decision, capability = self.guard.authorize(request, receipt)
+        self.assertTrue(decision.allowed)
+        self.assertIsInstance(capability["lease_token"], str)
+        self.assertNotIn("authority_state_digest", capability["lease_metadata"])
+        action = {"kind": "mutation", "work_item": "050", "paths": ["src/a.py"], "scopes": ["src"], "session_id": "session-a", "principal": "agent"}
+        self.assertTrue(self.guard.check(action, capability).allowed)
+        restarted = ProtectedGuard(self.root, self.protected, backend=TestingBackend(self.protected))
+        self.assertFalse(restarted.check(action, capability).allowed)
+
+    def test_forged_metadata_and_wrong_peer_are_denied(self):
+        request, receipt = self._request()
+        _, capability = self.guard.authorize(request, receipt)
+        forged = {**capability["lease_metadata"], "lease_token": capability["lease_token"], "paths": ["governance/owners.json"]}
+        action = {"kind": "mutation", "work_item": "050", "paths": ["src/a.py"], "scopes": ["src"], "session_id": "session-a", "principal": "agent"}
+        self.assertEqual(self.guard.check(action, forged, peer_binding={"pid": 999, "transport": "fake"}).code, "WRONG_SESSION")
+        self.assertEqual(self.guard.check(action, {"lease_token": "x" * 64}).code, "NO_OPERATOR_PROOF")
+
+    def test_service_exposes_authorize_check_revoke_and_delegate(self):
+        service = GuardService(self.guard)
+        request, receipt = self._request()
+        response = service.dispatch({"op": "authorize", "payload": {"request": request, "receipt": receipt}})
+        self.assertIn("lease_token", response)
+        action = {"kind": "mutation", "work_item": "050", "paths": ["src/a.py"], "scopes": ["src"], "session_id": "session-a", "principal": "agent"}
+        checked = service.dispatch({"op": "check", "payload": {"action": action, "lease_token": response["lease_token"]}})
+        self.assertTrue(checked["allowed"])
+        self.assertFalse(service.dispatch({"op": "check", "payload": {"action": action, "lease_token": "z" * 64}})["allowed"])
+
+    def test_native_client_fails_closed_without_service(self):
+        client = NativeGuardClient(self.tmp / "missing.sock", root=self.root)
+        self.assertFalse(client.health().healthy)
+        self.assertFalse(client.check({}, None).allowed)
+
+    def test_native_client_without_root_queries_machine_health(self):
+        client = NativeGuardClient()
+        response = {"healthy": True, "protected": True, "backend_id": "windows-service", "service_identity_verified": True}
+        with patch.object(client, "_call", return_value=response) as call:
+            health = client.health()
+        self.assertTrue(health.healthy)
+        call.assert_called_once_with("health", {})
+
+    def test_windows_pipe_listener_recreates_instance_after_normal_disconnect(self):
+        import ctypes
+
+        listener = WindowsPipeListener.__new__(WindowsPipeListener)
+        listener._handle = 1
+        kernel = Mock()
+        kernel.ConnectNamedPipe.side_effect = [False, False]
+        stop_event = Mock()
+        stop_event.is_set.return_value = False
+        stop_event.wait.return_value = True
+
+        def close():
+            listener._handle = 0
+
+        listener.close = Mock(side_effect=close)
+        listener.open = Mock(side_effect=lambda: setattr(listener, "_handle", 2))
+        with patch.object(ctypes, "WinDLL", return_value=kernel, create=True), \
+                patch.object(ctypes, "get_last_error", side_effect=[232, 232, 536, 536], create=True):
+            self.assertIsNone(listener.accept(stop_event))
+
+        self.assertEqual(listener.open.call_count, 2)
+        self.assertEqual(listener.close.call_count, 2)
+        self.assertEqual(kernel.ConnectNamedPipe.call_count, 2)
+
+    def test_windows_pipe_listener_switches_accepted_instance_to_blocking_reads(self):
+        import ctypes
+
+        listener = WindowsPipeListener.__new__(WindowsPipeListener)
+        listener._handle = 7
+        kernel = Mock()
+        kernel.ConnectNamedPipe.return_value = True
+        with patch.object(ctypes, "WinDLL", return_value=kernel, create=True):
+            connection = listener.accept()
+
+        self.assertIsInstance(connection, guard_ipc.WindowsPipeConnection)
+        self.assertEqual(connection.handle, 7)
+        self.assertEqual(listener._handle, 0)
+        kernel.SetNamedPipeHandleState.assert_called_once()
+        mode = kernel.SetNamedPipeHandleState.call_args.args[1]._obj
+        self.assertEqual(mode.value, 2)  # PIPE_READMODE_MESSAGE; PIPE_WAIT is zero.
+
+    def test_windows_peer_image_probe_declares_native_handle_types(self):
+        import ctypes
+
+        kernel = Mock()
+        kernel.OpenProcess.return_value = ctypes.c_void_p(0x123456789)
+
+        def query(_handle, _flags, buffer, size):
+            buffer.value = r"C:\Program Files\Python312\python.exe"
+            size._obj.value = len(buffer.value)
+            return True
+
+        kernel.QueryFullProcessImageNameW.side_effect = query
+        connection = object()
+        with patch.object(guard_ipc.os, "name", "nt"), \
+                patch.object(guard_ipc, "windows_peer_identity",
+                             return_value=IPCIdentity("windows-named-pipe", peer_pid=1234)), \
+                patch.object(ctypes, "WinDLL", return_value=kernel, create=True):
+            self.assertEqual(windows_peer_image_path(connection), r"C:\Program Files\Python312\python.exe")
+
+        kernel.OpenProcess.assert_called_once_with(0x1000, False, 1234)
+        kernel.CloseHandle.assert_called_once()
+
+    def test_windows_peer_binding_declares_64_bit_handle_types(self):
+        import ctypes
+
+        kernel = Mock()
+        kernel.OpenProcess.return_value = ctypes.c_void_p(0x123456789)
+        kernel.GetProcessTimes.return_value = False
+        advapi = Mock()
+        advapi.OpenProcessToken.return_value = False
+
+        def load_library(name, **_kwargs):
+            return advapi if name.lower() == "advapi32" else kernel
+
+        connection = object()
+        with patch.object(guard_ipc.os, "name", "nt"), \
+                patch.object(guard_ipc, "windows_peer_identity",
+                             return_value=IPCIdentity("windows-named-pipe", peer_pid=1234)), \
+                patch.object(ctypes, "WinDLL", side_effect=load_library, create=True):
+            binding = guard_ipc.windows_peer_binding(connection)
+
+        self.assertEqual(binding["pid"], 1234)
+        self.assertEqual(binding["transport"], "windows-named-pipe")
+        self.assertEqual(kernel.OpenProcess.argtypes[2], ctypes.wintypes.DWORD)
+        self.assertEqual(kernel.CloseHandle.argtypes[0], ctypes.wintypes.HANDLE)
+        self.assertEqual(advapi.OpenProcessToken.argtypes[0], ctypes.wintypes.HANDLE)
+
+    def test_windows_pipe_connection_declares_message_api_handle_types(self):
+        import ctypes
+
+        kernel = Mock()
+        kernel.WriteFile.return_value = True
+        kernel.ReadFile.side_effect = lambda _handle, buffer, _size, read, _overlapped: (
+            setattr(buffer, "value", b'{"protocol_version":"1"}\n')
+            or setattr(read._obj, "value", len(b'{"protocol_version":"1"}\n'))
+            or True
+        )
+        connection = guard_ipc.WindowsPipeConnection(ctypes.c_void_p(0x123456789))
+        with patch.object(guard_ipc.os, "name", "nt"), \
+                patch.object(ctypes, "WinDLL", return_value=kernel, create=True):
+            connection.send_bytes(b"request\n")
+            self.assertEqual(connection.recv_bytes(), b'{"protocol_version":"1"}\n')
+            connection.close()
+
+        kernel.WriteFile.assert_called_once()
+        kernel.ReadFile.assert_called_once()
+        kernel.CloseHandle.assert_called_once()
+
+    @unittest.skipUnless(os.name == "nt", "shells out to sc.exe, a Windows-only binary")
+    def test_windows_server_verifier_accepts_scm_localsystem_name(self):
+        qc = (
+            "        BINARY_PATH_NAME   : \"C:\\Program Files\\Python312\\python.exe\" -I "
+            r"C:\ProgramData\RepoPact\Guard\runtime\repopact\windows_guard_service.py" "\n"
+            "        SERVICE_START_NAME : LocalSystem\n"
+        )
+        completed = Mock(stdout=qc, stderr="", returncode=0)
+        with patch.object(guard_ipc, "windows_peer_identity",
+                          return_value=IPCIdentity("windows-named-pipe", peer_pid=1234)), \
+                patch.object(guard_ipc, "_windows_server_pid", return_value=1234), \
+                patch.object(guard_ipc, "windows_peer_image_path",
+                             return_value=r"C:\Program Files\Python312\python.exe"), \
+                patch.object(guard_ipc.subprocess, "run", return_value=completed), \
+                patch.object(platform_backends, "_windows_protected_path_chain", return_value=(True, "")):
+            self.assertTrue(_windows_server_verified(object(), None, "RepoPactGuard"))
+
+    def test_install_preflight_is_non_mutating_and_rejects_dirty_source(self):
+        backend = WindowsBackend()
+        before = backend.install_root.exists()
+        report = backend.preflight(self.root)
+        self.assertFalse(report["checks"]["source_tree_clean"])
+        self.assertEqual(report["mutations"], [])
+        self.assertEqual(backend.install_root.exists(), before)
+
+    def test_preflight_records_explicit_interpreter_and_isolated_service_command(self):
+        backend = WindowsBackend()
+        self_test = {
+            "ok": True, "isolated": True, "user_site_enabled": False, "sys_path": [],
+            "required_modules": ["cryptography", "cryptography_ed25519", "_cffi_backend"],
+            "module_origins": {
+                "cryptography": str(self.tmp / "system" / "cryptography.py"),
+                "cryptography.hazmat.primitives.asymmetric.ed25519": str(self.tmp / "system" / "ed25519.py"),
+                "_cffi_backend": str(self.tmp / "system" / "_cffi_backend.pyd"),
+            }, "errors": [],
+        }
+        for origin in self_test["module_origins"].values():
+            path = Path(origin); path.parent.mkdir(parents=True, exist_ok=True); path.touch()
+        with patch.object(platform_backends, "_run_isolated_dependency_self_test", return_value=self_test):
+            report = backend.preflight(self.root, interpreter=Path(sys.executable))
+        self.assertEqual(report["interpreter"]["path"], str(Path(sys.executable).absolute()))
+        self.assertTrue(report["interpreter"]["canonical_path"])
+        self.assertIn(" -I ", f" {report['service_command']} ")
+        self.assertIn(report["interpreter"]["canonical_path"], report["service_command"])
+        self.assertIn("--state-root", report["service_command"])
+
+    @unittest.skipUnless(
+        os.name == "nt",
+        "WindowsBackend's dependency-trust preflight resolves user-writable roots "
+        "via Windows-only env vars (USERPROFILE/LOCALAPPDATA/TEMP/TMP) and ACL "
+        "inspection (_windows_path_chain_is_protected short-circuits with "
+        "'Windows ACL inspection is unavailable on this host' when os.name != 'nt'); "
+        "this scenario is only meaningful on Windows.",
+    )
+    def test_user_site_dependency_is_rejected_even_outside_checkout_and_venv(self):
+        backend = WindowsBackend()
+        user_site = self.tmp / "user-site" / "site-packages"
+        origin = user_site / "cryptography" / "__init__.py"
+        origin.parent.mkdir(parents=True, exist_ok=True); origin.write_text("# fixture\n", encoding="utf-8")
+        self_test = {
+            "ok": True, "isolated": True, "user_site_enabled": False, "sys_path": [],
+            "required_modules": ["cryptography"], "module_origins": {"cryptography": str(origin)}, "errors": [],
+        }
+        with patch.object(platform_backends, "_run_isolated_dependency_self_test", return_value=self_test):
+            report = backend.preflight(self.root, interpreter=Path(sys.executable))
+        record = report["dependencies"]["cryptography"]
+        self.assertFalse(record["protected"])
+        self.assertIn("user-writable", record["reason"])
+        self.assertFalse(report["checks"]["required_dependency_closure"])
+
+    def test_isolated_self_test_ignores_environment_and_checkout_injection(self):
+        # Exercise the isolation check against the real canonical interpreter,
+        # not whatever project dev virtualenv happens to be running the test
+        # suite: `_isolated_sys_path_is_safe` deliberately treats any `.venv`
+        # path as untrustworthy for a protected guard installation, so a
+        # `.venv`-sourced `sys.executable` would fail this check regardless of
+        # whether isolation itself works correctly.
+        base_interpreter = Path(getattr(sys, "_base_executable", sys.executable))
+        result = platform_backends._run_isolated_dependency_self_test(base_interpreter)
+        self.assertTrue(result["ok"], result.get("errors"))
+        self.assertFalse(result["user_site_enabled"])
+        self.assertNotIn("", result["sys_path"])
+        self.assertTrue(result["sys_path"])
+        self.assertTrue(all(str(self.root).lower() not in str(path).lower() for path in result["sys_path"]))
+
+    def test_acl_parser_allows_read_only_users_but_rejects_replacement_rights(self):
+        read_only = r"C:\Program Files\RepoPact BUILTIN\Users:(OI)(CI)(RX)"
+        writable = r"C:\Program Files\RepoPact BUILTIN\Users:(OI)(CI)(M)"
+        authenticated = r"C:\Program Files\RepoPact NT AUTHORITY\Authenticated Users:(RX,W)"
+        self.assertFalse(platform_backends._windows_acl_has_broad_write(read_only))
+        self.assertTrue(platform_backends._windows_acl_has_broad_write(writable))
+        self.assertTrue(platform_backends._windows_acl_has_broad_write(authenticated))
+        self.assertFalse(platform_backends._windows_acl_has_broad_write(
+            r"C:\ProgramData\RepoPact BUILTIN\Users:(DENY)(W,D,WDAC,WO,DC)"
+        ))
+        program_data = r"C:\ProgramData BUILTIN\Users:(OI)(CI)(RX) BUILTIN\Users:(CI)(WD,AD,WEA,WA)"
+        self.assertTrue(platform_backends._windows_acl_has_broad_write(program_data))
+        self.assertFalse(platform_backends._windows_acl_has_broad_write(program_data, replacement_only=True))
+
+    def test_windows_reparse_probe_uses_attributes_without_opening_protected_path(self):
+        native = unittest.mock.Mock()
+        native.GetFileAttributesW.return_value = 0x10  # FILE_ATTRIBUTE_DIRECTORY
+        with patch.object(platform_backends.os, "name", "nt"), \
+                patch.object(platform_backends.ctypes, "WinDLL", return_value=native, create=True):
+            self.assertFalse(platform_backends._windows_reparse_point(Path(r"C:\ProgramData\RepoPact\Guard")))
+            native.GetFileAttributesW.return_value = 0x410  # directory + reparse point
+            self.assertTrue(platform_backends._windows_reparse_point(Path(r"C:\ProgramData\RepoPact\Guard")))
+
+    def test_windows_install_acl_commands_protect_parent_before_child(self):
+        parent = Path(r"C:\ProgramData\RepoPact")
+        child = parent / "Guard"
+        commands = _windows_install_acl_commands(parent) + _windows_install_acl_commands(child)
+        self.assertEqual(commands[0][2:], ["/inheritance:r"])
+        self.assertEqual(commands[3][1], str(child))
+        self.assertTrue(all(command[2] != "/deny" for command in commands))
+
+    def test_windows_acl_accepts_explicit_read_only_users_without_deny_ace(self):
+        output = (
+            r"C:\ProgramData\RepoPact\Guard BUILTIN\Users:(OI)(CI)(RX)" "\n"
+            r"                         BUILTIN\Administrators:(OI)(CI)(F)" "\n"
+            r"                         NT AUTHORITY\SYSTEM:(OI)(CI)(F)"
+        )
+        with patch.object(platform_backends.os, "name", "nt"), \
+                patch.object(platform_backends, "_command_output", return_value=(0, output)):
+            protected, _reason = platform_backends._windows_acl(Path(r"C:\ProgramData\RepoPact\Guard"))
+        self.assertTrue(protected)
+
+    def test_windows_runtime_digest_is_independent_of_install_location(self):
+        first = self.tmp / "runtime-first" / "repopact"
+        second = self.tmp / "runtime-second" / "repopact"
+        for base in (first, second):
+            base.mkdir(parents=True, exist_ok=True)
+            (base / "service.py").write_text("print('stable')\n", encoding="utf-8")
+        backend = WindowsBackend()
+        self.assertEqual(backend._runtime_digest(first), backend._runtime_digest(second))
+
+    @unittest.skipUnless(os.name == "nt", "Windows ACL path-chain behavior")
+    def test_existing_protected_descendant_is_not_rejected_by_volume_root_acl(self):
+        """Standard C:\\ root inheritance must not block Program Files trust."""
+        interpreter = Path(sys.executable).resolve(strict=True)
+        inspected: list[str] = []
+
+        def fake_command(command):
+            inspected.append(str(command[-1]))
+            if Path(command[-1]).anchor == Path(command[-1]).parent:
+                return 0, r"C:\ NT AUTHORITY\Authenticated Users:(I)(M)"
+            return 0, r"C:\protected BUILTIN\Users:(I)(RX)"
+
+        with patch.object(platform_backends, "_command_output", side_effect=fake_command):
+            protected, reason = platform_backends._windows_path_chain_is_protected(interpreter)
+
+        self.assertTrue(protected, reason)
+        self.assertNotIn(str(Path(interpreter.anchor)), inspected)
+
+    def test_binding_has_host_pid_not_claimed_session(self):
+        binding = local_peer_binding()
+        self.assertEqual(binding["pid"], __import__("os").getpid())
+        self.assertNotIn("session", binding)
+
+    def test_global_adoption_registry_keeps_independent_repositories_separate(self):
+        # Materialized independently from the real checkout (not by copying
+        # self.root) so fixtures never recursively include earlier fixtures.
+        second = open_fixture_repo(self, prefix="repopact-lease-authority-second-")
+        registry = self.tmp / "global-registrations"
+        setup_admission(self.root, registry, self.signer, registry_key="adoption")
+        setup_admission(second, registry, self.signer, registry_key="adoption")
+        from repopact.admission import verify_registration
+        self.assertTrue(verify_registration(self.root, registry).allowed)
+        self.assertTrue(verify_registration(second, registry).allowed)
+        self.assertNotEqual((self.root / "governance/repository-registration.json").read_bytes(),
+                            (second / "governance/repository-registration.json").read_bytes())
+        request = make_request(self.root, "050", "global-a", scopes=["src"], paths=["src/a.py"], protected_dir=registry)
+        receipt = issue_receipt(request, self.signer)
+        with patch("repopact.guard.current_backend", lambda *_args, **_kwargs: TestingBackend(registry)):
+            service = GuardService(registry_root=registry)
+            authorized = service.dispatch({"op": "authorize", "payload": {"root": str(self.root), "request": request, "receipt": receipt}})
+            self.assertTrue(authorized["allowed"])
+            action = {"kind": "mutation", "work_item": "050", "paths": ["src/a.py"], "scopes": ["src"], "session_id": "global-a", "principal": "agent"}
+            checked = service.dispatch({"op": "check", "payload": {"root": str(self.root), "repository_identity": request["repository_identity"], "action": action, "lease_token": authorized["lease_token"]}})
+            self.assertTrue(checked["allowed"])
+            other = service.dispatch({"op": "check", "payload": {"root": str(second), "action": action, "lease_token": authorized["lease_token"]}})
+            self.assertFalse(other["allowed"])
+
+
+if __name__ == "__main__":
+    unittest.main()

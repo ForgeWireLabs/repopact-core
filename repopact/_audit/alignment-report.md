@@ -1,0 +1,370 @@
+# Tooling Alignment Report
+
+## 2026-09-13 WI037 adopter-boundary reconciliation
+
+- `governance/adopters.json` now describes the five-adopter fleet at the public
+  RepoPact 3.0.2 boundary. Moto is a package adopter with a declared
+  repository-owned local extension, not a vendored core or checksum overlay.
+- `fleet_verify.py` now verifies that a declared package local extension exists
+  at the immutable public default head and proves canonical-first invocation of
+  the namespaced RepoPact CLI. The contract is adopter-neutral and does not
+  encode Moto-specific rules.
+- Legacy vendored contract support remains in the verifier for historical or
+  separately declared adopters; WI037 no longer declares Moto against obsolete
+  upstream scripts.
+
+## 2026-09-10 canonical Rust engine cutover
+
+- WI056 makes the Rust engine the canonical authority for the proven repository,
+  validation, dashboard, graph, analysis, and typed work-item mutation surfaces.
+- `repopact` remains the Python compatibility CLI. `validate`, `dashboard`, and
+  typed work-item commands cross the versioned local JSON engine boundary;
+  `validate_repo.py` remains an explicit comparator and retained workflows keep
+  their documented Python authority.
+- Maturin `bin` packaging installs the platform-native `repopact-engine` beside
+  the Python package. WI050 admission/guard/enforcement remains protected and
+  Python-owned.
+
+## 2026-09-03 WI050 opt-in provider boundary
+
+- `admission.evaluate_action` checks the adopter-owned policy before guard or
+  lease state: no policy and `enabled=false` are valid standalone modes with
+  `instruction-only`/`enforcement_required=false`; enabled policy remains
+  fail-closed when registration or required provider coverage is absent.
+- `repopact.enforcement.EnforcementProvider` is the generic health,
+  discovery, authorization, check, delegation, and revoke contract. Adapters
+  and providers report separate classes and the resolver computes their
+  non-widening intersection. `NativeGuardClient` implements the contract but
+  is not its definition; external providers are covered by a fixture without
+  built-in guard classes.
+- Package metadata keeps `jsonschema` as the base dependency and moves
+  cryptography to the optional `enforcement` (and `dev`) extras. No frozen
+  schema was changed; `minimum_enforcement` and `failure_mode` retain their
+  existing structure while the resolver ensures degraded mode cannot satisfy
+  an unmet explicit minimum.
+
+## 2026-09-03 WI050 admission architecture review
+
+- Reviewed validate_repo.py, check_frozen_surface.py, init_repo.py,
+  adopt_repo.py, doctor.py, and the CLI against the f2c80b7/WI049
+  first-write bypass.
+- Current validation and frozen checks remain deterministic repository
+  backstops; check-frozen --ack is a caller assertion and is not operator
+  proof in the accepted WI050 design.
+- Decision 0038 selects a protected guard plus vendor-neutral adapter SPI for
+  a later implementation pass. No tooling/runtime behavior or frozen path was
+  changed in this architecture phase.
+
+## 2026-09-03 deterministic evidence timestamp chronology
+
+- `validate_repo.validate_evidence` retains ISO-8601 validation for all runs and
+  applies the explicit `timestamp_basis: "git-recording"` rule against the first
+  recording commit plus a five-minute clock/write tolerance.
+- Naive timestamps are UTC; aware timestamps normalize to UTC. Git-free,
+  exported, and uncommitted records retain structural validation without a
+  fabricated history comparison, preserving deterministic behavior and legacy
+  evidence history.
+- Regression coverage proves far-future rejection, tolerance/offset/naive and
+  historical acceptance, malformed input rejection, Git-free behavior, and
+  repeated validation that cannot heal through passage of time. Decision 0037
+  records the alternatives and the WI049 reconciliation boundary.
+
+## 2026-09-02 structural worktree-aware contract discovery
+
+- `repo_model.iter_contracts` now prunes same-repository linked worktrees using
+  both Git's porcelain worktree registry and embedded `.git` files pointing into
+  the primary `.git/worktrees` directory.
+- The literal `worktrees` entry in `IGNORED_PARTS` remains as a compatibility
+  fallback for stale/orphaned conventional scratch trees with no usable metadata.
+- Independent nested repositories with `.git/` directories remain discoverable;
+  exported trees and Git-unavailable environments retain deterministic fallback
+  behavior.
+- Regression coverage includes Windows paths with spaces, real conventional and
+  non-conventional linked worktrees, stale linked metadata, nested repositories,
+  negative controls, and worktree cleanup.
+
+## 2026-09-02 source_of_truth resolution semantics
+
+- `doctor._dead_source_of_truth` now resolves every path token relative to the
+  declaring record's directory, matching decision 0016 and `takeover.py`'s
+  preserved leading `../` behavior.
+- Bare names are deliberately record-relative; a coincident root-level file
+  cannot make a missing sibling target appear healthy.
+- Regression coverage exercises nested `../` targets, valid and invalid bare
+  targets, root coincidence, and the non-destructive `doctor --fix` contract.
+
+## 2026-09-02 stable source/artifact identity reconciliation
+
+- `validate_repo` now recognizes the exact matching stable tag as a valid
+  unlabeled release tree and rejects later package/runtime source at the same
+  `VERSION` unless a valid VERSION-pinned `RELEASE_LABEL` is present.
+- `package_version` gives labeled development builds deterministic PEP 440
+  metadata while preserving the strict `VERSION` adopter compatibility core.
+- `release-build` uses the derived artifact identity for wheel/sdist names and
+  still performs its independent-export and structural package checks.
+- Regression tests cover exact-tag acceptance, unlabeled post-tag rejection,
+  labeled development acceptance, and deterministic metadata mapping.
+
+## 2026-07-26 RepoPact 3.0 release boundary
+
+- Decision 0029's package/CLI boundary is released as the approved major version,
+  rather than remaining an unreleased source change under the immutable public
+  2.3.0 artifact.
+- `release-build` constructs artifacts twice from independent exports of the
+  committed tree and structurally rejects stale flat modules even if
+  `top_level.txt` is misleading.
+- Adopter-manifest validation checks declaration structure and local overlay
+  integrity; remote version currency remains the fleet verifier's responsibility,
+  so package publication and ecosystem rollout are genuinely separate phases.
+- The declared development extra installs pytest, Maturin, and twine while the
+  required repository suite remains standard-library unittest.
+
+## 2026-07-26 semantic freshness and ledger reconciliation
+
+- Audit registry deadlines now block validation after expiry even if the
+  dashboard was regenerated; source review, not projection refresh, is required.
+- Upstream research metadata registers every top-level claim document under a
+  dated, maximum-30-day review contract. Missing documents and expired contracts
+  have regression coverage.
+- `repopact new` stamps upstream work items against
+  `repopact/schemas/work-item.schema.json` after the package-resource move while
+  retaining the conventional root `schemas/` URI in adopter repositories.
+- WI 020–022 preserve partial evidence criterion by criterion without converting
+  missing launch, benchmark, statistical, or real-model proof into completion.
+
+## 2026-07-26 package-resource seed closure
+
+- Canonical schemas and templates live inside the `repopact` package and ship
+  through setuptools package data; the deprecated `data-files` install surface
+  is removed.
+- `init`, `adopt`, `doctor`, validation, record stamping, conformance, and fleet
+  verification resolve packaged resources through `importlib.resources`, while
+  adopter repositories retain their conventional root `schemas/` and
+  `templates/` copies.
+- The protected schema surface moved from `schemas/**` to
+  `repopact/schemas/**` with explicit operator approval for WI-036 AC-2.
+
+## 2026-07-26 single-package execution and ownership closure
+
+- The distribution exposes one top-level package, `repopact`; all internal modules use
+  package-relative imports and the console script remains the supported interface.
+- Seeded repositories contain governed state but no vendored tooling. The installed
+  package executes validation, generation, and record-stamping (decision 0029).
+- RepoPact enables exact Git-tracked path ownership in `governance/owners.json`.
+  Deterministic diagnostics reject both unowned paths and overlapping ownership,
+  while adopters can opt into the checkout-relative rule after mapping their tree.
+- Test copies exclude virtual environments and build caches, schema validators
+  are reused by content, and exported trees skip unnecessary Git probes. These
+  remove the dominant local suite-time cost while preserving isolated repository
+  state per test.
+
+## 2026-07-22 canonical research metadata and trace repair
+
+- `research/metadata.json` is the machine source for lifecycle states, PactBench task
+  count, study/hypothesis mappings, threat identifiers, and the proposed-state trace.
+- `validate_research.py` cross-checks repeated human-authored facts without generating
+  or token-substituting semantic research claims.
+- The normal repository gate activates this check only for the upstream research record,
+  so adopters are not required to carry RepoPact's paper metadata.
+- Mutation tests reject duplicate/missing threats, a four-state figure, stale task count,
+  stale hypothesis range, and pre-2.0 provenance wording.
+
+## 2026-07-18 complete conformance rule coverage
+
+- The conformance manifest now inventories every repository-tree rule named by the
+  SPEC and machine-enforced invariants covered by the reference validator.
+- Coverage is bidirectional: omitted-rule and unknown-rule mappings fail before
+  conformance execution, and repository tests reject undeclared fixture directories.
+- Reject fixtures must produce exactly one intended reference violation. The runner
+  reports unexpected secondary diagnostics deterministically and fails the case.
+- Added provenance acceptance/rejection, lifecycle identity, semantic version,
+  schema validity, orphan work, disjoint scope, and missing/stale dashboard cases.
+
+## 2026-07-18 deterministic adopter fleet verification
+
+- Added a versioned, schema-validated public adopter manifest covering exact PyPI
+  pins and vendored consumers as distinct contracts.
+- `repopact fleet-verify` resolves each declared public default branch, reads its
+  version marker at the resolved commit, and fails closed on stale or unreachable
+  state while reporting unregistered local candidates separately.
+- Vendored parity is checksum-backed: exact files must remain byte-identical and
+  declared overlays must reconstruct the adopter bytes from an immutable upstream
+  revision. A version marker alone cannot pass.
+- `repopact release-closeout` reports package publication and ecosystem rollout as
+  separate phases and succeeds only when both have evidence.
+
+## 2026-06-29 proposed lifecycle state (025)
+
+- Added `proposed` to the shared lifecycle model as candidate work that does not
+  grant implementation authority.
+- Validator accepts structurally valid proposed work items but rejects active or
+  completed work that depends on proposed work.
+- Bootstrap and CLI record-stamping now create/use `work/proposed/`; conformance
+  covers the new lifecycle rule.
+
+## 2026-06-15 adoption surface and hardening (003)
+
+- Records are now validated against `schemas/*.json` via `jsonschema` (decision
+  0003); the validator retains cross-record semantic checks. Finding 001 closed.
+- Added: audit-finding validation, spec-version check, dependency-cycle detection,
+  symbol-level frozen-surface enforcement.
+- Added bootstrap (`init_repo.py`) and record-stamping (`new.py`) tooling plus
+  `templates/`, making RepoPact installable into a new repository.
+
+## 2026-06-15 governance primitives (002)
+
+- Validator enforces invariants, frozen-surface structure, role/scope references,
+  decision and policy front matter, and registry-driven contract coverage.
+- Mandatory per-contract `_audit` triples relaxed; an `_audit/` companion is
+  validated for completeness only when present (INV-7, policy 001).
+- Optional disjoint-active-scope check, off by default.
+
+## 2026-06-14 bootstrap
+
+- The validator is read-only and reports deterministic path-scoped errors.
+- Dashboard generation writes only `audits/reports/dashboard.md`.
+- Lifecycle-blocking rules have unit-test coverage.
+
+## 2026-07-18 deterministic dashboard enforcement
+
+- `validate_repo.py` compares the committed dashboard with a fresh canonical render
+  and rejects missing or stale output.
+- The generator no longer embeds its run date, so output stays byte-stable until a
+  displayed source value or audit-cadence state changes.
+- Bootstrap, adoption, record stamping, plan import, takeover, conformance
+  materialization, and doctor repair refresh the derived dashboard as part of their
+  governed mutation path.
+- Regression tests cover missing/stale rejection, stable rendering, doctor repair,
+  and command compatibility.
+
+## 2026-09-03 WI050 implementation pass
+
+- Added the six approved admission schemas only; existing frozen schemas,
+  invariants, charter, and workflows remain unchanged.
+- Added the vendor-neutral canonical policy core, Ed25519 approval receipts,
+  external registration/trust pin, short leases, revocation and delegation
+  subset checks, plus fail-closed guard and truthful adapter/platform SPI.
+- CLI, validator, doctor, SPEC, guide, tests, and audit inventory now expose the
+  opt-in admission plane. Reference adapters are pre-action gates and do not
+  claim arbitrary process or filesystem confinement.
+
+## 2026-09-03 WI050 protected enforcement substrate phase
+
+- Replaced the caller-controlled `protected_storage` assertion with a
+  backend-owned `BackendAttestation` carrying integrity, service identity,
+  protected-state, host-configuration, path, and process facts.
+- Added the Windows `RepoPactGuard` installation/status/register/uninstall
+  contract, protected runtime/state locations, LocalSystem SCM service host,
+  authenticated AF_PIPE protocol, and conservative ACL/interpreter checks.
+- Added Linux system-service and macOS launch-daemon backend contracts plus the
+  cross-platform `run_admission_platform_conformance` harness. Testing-only
+  attestations are explicitly marked and excluded from production proof.
+- Current Windows token is non-elevated, so native installation and tamper E2E
+  are pending operator elevation; the backend reports `not-covered` and the
+  enforced path fails closed rather than using a fake service.
+
+## 2026-09-03 WI050 protected-service correction review
+
+- The prior substrate's ordinary lease dictionary was a client-forgeable
+  authority representation. `LeaseStore` now mints opaque high-entropy tokens,
+  keeps canonical lease records in the guard process, and invalidates all live
+  capabilities on restart; `issue_lease` is retained only as a reference policy
+  helper and is not accepted over production IPC.
+- `NativeGuardClient` is the production adapter seam for health, discovery,
+  authorization, checks, revocation, and delegation. It never reads ProgramData
+  state and fails closed on unavailable/spoofed IPC. Service-side delegation
+  mints child tokens only after strict-subset validation.
+- Windows IPC now has an explicit SDDL DACL and verifies the server PID against
+  SCM plus LocalSystem service configuration. Client lease binding is derived
+  from the pipe peer (PID, process-start identity, SID where available, and
+  transport), not caller-provided session or PID fields.
+- The SCM image is machine-wide and contains only the protected state root;
+  adoption-id registration directories support multiple repositories and
+  linked-worktree common-dir resolution. `guard install --preflight` performs
+  all possible checks without mutation, and installation stages/rolls back its
+  exact root/service artifacts on failure.
+- Native destructive proof remains intentionally unrun. AC-14, AC-15, AC-16,
+  and AC-18 remain pending until elevated installation and real cross-process,
+  multi-repository, and three-OS evidence exist.
+
+## 2026-09-03 WI050 interpreter trust-chain correction review
+
+- Windows guard installation accepts an explicit `--interpreter`; omitted
+  selection is still recorded as the canonical `sys.executable` candidate and
+  receives identical validation. The selected canonical path is persisted in
+  the install manifest and exact SCM command.
+- Preflight executes that candidate with Python `-I` and hostile Python
+  environment variables, performs Ed25519 verification, and records actual
+  cryptography/native module origins. The service command uses the same
+  isolated mode and the protected installed runtime path.
+- Every required origin and its parent chain is rejected when it is in a
+  checkout, `.venv`, known user-writable root (including user site, AppData,
+  TEMP, and Downloads), reparse hierarchy, or broad-user-writable ACL. A
+  dependency failure is non-mutating and leaves `mutations=[]`.
+- Native installation remains unperformed; AC-14, AC-15, AC-16, and AC-18
+  remain pending, and Linux/macOS proof remains reserved for their machines.
+
+## 2026-09-15 WI050 closeout tranche
+
+- Authorization requests now enforce each selected profile's
+  `max_duration_seconds` at request construction. A caller-supplied later
+  expiry cannot widen the profile's lease ceiling.
+- Windows attestation now requires the SCM service PID, LocalSystem identity,
+  configured executable, live process image, protected runtime/state parent
+  chains, digest, and ACL checks to agree. Named-pipe client verification also
+  rejects a server whose live image does not match its SCM configuration or
+  whose executable path is not host-protected.
+- Added the provider-neutral Unix listener/service host and made the Unix
+  client verify a root-owned, non-world-writable endpoint plus kernel-reported
+  server peer credentials. The listener refuses to replace a pre-existing
+  endpoint. This is an implementation boundary, not native Linux evidence.
+- The platform conformance runner now executes real process-shaped Python,
+  shell, PowerShell/`cmd` where available, nested-CWD, child-process, and
+  direct-callback denial cases through the explicit testing backend. It records
+  before/after sentinel hashes and labels the result `pre-action`; no
+  process/path confinement claim is derived from this matrix.
+- The live host has no elevated Windows service, ProgramData installation, or
+  WSL2/Linux environment. AC-15, AC-16, and AC-18 therefore remain pending;
+  AC-14 is reconciled by the fresh closeout evidence after the implementation
+  and product-surface audit.
+
+## 2026-09-15 WI050 optional Landlock confinement implementation
+
+- Added the Linux-only `repopact-confinement` crate and `repopact-sandbox`
+  launcher. The launcher is a consumer of protected guard authority: it sends
+  the signed request/receipt over its own Unix transport peer, validates the
+  guard-derived metadata, compiles a non-broadening path ceiling, sanitizes
+  inherited descriptors, sets `no_new_privs`, applies Landlock, and only then
+  executes explicit argv.
+- The minimum advertised contract is Landlock ABI 3 with all RepoPact
+  mutation rights, including ABI-2 `REFER` and ABI-3 `TRUNCATE`. Unsupported
+  ABI, unavailable/disabled Landlock, ruleset or restriction errors,
+  unrepresentable roots, or invalid guard authority fail before target start.
+- Added `LandlockConfinementProvider` and `LandlockSandboxAdapter` as an
+  opt-in capability composition. Ordinary `NativeGuardClient` plus
+  `PreActionAdapter` remains `pre-action`; sandbox capability requires a
+  protected helper and its native mutation probe. Lease revalidation uses a
+  read/orientation guard check while the helper supplies the actual kernel
+  boundary, so a weak guard cannot be mistaken for process confinement.
+- The implementation is portable-tested and Windows-compiled in this
+  checkout, but no Linux kernel is available here (`wsl.exe` reports WSL is not
+  installed). AC-16 remains pending until the required Debian/ext4 native
+  adversarial matrix proves the full process-tree boundary. AC-18 remains
+  pending for the independent Windows/Linux/macOS native reference proofs.
+
+## 2026-09-16 WI050 Linux-native Landlock proof reconciliation
+
+- The prior unavailable-host note remains historical evidence and is not
+  rewritten. A Linux-native Debian 13/WSL2 ext4 checkout was subsequently used
+  with the installed dependencies and a root-owned systemd guard.
+- The protected service was corrected to expose repositories read-only under
+  systemd `ProtectHome=read-only`; Unix dispatch errors now return a versioned
+  fail-closed response before connection close. The Rust launcher root-walk
+  regression and Python IPC regression are covered by tests.
+- Evidence run `20260916-050-linux-landlock-native-proof` records Landlock ABI
+  7, the root-owned helper hash, a 44/44 native matrix, six positive
+  executions, OS-boundary denials, nested/linked-worktree and symlink escapes,
+  inherited-FD closure, request-integrity rejection, expiry, revocation,
+  authority drift, and service-loss/detached-descendant termination. AC-16 is
+  satisfied for the Linux reference path;
+  AC-18 remains pending for independent native Windows and macOS proofs.

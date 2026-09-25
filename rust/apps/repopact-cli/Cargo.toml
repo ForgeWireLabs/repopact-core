@@ -1,0 +1,14 @@
+[package]
+name = "repopact-cli"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[[bin]]
+name = "repopact-cli"
+path = "src/main.rs"
+
+[dependencies]
+repopact-core.workspace = true
+repopact-mutation.workspace = true
+serde_json.workspace = true

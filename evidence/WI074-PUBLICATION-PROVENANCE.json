@@ -1,0 +1,3432 @@
+{
+  "format": "repopact-publication-provenance-v1",
+  "repository": "ForgeWireLabs/repopact-core",
+  "integrated_source_commit": "8f1ce8deb139287655afcc8479dc69dd621d8720",
+  "core_extraction_commit": "6aff2c376efb5ddf236bd11cd1d700f873ec6a4f",
+  "source_manifest_sha256": "8139aa2d3abed79bb8e00d5c6c94c8510cfc23b82402f2d82965d36985c76d59",
+  "included_file_count": 850,
+  "included_files": [
+    {
+      "path": ".gitattributes",
+      "sha256": "d9e7ef47061cabcb003b1884d7802f6ed14f4f99b286357e412d093db8f95196"
+    },
+    {
+      "path": ".github/ISSUE_TEMPLATE/bug_report.md",
+      "sha256": "45aa36425f51fd69c81933262ff1464ed6563dbbbb40cfcf8646eb82e7c304ca"
+    },
+    {
+      "path": ".github/ISSUE_TEMPLATE/config.yml",
+      "sha256": "d045da5619fe322d1b0b14bec9594976de2e5a8a39483f27efe0cfcfdd31b7f4"
+    },
+    {
+      "path": ".github/ISSUE_TEMPLATE/task.md",
+      "sha256": "3daa98efe6cb325cef51988e4e4516224b147b95ec5ff0533d69285ab5c40cb1"
+    },
+    {
+      "path": ".github/pull_request_template.md",
+      "sha256": "8b7d704054d1e2bbfcafe459c42a3acb368db2e3e288a3045a7bba67934f0088"
+    },
+    {
+      "path": ".github/workflows/governance.yml",
+      "sha256": "380213cd10b9e9a791af4ba07283a84179a2d3787b381e8a0f68c5da7dbd3894"
+    },
+    {
+      "path": ".github/workflows/release.yml",
+      "sha256": "b4b78794a6870e065d731adff47501987be97f86116194b4e95296383ca74383"
+    },
+    {
+      "path": ".gitignore",
+      "sha256": "277b2b1b9cfe120e091eaa7ac985c5e063e45cf7d77ad21e8079540ccee71653"
+    },
+    {
+      "path": "AGENTS.md",
+      "sha256": "32e5a9ec530cc25a414b4bb7fc7740e246e1828716ee72b0d7346ddf50aaba0c"
+    },
+    {
+      "path": "CITATION.cff",
+      "sha256": "8f1f06ffbd1fcdef28489f19101e11d3e1c79f3f0a53b408eb3cb9edbcacdfdb"
+    },
+    {
+      "path": "CODE_OF_CONDUCT.md",
+      "sha256": "674f95d33de438f74c7ab024c8a8218ec0af1c196825cbd406779f0cd526b45c"
+    },
+    {
+      "path": "CONFORMANCE.md",
+      "sha256": "53d636924db500842fb077275007f00f2bf504dfda2826370b2c733aa0896b8b"
+    },
+    {
+      "path": "CONTRIBUTING.md",
+      "sha256": "99afe27e94d4fe499a1ce5716e4a3a95d5953e1f9b21f82b0815927333a80059"
+    },
+    {
+      "path": "LICENSE",
+      "sha256": "084ea24742cdcfaa4767f7c29588e596d8e78f5fd2ffcf1da000944c03dd1469"
+    },
+    {
+      "path": "MANIFEST.in",
+      "sha256": "bca72338e7e6e17767add947dfebfaef2f4a975451e3c4fb2031e9995dfcced7"
+    },
+    {
+      "path": "README.md",
+      "sha256": "60959028c98017f92fd3c338e5376238e8a7fb9c40b030f7b5f35e398d7a1ab6"
+    },
+    {
+      "path": "RELEASE_LABEL",
+      "sha256": "a432e8b873099813e7efa742f159176780fcf8e4feeacbd17a6c4e0dddfd0e7c"
+    },
+    {
+      "path": "ROADMAP.md",
+      "sha256": "bff4d22266c49629409445c18a0663440d7fb4d08088239623aa6831e3d181c1"
+    },
+    {
+      "path": "SECURITY.md",
+      "sha256": "f86dd845d5a2a1e7484b60aad06285d411ef3a5d0dae22cecd37dbcefa63f34b"
+    },
+    {
+      "path": "SPEC.md",
+      "sha256": "54550a1871bc2ca5ba39ae2b0f10220eddf9a1349789738d87eb199fb8f26329"
+    },
+    {
+      "path": "VERSION",
+      "sha256": "2aaac27dade3045a30c64834f4c1ce9f5a5a4864c43e547bec804bc6e0186f43"
+    },
+    {
+      "path": "audits/README.md",
+      "sha256": "d9b7a200a99da646ba0da6bc5b0b51fc642ce1c29169086c3b5e238f9befe292"
+    },
+    {
+      "path": "audits/findings/.gitkeep",
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "audits/findings/001-schemas-were-not-enforced.json",
+      "sha256": "9e4265d4446453c62153cd07258c2be258118191d8ded93ab0e823cd29222dd3"
+    },
+    {
+      "path": "audits/findings/002-wi036-publication-boundary-not-closed.json",
+      "sha256": "c6cba518f2367c68d1e61d33f86c36989ca2755539262eab68e50ad16749f071"
+    },
+    {
+      "path": "audits/findings/003-wi050-host-tool-timeout-containment.json",
+      "sha256": "0ce8167b0722b68d09bfffe9f153727861655778ac240341f82ac934509fd0a0"
+    },
+    {
+      "path": "audits/findings/README.md",
+      "sha256": "20eb45cac7ba16392bf8f7e7441b9909394abf902762c8923cb48edb270fbbec"
+    },
+    {
+      "path": "audits/registry.json",
+      "sha256": "b91832b89ea25450beca87f72b4e0dfd2a02e5b579590d699169c1f9abd09a9f"
+    },
+    {
+      "path": "audits/reports/dashboard.md",
+      "sha256": "43da2b563c593752ef5dba760fba12f64c9a27fc4ec75fc1595ce732711805d7"
+    },
+    {
+      "path": "conformance/README.md",
+      "sha256": "318af70c9fc2f8227cff77a05fdb08390f875192eaac8ef8669d6f76078fca8e"
+    },
+    {
+      "path": "conformance/fixtures/README.md",
+      "sha256": "6a0ffc27eccb8cd5a3b9a1100421ac619e74f478192fbd825292424258cdebeb"
+    },
+    {
+      "path": "conformance/fixtures/invalid/active-depends-on-proposed/meta.json",
+      "sha256": "c3f1e82bc8135d9f2b964d09ecf14e2c011658edd1eaf3f8cdd504970f787068"
+    },
+    {
+      "path": "conformance/fixtures/invalid/active-depends-on-proposed/work/active/003-active/README.md",
+      "sha256": "ebf9f91c39f4b37923dbf35b6b0563bb316fc0a2c6f4f5f53d5138272c16f402"
+    },
+    {
+      "path": "conformance/fixtures/invalid/active-depends-on-proposed/work/active/003-active/work-item.json",
+      "sha256": "0510f45331ae6196747653d82ccf51d2078abf08b53bbb372c28f3fec4fc7ec6"
+    },
+    {
+      "path": "conformance/fixtures/invalid/active-depends-on-proposed/work/proposed/002-candidate/README.md",
+      "sha256": "f6fdcfa0891763e9174f413af286d195eaf5f8be390b548165b4daf67e96b378"
+    },
+    {
+      "path": "conformance/fixtures/invalid/active-depends-on-proposed/work/proposed/002-candidate/work-item.json",
+      "sha256": "118e92f088776ed0be6415fd40ebe2d14b566f09b90f849d8d5686a4e9636e42"
+    },
+    {
+      "path": "conformance/fixtures/invalid/assurance-applicability-rationale-missing/assurance/mappings/example-rationale-missing.json",
+      "sha256": "42ea002f0dfa4500b811b8c1b692b4458e279c2232121a017a77ad9486626a94"
+    },
+    {
+      "path": "conformance/fixtures/invalid/assurance-documentation-claim-basis-unsupported/assurance/mappings/example-claim-basis.json",
+      "sha256": "2e1035b31720af558cd724d63dbce6f67708656fd31d3604a8d2ade39f1282b4"
+    },
+    {
+      "path": "conformance/fixtures/invalid/assurance-implementation-path-escapes/assurance/mappings/example-path-escapes.json",
+      "sha256": "18fe1f6ad8b12b3713677e9e7614cce2efd1b88a7d1eb4366381b3c91fd84742"
+    },
+    {
+      "path": "conformance/fixtures/invalid/assurance-implementation-reference-missing/assurance/mappings/example-reference-missing.json",
+      "sha256": "6e1a8bf4c442e9108b3c78d80684b93ac38cff716c40adc46e51101210a60332"
+    },
+    {
+      "path": "conformance/fixtures/invalid/assurance-private-key-evidence/assurance/mappings/example-private-key.json",
+      "sha256": "7adc496c2d906c431e3971e1edac931ea2b2cdfe8163e39e99f790b7e3c27ff6"
+    },
+    {
+      "path": "conformance/fixtures/invalid/assurance-private-key-evidence/assurance/reports/leaked-key.txt",
+      "sha256": "dcd2d513b22b2e2270a2c867372dbe698b65e4733ea100e7002da8472f85fd0f"
+    },
+    {
+      "path": "conformance/fixtures/invalid/assurance-schema-invalid/assurance/mappings/example-schema-invalid.json",
+      "sha256": "00a6f8a65af987cd06237c4578508aa3187495cd44b5326ed7c15a7ed58def89"
+    },
+    {
+      "path": "conformance/fixtures/invalid/assurance-unknown-decision/assurance/mappings/example-unknown-decision.json",
+      "sha256": "0c11762d5fba4de5e2a6d9bd69f3ee64b6e4978cf6bb9e93cb94fa4b4c868e33"
+    },
+    {
+      "path": "conformance/fixtures/invalid/assurance-unknown-evidence-run/assurance/mappings/example-unknown-evidence-run.json",
+      "sha256": "56d4700c43b238bcd7e5304efc212be0cce50f406f4a656f5d3fe431c9c80c60"
+    },
+    {
+      "path": "conformance/fixtures/invalid/completed-provisional-work/meta.json",
+      "sha256": "49cd3331deca7cdf6c1730cc593d4cc251e0e24fbb3f86664c111ef88fd99cb2"
+    },
+    {
+      "path": "conformance/fixtures/invalid/completed-provisional-work/work/completed/002-provisional/README.md",
+      "sha256": "9f60a2d2ab2a8484593dca18276dd03ef2a40601356bd94c9aa23196df397035"
+    },
+    {
+      "path": "conformance/fixtures/invalid/completed-provisional-work/work/completed/002-provisional/work-item.json",
+      "sha256": "197ed6b4426f57cc59eb17b7429aa608c08a353bc3718137e29ffe76f9398cd2"
+    },
+    {
+      "path": "conformance/fixtures/invalid/completed-with-pending/meta.json",
+      "sha256": "60529369867e1809c6f4d7a2a9e34b1f81bf0ff353f263360b9870f5d59eae16"
+    },
+    {
+      "path": "conformance/fixtures/invalid/completed-with-pending/work/completed/001-seed/work-item.json",
+      "sha256": "1c0ee57d5cbf5d2634b799500e607216d7d983bb8c4221f8854490863c569e7c"
+    },
+    {
+      "path": "conformance/fixtures/invalid/dependency-cycle/meta.json",
+      "sha256": "d1bdeb7f63ce6fb7d329840f33fa190da190dcae62e2a2e1423ea41808e7959d"
+    },
+    {
+      "path": "conformance/fixtures/invalid/dependency-cycle/work/active/010-a/README.md",
+      "sha256": "8342feb45eb14ac851a712a9f2fd039fc8231d45fc2d4537eaff575ba17b695c"
+    },
+    {
+      "path": "conformance/fixtures/invalid/dependency-cycle/work/active/010-a/work-item.json",
+      "sha256": "bb7fa8e1f68a7e0b086a807d6f32b75c2f234eb296314316d30b555e31e2a542"
+    },
+    {
+      "path": "conformance/fixtures/invalid/dependency-cycle/work/active/011-b/README.md",
+      "sha256": "89320744e3f4f3ad42775ab6672578a10927cb71bcd30cd1fe68e8e123960feb"
+    },
+    {
+      "path": "conformance/fixtures/invalid/dependency-cycle/work/active/011-b/work-item.json",
+      "sha256": "3751ec8e593b12bc5116284ac5256deafe304c3c6b20aed83f0a8581bccd3312"
+    },
+    {
+      "path": "conformance/fixtures/invalid/disjoint-active-scopes/governance/owners.json",
+      "sha256": "6cb733e2e635d2cf75edfce14ed1a888320ef925cbef9bc47a73e3a5b94cec5d"
+    },
+    {
+      "path": "conformance/fixtures/invalid/disjoint-active-scopes/meta.json",
+      "sha256": "988a661afaa308a545369da439fd512a0530441fa7a50647359b310648f400a2"
+    },
+    {
+      "path": "conformance/fixtures/invalid/disjoint-active-scopes/work/active/002-left/README.md",
+      "sha256": "9cd1784a199e33d11b374a8a713b7e212e81c60491dc0dd75cb3a961fadf57cb"
+    },
+    {
+      "path": "conformance/fixtures/invalid/disjoint-active-scopes/work/active/002-left/work-item.json",
+      "sha256": "f802b1d1b715fddc1068390474ddeefa0878c34b9d4b0ba4f49f5f7e0e0047e9"
+    },
+    {
+      "path": "conformance/fixtures/invalid/disjoint-active-scopes/work/active/003-right/README.md",
+      "sha256": "71d57adad16903b34c5221b71a9f6a88dfbdf0f082176b1bbc242c1b5971c7d6"
+    },
+    {
+      "path": "conformance/fixtures/invalid/disjoint-active-scopes/work/active/003-right/work-item.json",
+      "sha256": "906f35784e763dc5109e2299e4321edcf603e64881efdfc900c514369f6da85d"
+    },
+    {
+      "path": "conformance/fixtures/invalid/documentation-impact-affected-unknown-evidence/work/completed/901-doc-unknown-evidence/README.md",
+      "sha256": "558fdc5ae93138a774ede345883ea9ed5e599acb307c5d9569eff6ee9095c20c"
+    },
+    {
+      "path": "conformance/fixtures/invalid/documentation-impact-affected-unknown-evidence/work/completed/901-doc-unknown-evidence/work-item.json",
+      "sha256": "db0295fccf2a86f5af3a55e19debdb82030e2a29c50ed2ecfb1e107211bac651"
+    },
+    {
+      "path": "conformance/fixtures/invalid/documentation-impact-missing-on-completed/work/completed/900-doc-missing/README.md",
+      "sha256": "a8598956b3b5f5ed35a147ddac626f444773de9de028315442e673a76c39df32"
+    },
+    {
+      "path": "conformance/fixtures/invalid/documentation-impact-missing-on-completed/work/completed/900-doc-missing/work-item.json",
+      "sha256": "933cdfe7e8c8569b81178812d40ca01e8a8a89311b06bcc8af6f1897cce83505"
+    },
+    {
+      "path": "conformance/fixtures/invalid/invalid-semantic-version/VERSION",
+      "sha256": "081b6f87c0824e2951f7cd1d202f45b848e6f8291d7eb3d013137ef25f522c3d"
+    },
+    {
+      "path": "conformance/fixtures/invalid/invalid-semantic-version/meta.json",
+      "sha256": "49b6a1d1c135d96a4183d024d393ef5d1213f1f93ff250fa6795b876c1e0a176"
+    },
+    {
+      "path": "conformance/fixtures/invalid/missing-dashboard/meta.json",
+      "sha256": "31e7498b6afd6e09330f6c997b9b4b818ff07e9554517ea36600fba3d5edf101"
+    },
+    {
+      "path": "conformance/fixtures/invalid/orphan-work-directory/meta.json",
+      "sha256": "2243e9b14741a53b3a7851e385a8ad86cd62a49ad13c5307b04661f208f5667a"
+    },
+    {
+      "path": "conformance/fixtures/invalid/orphan-work-directory/work/active/099-orphan/README.md",
+      "sha256": "6a1e1b507f5a57a88d8e1a117517197592a05f20d1e593435ac3b0e1e828e572"
+    },
+    {
+      "path": "conformance/fixtures/invalid/readme-checkbox-mismatch/meta.json",
+      "sha256": "c5c7cf7f488ffa7cb5d172cd71d8ac85b2e3d2c8b679a824470ea6e21845bdb1"
+    },
+    {
+      "path": "conformance/fixtures/invalid/readme-checkbox-mismatch/work/completed/001-seed/README.md",
+      "sha256": "404fcc8b289d75dd0c958c5682315602cfc361ef3b7b3c223b298eef694b2aab"
+    },
+    {
+      "path": "conformance/fixtures/invalid/readme-release-drift/README.md",
+      "sha256": "8a06b3a5fa3d589a024598d6c07666a6ef2d286c840a6cefdf84f55e22f7655b"
+    },
+    {
+      "path": "conformance/fixtures/invalid/readme-release-drift/meta.json",
+      "sha256": "a5156de2e51f39d346fee95228cc90b8d6aeb9798a739c90f6620fc10655eeed"
+    },
+    {
+      "path": "conformance/fixtures/invalid/release-label-version-mismatch/RELEASE_LABEL",
+      "sha256": "498f0f58f1acb3bb624dabb5cd85d611145c5d694d0fd80fd19429ceb48f15ba"
+    },
+    {
+      "path": "conformance/fixtures/invalid/release-label-version-mismatch/meta.json",
+      "sha256": "94bcc41d1c3ef6b12fca58698454a3b2b49eeb1e3311868d6ddb8e6b5ca3ca73"
+    },
+    {
+      "path": "conformance/fixtures/invalid/satisfied-without-evidence/meta.json",
+      "sha256": "0d67c5c34a08adb8ee1e69d11410dbb5751483c6ceae17d0d738bea70a68f4c2"
+    },
+    {
+      "path": "conformance/fixtures/invalid/satisfied-without-evidence/work/completed/001-seed/work-item.json",
+      "sha256": "4e3e2b3345ef86df7fdfee44f3ecccba85d5925f9edfffff380d1621516c170c"
+    },
+    {
+      "path": "conformance/fixtures/invalid/schema-invalid-evidence/evidence/runs/20260101-seed.json",
+      "sha256": "484bc1b47290a968fa062bcbea249b01a7ec3881d95cb1ee0257e7afa771e32d"
+    },
+    {
+      "path": "conformance/fixtures/invalid/schema-invalid-evidence/meta.json",
+      "sha256": "725a225ea59d8a9bfbaae5f5a5a75cd5a68041b55010212dde0c41dee9952552"
+    },
+    {
+      "path": "conformance/fixtures/invalid/stale-dashboard/audits/reports/dashboard.md",
+      "sha256": "5165a606546cfce4b1ff41f9dfbf0766395b630587613235fa9c0ecb1e26096f"
+    },
+    {
+      "path": "conformance/fixtures/invalid/stale-dashboard/meta.json",
+      "sha256": "e1f39c522ea86305c33230069ae32486dec1e44d7b19b15a8be2f35bf1006b0e"
+    },
+    {
+      "path": "conformance/fixtures/invalid/status-directory-mismatch/meta.json",
+      "sha256": "e594017a65cee4b90ec4db14ab242b9125edf3b2b601144a5d84955ad78f35ee"
+    },
+    {
+      "path": "conformance/fixtures/invalid/status-directory-mismatch/work/completed/001-seed/work-item.json",
+      "sha256": "ff28634566045015dd33acc70cc6dd309ae44bb7141365c7248915f491dc7504"
+    },
+    {
+      "path": "conformance/fixtures/invalid/unknown-dependency/meta.json",
+      "sha256": "eb2e7920e2a6006c5007b8ce5a25bffa048d30a34e5d188664c195af15a26278"
+    },
+    {
+      "path": "conformance/fixtures/invalid/unknown-dependency/work/completed/001-seed/work-item.json",
+      "sha256": "a1f986a400a288fd205c144bbf0ae9ec452fc074111131134ddf2485f16be2ba"
+    },
+    {
+      "path": "conformance/fixtures/invalid/unregistered-contract/meta.json",
+      "sha256": "a0556b573143ebd2ccf29a70a84f7e5bc09cf96574407ac2863799eebcac9259"
+    },
+    {
+      "path": "conformance/fixtures/invalid/unregistered-contract/service/AGENTS.md",
+      "sha256": "dc75359e6486a1cbe8c085f85268910d88381f279e8bdf1f3386f56e0dc3a13f"
+    },
+    {
+      "path": "conformance/fixtures/invalid/verification-default-profile/governance/verification.json",
+      "sha256": "192e4e6c6f709a81ee8c5aa2c9ca1bdb727611bf17c94f133291801ebedfe230"
+    },
+    {
+      "path": "conformance/fixtures/invalid/verification-default-profile/meta.json",
+      "sha256": "f8ff3823db8b4105e04961ef7d8493ec4e24f1dc649bba28c30240d0c8d6f24e"
+    },
+    {
+      "path": "conformance/fixtures/valid-assurance-forgewire/assurance/mappings/forgewire-access-control.json",
+      "sha256": "2f1da5e378fb7c1b2804dcddeec969a6d29e6ccc822f7e89bac2709ae9e1a431"
+    },
+    {
+      "path": "conformance/fixtures/valid-assurance-forgewire/assurance/reports/forgewire-access-review-summary.md",
+      "sha256": "acab716b906c91f193036a0b293eb52cf5b9afb143ea35cff2b200f0175dcad2"
+    },
+    {
+      "path": "conformance/fixtures/valid-assurance-full/assurance/mappings/example-full.json",
+      "sha256": "b09b34712724817e67edbfe0d6ea726c24e3c6ec1fa169c66a41bafb3890125c"
+    },
+    {
+      "path": "conformance/fixtures/valid-assurance-full/assurance/reports/redacted-summary.md",
+      "sha256": "994567581c9ba046a16be4ff92b014e119e5381bd9b3e784ba401b04e31cdd9f"
+    },
+    {
+      "path": "conformance/fixtures/valid-assurance-minimal/assurance/mappings/example-minimal.json",
+      "sha256": "eab9bba14182de45b320badc4e8cefcf3f1ffe3c3f58680c67af7f029cdbc240"
+    },
+    {
+      "path": "conformance/fixtures/valid-assurance-not-applicable/assurance/mappings/example-not-applicable.json",
+      "sha256": "970d8b5836b8aa2208a8888a91a573ba63f009b475a5b83e1fa3c387f08fd48f"
+    },
+    {
+      "path": "conformance/fixtures/valid-assurance-restricted-artifact-warning/assurance/mappings/example-restricted.json",
+      "sha256": "17f483f6f2fab2b21ee421baff0ea8b55d6c88e7b6a38e8da50f3aacc05e50d7"
+    },
+    {
+      "path": "conformance/fixtures/valid-assurance-restricted-artifact-warning/assurance/reports/restricted-summary.md",
+      "sha256": "cedbd485518c73ce5108e9d428fe3ab3799970cfc84bae086a78c4416645a9ab"
+    },
+    {
+      "path": "conformance/fixtures/valid-proposed/work/proposed/002-candidate/README.md",
+      "sha256": "db9fdaf5c0d650815795f5b056a163ba33529b55e03175b7232255268d7f556e"
+    },
+    {
+      "path": "conformance/fixtures/valid-proposed/work/proposed/002-candidate/work-item.json",
+      "sha256": "118e92f088776ed0be6415fd40ebe2d14b566f09b90f849d8d5686a4e9636e42"
+    },
+    {
+      "path": "conformance/fixtures/valid-provisional/work/active/002-provisional/README.md",
+      "sha256": "1c69ace18de700429aaec0d0a04e18ed6c97077db3c2eec46533e06788083f90"
+    },
+    {
+      "path": "conformance/fixtures/valid-provisional/work/active/002-provisional/work-item.json",
+      "sha256": "1e3875814bcacbbf3a1d66b6ad312c72258cdbbcd9de6f0157ba506f7c725415"
+    },
+    {
+      "path": "conformance/fixtures/valid-release-label/RELEASE_LABEL",
+      "sha256": "5c9c112fc83af1a2f8c196a676c8f81d1a28aab1ffe9bacd0e8265a150e2e20e"
+    },
+    {
+      "path": "conformance/fixtures/valid/AGENTS.md",
+      "sha256": "7a5f8f25a2a9d66774be894440cc65cc1918f223af174e55b6c2d690f0bdfb03"
+    },
+    {
+      "path": "conformance/fixtures/valid/VERSION",
+      "sha256": "e9dd8507f4bf0c6f42458e41aea833ad0bd3f6127272335eee9bf4d58541ed67"
+    },
+    {
+      "path": "conformance/fixtures/valid/audits/registry.json",
+      "sha256": "28657fcce6f532370a13239f0212da1a087b255ba05c7fad6e3712e1fea39545"
+    },
+    {
+      "path": "conformance/fixtures/valid/audits/reports/dashboard.md",
+      "sha256": "39105bf2b81893163fa27c344445b20b221dd08322d40924ee240573406a2c7a"
+    },
+    {
+      "path": "conformance/fixtures/valid/evidence/runs/20260101-seed.json",
+      "sha256": "4070fba12a3c6ab5058d77aa34844bd302dbba21ce3f0086256444a5838ce832"
+    },
+    {
+      "path": "conformance/fixtures/valid/governance/frozen-surface.json",
+      "sha256": "fb091dfcbee13d039ebd7436531fbe4e972410162efb40891f3f7a7eda0004a1"
+    },
+    {
+      "path": "conformance/fixtures/valid/governance/invariants.json",
+      "sha256": "527e366c6a7f85cbb5cc223990ecfdc3fe9941900d7eb02d7ed36c1c35cb5be0"
+    },
+    {
+      "path": "conformance/fixtures/valid/governance/owners.json",
+      "sha256": "02b0da20cb2e7eab00b8abb6e335dcc50ed766f5f9eb60648abdd3faf8519ff3"
+    },
+    {
+      "path": "conformance/fixtures/valid/work/completed/001-seed/README.md",
+      "sha256": "41af30ec1adfb2f9980885994c76c64d7c0779369b004fd169311ba2b149f6d2"
+    },
+    {
+      "path": "conformance/fixtures/valid/work/completed/001-seed/work-item.json",
+      "sha256": "430c135af44a61790148b4e35c3901cd8fd761fcc68f508768097c27064ebfb3"
+    },
+    {
+      "path": "conformance/manifest.json",
+      "sha256": "83c26f637facfd2a964f6402d3a4dafc41f95fe420c4b4b4b6639b6a9dd75fe2"
+    },
+    {
+      "path": "decisions/0001-repository-as-pact.md",
+      "sha256": "a9f37a9226f90579b29750617b5a109a52fac9d9842ee65494ae5ad6cffe923d"
+    },
+    {
+      "path": "decisions/0002-license-apache-2.0.md",
+      "sha256": "10a5c3fd9addea292ff6f4f7715f2ea66fd53d0678f6efe74cca9be04d03dbd1"
+    },
+    {
+      "path": "decisions/0003-validate-records-against-json-schemas.md",
+      "sha256": "74dd6809e84a6b9e953a7b689b5c8100b2a020f768ef19e6b8f7ba445f82be50"
+    },
+    {
+      "path": "decisions/0004-specification-and-documentation-approach.md",
+      "sha256": "582111aa6d361ff8aee3a092572c75f69d81dc998612e3ac2feb37e958317cab"
+    },
+    {
+      "path": "decisions/0005-alpha-versioning-and-release.md",
+      "sha256": "f703e435a736b8ceb804dce472eb69731d4d526d970cfab07a7a34e65eef047e"
+    },
+    {
+      "path": "decisions/0006-spec-is-a-maintainer-command.md",
+      "sha256": "736738d155ba303ef21b1cbb8eaa04217be9bac8a64434ad4c79f25ef78b456c"
+    },
+    {
+      "path": "decisions/0007-declare-1-0-0-on-adopter-evidence.md",
+      "sha256": "060af72b173bd62cec1338a568bf0ebe8d97cee9c9ee5fa77e4c86ff1c8443fb"
+    },
+    {
+      "path": "decisions/0008-brownfield-adoption-maps-existing-signals.md",
+      "sha256": "35949cf3a4b55cb976df7ff038cc0fdb20b425e64cb8787e39b7dc3219a9a04f"
+    },
+    {
+      "path": "decisions/0009-pypi-distribution-via-trusted-publishing.md",
+      "sha256": "9925ec11d40320fea6f1a8700d9bdabeb3814cd0812d1ac1b0dc35f7e3878e07"
+    },
+    {
+      "path": "decisions/0010-plan-import-maps-existing-trackers-to-work.md",
+      "sha256": "93c36a77a58c6593e6e95047c1a61065e628a3673430b94ecaa166b0dfa5a00a"
+    },
+    {
+      "path": "decisions/0011-repopact-doctor-diagnoses-drift.md",
+      "sha256": "51141f424933a4d2c1794e400afc14864a8e87df58c168d87406bdc3e94e11b6"
+    },
+    {
+      "path": "decisions/0012-tracking-import-and-takeover.md",
+      "sha256": "1de715175b832c65c485e253d751972a5de206592ede8fdea8c9a00a363d923e"
+    },
+    {
+      "path": "decisions/0013-takeover-delete-is-documented-and-git-guarded.md",
+      "sha256": "1e21339b79a333acdc5f28f551064eae7a29604f1347e85a42505570748f9f78"
+    },
+    {
+      "path": "decisions/0014-readme-checkbox-parity.md",
+      "sha256": "a92d57ab3b248dd5a146d45c446b10e3a71c6db42b2be7df9c0b7f55e9384c3f"
+    },
+    {
+      "path": "decisions/0015-import-plan-rewrites-narrative-links.md",
+      "sha256": "eb58245a7267fb3eef6942eb57af2cd10b47b8b4a97a78e58fd1bb903500e92e"
+    },
+    {
+      "path": "decisions/0016-takeover-repoints-inbound-references.md",
+      "sha256": "49537269b2435c111eaba063a0da3e8f9b3a79fe8cddbd0ce3f17332ad25c2b8"
+    },
+    {
+      "path": "decisions/0017-add-deferred-and-rejected-decision-statuses.md",
+      "sha256": "d952f96b4f9522fb818390e4671ae8c63582548753ae28068fdb0d19f0fce702"
+    },
+    {
+      "path": "decisions/0018-generalized-opt-in-preflight-marker.md",
+      "sha256": "789035845b673a471fca6d32f2364530036b3e1aa4a5f324520848c5d2246a2d"
+    },
+    {
+      "path": "decisions/0019-repopact-role-in-forgewire-labs-portfolio.md",
+      "sha256": "185c6c62000c9b11e149c46bc6168bfd8c72cdd7f70ce7129d41bf29623ebd3c"
+    },
+    {
+      "path": "decisions/0020-launch-positioning-layer-above-agents-md.md",
+      "sha256": "1f71ae53c9276cb55c427f817168ba641670f3abd0ee1ea9a666c5a3b17a4ba9"
+    },
+    {
+      "path": "decisions/0021-preflight-mandatory-and-provenance.md",
+      "sha256": "0c3271f7d059245eb7145c681fc1fc4703113c98b935b7104391ac26d4284675"
+    },
+    {
+      "path": "decisions/0022-release-2.0.2-installed-seed-lookup.md",
+      "sha256": "29f9a24071d30a579e366420c223c0713e7a6bf76b738cc91efd7b59f213aac4"
+    },
+    {
+      "path": "decisions/0023-add-proposed-lifecycle-state.md",
+      "sha256": "045a235fd2434ed82c2eebfd13cbfc15bb67379d2eb4bd4c6c0ef5f2bb69a803"
+    },
+    {
+      "path": "decisions/0024-release-2.1.0-proposed-lifecycle.md",
+      "sha256": "77bc86766ece3eea46037e4d2c5cd1f300acf88e2c2c1ba9411be7037c8bb363"
+    },
+    {
+      "path": "decisions/0025-release-2.2.0-dashboard-integrity.md",
+      "sha256": "a4a64bbf79288c02cdc05b68bead23dfc7d40db4110d42740b53cd380446fe9e"
+    },
+    {
+      "path": "decisions/0026-optional-release-label.md",
+      "sha256": "c8cf5a428fa276eaa602e329fb2eac5a0becdac1e2b98ccb2f8d7f65f7080eaa"
+    },
+    {
+      "path": "decisions/0027-release-2.3.0-optional-release-label.md",
+      "sha256": "b3bec381c6916dfad39abb3f3be8e0bb7e4b6f90ea277c5c5f8b3d6168f06c3d"
+    },
+    {
+      "path": "decisions/0028-pin-the-readme-release-line-to-version.md",
+      "sha256": "8bf484ee9519d4ea025eca6309ebd72811bd05cd567b2097e95345ab49ed0773"
+    },
+    {
+      "path": "decisions/0029-ship-a-repopact-package-and-stop-vendoring-tooling-into-seeded-repositories.md",
+      "sha256": "e7d27b0afa35b2b85cf3480d08b2c5c1522ff8008b618159cadbf2763c5dae3a"
+    },
+    {
+      "path": "decisions/0030-release-repopact-3-0-0-package-boundary.md",
+      "sha256": "3d981f2570f4dab067cef42ffd42a5eb729fd1153ac94196fa97ecde2f7e372e"
+    },
+    {
+      "path": "decisions/0031-restore-remote-enforcement-on-github-actions-with-an-appveyor-fallback.md",
+      "sha256": "a79033121e7ff98254f2a7d76c2a85543171d7715ae735041b9540d98cd1546d"
+    },
+    {
+      "path": "decisions/0032-stable-source-artifact-identity.md",
+      "sha256": "307c00ad23df1bb4d1bdfd6d16c418acb1114ae18a9b7b61e0ff487257e8a2d5"
+    },
+    {
+      "path": "decisions/0033-release-repopact-3-0-1.md",
+      "sha256": "683b6326477d132bb468a7ebd3aa24e43c830ec93d05615bfcddca32f2a42ff8"
+    },
+    {
+      "path": "decisions/0034-source-of-truth-record-relative-resolution.md",
+      "sha256": "599a887c463df9e0b156b3786dbe98a2660efcf51fb244dcfecbfe80d4dd2b93"
+    },
+    {
+      "path": "decisions/0035-structural-git-worktree-awareness.md",
+      "sha256": "b50d99e21fcebea089be7267c8aa370f8e1b63e90775ae84fe11a0572de8f48a"
+    },
+    {
+      "path": "decisions/0036-release-repopact-3-0-2.md",
+      "sha256": "6c31bf9b997df4a6e02e4acb5affafc07f006ebbe5ab16328eee9db7deea1ee8"
+    },
+    {
+      "path": "decisions/0037-evidence-timestamp-recording-chronology.md",
+      "sha256": "359bcc7b2fd573157a0c8e68d1079a79d69ddda6504aa942f998e7dc4b841f65"
+    },
+    {
+      "path": "decisions/0038-pre-execution-admission-architecture.md",
+      "sha256": "90aa18b2f03623c294597099bbaed27ae170ada6e0da3959d1b7d610610e7add"
+    },
+    {
+      "path": "decisions/0039-opt-in-enforcement-provider-boundary.md",
+      "sha256": "5ce3764ed585071ce9451e80bc9f709527715abc197a6b546b01cb3c15856a30"
+    },
+    {
+      "path": "decisions/0040-content-addressed-native-mutation-plans.md",
+      "sha256": "409a2be032af3a088be9731536be215bdb3191dd0c7e2424950ebc453f698622"
+    },
+    {
+      "path": "decisions/0041-tauri-desktop-session-and-opaque-plan-boundary.md",
+      "sha256": "9367c9a063592ee99b416cb593208e6f02e711732bc06999e250f9cbab1c4293"
+    },
+    {
+      "path": "decisions/0042-canonical-rust-engine-and-versioned-stdio-compatibility.md",
+      "sha256": "2c6e5a8e5e9c637af413a15d8ee3d898248ebac76a508aa32a8734ac5de8699e"
+    },
+    {
+      "path": "decisions/0043-local-first-ci-cd-with-optional-hosted-adapters-disabled-by-default.md",
+      "sha256": "4d77fb9db1efda06325bfa3034fca88a922a592bcb7d7f3f9cc917fad9f6d534"
+    },
+    {
+      "path": "decisions/0044-durable-repository-orientation-graph-projection-and-freshness-contract.md",
+      "sha256": "073824f98e14e2302b8a87ce6eb6919642e8ad2ed9e1ae808e59caf7adabf209"
+    },
+    {
+      "path": "decisions/0045-deterministic-semantic-extraction-substrate-and-rog-schema-v2.md",
+      "sha256": "b1f8a92b722ff38fad5b1f938d66db92e2f761bdad246168172ad9e52187d541"
+    },
+    {
+      "path": "decisions/0046-incremental-rog-convergence-and-contribution-reuse-contract.md",
+      "sha256": "edb2c2a71c6f4d531274c1d86d8d43ddd70c4c81bb10b10215181923708992e9"
+    },
+    {
+      "path": "decisions/0047-session-scoped-working-tree-rog-overlay-and-dirty-state-contract.md",
+      "sha256": "191880a5c7397d0fb4a2fe0cd7477596bcc9c3dd0dc5d8446b1fadcb59f5f26b"
+    },
+    {
+      "path": "decisions/0048-deterministic-repository-metadata-and-operational-topology-adapter-contract.md",
+      "sha256": "4c1b1e0685f27723830525a6cd24d1677e21f15620e9c733582f9de6fd71cfd7"
+    },
+    {
+      "path": "decisions/0049-operational-surface-completion-and-forward-compatible-relation-semantics.md",
+      "sha256": "99609831de0ab3e3dcd344eb8fcfb4f3bb850fdc4c834b0d39dbb4650be5bdba"
+    },
+    {
+      "path": "decisions/0050-bounded-repository-graph-query-orientation-and-pagination-contract.md",
+      "sha256": "c98634fda95ff57a16412aed4bae8054c965cdf822cc06010471bc183948063f"
+    },
+    {
+      "path": "decisions/0051-explicit-rog-capability-brownfield-bootstrap-backfill-and-clean-clone-contract.md",
+      "sha256": "3769a47486c8b7867f6c135b8df2df65c089d820f4a66eafdd29f84469eebe73"
+    },
+    {
+      "path": "decisions/0052-workbench-operator-repository-map-and-derived-graph-merge-regeneration-contract.md",
+      "sha256": "d56f62e1366093ac3ae19d200cbb7dd0fefb52a9a24694439edcfb1682f2902c"
+    },
+    {
+      "path": "decisions/0053-wi063-final-evaluation-fixture-boundary-research-and-closeout-gate-contract.md",
+      "sha256": "76d133466bf8b684b426a5d4e4cab213e1245d1845487a3cadc382ab7cb276d9"
+    },
+    {
+      "path": "decisions/0054-provider-neutral-assurance-mapping-and-sensitive-evidence-contract.md",
+      "sha256": "c2088403fcf21c8827f3ca3d3b360df4238fc128b28959424275cbd99cc364cb"
+    },
+    {
+      "path": "decisions/0055-assurance-guardrails-review-snapshot-drift-and-claim-safety-contract.md",
+      "sha256": "a9f3c41711340d895660f45c5a041d0f25f0bede8c3d7e23b341c76b0c7af48d"
+    },
+    {
+      "path": "decisions/0056-mobile-repositories-use-app-private-working-copies-with-explicit-acquisition-and-synchronization-boundaries.md",
+      "sha256": "0b6c9be54091838ba73c78551201c8c44a6ad53f261eab92ed07f1d8468f8775"
+    },
+    {
+      "path": "decisions/0057-mobile-acquisition-runtime-workspace-registry-and-bounded-import-export-contract.md",
+      "sha256": "525711707f17b27cbcd57f5ca8d4a417c13f0995b4e3cdb6e701508b0da63a02"
+    },
+    {
+      "path": "decisions/0058-release-repopact-3-1-0-as-a-compatible-minor-milestone.md",
+      "sha256": "9c2835c81e36d2ae5875f6b861758aab3367cd641eb950d8cadf8e6228216895"
+    },
+    {
+      "path": "decisions/0059-wi022-ac3-model-family-amendment.md",
+      "sha256": "f320b817ab568fea33610242375f4f897ed50a7f6f5ed92659e9e46e5b22e3bf"
+    },
+    {
+      "path": "decisions/0060-optional-sandbox-process-enforced-reference-confinement.md",
+      "sha256": "9442e8a5a876069f61bf5f703a1397f5ba463ceb0fd59fe64aadc9992ccb31ae"
+    },
+    {
+      "path": "decisions/0061-remote-repository-providers-materialize-immutable-snapshots-through-native-owned-authorization-and-the-existing-workspace-pipeline.md",
+      "sha256": "f030fa92b01af11987e1ba0d975d146cbc903243d48b1d6f1dd76d9b2a7f1aec"
+    },
+    {
+      "path": "decisions/0062-browser-redirect-pkce-authorization-replaces-device-flow.md",
+      "sha256": "6d052ff0fd699dc4b81e8d79b38b2751831605a58f00a5a5857ccd61fba39a3c"
+    },
+    {
+      "path": "decisions/0063-release-repopact-3-1-1-sdist-license-file-corrective.md",
+      "sha256": "9f1b6bfc4d37226b2986ef42384ad08f13668380a46572b642dd6293a0828b18"
+    },
+    {
+      "path": "decisions/0064-release-repopact-3-1-2-post-3-1-1-validation-corrective.md",
+      "sha256": "1ba76f9021a047fbcc3227c085578c7d75a80cd016b45d56db8796dfa38cf708"
+    },
+    {
+      "path": "decisions/0065-documentation-closure-is-mandatory-at-work-item-completion.md",
+      "sha256": "b2d604c580df85449c2dc1d1a74782b9f93055f81fee29e696a89bf40221acfb"
+    },
+    {
+      "path": "decisions/0066-release-repopact-3-1-3-downloadable-installers.md",
+      "sha256": "12eba5814ce529b15cff6a7e52bbeb5a398c14c2016599545795868a5c0fa220"
+    },
+    {
+      "path": "decisions/README.md",
+      "sha256": "c451582c9da014f389822f903d7ef667c4e490cb7c7c629fb823f03d25deda35"
+    },
+    {
+      "path": "docs/AGENTS.md",
+      "sha256": "bc1fc2d339ce7288990314c9d86e2d680ffdeb1ed6d811e24af5526c54a99bfa"
+    },
+    {
+      "path": "docs/README.md",
+      "sha256": "3d090877c09226b26ca81346205015ee0193b63be1e20a219a76a1220d3108af"
+    },
+    {
+      "path": "docs/adopt-repopact.md",
+      "sha256": "2bfe6bc14c8927b4964d18403c902229301afadaadbfb8c18c38424338f52fa9"
+    },
+    {
+      "path": "docs/assets/README.md",
+      "sha256": "8376f76e3a48b396e4a1b491559e154182b2041911ed6f1f9acc8537b7ea9d8b"
+    },
+    {
+      "path": "docs/assets/readme/repopact-hero-social.png",
+      "sha256": "0decc4a57721f3b169c54a3e8b8b14011d5e5c66f07b936e2757053f96a795ff"
+    },
+    {
+      "path": "docs/assets/readme/repopact-hero.svg",
+      "sha256": "0285eec293d2dec2318a02969761c311e7b61a8a0ace0fa71e13a9a316af7474"
+    },
+    {
+      "path": "docs/assets/repopact-flow.svg",
+      "sha256": "61c17b585903b8ed751ec2802c2351d2e4fe4989fb6de3bcf27d835db781796f"
+    },
+    {
+      "path": "docs/assets/repopact-governance.svg",
+      "sha256": "3ee1e24cfaa871c3275f9b59bbc475f698df02adf1ded0d7280d67a6df22a41c"
+    },
+    {
+      "path": "docs/concepts.md",
+      "sha256": "e7a80ee9a5f23020f45934f0ef7ff5038ecb0c427d8d36ff43c271e0cd85f4b5"
+    },
+    {
+      "path": "docs/demo.md",
+      "sha256": "401201262d51f425f6b2010cdd79cc591c8d8c5933f5c6e07c2cfe8a22616599"
+    },
+    {
+      "path": "docs/guides/author-records.md",
+      "sha256": "2ff89202429099ed49d04d32a46ddf1bdfd04eb35be7718b724d822a3db8d70e"
+    },
+    {
+      "path": "docs/guides/ci-integration.md",
+      "sha256": "0b271209009f9239bc1498c8a9b5fd0b45de80c15592aec66959e59d51e4fdbe"
+    },
+    {
+      "path": "docs/guides/define-your-governance.md",
+      "sha256": "848a99d895e9acac9fc98c87722e129cd167fc105608649bcdd713fbb07ca706"
+    },
+    {
+      "path": "docs/guides/extend-the-validator.md",
+      "sha256": "8dafa292d7637dc4bc945bf8ba408e7cc70cff96b1839550fe810ed30f650578"
+    },
+    {
+      "path": "docs/guides/local-ci-cd.md",
+      "sha256": "2938a160e9298da7d443bf69c5feb66d07efb9cbca07c314204dbd7213a5ac51"
+    },
+    {
+      "path": "docs/guides/packaging-and-engine.md",
+      "sha256": "748a53af51cbf9827970deb30a94413ded0991ff19351b7b37fb31993408b6a1"
+    },
+    {
+      "path": "docs/guides/pre-execution-admission.md",
+      "sha256": "154bda81ae59e152a9edd5f2cff58a43082f801abc4def345cb15d8e2c3f23fc"
+    },
+    {
+      "path": "docs/repository-orientation-graph.md",
+      "sha256": "b1c29a8338442a4bf16a1b4be26270ce0126bc84c15186257454113a93afdcd2"
+    },
+    {
+      "path": "evidence/README.md",
+      "sha256": "6918559071b7e6d6d7f2bb5d37f5f892ae4a29b7737d1e0f38522e74d581f9c5"
+    },
+    {
+      "path": "evidence/captures/20260914-063-rog032-benchmark/large-windows.json",
+      "sha256": "114ac0b91e9413747827afeca60014d886e8b3459dc98a06b09f3df2589435df"
+    },
+    {
+      "path": "evidence/captures/20260914-063-rog032-benchmark/medium-linux.json",
+      "sha256": "d264463ecc8dc7b6ed4f1df14dca235e7606254aee7365605d5cf10bfc2104e7"
+    },
+    {
+      "path": "evidence/captures/20260914-063-rog032-benchmark/medium-windows.json",
+      "sha256": "8da9438e99b6ddb16a6e911e7b968b236f70997950c6e240c7accee63d7fadcb"
+    },
+    {
+      "path": "evidence/captures/20260914-063-rog032-benchmark/real-repopact-linux.json",
+      "sha256": "40b2877592a0725c9f4c090e28e5dca675dafd07837e85edfd8aaf5c7eab9932"
+    },
+    {
+      "path": "evidence/captures/20260914-063-rog032-benchmark/real-repopact-windows.json",
+      "sha256": "7df97e0a3c5a25657fc5f8dd9d41ef6c0f0f6108ef34ea5b7203f41c88b3d587"
+    },
+    {
+      "path": "evidence/captures/20260914-wi022-ac5-smoke-v2-admission/transport-openai-validated.json",
+      "sha256": "55abd2aa7662fbd698153d235cfbe522d71b404178993844016a989e6f3ebe4f"
+    },
+    {
+      "path": "evidence/captures/20260914-wi022-ac5-smoke-v2/0001.json",
+      "sha256": "ddcc3d728a59d7075988f595bd8a4db1d42bcb518e2f2bdcd971122be3c1d4b8"
+    },
+    {
+      "path": "evidence/captures/20260914-wi022-ac5-smoke-v2/0002.json",
+      "sha256": "520fa1911d3f5bda09d2a96b855742c986f226a9f8588538d7ca24ca1f95a019"
+    },
+    {
+      "path": "evidence/captures/20260914-wi022-ac5-smoke-v2/0021.json",
+      "sha256": "45c379ee9e84dcc6d696de72182b7b6f9503dbe38b759d736f2da39ce424a6a4"
+    },
+    {
+      "path": "evidence/captures/20260914-wi022-ac5-smoke-v2/envelopes/0001.json",
+      "sha256": "95ec065bb4913b30b97bb04230bbaf64c1f33c8d399f86485db75f8c65b41742"
+    },
+    {
+      "path": "evidence/captures/20260914-wi022-ac5-smoke-v2/envelopes/0002.json",
+      "sha256": "7c315383bbadd5ed4a00aa4f11e6e76c02a1b992fa5f0f4a3103845cc3fe188b"
+    },
+    {
+      "path": "evidence/captures/20260914-wi022-ac5-smoke-v2/envelopes/0021.json",
+      "sha256": "136a077b1eebbf267ba29362ae5548451b3b6f3356151bb2c247dfa9d98285b2"
+    },
+    {
+      "path": "evidence/runs/.gitkeep",
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "evidence/runs/20260614-193818-bootstrap.json",
+      "sha256": "add1c5b7cd46fbc2db14d652df2d9acc41f801ec7335ac85a3bb972d3dcdcd0e"
+    },
+    {
+      "path": "evidence/runs/20260614-193850-closeout-transition.json",
+      "sha256": "4a3e913ff5963a561406155586bea24d7b5b924d40e3bf2879c7bc41b7b4ccbe"
+    },
+    {
+      "path": "evidence/runs/20260614-193922-closeout-corrected.json",
+      "sha256": "85769c01652e498bcf30edb9a1dd55c7ddcc833dd84449a708ba00e4cbb0b2b2"
+    },
+    {
+      "path": "evidence/runs/20260614-194016-final.json",
+      "sha256": "3b1fdda7d37402699b850fde1fd0f4c7b546e879d772049f102273bcca9c1c44"
+    },
+    {
+      "path": "evidence/runs/20260615-203707-proving-ground-hardening.json",
+      "sha256": "a4d487be3e595b09a52ae106f1c794027a5ec86afc122a3b26de5c46b2864d27"
+    },
+    {
+      "path": "evidence/runs/20260615-211715-brownfield-adoption.json",
+      "sha256": "68649aba5ea12dea3374c3ea2d79495031f44424ed476d42d4479fc80588085c"
+    },
+    {
+      "path": "evidence/runs/20260615-215134-adopt-hardening.json",
+      "sha256": "c4a6ec46e0dd3a4e2728e0f4a8006a1001ed066ba048cbc1b0ce1c8498bc006f"
+    },
+    {
+      "path": "evidence/runs/20260615-215140-pypi-release-workflow.json",
+      "sha256": "60a50f2b07c1688ec4e35b83482c86e512d77736842197e9c130adb21370356a"
+    },
+    {
+      "path": "evidence/runs/20260615-adoption-and-hardening.json",
+      "sha256": "551d848cdb228f40426d9f4cec328ca6098348e4cc4f811cf8be8434b475c206"
+    },
+    {
+      "path": "evidence/runs/20260615-conformance-fixtures.json",
+      "sha256": "dd2fe64fbdd0cb365448dbb2d924cb01c38f0937bf2cf3e30a98c7e130aee853"
+    },
+    {
+      "path": "evidence/runs/20260615-governance-primitives.json",
+      "sha256": "03803a6c77c28fc2872182bc928451764b8e2cc7ac9897590b90f0ce291864a3"
+    },
+    {
+      "path": "evidence/runs/20260615-repopact-cli.json",
+      "sha256": "ac24bcc1f12d279c75a8a3b54b282cfb1cdef1aa25c77c9b7458612d468baf48"
+    },
+    {
+      "path": "evidence/runs/20260615-repopact-publication.json",
+      "sha256": "a45c0038e6c7e1da1d586706df5b91e3f6bfaa1ed85b0d9295555d4a3592c71e"
+    },
+    {
+      "path": "evidence/runs/20260615-spec-docs-release.json",
+      "sha256": "e22db584e0b9b35db4972026170f7e9a18821a220e1f20e05b2b83677232ae45"
+    },
+    {
+      "path": "evidence/runs/20260616-091930-plan-import.json",
+      "sha256": "bee3f42b4259b2d013a3279cb95c5b1f1b7d2a627b74d6cd3a077ff5f3388500"
+    },
+    {
+      "path": "evidence/runs/20260616-093218-plan-import-sources.json",
+      "sha256": "bf03748a87f63bed891fbbeb5540bd5bc68286031b4b5e3aabc006eae2ceedde"
+    },
+    {
+      "path": "evidence/runs/20260616-100320-repopact-doctor.json",
+      "sha256": "3c698517299a9245abd67f011a9303675e9977b5f86b5bc2343aee4446f64265"
+    },
+    {
+      "path": "evidence/runs/20260616-102316-skillforge-adoption.json",
+      "sha256": "f01bd3b6d47853d18913a0376f25b56473cc6ca59f01ad49424adb3cb847c637"
+    },
+    {
+      "path": "evidence/runs/20260616-105305-tracking-and-takeover.json",
+      "sha256": "7463db46e10901c0a7de2126a93181d200bbdcbd6dfd421fff4f242f468c5cab"
+    },
+    {
+      "path": "evidence/runs/20260622-220000-readme-checkbox-parity.json",
+      "sha256": "e233d8a28a81ec1c71a936e2d56e75ffbea2c6ae8ecaf740e0641226c1605d4d"
+    },
+    {
+      "path": "evidence/runs/20260623-deferred-rejected-statuses.json",
+      "sha256": "e952e1df8f006a642119ec8b99c38c94e9bc1a5f30bf135a3f3dc48bfec036c6"
+    },
+    {
+      "path": "evidence/runs/20260624-generalized-preflight.json",
+      "sha256": "1597515afa2ab21a39eb6901ce52022ca5caf806b614c9f3d3f7f0769f9ffe19"
+    },
+    {
+      "path": "evidence/runs/20260624-pactbench-harness-selftest.json",
+      "sha256": "bf88231a2988a7dc565e97f3634e8f35a872969d0cec84410ed5484804ed2d56"
+    },
+    {
+      "path": "evidence/runs/20260629-conformance-suite-closeout.json",
+      "sha256": "8f8b1de1105a1fc63d745ef15ac6e82622035372eba442876d8cda58f5f70965"
+    },
+    {
+      "path": "evidence/runs/20260629-preflight-mandatory-closeout.json",
+      "sha256": "53c0059b7abc3effa7f2a6b682b7e0e16247eb8f7031967663a7164166fcd7c2"
+    },
+    {
+      "path": "evidence/runs/20260629-proposed-lifecycle-state.json",
+      "sha256": "ea19906d19547f4ffb82c17efa1db839e057033a98928ab2164fa0b1bdcaec08"
+    },
+    {
+      "path": "evidence/runs/20260629-provenance-typed-records-closeout.json",
+      "sha256": "d0125ccd92e9f01765c747f28f2e4aaf39e46554e00fa411434b4d4873dd30ec"
+    },
+    {
+      "path": "evidence/runs/20260718-blind-spot-work-coverage.json",
+      "sha256": "d7c7de1d42a7d0b3bacfacd343cc4071ceccd794bc21e97c08799cd7a9c27bcd"
+    },
+    {
+      "path": "evidence/runs/20260718-complete-conformance-rule-coverage.json",
+      "sha256": "fc101fcbbb5192158c39b266ea509545bb68adddf3d3a4d602571c07c3a76f04"
+    },
+    {
+      "path": "evidence/runs/20260718-deterministic-adopter-fleet-verification.json",
+      "sha256": "b81906974228065a2f0a40f96cfe8d60233d966b9eb1711a4c58835871f91b7f"
+    },
+    {
+      "path": "evidence/runs/20260718-deterministic-dashboard-validation.json",
+      "sha256": "09a5abd59b93fdb4ac91be4c43751bc3e5dcaeef9bfbbcf8af2c6b27b3721634"
+    },
+    {
+      "path": "evidence/runs/20260718-repopact-2-2-0-adopter-rollout.json",
+      "sha256": "7103f0f66ce94d28bedfdd364fbda20d055cb2f6bcaedfe8ceeb477977e726d7"
+    },
+    {
+      "path": "evidence/runs/20260718-repopact-2-2-0-publication.json",
+      "sha256": "e691967941a6104840e7e48a5918be187fb4874d2e05c54cc8f4aae1f5712d7d"
+    },
+    {
+      "path": "evidence/runs/20260718-repopact-2-2-0-release-candidate.json",
+      "sha256": "2e9d52658f77786363a863dc28799b16d20aa31f3a2518f1833cf510ed5efd4d"
+    },
+    {
+      "path": "evidence/runs/20260720-optional-release-label.json",
+      "sha256": "a95d7dcf51e0938319b1846272384aba78e21c4ed7673c79c1ea2da1209cc915"
+    },
+    {
+      "path": "evidence/runs/20260720-release-2-3-0.json",
+      "sha256": "1bd23b94fbc5e767eab69e16aa6f2013b1d3b70b7d5deff89f106dd703725fc8"
+    },
+    {
+      "path": "evidence/runs/20260722-canonical-research-metadata-and-trace-repair.json",
+      "sha256": "4935c77bf6976809f12250f2fdd0ff08c7b07c86c3f7bd124e9dc3edb452a82e"
+    },
+    {
+      "path": "evidence/runs/20260725-release-surface-and-vendored-tooling.json",
+      "sha256": "f3622854985434429b4fe470b928d432134de7d6fb69d1a44d1b72971d200b36"
+    },
+    {
+      "path": "evidence/runs/20260726-package-namespace-and-ownership-closure.json",
+      "sha256": "aa96db1a4f2ce842577d71f93bddadb436e02a94834b480dcf06b4c02215c541"
+    },
+    {
+      "path": "evidence/runs/20260726-package-resource-seed-closure.json",
+      "sha256": "b72e4c7291bd0df995f6225491580218153c64eec6c3e0c5b4120b436b64acfe"
+    },
+    {
+      "path": "evidence/runs/20260726-repopact-3-0-0-release.json",
+      "sha256": "095b2e78d089bacf95c7e95ec6ffa67fd8ca523405bcb5e8005272f472e950b2"
+    },
+    {
+      "path": "evidence/runs/20260726-semantic-ledger-freshness-reconciliation.json",
+      "sha256": "407c2d67d9af30a18c412b5e314f8788069658a35fab70b0aff491c1535b7ba5"
+    },
+    {
+      "path": "evidence/runs/20260821-039-promote-forgewire-enforcement-closure-case-study.json",
+      "sha256": "e363f97bfededfb5cd83ef55a427cbb539e7884f4b8302a01169862f6ef6e975"
+    },
+    {
+      "path": "evidence/runs/20260821-040-refresh-research-metadata-contract-tests.json",
+      "sha256": "334ab7fb26b931ddc0ea7e99d21ac5e8e7c260fe0995c3892aaa26b0907d6185"
+    },
+    {
+      "path": "evidence/runs/20260821-041-wi238-upstream-findings-recording.json",
+      "sha256": "7441e41ad6a7de96fa2120e9722e77f1df07d3536bc843319e2b08754a4d4042"
+    },
+    {
+      "path": "evidence/runs/20260902-042-structural-worktree-awareness.json",
+      "sha256": "d84c4c9b8cdacfb94ff0f441742cd8cf049bb0dedd582f9fe4ffccf1b424a7f3"
+    },
+    {
+      "path": "evidence/runs/20260902-043-source-of-truth-resolution.json",
+      "sha256": "79a1ba014d88261abfc2daedd75de044c425d3236f80a53bcf351a4b3618af93"
+    },
+    {
+      "path": "evidence/runs/20260902-045-public-publication-verification.json",
+      "sha256": "526092d0f92033b0e52ee8103c66992aad9aeff613e82ec6274a1795cae4dda3"
+    },
+    {
+      "path": "evidence/runs/20260902-045-publication-blocked.json",
+      "sha256": "49b7765f7c62cc77482ea425ac29f1fd4da8d75e400450d782cbe6ab855bde78"
+    },
+    {
+      "path": "evidence/runs/20260902-045-release-3-0-1-local-validation.json",
+      "sha256": "18d655f1eee7160071d5208df6fcab29fe7a8f0764ece670917ccf0e486f2d92"
+    },
+    {
+      "path": "evidence/runs/20260902-048-release-3-0-2-final.json",
+      "sha256": "ba541866195517763abb4551a92d59038ea710d3f6350030f5514f37fedcbb48"
+    },
+    {
+      "path": "evidence/runs/20260902-048-release-delta.json",
+      "sha256": "b36d97a0ca8f7ec73b69608429a03ef89c16630a420fc818a1bd638e9ecfe7cd"
+    },
+    {
+      "path": "evidence/runs/20260903-049-evidence-timestamp-reconciliation.json",
+      "sha256": "0bd0058d28ac5e08a6322a910bae2ae6535ae7bcffe2b24c4dddbd0ea64a464d"
+    },
+    {
+      "path": "evidence/runs/20260903-050-architecture.json",
+      "sha256": "18b70d961ba245bfc9be58cb3469369e02970ea016d765f01a2db1a44e2e366e"
+    },
+    {
+      "path": "evidence/runs/20260903-050-implementation.json",
+      "sha256": "32b69711297466892fc43c4184bd99f62bdfea67cc5048b2ea8504b7c96939b2"
+    },
+    {
+      "path": "evidence/runs/20260903-050-interpreter-trust-correction.json",
+      "sha256": "0f883839391d866052c8f9279fcce5dd654e2dd5c18031ebdd0a438112889186"
+    },
+    {
+      "path": "evidence/runs/20260903-050-opt-in-provider.json",
+      "sha256": "c450b5ae55a35f98c076cc7a3ab07e97df49b4f2a94b5c01a0c8b9335610528c"
+    },
+    {
+      "path": "evidence/runs/20260903-050-protected-service-correction.json",
+      "sha256": "faabfd21fa410bc937a9dbb667ade8fdd993b1d259a1ffb94619b322cc51f2e9"
+    },
+    {
+      "path": "evidence/runs/20260903-050-protected-substrate.json",
+      "sha256": "11f06c63cf9e30ad88408bc747669e9fecca7882372d0d6624a73c340c901ab0"
+    },
+    {
+      "path": "evidence/runs/20260903-050-security-correction.json",
+      "sha256": "ed1dceddfcffcb6c62275ad7af5654ba24fbbd729c80644caf8dbde9403d45a4"
+    },
+    {
+      "path": "evidence/runs/20260903-050-security-review.json",
+      "sha256": "d71842bf1a0ede0b5fd02e8c1d8effb81838221ba0d18fe701c21a2b2c735ede"
+    },
+    {
+      "path": "evidence/runs/20260909-053-rust-validator-conformance.json",
+      "sha256": "19f2630b095119098a3524c509b304c793550f3b579b44173f36d22f883b8731"
+    },
+    {
+      "path": "evidence/runs/20260910-054-rust-graph-mutation-core.json",
+      "sha256": "9e8a3ac63898eb4465f65f3ba4fa7fd489083307a1c6ba60f9d6d4224a538d56"
+    },
+    {
+      "path": "evidence/runs/20260910-055-tauri-desktop-governance-workbench.json",
+      "sha256": "06904c95e0a2b62af90fffa88697dc217f3325c4231984b660daf87885b12cc7"
+    },
+    {
+      "path": "evidence/runs/20260910-056-rust-engine-cutover.json",
+      "sha256": "4f51dd7696c286e1f5980f632e5e505458462d949833e6d48c943e5204715c52"
+    },
+    {
+      "path": "evidence/runs/20260910-057-native-picker-closeout.json",
+      "sha256": "f7ed5effdb0eaa52153a35ca67bd8560d9f64220a808f05f850f6484d1eecd36"
+    },
+    {
+      "path": "evidence/runs/20260910-057-process-amplification-remediation.json",
+      "sha256": "fb8200331985cb08c7be062b34cb9d304bd18c187bea7ddb5efe5222c17691f3"
+    },
+    {
+      "path": "evidence/runs/20260910-058-adaptive-ia.json",
+      "sha256": "0d58d19969995e23dd3b466cc21a6bdbc476c788769768f383eb3da430fc1fd3"
+    },
+    {
+      "path": "evidence/runs/20260911-059-canonical-rust-validation-self-hosting.json",
+      "sha256": "0eb4a38c6187e6ade666b88a919f13a4e029e2088616e7bc9ee42040806aeba2"
+    },
+    {
+      "path": "evidence/runs/20260911-060-android-workbench-bring-up.json",
+      "sha256": "ed48ce21400f58f56bb8f9907efdff3e4b338efa696b7462f3eb5841781077fc"
+    },
+    {
+      "path": "evidence/runs/20260911-062-linux-environment-preflight.json",
+      "sha256": "ebbe43787fea8ddb5ca694dbe4bb448365f0666615b966407fbe1aeb1885f8d7"
+    },
+    {
+      "path": "evidence/runs/20260911-062-windows-nsis-and-android-icon.json",
+      "sha256": "78e5f7966bad2583ce35078ce2b3df18672b70f85d98dd955188eda776305fa0"
+    },
+    {
+      "path": "evidence/runs/20260912-062-android-operator-confirmed.json",
+      "sha256": "c7738ae58b91a1c27a4844f0eda4f8eb4ece8a1ac19fee995f0e02bd2333bfba"
+    },
+    {
+      "path": "evidence/runs/20260912-062-linux-deb-build-install-launch.json",
+      "sha256": "2463a0bb2bbba76256bcf8907d7f634c35621ef1c4df05e982a1ad4502b8e8f8"
+    },
+    {
+      "path": "evidence/runs/20260912-062-linux-operator-confirmed-and-closeout.json",
+      "sha256": "b056a173fa5757230844ab4bdc80d190882246fe71d5a72a661730a7c4d5f4d8"
+    },
+    {
+      "path": "evidence/runs/20260912-062-windows-icon-fix-rebuild-and-regression.json",
+      "sha256": "82b06a42f41465e607577ee5534756cc751383bb37991a9c072e7541658dd602"
+    },
+    {
+      "path": "evidence/runs/20260912-062-windows-operator-confirmed.json",
+      "sha256": "01f60bf6777e6496b3f245176634af3fba7f9d66fa0b8014a72a84bf54b8caa9"
+    },
+    {
+      "path": "evidence/runs/20260913-021-ci-verification.json",
+      "sha256": "eb0b1d3b2d02b2561945894db824926f756b01e298b3c6c2796dab7a34a451c6"
+    },
+    {
+      "path": "evidence/runs/20260913-021-launch-readiness-reconciliation.json",
+      "sha256": "b3cf62b68d95dac9c73b6677a9715ba15a4514bea37d05f6e44ddff33a646a07"
+    },
+    {
+      "path": "evidence/runs/20260913-031628-497968-verify-ci.json",
+      "sha256": "c4c5d925970743361aeba3c4761539118d21445d9f757d08c549fea41adab91d"
+    },
+    {
+      "path": "evidence/runs/20260913-037-adopter-fleet-3-0-2-reconciliation.json",
+      "sha256": "4345b0cab7f86273a9387946edc54d171ab93bce2d459f0f8fc8f3391a48d19c"
+    },
+    {
+      "path": "evidence/runs/20260913-046-architecture-review-validation-pass.json",
+      "sha256": "ea6ab5f12dc369d6b2265753b6ae92f17e440a5cbea9300498b81d2a855dbd16"
+    },
+    {
+      "path": "evidence/runs/20260913-046-final-closeout.json",
+      "sha256": "ce9fa93a72e6b55ea49486450e7c55cafc18182aaa61b106c5a7d92f212cd2db"
+    },
+    {
+      "path": "evidence/runs/20260913-046-post-closeout-artifact-relocation.json",
+      "sha256": "7195bff6a9c7008359503e570dcbbdcd9bdc6a96084a48f728cb3f7e13bca830"
+    },
+    {
+      "path": "evidence/runs/20260913-063-foundation-checkpoint.json",
+      "sha256": "1e7c65c441a59ea197c31888888ab14d75498ac35db49caa1ae282348f664980"
+    },
+    {
+      "path": "evidence/runs/20260913-063-incremental-equivalence-checkpoint.json",
+      "sha256": "45a15e0c61da93f810e196e4cb92844b3bb0ca023bedb44ca434e617d92601f4"
+    },
+    {
+      "path": "evidence/runs/20260913-063-semantic-checkpoint.json",
+      "sha256": "a9120702f1d713ac5ee7e78541124964daf9bb4973da54157a05e8c715e002d0"
+    },
+    {
+      "path": "evidence/runs/20260913-063-working-overlay-checkpoint.json",
+      "sha256": "b1357798b7094eff47f76b20fab32c916e818db73c4803d940691e2f8bee5296"
+    },
+    {
+      "path": "evidence/runs/20260913-064-research-metadata-consistency-repair.json",
+      "sha256": "14b145fd31f3126baec935384c5de66d1adc61775e5e57dda13ec04523d291e8"
+    },
+    {
+      "path": "evidence/runs/20260913-150319-746974-verify-ci.json",
+      "sha256": "cdf3661ea791bea581ef3e7208639253046d3881d76bba3bafb2ebf11c5923f0"
+    },
+    {
+      "path": "evidence/runs/20260913-151850-578125-verify-ci.json",
+      "sha256": "dc472ec4bd08789a460ca0d44701afb661f8135d8bcf3bfc0faa7fb631b3f6e0"
+    },
+    {
+      "path": "evidence/runs/20260913-155915-872187-verify-ci.json",
+      "sha256": "04dee61ca0efca46c11fd7e3236d4931ee7e8d4c292ea4b1687b5e5c36c75e03"
+    },
+    {
+      "path": "evidence/runs/20260913-165921-367598-verify-ci.json",
+      "sha256": "e6fe0a3acc306408f638dd7e10bf5952984c2d05a7838a29867dc904adaf7bdc"
+    },
+    {
+      "path": "evidence/runs/20260913-wi020-pactbench-integrity-reconciliation.json",
+      "sha256": "6d3804897dee4057b6562243de3d083056816f657822bbd8634ef7209475ecb4"
+    },
+    {
+      "path": "evidence/runs/20260913-wi022-ac5-realrunner-smoke.json",
+      "sha256": "b83d0a8b72ecaf136c564b1357a238c0fdd630b6d3e417ad733fd9576b6935ce"
+    },
+    {
+      "path": "evidence/runs/20260913-wi022-ac5-v2-selection.json",
+      "sha256": "4bbde73b2fcc88cac7e362ad38b7d49db7c17b21ba0b59023fe15133cf6987f1"
+    },
+    {
+      "path": "evidence/runs/20260913-wi022-deterministic-benchmark-tranche.json",
+      "sha256": "8e5fffec601911e0a0ad1d776e460a7c8ea749d104f42f9666492e8960a55877"
+    },
+    {
+      "path": "evidence/runs/20260913-wi022-provenance-reconciliation.json",
+      "sha256": "1e84be9546a0d9e4d80dd29f8cc67090ed5e9bb47eaa44d2c4ce4ee4f722742e"
+    },
+    {
+      "path": "evidence/runs/20260913-wi022-s2-deterministic-materialization.json",
+      "sha256": "4cf023d01ef8badd05b44eb8fefdb34bfed6549304568881d2eab3980520fe90"
+    },
+    {
+      "path": "evidence/runs/20260913-wi022-s5-package-boundary-reconciliation.json",
+      "sha256": "7ef966048124aed90158c1420c490f6235468695ccbeeeb5629e4eb36cf454ad"
+    },
+    {
+      "path": "evidence/runs/20260913-wi022-telemetry-v2-checkpoint.json",
+      "sha256": "b499ae20e03f9ed755864e639e2ea4bc7b0f015f1d07454e73a163ff8eb49dd9"
+    },
+    {
+      "path": "evidence/runs/20260914-021-ci-verification.json",
+      "sha256": "ad10d4397196079317f532ea1292dd75edaffb9870ef0b5eadb94a6fe97dd303"
+    },
+    {
+      "path": "evidence/runs/20260914-021-release-out/release-build-report.json",
+      "sha256": "6b07b48adfd151a33b702b1032daaff56dca4d0a350d16f0e9c843af09250dd8"
+    },
+    {
+      "path": "evidence/runs/20260914-021-release-out/release-manifest.json",
+      "sha256": "a4af9b1433c0e8cd7364b1ece56d7b51b48de55b5f242a10125df8b50c184eb7"
+    },
+    {
+      "path": "evidence/runs/20260914-021-release-out/release-readiness.json",
+      "sha256": "f6be6d74fc9699b57e06a187160afb7bb33fd030bf823be8fe72ae9845d905a1"
+    },
+    {
+      "path": "evidence/runs/20260914-021-release-preparation.json",
+      "sha256": "b325edf0ed83dca9578b9b5c11225171124744edd31e7a02c8632b1339f3c434"
+    },
+    {
+      "path": "evidence/runs/20260914-051-assurance-drift-diagnostics-adopter-checkpoint.json",
+      "sha256": "44a77f494a0dbcd1732dca623f17fae937afe66568cc3fff653f704e6e84a4d1"
+    },
+    {
+      "path": "evidence/runs/20260914-051-assurance-mapping-foundation-checkpoint.json",
+      "sha256": "5365bdf8d28e0cd6f0702de3fb7e0c2246ca03af93349c3b296d0aa9377514de"
+    },
+    {
+      "path": "evidence/runs/20260914-061-mobile-repository-strategy-decision.json",
+      "sha256": "0a7d9dab294c9c1ede2530a81e4ea0a290ff4c000402f8cd076cdfc5cb07fc3e"
+    },
+    {
+      "path": "evidence/runs/20260914-063-adoption-backfill-clean-clone-checkpoint.json",
+      "sha256": "dd20f759fd941fad2dbc506151d550d1b0f5c9b7ca64b0dac626698847fde6b2"
+    },
+    {
+      "path": "evidence/runs/20260914-063-bounded-query-orientation-checkpoint.json",
+      "sha256": "10ace10d627495bc6a8282e25bfbfacdb1d3c5bda3bcdfad3411230df0156514"
+    },
+    {
+      "path": "evidence/runs/20260914-063-closeout-readiness-checkpoint.json",
+      "sha256": "9ae9525ad9bc50b47cbf39ee62b0d94d6e088e6d9a999406c702c5acc45c9f86"
+    },
+    {
+      "path": "evidence/runs/20260914-063-metadata-operational-topology-checkpoint.json",
+      "sha256": "62dad972b45c155a355fc213008c56d38804219f49029f740fb3616bca514406"
+    },
+    {
+      "path": "evidence/runs/20260914-063-operational-surface-completion-checkpoint.json",
+      "sha256": "9e59e5b7ac527e5ac0b2475228e79a5534377d09c0b53c9483588d717989852d"
+    },
+    {
+      "path": "evidence/runs/20260914-063-workbench-map-branch-merge-checkpoint.json",
+      "sha256": "8dde2e7c178079deb1b4693c35620191bf5deef7131c33c1ccd7639b5dd3f5d7"
+    },
+    {
+      "path": "evidence/runs/20260914-065-checkpoint-b-android-saf-acquisition.json",
+      "sha256": "443a7ae84c80e0456fee514d93c715b4398dec915d592890f212d49a7763cf00"
+    },
+    {
+      "path": "evidence/runs/20260914-066-compatibility-audit.json",
+      "sha256": "baedba1d5eb625ed115228550ae3774c1a59b3e873ac34ac664aa07ddf511763"
+    },
+    {
+      "path": "evidence/runs/20260914-066-milestone-inventory.json",
+      "sha256": "02193f733391eaed4d5885853b875c05dad9d9c5cf7f8e8ca65ea15087bcc953"
+    },
+    {
+      "path": "evidence/runs/20260914-066-release-verification.json",
+      "sha256": "5f45d5925a6954b02124321f1eb205e3d70cedc5f88f468058198dd43407c130"
+    },
+    {
+      "path": "evidence/runs/20260914-wi022-ac3-admission-probes.json",
+      "sha256": "b8c85a9e650a764a1cea24594cd5301b215d75b0da5fa5e65d5de1c7a02b7c7f"
+    },
+    {
+      "path": "evidence/runs/20260914-wi022-ac3-admission-v2.json",
+      "sha256": "712075de2b8bda4349c22014a30ac3a912d46bf26d6e3faba3ca4b3171982bc1"
+    },
+    {
+      "path": "evidence/runs/20260914-wi022-ac3-admission-v3.json",
+      "sha256": "53b0dccd9b90686718c4f4e348c392ce8e32314b40980a2e64e05b005ad89019"
+    },
+    {
+      "path": "evidence/runs/20260914-wi022-ac3-budget-checkpoint-v2.json",
+      "sha256": "b62213b010269cb97d80cb05b65150a09530a6de841a2c2cf0763e493d95b95d"
+    },
+    {
+      "path": "evidence/runs/20260914-wi022-ac3-execution-manifest-v2.json",
+      "sha256": "daff3df83a9a1855c82aa6a23dc1f9988e9435807972de9d0e847e587c5f6ee9"
+    },
+    {
+      "path": "evidence/runs/20260914-wi022-ac3-resource-deferred.json",
+      "sha256": "c8ca0a7d5a59ac1a5003bbedfb962e570f2427ecb871a426f1fece5a1849b104"
+    },
+    {
+      "path": "evidence/runs/20260914-wi022-ac3-whole-program-preflight.json",
+      "sha256": "1ccc0de7d51bd0016268cf9e3d10e59994f12f1f8d21142ec0945e4c96d258be"
+    },
+    {
+      "path": "evidence/runs/20260914-wi022-ac3-windows-workspace-contract.json",
+      "sha256": "0ef41f03ae2df6e5340720a092ee08e3af1c65ec082f90b86b2048b6a3a9c2d2"
+    },
+    {
+      "path": "evidence/runs/20260914-wi022-ac5-realrunner-smoke-v2.json",
+      "sha256": "699e3073a422157af258d6bd0d984230cc852adf0dc3b9021f217b0763913cd4"
+    },
+    {
+      "path": "evidence/runs/20260915-050-closeout-tranche.json",
+      "sha256": "4ce74ecd0e863575afcd36f3afdeaa2d49dc9d876a9e4ffe4f2098857e0e9017"
+    },
+    {
+      "path": "evidence/runs/20260915-050-linux-landlock-confinement.json",
+      "sha256": "f733eb12def1f25007361357b8c9d2b59e05c68c2004713101aff38e09c9fb08"
+    },
+    {
+      "path": "evidence/runs/20260915-050-linux-native-proof.json",
+      "sha256": "9688884f1ec1f71d6ab9dce232380443e47c02a60b38d3ff11e05763fdefefb3"
+    },
+    {
+      "path": "evidence/runs/20260915-065-checkpoint-a-workspace-registry-and-safe-import-export.json",
+      "sha256": "8cc7fe039a69bab734777698a081d07bf7786992d28e38f355300f814eb346c3"
+    },
+    {
+      "path": "evidence/runs/20260915-065-checkpoint-b5-android-saf-runtime.json",
+      "sha256": "4a60e45a5c395da605f49a57efb05a566858048db3048d7728eaedcde84da67f"
+    },
+    {
+      "path": "evidence/runs/20260915-065-checkpoint-c-android-mutation-cycle.json",
+      "sha256": "77b8413e68b879a13090e53fb022a0f8ba6665369c14f0ab5a108fece5810c1a"
+    },
+    {
+      "path": "evidence/runs/20260915-065-checkpoint-d-android-export-shareback.json",
+      "sha256": "b3ebde4c15a72d2a957439583b5ca5571b152474ad57746f5a92794fbe685727"
+    },
+    {
+      "path": "evidence/runs/20260915-065-final-closeout.json",
+      "sha256": "8d46cd0801f2afe7607f90dd4fcabe02fd45ae027be0462bedda355b723e30dd"
+    },
+    {
+      "path": "evidence/runs/20260915-066-paper-arxiv.json",
+      "sha256": "6cfaf396d03de5925aeea85a7bb2869b111cfa1be432ec0c952a8f6f04be262a"
+    },
+    {
+      "path": "evidence/runs/20260915-066-post-tag-identity.json",
+      "sha256": "a2d734ba439631200e142d1adcdfd84426679018d0c45cf682e3e281d34e464c"
+    },
+    {
+      "path": "evidence/runs/20260915-066-release-artifacts.json",
+      "sha256": "ed3349e851df78ea391235b8c4d1c80664305186d9d973f476046364bbdd1ad0"
+    },
+    {
+      "path": "evidence/runs/20260915-067-checkpoint-a-provider-auth-architecture.json",
+      "sha256": "ad2cc6770e05ce421c77f01b53d0ef32d85ee1c90a4df6b338d487314f621789"
+    },
+    {
+      "path": "evidence/runs/20260915-067-checkpoint-b-production-github-connection.json",
+      "sha256": "3054324a0e23311abbc0f8894fce721caf4a47597d962356d09564a24b615ce9"
+    },
+    {
+      "path": "evidence/runs/20260915-wi022-ac3-budget-checkpoint-v3.json",
+      "sha256": "7edb43d14a0cc24d5c44d8f5b8ab9b4e0955cbb5046e1386ce8511dbae89e65a"
+    },
+    {
+      "path": "evidence/runs/20260915-wi022-ac3-execution-manifest-v3.json",
+      "sha256": "8227c668ef7884d284cc30740147d23d161b1d45ff993a1c6afcc397953b67c6"
+    },
+    {
+      "path": "evidence/runs/20260915-wi022-ac3-sonnet-admission-evidence-v1.json",
+      "sha256": "289d6627811a134d9a7f86dc422b6a4782b17c337b85e5034d7b991e03cb1c64"
+    },
+    {
+      "path": "evidence/runs/20260915-wi022-ac3-whole-program-preflight-v3.json",
+      "sha256": "269848196a6017562e1aef81965c119d741e2e2cb7e07b1e21bfb05ecab41482"
+    },
+    {
+      "path": "evidence/runs/20260916-050-linux-landlock-native-proof.json",
+      "sha256": "f5d8c9d33e34642a3a96821623eacda6228f1c8b9ea224fdf86cae19916f35bd"
+    },
+    {
+      "path": "evidence/runs/20260916-050-macos-proof-deferred.json",
+      "sha256": "f3ce8b708091e918b2d8dfeb7b4bcc21225724ed341e2e2b80e5630191c2a14b"
+    },
+    {
+      "path": "evidence/runs/20260916-050-windows-native-destructive-proof.json",
+      "sha256": "2089bfe2c11ba677c382a0127055ae2850468e7efc65044d25970e503f0d371a"
+    },
+    {
+      "path": "evidence/runs/20260916-067-browser-pkce-auth-revision.json",
+      "sha256": "c6bd3413cce45378225747dafeeda9c1e35190ba082ce7b42f7169f227e108ba"
+    },
+    {
+      "path": "evidence/runs/20260916-067-checkpoint-c-snapshot-materialization.json",
+      "sha256": "ad63f3bf0d82c413b47e13150f9c0c737bb19ff1d28615fb96838ec8ffea8222"
+    },
+    {
+      "path": "evidence/runs/20260916-067-checkpoint-d-failure-security.json",
+      "sha256": "600a77b4555af1150ffc91279f6df0fd4b3232c944809224c1311320c04e8e40"
+    },
+    {
+      "path": "evidence/runs/20260916-067-checkpoint-e-android-protected-credentials.json",
+      "sha256": "89480f545ffe8db076e9f64e27eac0ef6b75c200945e1a3b1564e07c8475b0b5"
+    },
+    {
+      "path": "evidence/runs/20260917-069-post-3-1-1-remediation.json",
+      "sha256": "34c401c73869e956644eedc869aec7399c7a525831bac5dfa7e188b0ca553e76"
+    },
+    {
+      "path": "evidence/runs/20260917-069-publication.json",
+      "sha256": "d2027746b63687958b2ca8afc8caf3f4c8a75936ce6867390c6c376d2e967424"
+    },
+    {
+      "path": "evidence/runs/20260917-069-release-3-1-2.json",
+      "sha256": "51ffccbb624809bca39a083cc69120df129d813468fe48e97824ab4af1598ede"
+    },
+    {
+      "path": "evidence/runs/20260918-047-documentation-closure-implementation.json",
+      "sha256": "251afdc038a3a8175d9a6289a7b751deb35d97c83a80f0f1c2471f7d654fcd62"
+    },
+    {
+      "path": "evidence/runs/20260918-070-installer-builds.json",
+      "sha256": "63dc832a9f64917140d463b3b1337209f827600ca1c83310e54520a5fb689460"
+    },
+    {
+      "path": "evidence/runs/20260918-070-publication.json",
+      "sha256": "41f54c513a5a3d6a338735e204dd1e5fdc840c1b8d199ebee197c638ed5d4836"
+    },
+    {
+      "path": "evidence/runs/20260923-072-personal-repository-identity-followup.json",
+      "sha256": "d8388ba02ca3f987f606fcd4fbe916b2373c8359a5853084de99ba01c6758161"
+    },
+    {
+      "path": "evidence/runs/20260923-072-personal-repository-identity.json",
+      "sha256": "b457f5165bfe114aaf7adf3096dac2ad1c7e127a91fb16bb78f04555e64548ac"
+    },
+    {
+      "path": "evidence/runs/20260923-073-ecosystem-owner-routing.json",
+      "sha256": "c8535c9295fce3f628d213c214b1e2930ccc739def443ed87bec8b455fba6d83"
+    },
+    {
+      "path": "evidence/runs/20260924-191629-074-phase-a-registration.json",
+      "sha256": "f60f77ebfcf7fafa7e2bbbaef29e964f4f8e1bc976a1fb1479fc9f881d9a3f47"
+    },
+    {
+      "path": "examples/README.md",
+      "sha256": "d690bf77be84e2765f066091b26f144f77a3ed4f3602757835e454f54aa85a57"
+    },
+    {
+      "path": "governance/adopters.json",
+      "sha256": "d184ab804d7d215a3cb229e855b955b592829959aee2fc36cfb24e2bcbabeed5"
+    },
+    {
+      "path": "governance/charter.md",
+      "sha256": "0bf64d57f2f4b6deac0c0a648a4546c79152e7677e58c2996c206e8a24068758"
+    },
+    {
+      "path": "governance/frozen-surface.json",
+      "sha256": "2e066f8e789b154ee262b909a61e25dae8af1310441ee634bfa927762d890a3a"
+    },
+    {
+      "path": "governance/invariants.json",
+      "sha256": "171de1f618248ad8ca1efb3f7376e3d885a9898f2daa85db2bc98e1620c3b091"
+    },
+    {
+      "path": "governance/owners.json",
+      "sha256": "71a19de6510079bfb6c3455fa06df8de41d4e682e75ed4c5b2561e148faedff6"
+    },
+    {
+      "path": "governance/policies/001-derived-artifacts-are-generated.md",
+      "sha256": "cfc0d067ce1e905da04f57ba5e651d056b9d55c18dc9ecc4799d305c76b500ab"
+    },
+    {
+      "path": "governance/policies/002-semantic-claim-freshness.md",
+      "sha256": "8e440d9f66afd071791134b54952ea217ed2502ee3892bc544fb2f7159eee8e1"
+    },
+    {
+      "path": "governance/policies/README.md",
+      "sha256": "3fd308785e7acadca0a6a98e59bc3e7daf573fecf78af588a23be1ee15c01c42"
+    },
+    {
+      "path": "governance/record-types.md",
+      "sha256": "07f1cc5fbae455bb252b9a1fd1332eb102bccb491229f47ebcc69a9af8faa05a"
+    },
+    {
+      "path": "governance/verification.json",
+      "sha256": "f75cda4df4a50a57a8d030f6c8180b81e425fd3fc4944a5c1445ca26ec5bfb1d"
+    },
+    {
+      "path": "governance/workflow.md",
+      "sha256": "74c7ab6559c0fb7453bef0c79d514baea9ee8c258abaf78d73d11aa3350f4650"
+    },
+    {
+      "path": "pyproject.toml",
+      "sha256": "55ca10eca4d357937a19a519acc6d19c52dcd20f27e3ab550fd44532264cf74f"
+    },
+    {
+      "path": "repopact/AGENTS.md",
+      "sha256": "a25e7cf436f7c53da07ab4173cf8aa8d40816ccae1cfcd8acf67e5278be2c7b6"
+    },
+    {
+      "path": "repopact/__init__.py",
+      "sha256": "8d3e0f985913f8888f4c454282a94d2cac221a3fa60dcf269be0cf1c352832d8"
+    },
+    {
+      "path": "repopact/_audit/README.md",
+      "sha256": "77ee56aa4e9bbbf0412e6384341a99a918f8fe76d5283427da866be7c015d11c"
+    },
+    {
+      "path": "repopact/_audit/alignment-report.md",
+      "sha256": "ff30f82e85ff0be6301d23b61ce9bc05bf0e95b24be5efb9c2efa59ceb3500a2"
+    },
+    {
+      "path": "repopact/_audit/inventory.md",
+      "sha256": "daaeb54ff96a552686906b72a4a5f74b2ebfbff01cbad3625ef0bf54f6c8ed3a"
+    },
+    {
+      "path": "repopact/adapters.py",
+      "sha256": "a11150abf6673994303314852822dca1755d1731a886b0be1cbdeec511fe5945"
+    },
+    {
+      "path": "repopact/admission.py",
+      "sha256": "67046f8a3bbe7d200ab39edc94069e14167b4b0b09e4c3a2589b33aa81e814c2"
+    },
+    {
+      "path": "repopact/admission_conformance.py",
+      "sha256": "e884280944e704e47ff432a0dce959928b10dce8b1f06b34c8eb4a8a9a18503c"
+    },
+    {
+      "path": "repopact/adopt_repo.py",
+      "sha256": "5982b4618f773fe5189141c801e84705e9e6385709ea24f8964e7228244d7968"
+    },
+    {
+      "path": "repopact/check_frozen_surface.py",
+      "sha256": "0ed9bf692c3a54fc3be9f2526fd067addcee529167b3084881288d41c187e25b"
+    },
+    {
+      "path": "repopact/cli.py",
+      "sha256": "487356bea5a3e1d74a2353563071d63b62fcaac5a1bfd0dbf1143936ffc0c80a"
+    },
+    {
+      "path": "repopact/confinement.py",
+      "sha256": "69a2d205382849b7f2fba60d182d88c935165be793dcec6948e416ddfb333bae"
+    },
+    {
+      "path": "repopact/dev_fixtures.py",
+      "sha256": "ff192305c9ed1bab54336ff2baee3ec52b947f872700a334fbe2c0f13a2fe6bb"
+    },
+    {
+      "path": "repopact/doctor.py",
+      "sha256": "2864936e84929c7248d2c225516037b161dd2d0be7ca573161b098cd8c510f15"
+    },
+    {
+      "path": "repopact/enforcement.py",
+      "sha256": "0ba388f80b10eb770226dfd23038a77c2a6913ee715e19d153960fd95af31e18"
+    },
+    {
+      "path": "repopact/engine_client.py",
+      "sha256": "50a80e28c57a202bc276d50104f4c7eb028c2092f17220ffcf85d6eb51cb0a80"
+    },
+    {
+      "path": "repopact/fleet_verify.py",
+      "sha256": "9407ac4a7f732fbbeefdb1320d50713bf55b959d6d43d75c75748c6f10eaccb0"
+    },
+    {
+      "path": "repopact/frontmatter.py",
+      "sha256": "0b661c9833edd4d4a8c8fd45fd12273473d2235994eab44b1126ca6f3bae090a"
+    },
+    {
+      "path": "repopact/generate_dashboard.py",
+      "sha256": "fc801ebf49833831a41fb85fa90bcd733a301b79e6ef4d80df14dcaad12acedc"
+    },
+    {
+      "path": "repopact/generate_spec.py",
+      "sha256": "41eead846ebbd5d9903f0d37dfbb0e51179767c576ae1042b374204a13839d42"
+    },
+    {
+      "path": "repopact/graph_cli.py",
+      "sha256": "332bcdc892d999ad34ad167e80970d7918e36faf7e69d5dcfead16015c68eccc"
+    },
+    {
+      "path": "repopact/guard.py",
+      "sha256": "48fddeec85b09e3eee29ade5b91328df357be3bc05c0d19fd41f0eff79de6d28"
+    },
+    {
+      "path": "repopact/guard_ipc.py",
+      "sha256": "8fa216bb33e61d63a0edb3aeb792093cbebe46fee4082510f1df3538cae92390"
+    },
+    {
+      "path": "repopact/init_repo.py",
+      "sha256": "964aa3eabab7c0332cc7492fb30507236894cb6d11d6d4eebd99ff8f677db004"
+    },
+    {
+      "path": "repopact/legacy_validate.py",
+      "sha256": "60e82790569b234bf437f687ea94def9c74ca364c09a68f907c4ace1d95bf8d0"
+    },
+    {
+      "path": "repopact/new.py",
+      "sha256": "caad38a9473a33b09777279ca7278671cf82478a96894214c97193f26f489ed4"
+    },
+    {
+      "path": "repopact/package_version.py",
+      "sha256": "8bd3cce0525f7f0a32d148d83f8207cda3ef86084c534e0e1913d3b9a35fe529"
+    },
+    {
+      "path": "repopact/plan_import.py",
+      "sha256": "fbdebc6432a7504683354c94e0223e943133880c835e33882474b6bbcdd3330b"
+    },
+    {
+      "path": "repopact/platform_backends.py",
+      "sha256": "94a489daedb5fb1eac97338b746e933481e59c28fd2e7793690db83531a2b660"
+    },
+    {
+      "path": "repopact/release_build.py",
+      "sha256": "231d81eee5c5014aec5017316707952a24995a3698a371b6bb7712e525d941b0"
+    },
+    {
+      "path": "repopact/release_local.py",
+      "sha256": "6de89748b25f0e5a17a51ad9625931af50460a9db8ca3a44eefc3dea960c9900"
+    },
+    {
+      "path": "repopact/repo_model.py",
+      "sha256": "9f09c7fdfe4be1d3fc323ee9994a595923ffa78b7e7d2eeaf6d38e90ecfb3f0e"
+    },
+    {
+      "path": "repopact/run_admission_platform_conformance.py",
+      "sha256": "e394bcbdbd15af149eb0500ad197a061a85fe57a25ffc6eb8981e424fc25ef1d"
+    },
+    {
+      "path": "repopact/run_conformance.py",
+      "sha256": "a63133a57135b227864cfa6f4bf54954a89aceeeee4c189d5879e4aa8e35f683"
+    },
+    {
+      "path": "repopact/schemas/adapter-capabilities.schema.json",
+      "sha256": "296a82f4517102a46b889c2ffd25e9a53704858a546c370f364ef9501ee2cda1"
+    },
+    {
+      "path": "repopact/schemas/admission-policy.schema.json",
+      "sha256": "35cf2973d562071554d4a6f436800ae342b158e04b9d57c58517db999f034520"
+    },
+    {
+      "path": "repopact/schemas/adopter-fleet.schema.json",
+      "sha256": "b060c98ee845b55fbe44208d77d4e860f8d6a799136d940da5a84c5a49ac93a5"
+    },
+    {
+      "path": "repopact/schemas/assurance-mapping.schema.json",
+      "sha256": "43da9d66bcb82c9230c5eb3e5de99ff78947a61aa3cf1fcb304c5b7295cac4ce"
+    },
+    {
+      "path": "repopact/schemas/audit-finding.schema.json",
+      "sha256": "38fd29bd10bac72b0f0bd68b8b8757f86ac5743477d1177e95d8f7cb086473dd"
+    },
+    {
+      "path": "repopact/schemas/authorization-receipt.schema.json",
+      "sha256": "c6a7992d581e2d13a418372f4a50a1dee097e0c37273fa376643eb0952ecdc8b"
+    },
+    {
+      "path": "repopact/schemas/authorization-request.schema.json",
+      "sha256": "f76d7edad44cc5b8e684f8b3b51c8435630c3f1bbdbf24c5d855462258b02af8"
+    },
+    {
+      "path": "repopact/schemas/conformance-manifest.schema.json",
+      "sha256": "3d41ea70447baae40c2ea597ceeb8a114c77715289b435e0ab81bb8f5ac01e1c"
+    },
+    {
+      "path": "repopact/schemas/evidence-run.schema.json",
+      "sha256": "a41d9966e7dbdaf0a561d4b2f7ed3c09ea4481ac68de0f5d664586a44d4f4dab"
+    },
+    {
+      "path": "repopact/schemas/frozen-surface.schema.json",
+      "sha256": "1dbb214c87c29c7b57589ec04df863b9c65f4344bb9a4d19498be58b8b8ffcca"
+    },
+    {
+      "path": "repopact/schemas/invariants.schema.json",
+      "sha256": "bb633548ea6786619961ab55adc86e65a35474f22c309d75c151b6dd8e8ffdc5"
+    },
+    {
+      "path": "repopact/schemas/operator-authority.schema.json",
+      "sha256": "bc6250bbc4be9affde4cd11dc2854f72f52a2e2c58c9f28c54973ba8980b14d4"
+    },
+    {
+      "path": "repopact/schemas/record-frontmatter.schema.json",
+      "sha256": "0f41d539894aa14685d01f86ebdd5e2838b7f8a7795cc40e035ec1c086d4c88f"
+    },
+    {
+      "path": "repopact/schemas/repository-registration.schema.json",
+      "sha256": "f1ca2bdabf00670c3dab680098e60020ee3d11a682c18154e287b04b6213f0ec"
+    },
+    {
+      "path": "repopact/schemas/rog-capability.schema.json",
+      "sha256": "5c36a25f1ded1e82e78b49c26d08029f9bb79438719a64089c3f4782e2bd6038"
+    },
+    {
+      "path": "repopact/schemas/verification-profile.schema.json",
+      "sha256": "22fe35615d69a1ea31e46176e259faf7c9f42febb9992d2eb532fbbebdbd62a3"
+    },
+    {
+      "path": "repopact/schemas/work-item.schema.json",
+      "sha256": "1fe8ea9ac59d47f1f80c1310d2b052366697acc18c2113a1e47a826d7504c006"
+    },
+    {
+      "path": "repopact/takeover.py",
+      "sha256": "bcc926fef42019d8a23f9b0359ac5694205b2554f463e79edbfb8c0a35f66a8b"
+    },
+    {
+      "path": "repopact/templates/README.md",
+      "sha256": "66a31a35666510fe7e75575852ed945d039ef59cb4d9320eed42ef43fff69a86"
+    },
+    {
+      "path": "repopact/templates/admission-policy.json",
+      "sha256": "c01c2a4a35949ad072192bc3a102b425abf02d688368f3e8b7e37be6d31707a8"
+    },
+    {
+      "path": "repopact/templates/decision.md",
+      "sha256": "3de2e493e56c3163a9f66e0b0202a5728ceeb4821570ea83d82f36b3abe3675b"
+    },
+    {
+      "path": "repopact/templates/evidence-run.json",
+      "sha256": "f9d29981085e248065f808614e3da65c6ca1bd30789b54687eeb7249fc3e3785"
+    },
+    {
+      "path": "repopact/templates/policy.md",
+      "sha256": "68851cd65f4ac89b5aef90c4dc32ce021a1351da58ab6885dcc54404fd6f659b"
+    },
+    {
+      "path": "repopact/templates/work-item.README.md",
+      "sha256": "0a8f1af3930afac179a2b1d4b7619484ff8dc09b953439cf9810a06796772097"
+    },
+    {
+      "path": "repopact/templates/work-item.json",
+      "sha256": "8e84e0da10bd1e435ac8489cf6689758632ee3dd4de92ff41f3efaba374e511a"
+    },
+    {
+      "path": "repopact/track_import.py",
+      "sha256": "fad0b70049fd0b0d6d74eb0085cee896a92e0bdd1efe2a5ec46084179b18e188"
+    },
+    {
+      "path": "repopact/unix_guard_service.py",
+      "sha256": "b63268a19482641430b3c3b908e64a0fe562217c91c9d869690a6b77241266f6"
+    },
+    {
+      "path": "repopact/validate_repo.py",
+      "sha256": "c9ff9699b21a700aacc368f27a79a7ef18d5c8c53a9ce04682f380c9d9e5e86e"
+    },
+    {
+      "path": "repopact/validate_research.py",
+      "sha256": "a3943ff62efa92c9022d10bd68785fd5fee777ff282e74b8923db7b5723f7e3e"
+    },
+    {
+      "path": "repopact/validate_verification.py",
+      "sha256": "c8f8124af914b5e706a9aa3a13af545353a29c9f8a563bcdadbf462c18885e61"
+    },
+    {
+      "path": "repopact/verification.py",
+      "sha256": "093f6a0f69cf7502fd4a8732772709898491bf1769efaf78ac1d0927f7b49a61"
+    },
+    {
+      "path": "repopact/verify_cli.py",
+      "sha256": "b3a14ae28897d64058c2c628600169534d6908d36daed6aa8a46afad9dd81b58"
+    },
+    {
+      "path": "repopact/verify_status.py",
+      "sha256": "a0c405d17ae42c4b8e9dc8e43a2fc8129b08f0d7060d6b83207c1fbddbdb75ba"
+    },
+    {
+      "path": "repopact/windows_guard_service.py",
+      "sha256": "425aa363a4e1d30d2fd55d441925e9dc75dc3d1eed1564cbf90cd989ddd86214"
+    },
+    {
+      "path": "requirements.txt",
+      "sha256": "809d5b27ac8eeafbdab4fb3ca71ee170e7465c873b9ad9d32cb610b6bb324204"
+    },
+    {
+      "path": "research/README.md",
+      "sha256": "7fdb87ed3f504ac514880a1eda6e6e4a56b1f97a17655965f3572bdcb0252977"
+    },
+    {
+      "path": "research/amendments/2026-09-12-governance-continuity.md",
+      "sha256": "50664d2ceff7e6bee6cd505165bd8772c47e357480e55c3af667ea2e8fc1556d"
+    },
+    {
+      "path": "research/arxiv-submission-prep.md",
+      "sha256": "6268f1d405d0145eac458824d36d21ae47ab93252713cf8d6173f2dc9932516a"
+    },
+    {
+      "path": "research/arxiv/README.md",
+      "sha256": "8bbcf4483e74856b535a34e585f762dc8f1edd3484adeaa22333ee972ca5b258"
+    },
+    {
+      "path": "research/arxiv/figures/repopact-hero-social.png",
+      "sha256": "0decc4a57721f3b169c54a3e8b8b14011d5e5c66f07b936e2757053f96a795ff"
+    },
+    {
+      "path": "research/arxiv/figures/workbench-governance.jpg",
+      "sha256": "ac963ba210b707063bf29f8a0b6ab1b3864f578942520b38761ed1146f64c5b8"
+    },
+    {
+      "path": "research/arxiv/main.pdf",
+      "sha256": "00122519fffaa04facb2280a8fc5c186c5a297df0e68136d1d2d4eadacbe871c"
+    },
+    {
+      "path": "research/arxiv/main.tex",
+      "sha256": "358cb27d4498ffc008c77e351849471ef7c34ab83f1ba77addf5920955268500"
+    },
+    {
+      "path": "research/arxiv/references.bib",
+      "sha256": "76ce3e0c02800d472caa1c446d7075e3864e538f4744fbd38b517235f90aa13b"
+    },
+    {
+      "path": "research/benchmark-protocol.md",
+      "sha256": "3e18f82744dc10a8eaf6f7cb90da7bd0f60ce8f83d29ad106332e121b0888bd6"
+    },
+    {
+      "path": "research/captures/001-package-verification.md",
+      "sha256": "b6d6364fd8fa67cce82677b26ae47c0e8ae37ac171a09081e5d8a7d2f2dbfb5e"
+    },
+    {
+      "path": "research/captures/002-proving-ground-workflow.md",
+      "sha256": "c7a8148fea3c7e8a8f0c7d520e31a83d5f1b17db92ac1e368d8ade78cde5bcb9"
+    },
+    {
+      "path": "research/captures/003-rebuild-reverify.md",
+      "sha256": "d45c50513c99d0e4da208d5714d3267cbb18157cfd62161f8be383a9abf010e9"
+    },
+    {
+      "path": "research/captures/004-brownfield-forgewire.md",
+      "sha256": "5f4df6f7fc5e68cfe746677a9cae1dbdacacf348e1fa0001998d56114464be66"
+    },
+    {
+      "path": "research/captures/005-forgewire-reintegration.md",
+      "sha256": "d62fb441508551f0f81d5ea15e3fccefbbb0328337b21950e02444053999e3ce"
+    },
+    {
+      "path": "research/captures/006-independent-oss-adoption-flask.md",
+      "sha256": "b73c14e1ad1d109c23c559ed9929c0ea859d08c47eff23d6a71fab75c982d65f"
+    },
+    {
+      "path": "research/captures/007-plan-import-forgewire.md",
+      "sha256": "1b4b86c056e32e0183ae7840ae443dfa7f2898849070f30850d2005fb91bb757"
+    },
+    {
+      "path": "research/captures/008-plan-import-sources.md",
+      "sha256": "6f34b03f1f0c18ef9258e8630bb4fe3a10e9182539a985cc6f4b80dda0615656"
+    },
+    {
+      "path": "research/captures/009-forgelink-upgrade.md",
+      "sha256": "4eaa54bed10ee65d40902e95c421098a55d8de326d96ebf723ab73547ad58a73"
+    },
+    {
+      "path": "research/captures/010-repopact-doctor.md",
+      "sha256": "f8ef251660d6679d1bc7c2f3a3823f69123832550859bd9510398a2974099054"
+    },
+    {
+      "path": "research/captures/011-skillforge-adoption.md",
+      "sha256": "b729c59c35595729e81ee9b1891e62463b78543dd69a17ec9e8294e7d75cc2ff"
+    },
+    {
+      "path": "research/captures/012-tracking-and-takeover.md",
+      "sha256": "2230fbf927f8bcc1e70611ed96ddf3a4ba3180ed1faae32951a4e864aca3a307"
+    },
+    {
+      "path": "research/captures/013-proposed-lifecycle-adoption-pressure.md",
+      "sha256": "3919efd718c4f527d2876ac08e16fc24d8555d98e05137301f4b2306848f4412"
+    },
+    {
+      "path": "research/captures/014-dashboard-integrity-and-direct-release.md",
+      "sha256": "fd96375348ab3d4ee0b0aa3971fe2f77440f4e771f4ec9cac9acba19d0ceeef1"
+    },
+    {
+      "path": "research/captures/015-repopact-2-2-0-adopter-rollout.md",
+      "sha256": "1e67551edb2f3684c23344e08129c9bdc05d09855030596c9098496704103269"
+    },
+    {
+      "path": "research/captures/016-forgewire-wi238-3-0-0-field-evidence.md",
+      "sha256": "756a19ee545c0f094adc19ab66e3098b1880b375122467c86bcc0d03502efc54"
+    },
+    {
+      "path": "research/captures/017-forgewire-wi260-evidence-timestamp-chronology.md",
+      "sha256": "c6ca33d89fd2242faaaf53639797b55486faeb3e30ccf1d67492da7e257e7d0d"
+    },
+    {
+      "path": "research/captures/018-wi050-pre-execution-admission-field-evidence.md",
+      "sha256": "5997aae8fc6ce0f518d64abb61e758164d23519b68ed54abb099c232cd034ec6"
+    },
+    {
+      "path": "research/case-studies/2026-08-forgewire-wi230-wi237-enforcement-closure/00-evidence-freeze.md",
+      "sha256": "b56c38398b158fce63d944b20cea349932351b6b3b87ae38d8f5587aa3f78b5b"
+    },
+    {
+      "path": "research/case-studies/2026-08-forgewire-wi230-wi237-enforcement-closure/01-paper-claims.md",
+      "sha256": "7f7773e4251bd08813f2f254df663ce65a037bfb560442aa686d9b9020542896"
+    },
+    {
+      "path": "research/case-studies/2026-08-forgewire-wi230-wi237-enforcement-closure/02-repopact-2.2-enforcement-model.md",
+      "sha256": "afde39e44208654f067e293e10878b31514c33515e4ff55d70f0a80aef196ae6"
+    },
+    {
+      "path": "research/case-studies/2026-08-forgewire-wi230-wi237-enforcement-closure/03-version-delta.md",
+      "sha256": "1e4dc527f91e199ac1d3d766fae3c86cf7ed875570a70424b50952d2a84286dc"
+    },
+    {
+      "path": "research/case-studies/2026-08-forgewire-wi230-wi237-enforcement-closure/04-forgewire-case-timeline.md",
+      "sha256": "a7434fb31835f208b8a9f04b273a5b9f7756ce7d260c12528a14c1919549d901"
+    },
+    {
+      "path": "research/case-studies/2026-08-forgewire-wi230-wi237-enforcement-closure/05-claim-evidence-matrix.md",
+      "sha256": "3cd93a2448e1478252469c508d2374a48dabf4e64f5918898c282c4af58830bb"
+    },
+    {
+      "path": "research/case-studies/2026-08-forgewire-wi230-wi237-enforcement-closure/06-representation-drift.md",
+      "sha256": "537057477cda6d323aec2cebb05106357982c6e4968860e3bf146a67cce4b3bc"
+    },
+    {
+      "path": "research/case-studies/2026-08-forgewire-wi230-wi237-enforcement-closure/07-concurrency-id-collision.md",
+      "sha256": "8fb0cdcc689f0656a48baa4b824f563fcedb2b178cf8faa7c99e6299ff410013"
+    },
+    {
+      "path": "research/case-studies/2026-08-forgewire-wi230-wi237-enforcement-closure/08-pactbench-coverage-gap.md",
+      "sha256": "2d7a312c71340a24ac0f599a690930ef8bb9658536a631f102a06e9cb63bce3d"
+    },
+    {
+      "path": "research/case-studies/2026-08-forgewire-wi230-wi237-enforcement-closure/09-threats-to-validity.md",
+      "sha256": "8c1c9733f3db97f377380fcc53f43c194d0bdcf47991b4dafe036b079b703a06"
+    },
+    {
+      "path": "research/case-studies/2026-08-forgewire-wi230-wi237-enforcement-closure/10-preliminary-conclusions.md",
+      "sha256": "db1fc37871c5478244ab53b53a974f2664ead18b16b1c9b0b97c29d5007dc5eb"
+    },
+    {
+      "path": "research/case-studies/2026-08-forgewire-wi230-wi237-enforcement-closure/11-maintainer-review.md",
+      "sha256": "a86369760a16dfeec522fc9ce38f90a4e948ecc9c658a16dbbbd2def9d74139d"
+    },
+    {
+      "path": "research/case-studies/2026-08-forgewire-wi230-wi237-enforcement-closure/README.md",
+      "sha256": "5dbfef436f8786e1890bcc1f1be429dc1235790f9866759de5f28b18fb03782e"
+    },
+    {
+      "path": "research/figures.md",
+      "sha256": "3e45d815d844af4c6272c8f8877bcb531a6c320eb2cc165298d0df856fc51ef1"
+    },
+    {
+      "path": "research/findings.md",
+      "sha256": "dccf714f37f9c84b067a7f5ea74c2adf71357525cc1b809f1a54f151aa3726b3"
+    },
+    {
+      "path": "research/formal-model.md",
+      "sha256": "128fe34b914b1a1e82a77531216dd68345b8a1d1a808e4d2a8e0970c6cd10873"
+    },
+    {
+      "path": "research/gap-audit-2026-07.md",
+      "sha256": "8d231a9b5f2e7c5edcb9c35b168d36f45bd28fbaf7416f90d6b12476131034ab"
+    },
+    {
+      "path": "research/metadata.json",
+      "sha256": "1980e46368da38311d53b179f9e2f12269d241bb0cd8545befe2e4c386802ec5"
+    },
+    {
+      "path": "research/paper-outline.md",
+      "sha256": "be324f7ed0a5b0afee00c75dbb5b97dfb8c24f97b64c575aad27554aaac7c4b0"
+    },
+    {
+      "path": "research/paper-reconciliation-2026-09-13.md",
+      "sha256": "4f11b354acc5f3d93376f5a00d4ce77d34df6077ca45b565d2c0a09d2c215d10"
+    },
+    {
+      "path": "research/paper.md",
+      "sha256": "7d369654f6c1669e56706d8da75c4b94f7dcbf93216311d88090f90c21064c01"
+    },
+    {
+      "path": "research/protocol.md",
+      "sha256": "03e2e20c63025bb87d71119009266cfcd59a7ae442d73aee911ca0d995952768"
+    },
+    {
+      "path": "research/release-runbook.md",
+      "sha256": "ba6a8ac3661ba9e1822be644e7ae71731d0208ff71f5a4e28266105653ee2749"
+    },
+    {
+      "path": "research/run-log.md",
+      "sha256": "2b70ffedd37ee5776bb9d5b27f0423fd600d593d535d80f4455556d39d2550ee"
+    },
+    {
+      "path": "research/threats-to-validity.md",
+      "sha256": "5b3456c0d5ce2d63bc157df0e8d1eb854776f4d0e10ec74876b72a827eb2cd5a"
+    },
+    {
+      "path": "rust/Cargo.lock",
+      "sha256": "ba0ad98f6cb4d939dfa2338b86ccec438c91ec2b6dc6a5edb4f3ffd5fcb19cea"
+    },
+    {
+      "path": "rust/Cargo.toml",
+      "sha256": "f51b76720c7dcc4fdb6d6b63673748801ae62c3d3fb383db9d02bc78fe59aa29"
+    },
+    {
+      "path": "rust/README.md",
+      "sha256": "318b0043b97ae8001f7f4192932b48c03039af907440b46ac9ceb456048adf58"
+    },
+    {
+      "path": "rust/apps/repopact-cli/Cargo.toml",
+      "sha256": "2e2244873c5fc50731c4f66571e57b9f4317c52e0ffe50e3699c67f8e3f439de"
+    },
+    {
+      "path": "rust/apps/repopact-cli/src/main.rs",
+      "sha256": "795663e8635db2550915338abfcab896e18ad501dae86f5eed27743310adfc74"
+    },
+    {
+      "path": "rust/apps/repopact-engine/Cargo.toml",
+      "sha256": "540049984d3d1a21a0890d9ef51f1aceb78ec64022b0b97f620900e90e86f5d4"
+    },
+    {
+      "path": "rust/apps/repopact-engine/build.rs",
+      "sha256": "7e314e360a5530e6f0097675295c1fe318259250530562cc7e1d634c3bc544e1"
+    },
+    {
+      "path": "rust/apps/repopact-engine/src/bin/repopact.rs",
+      "sha256": "32a1981d4931361953adc66ac0cc46afb95569ac7d0108fce6c82c70e9671c7a"
+    },
+    {
+      "path": "rust/apps/repopact-engine/src/main.rs",
+      "sha256": "06168f6bcab8b6f45be77d183bf1f91f2c2f6d6db90b1e75a09a03d5545f2d08"
+    },
+    {
+      "path": "rust/apps/repopact-engine/src/query_ops.rs",
+      "sha256": "f04fc9a2f09bfe09e643534118ba74cf285696b549f111233dbbdc4b64867404"
+    },
+    {
+      "path": "rust/apps/repopact-sandbox/Cargo.toml",
+      "sha256": "ddcaa7ef5f191cdb628db8fe051ffdb5590d3c452b8d82014299da12d9ea210c"
+    },
+    {
+      "path": "rust/apps/repopact-sandbox/src/main.rs",
+      "sha256": "b58064a703b68f4d63114a51bb05f5156da60ea044d2e02c08a41e87b771e46e"
+    },
+    {
+      "path": "rust/crates/repopact-analysis/Cargo.toml",
+      "sha256": "3d163c048021a9c611df38e899f08d730ec20a1e34928a5e93f90be23c3a5758"
+    },
+    {
+      "path": "rust/crates/repopact-analysis/src/lib.rs",
+      "sha256": "0a57a914581f34739dd2d517535781fd37e45d25b9e143dc4ef135f4ac9f2470"
+    },
+    {
+      "path": "rust/crates/repopact-confinement/Cargo.toml",
+      "sha256": "10defcc636aa27aee4a66ce3f4b4054e5a2c81121a18d97bc5fb511a43a586eb"
+    },
+    {
+      "path": "rust/crates/repopact-confinement/src/lib.rs",
+      "sha256": "442adf4c6c39e7d7e94fceafdeceddae1d52d82747f2429c23e79b4845ccb14c"
+    },
+    {
+      "path": "rust/crates/repopact-core/Cargo.toml",
+      "sha256": "75219ce8b22459833d78fd13dfc2728d4cd9fcae63ada2f7b2c4e8a4679213b6"
+    },
+    {
+      "path": "rust/crates/repopact-core/src/lib.rs",
+      "sha256": "86cbd5349c43154e48504b3134f5c83ff528e3af03e7309eaf94ed841ea585bc"
+    },
+    {
+      "path": "rust/crates/repopact-graph/Cargo.toml",
+      "sha256": "9b865daef9cced5cdc26e2463e94b3b9f3a61689ad2885fedfe70f31964d3dd8"
+    },
+    {
+      "path": "rust/crates/repopact-graph/src/authority_boundary_tests.rs",
+      "sha256": "47a9eddeed6d2de58814cc74f3d0755258a7fa0b5432aab87a33a6bcbdbb5463"
+    },
+    {
+      "path": "rust/crates/repopact-graph/src/bin/rog-benchmark.rs",
+      "sha256": "39be6cd4ce6bc5e3323dc97f7e25ecb51b964a7629714ffa9bfee2e8fb06b4c3"
+    },
+    {
+      "path": "rust/crates/repopact-graph/src/capability.rs",
+      "sha256": "e32f8a0aa796f1f8e45f221c6cbf356ec65c6972fbc5593581709dd844d0d1ae"
+    },
+    {
+      "path": "rust/crates/repopact-graph/src/clean_clone_tests.rs",
+      "sha256": "0ab96cffb0efc55f8ea7cd7cf02eb844f4ff66307be3a9d36f10b999030c793f"
+    },
+    {
+      "path": "rust/crates/repopact-graph/src/durable.rs",
+      "sha256": "e1fec079811af14bb4c16b8556067fd2ca319d3c816a49a5ca78dbf5b40e1c4f"
+    },
+    {
+      "path": "rust/crates/repopact-graph/src/incremental.rs",
+      "sha256": "5322b5259d635cae349d5e22486609d4d390975a3da17ec7942a12c9412aafb3"
+    },
+    {
+      "path": "rust/crates/repopact-graph/src/lib.rs",
+      "sha256": "6a777769bae3c8c90ad2a0a61d73c7f70c1cab4b20de982b93e3d4bdbda9889c"
+    },
+    {
+      "path": "rust/crates/repopact-graph/src/merge_reconcile.rs",
+      "sha256": "ef437fae03d5ac7271fa3d5f614f32efc8e0ea846217c1b21f7b14a95dbcb729"
+    },
+    {
+      "path": "rust/crates/repopact-graph/src/metadata/json_adapter.rs",
+      "sha256": "b8557cc57954408c777819b0fcd7be328100153bfb7cebbebf650c9f6e624a8c"
+    },
+    {
+      "path": "rust/crates/repopact-graph/src/metadata/markdown_adapter.rs",
+      "sha256": "127314aad6cc60028785904ef56761521885cfc74c567f5575c3fc5bbef4d21a"
+    },
+    {
+      "path": "rust/crates/repopact-graph/src/metadata/mod.rs",
+      "sha256": "25021a702c68845785289c623dff371d1421cfc32f584af3ed046bca1a1a16f6"
+    },
+    {
+      "path": "rust/crates/repopact-graph/src/metadata/policy.rs",
+      "sha256": "4346c50bfbf73949e7cc92a52bb11c5f0efcbbe4a91064f580dd3044d59ae300"
+    },
+    {
+      "path": "rust/crates/repopact-graph/src/metadata/toml_adapter.rs",
+      "sha256": "2e61c90744353d14dcbcf4e87643635a4deb30fae1987b14075f4a28ac26b05e"
+    },
+    {
+      "path": "rust/crates/repopact-graph/src/metadata/yaml_adapter.rs",
+      "sha256": "ec7246311158012121b8d55531ef24e8ec3f883b3a130bdcf95ff1351f2faaa9"
+    },
+    {
+      "path": "rust/crates/repopact-graph/src/overlay.rs",
+      "sha256": "6530a0b42003be8c9d16b77e24b0558f510c02509d2c82df5119d73391147196"
+    },
+    {
+      "path": "rust/crates/repopact-graph/src/physical.rs",
+      "sha256": "2d4aa82385c519713fd763f0878e488f36ed6bad7c72a0b07c631498c3eb494b"
+    },
+    {
+      "path": "rust/crates/repopact-graph/src/projection.rs",
+      "sha256": "7cb16a4e7113bd51d91e16288835defa8c4d6d1b8e51ca5f578ea8e97459583c"
+    },
+    {
+      "path": "rust/crates/repopact-graph/src/query/bounds.rs",
+      "sha256": "056c0c7742fd4e230581f229a24cc8df1276810e3f0ef26431dbb1577585328d"
+    },
+    {
+      "path": "rust/crates/repopact-graph/src/query/cursor.rs",
+      "sha256": "9059c4ef9524e42f9f4c204cddbef13436d770c8295d0a8964ab41c55388f155"
+    },
+    {
+      "path": "rust/crates/repopact-graph/src/query/dto.rs",
+      "sha256": "117d6bb86a71ddda0361dd88ccabdf32f7338336a384af8570af831840c4d6d2"
+    },
+    {
+      "path": "rust/crates/repopact-graph/src/query/engine.rs",
+      "sha256": "ce6cbadc252fa0d9ad9cb14c3c042b9b4416aa60a42af89937293057ee001032"
+    },
+    {
+      "path": "rust/crates/repopact-graph/src/query/index.rs",
+      "sha256": "e51846b548ca97ba98bc0ca35af6caf9729d47677a2c17e08e08c2eca903d9e5"
+    },
+    {
+      "path": "rust/crates/repopact-graph/src/query/mod.rs",
+      "sha256": "0dae9481dd6be4bda265f9abde09aedc715472429009ec3f8292590ea3a033fc"
+    },
+    {
+      "path": "rust/crates/repopact-graph/src/query/open.rs",
+      "sha256": "7f08ec0f4cb45d2ae766446d7682d7e6bb56931cd5185e7af44e3a792fee7834"
+    },
+    {
+      "path": "rust/crates/repopact-graph/src/query/resolve.rs",
+      "sha256": "131d03b89a33caae39d23b67babe3fa26bf5c4d4a1d2e2279fc033f7e7952a24"
+    },
+    {
+      "path": "rust/crates/repopact-graph/src/query/selector.rs",
+      "sha256": "83643fdb00068032cdebc36b21031fb836adf6b5357b8075e27b0935efaa7aa5"
+    },
+    {
+      "path": "rust/crates/repopact-graph/src/query/tests.rs",
+      "sha256": "e75e728906738fc09280486657a23e4f2560ec5f2e18d58741d409de153e6b11"
+    },
+    {
+      "path": "rust/crates/repopact-graph/src/semantic/javascript_adapter.rs",
+      "sha256": "04f831d8e5fe98119e57e3bf63cde167dc160d998a9cb5ae1f8f5164ec6fd111"
+    },
+    {
+      "path": "rust/crates/repopact-graph/src/semantic/mod.rs",
+      "sha256": "1aa7fc133364aac913942a7ebdb37edc34769047da3c72899206db2db315cd5e"
+    },
+    {
+      "path": "rust/crates/repopact-graph/src/semantic/operational.rs",
+      "sha256": "87f0c65744770954df4fbeb4411d2f15fa0690e44435908229f5508e89266ecf"
+    },
+    {
+      "path": "rust/crates/repopact-graph/src/semantic/python_adapter.rs",
+      "sha256": "4fa9e2d0a704507fb0b4230c2b788df452b66f11b4fb7cf3d442bc0cd11f8eff"
+    },
+    {
+      "path": "rust/crates/repopact-graph/src/semantic/rust_adapter.rs",
+      "sha256": "e07284efaa960f4a9c7106b5f8540890bdcdb30b1ca40e1d7df95e91ce5bc3b3"
+    },
+    {
+      "path": "rust/crates/repopact-graph/src/status.rs",
+      "sha256": "01bf75e191d96cf521a255da2d1d3b32a2dc735e1020c71a00a6b53f0bb0d485"
+    },
+    {
+      "path": "rust/crates/repopact-graph/src/validate.rs",
+      "sha256": "2fbde27d1ea4c10930474244c0a14548f8779731a8e3407b8c9defd442701cf6"
+    },
+    {
+      "path": "rust/crates/repopact-graph/tests/no_network_dependency_audit.rs",
+      "sha256": "e9d0ac3737f4616afceeb43a846eb635806e3fa66e3768fea537281ea2cbecbd"
+    },
+    {
+      "path": "rust/crates/repopact-mutation/Cargo.toml",
+      "sha256": "ee265fdaada30bca640a9dc10a03b95ac0fdd1efd3c7bdc361cd9a800e77b0f7"
+    },
+    {
+      "path": "rust/crates/repopact-mutation/src/lib.rs",
+      "sha256": "1b046668961dada51701808c9605c635dde422859bece852d1e625d4a27c5b22"
+    },
+    {
+      "path": "rust/crates/repopact-mutation/tests/fixtures/edit/after/work-item.json",
+      "sha256": "31c21f95000c3a725741485499576f563efe47c290024a53773bc9c4d23bb039"
+    },
+    {
+      "path": "rust/crates/repopact-mutation/tests/fixtures/edit/before/work-item.json",
+      "sha256": "75ce117ab2d367d6aaa81f22fe62446212a23c2c32162a7c064312776bf978b3"
+    },
+    {
+      "path": "rust/crates/repopact-mutation/tests/fixtures/transition/after/work/active/001-reopen/README.md",
+      "sha256": "daa7a91fd9f163307826e69e7096bbdf3c90999019bd27aa3bd41a9250912cd8"
+    },
+    {
+      "path": "rust/crates/repopact-mutation/tests/fixtures/transition/after/work/active/001-reopen/history.md",
+      "sha256": "b62b69398680be62bd06836014e3bd583a423e77901a299a564c1295bc29037e"
+    },
+    {
+      "path": "rust/crates/repopact-mutation/tests/fixtures/transition/after/work/active/001-reopen/work-item.json",
+      "sha256": "dc445bb4ae86aa3ea022ffab1eea8915222093bdc866077640f8effe0a70643a"
+    },
+    {
+      "path": "rust/crates/repopact-mutation/tests/fixtures/transition/before/work/completed/001-reopen/README.md",
+      "sha256": "daa7a91fd9f163307826e69e7096bbdf3c90999019bd27aa3bd41a9250912cd8"
+    },
+    {
+      "path": "rust/crates/repopact-mutation/tests/fixtures/transition/before/work/completed/001-reopen/history.md",
+      "sha256": "b62b69398680be62bd06836014e3bd583a423e77901a299a564c1295bc29037e"
+    },
+    {
+      "path": "rust/crates/repopact-mutation/tests/fixtures/transition/before/work/completed/001-reopen/work-item.json",
+      "sha256": "77261967ef96d063178b11304a8b173f6dd1cc883dde03c9059fb48a90cd5ad6"
+    },
+    {
+      "path": "rust/crates/repopact-mutation/tests/remote_provider_governance_boundary.rs",
+      "sha256": "b6c321f5898e7d6d19402a0df24d753a6b0cae502b2f6677c5e0a2caaeb2bca2"
+    },
+    {
+      "path": "rust/crates/repopact-mutation/tests/verification_post_validation.rs",
+      "sha256": "2c07e80b838fc17f50939addb7a28737107edc71bb1edd35c18e8f4fbf63973b"
+    },
+    {
+      "path": "rust/crates/repopact-protocol/Cargo.toml",
+      "sha256": "2e3ace793de22f752490a0d531985184a034e7732f6305b44d5921432ea15ff6"
+    },
+    {
+      "path": "rust/crates/repopact-protocol/src/lib.rs",
+      "sha256": "e7838f0cd470466f249ba2eeb0d161812cceac009c741c123578fcdfb9312398"
+    },
+    {
+      "path": "rust/crates/repopact-repository/Cargo.toml",
+      "sha256": "e6611b222462f62ba1cb707b35fdfa0fc94a145e51cf0ef2a3ed13988ef50212"
+    },
+    {
+      "path": "rust/crates/repopact-repository/src/git.rs",
+      "sha256": "ad9a2ee31dda8b0e7030ba2ecab053813373fbc2217cfa32eff33ec41ac4ec2d"
+    },
+    {
+      "path": "rust/crates/repopact-repository/src/lib.rs",
+      "sha256": "b3d8f2505ca9615f4b4fba7086e583a776a636805dd8326a5f457d7848428e8a"
+    },
+    {
+      "path": "rust/crates/repopact-schema/Cargo.toml",
+      "sha256": "374edcb91843f3c9200f1b9fb10cc3d2d549fba6c619fa6f1e86b7b2430eb9e9"
+    },
+    {
+      "path": "rust/crates/repopact-schema/src/lib.rs",
+      "sha256": "b6d2ec2f020e43f5cd78fd4a119c889301aec547d82d8e862b843c75262d19b9"
+    },
+    {
+      "path": "rust/crates/repopact-types/Cargo.toml",
+      "sha256": "dc028bf562a985d5f55dc6d1eb65a09c61c60baa0c61b4b6ac04636235fe6aeb"
+    },
+    {
+      "path": "rust/crates/repopact-types/src/lib.rs",
+      "sha256": "b2b9c3d64889f30d621d9b5f6eb709e608707816bed33d036258f6f28e3bb8af"
+    },
+    {
+      "path": "rust/crates/repopact-validation/Cargo.toml",
+      "sha256": "f87ec3b4112771ec538744e2b73d866cee2ec498c845284c7d625fd13565bccb"
+    },
+    {
+      "path": "rust/crates/repopact-validation/src/adopters.rs",
+      "sha256": "81200f919c3d0c5029dcd3b9d514667370c829d56fbe2b7a58337972a3a7a1c7"
+    },
+    {
+      "path": "rust/crates/repopact-validation/src/assurance.rs",
+      "sha256": "a9bf117072986bd1e65aefe4430f826958c3a006837e0cf801e00e4ad2f37e8d"
+    },
+    {
+      "path": "rust/crates/repopact-validation/src/graph.rs",
+      "sha256": "022538e998e12cd8b07b92f4942269b8b8801820fc8252884f3aa57473359e61"
+    },
+    {
+      "path": "rust/crates/repopact-validation/src/lib.rs",
+      "sha256": "df6d8f57f343d37b45625b42d836400a69930779ad8e3fd9ceab04f68ddc8953"
+    },
+    {
+      "path": "rust/crates/repopact-validation/src/research.rs",
+      "sha256": "695b58ab861efbe4d0918482d1afac59cfb54e9bbf1b2253ee006b5c4b754baa"
+    },
+    {
+      "path": "rust/crates/repopact-validation/src/verification.rs",
+      "sha256": "464ed0f3d5e5358a2db68ea8073f4f9039169ce0f8044dd0b6295506ffbb908a"
+    },
+    {
+      "path": "scripts/demo.ps1",
+      "sha256": "00e14f937ecdc599730d7b1666876adcd0e273ed5c4e416cbeef91bf362cfa38"
+    },
+    {
+      "path": "scripts/demo.sh",
+      "sha256": "5de40eec8af6b06d5110dbcdef5c3a8d1850de852962e584b095c28703583c9b"
+    },
+    {
+      "path": "scripts/wi050_windows_native_matrix.ps1",
+      "sha256": "1b9ba9667fc65501d60f18faeb8d822ba09a6c3589c2da988b24d47669a12dd1"
+    },
+    {
+      "path": "scripts/wi050_windows_native_matrix.py",
+      "sha256": "8635309c7d6f1a2a36c3be4c994efd0801282c107d7d5be67525150c14e4d8dc"
+    },
+    {
+      "path": "tests/test_admission.py",
+      "sha256": "ff178c8e9a432b256eb318bf5166ba9c6b135644f1ec3f3b70ec931682aa2d6c"
+    },
+    {
+      "path": "tests/test_admission_security.py",
+      "sha256": "026be63cd3691cfd4c85f5abc2eadf8dca0616b27f265bbbecfe4e7185ea9004"
+    },
+    {
+      "path": "tests/test_cli_version.py",
+      "sha256": "5a3f61e6b99613b9d52ea87b5ddb44a598f06fac4fe57c4eb295358ed82ff8aa"
+    },
+    {
+      "path": "tests/test_conformance.py",
+      "sha256": "47f20dad066463744c918fc15e219449a93b3dd82aeaa3baf2a030a6a693b664"
+    },
+    {
+      "path": "tests/test_dev_fixtures.py",
+      "sha256": "6a322b2bbac1955c192edf87a31ef16c0c311148c79b04252976bf93576f8717"
+    },
+    {
+      "path": "tests/test_engine_client.py",
+      "sha256": "3afb248a23169a7727456eb088495cc02d95996ab4900eb0781f26eb3155639c"
+    },
+    {
+      "path": "tests/test_fleet_verify.py",
+      "sha256": "e21063dfa04540f96c32efd5e34fbdfdcc69a2011b745e4077e519fc3cdf29b5"
+    },
+    {
+      "path": "tests/test_graph_cli.py",
+      "sha256": "3dd89a7592dd11bdcfe8b53c0257c826692b783427e1c7ebfaebb91c4e9792e0"
+    },
+    {
+      "path": "tests/test_guard_authority.py",
+      "sha256": "d6805fe07818af68e99d133a5da22b5f8fef45e52b763c42082be60569b226ea"
+    },
+    {
+      "path": "tests/test_landlock_confinement.py",
+      "sha256": "d2f84d2897ea9e49d5cb118c1ca618188bc230c14a50fac15088aca21a327ddf"
+    },
+    {
+      "path": "tests/test_opt_in_provider.py",
+      "sha256": "e77d4dd7f34e8d7aa95ea9e93cdcb36b4b0f3638eaa39e359d92564eaa6e490e"
+    },
+    {
+      "path": "tests/test_plan_import_links.py",
+      "sha256": "a96c9d6fcab3dcfe3d9b86e91ca9e87affc5db13e96bdb2f23e4a5f293da81e1"
+    },
+    {
+      "path": "tests/test_protected_substrate.py",
+      "sha256": "05b662b7a089d6fc4387f77ef242f7b07c729c3e7dbdb3ce4a9b696b469faa5a"
+    },
+    {
+      "path": "tests/test_release_build.py",
+      "sha256": "495ff0c03a6323dad92d14c8efb44747bfb860157668522c88c385c5a890472f"
+    },
+    {
+      "path": "tests/test_release_local.py",
+      "sha256": "bba9fbcbfe1556a4cdead436d0b0395358e6e34deb6150ddfdf9fe5f408e59be"
+    },
+    {
+      "path": "tests/test_research_metadata.py",
+      "sha256": "569a308d6559fcdada9c6e4df2a8402ab18d44989592b6cf41625dac4e0f6ad1"
+    },
+    {
+      "path": "tests/test_takeover_refs.py",
+      "sha256": "399765150a4660805ad213ad6738b9a6a2481f9e1380f28cb5a36735048de6eb"
+    },
+    {
+      "path": "tests/test_validate_repo.py",
+      "sha256": "d42ae2b1e381e6b5a10bb01533603fbbf8dfc53e2e46a8538b3cdd2b04ad2ab4"
+    },
+    {
+      "path": "tests/test_verification.py",
+      "sha256": "446585461221f1680d5c2e2deddf652d661c41003d8596b4356221f38212e150"
+    },
+    {
+      "path": "tests/test_verify_status.py",
+      "sha256": "84f00dff5ddb18c92e642b1e42fc73d7622d026b7d90fcdb139d34cdeaa7b3a1"
+    },
+    {
+      "path": "tests/test_wi046_hosted_adapters.py",
+      "sha256": "b9d83f490447b765c74dac9fce0ae5e537fd7fa9eca58e0faecdd56a247b2e4b"
+    },
+    {
+      "path": "tests/test_windows_service.py",
+      "sha256": "1a84311bffb320e5ed48837b818c433dc1b562e538ce1cea615a05ebbe4c1122"
+    },
+    {
+      "path": "work/README.md",
+      "sha256": "1857bbd049f531b7e1fb2b1477f31b8b9e99587d23fd7f14c64fe85583899721"
+    },
+    {
+      "path": "work/active/020-pactbench/README.md",
+      "sha256": "5777f3f22279ab416216c23b6d5242c89d1fc4a3f621b1d77ebf98a7dbcc7ffd"
+    },
+    {
+      "path": "work/active/020-pactbench/work-item.json",
+      "sha256": "1ec486c061cabe5ff35723ee06a5d3d856f19f9f557cd62c7af798b264a6923a"
+    },
+    {
+      "path": "work/active/021-public-launch/README.md",
+      "sha256": "93063e828f4b76dab38870b32cd4156f1e95ea6b8dcf7d87acaec248e5ef823e"
+    },
+    {
+      "path": "work/active/021-public-launch/work-item.json",
+      "sha256": "5f1e9daeb58e33493f680bb96b98a843b966b8393fbc6eaca6f6e56291c3d9a0"
+    },
+    {
+      "path": "work/active/022-benchmark-suite/README.md",
+      "sha256": "258ee73696b70f5fa10e50d9c982b8d48ec44de1322c74b6a9506c7aee0383a6"
+    },
+    {
+      "path": "work/active/022-benchmark-suite/work-item.json",
+      "sha256": "95b85c4093ea72406a8ff2006c76992d093319782859bd28e847f2ca0abd32e9"
+    },
+    {
+      "path": "work/active/034-independent-reproduction-and-third-party-adoption-evidence/README.md",
+      "sha256": "4531b3b80bcd7c855ab89582650a7ac2bd9fa496591cd8c61406849f4b9e1300"
+    },
+    {
+      "path": "work/active/034-independent-reproduction-and-third-party-adoption-evidence/work-item.json",
+      "sha256": "40ecfde64506a46d746ce70954ec8362853d33e4f31ed0a622417c369adad1eb"
+    },
+    {
+      "path": "work/active/047-documentation-impact-and-code-documentation-closure/README.md",
+      "sha256": "9e33891b877a2a5f1250bc5a8c104f95e8f2ae5f2e69594fd713f967dddf6c20"
+    },
+    {
+      "path": "work/active/047-documentation-impact-and-code-documentation-closure/work-item.json",
+      "sha256": "bf71b1b4afdc5925263995d494d1fc871eac557dcdcda4cbb4e7a1f93a9afc7b"
+    },
+    {
+      "path": "work/active/063-durable-repository-orientation-graph-and-incremental-semantic-index/README.md",
+      "sha256": "0db568fe0a8946b05e4e72ba909d35216c3b9285d522b30c7a7b12b08fdec65f"
+    },
+    {
+      "path": "work/active/063-durable-repository-orientation-graph-and-incremental-semantic-index/architecture-review.md",
+      "sha256": "2a250b7d6d0a9722f92aed25a50417b1ccea2820daa7be642344bfbd46ff762c"
+    },
+    {
+      "path": "work/active/063-durable-repository-orientation-graph-and-incremental-semantic-index/implementation-progress.md",
+      "sha256": "28280eed0fd09eaffba101b870e07aac3be2ca8265cbdf3c620779317d52c9ce"
+    },
+    {
+      "path": "work/active/063-durable-repository-orientation-graph-and-incremental-semantic-index/work-item.json",
+      "sha256": "03e4b2db57dea437c20ce6fd92e226556148ca65e2da4c1b811e36635c774450"
+    },
+    {
+      "path": "work/active/066-repopact-3-1-0-milestone-release-and-research-snapshot-reconciliation/README.md",
+      "sha256": "3720a74d7a5ac2232c8019391d907dd1d9c1da6d8140eff5f10d1cad91a25873"
+    },
+    {
+      "path": "work/active/066-repopact-3-1-0-milestone-release-and-research-snapshot-reconciliation/work-item.json",
+      "sha256": "8a72b1663deb494ff75636fc9668b23d88553ba05abfdfcffccd6ea32cf563c3"
+    },
+    {
+      "path": "work/active/067-github-repository-provider-secure-user-authorization-and-remote-repository-import/README.md",
+      "sha256": "45b60102e0f16edcac143c0c7a10d0685cdcecaf1ed57c49bfd294e30cdcb285"
+    },
+    {
+      "path": "work/active/067-github-repository-provider-secure-user-authorization-and-remote-repository-import/architecture-review.md",
+      "sha256": "378d507f2158da89cc0a88acf820fe662eb8c8ae256e7b8f1f7ea31577a8f05d"
+    },
+    {
+      "path": "work/active/067-github-repository-provider-secure-user-authorization-and-remote-repository-import/work-item.json",
+      "sha256": "f6b9b8cae8d96192f76ba19c2f5bd0970a21eba8a909864bcf764ab8fa63c676"
+    },
+    {
+      "path": "work/blocked/.gitkeep",
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "work/blocked/032-restore-remote-cross-platform-governance-enforcement/README.md",
+      "sha256": "626c692d4c86c9e9a6b94c30af9e3413bc75813eda0db594f5044bc40ab47c75"
+    },
+    {
+      "path": "work/blocked/032-restore-remote-cross-platform-governance-enforcement/work-item.json",
+      "sha256": "2f6b8386f1f9f80ec270361c85920bb367d6e69c2415cb6832ccd67b05439e9e"
+    },
+    {
+      "path": "work/completed/.gitkeep",
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "work/completed/000-bootstrap-kernel/README.md",
+      "sha256": "e1fb2fb436c338261ca2112c34598913e4b20689e9a651dbdf5d2ed68e75f64e"
+    },
+    {
+      "path": "work/completed/000-bootstrap-kernel/work-item.json",
+      "sha256": "6ef31e898c99511b54caa7facf367baa62575ac3c8fa37f73962ea7a972476bb"
+    },
+    {
+      "path": "work/completed/001-name-repopact/README.md",
+      "sha256": "07cf927a9cde7c16b7dd13f60d06b6974cf3c703f784e6de30dcf99a8aa82a66"
+    },
+    {
+      "path": "work/completed/001-name-repopact/work-item.json",
+      "sha256": "70e4c3e4dd9a42d027e992f3e9e0e9c62f18494116d6994d2d39da59518f9713"
+    },
+    {
+      "path": "work/completed/002-governance-primitives/README.md",
+      "sha256": "784d6331fe5384813d7f81a83bedf94bde44d2b59bb26c3e3c08a95197afc771"
+    },
+    {
+      "path": "work/completed/002-governance-primitives/work-item.json",
+      "sha256": "31b16d3a4e8eec9ae8a2512d2536cc3903d0272ed410d3404b1c1201ef0568f9"
+    },
+    {
+      "path": "work/completed/003-adoption-and-hardening/README.md",
+      "sha256": "d6b6148d039d086ff182d08956a4853a2d073f009cfbcb339e5ee227404596dc"
+    },
+    {
+      "path": "work/completed/003-adoption-and-hardening/work-item.json",
+      "sha256": "62618d637acc27c258b7b469a3542dd43a6e502e9c86a9c12cde75df9592a109"
+    },
+    {
+      "path": "work/completed/004-specification-and-documentation/README.md",
+      "sha256": "e0d8db688bb37a6f5bb53ba55d1b12b1e39f1678192f851cce519f6e1036255e"
+    },
+    {
+      "path": "work/completed/004-specification-and-documentation/work-item.json",
+      "sha256": "3f8d19a6d0bdcae419ad33eca22bc593672556e4b65aaf67f02ddfb336c56f10"
+    },
+    {
+      "path": "work/completed/005-repopact-cli/README.md",
+      "sha256": "5b7839b3665c76d67941337b53e9266a082582d262ef9be6f8fade763f0c88cb"
+    },
+    {
+      "path": "work/completed/005-repopact-cli/work-item.json",
+      "sha256": "3a4efc9468548816b2f5b12cf0280ccc06859cf80be2ac2993b90db7fc694d14"
+    },
+    {
+      "path": "work/completed/006-conformance-fixtures/README.md",
+      "sha256": "21f8c30a30edab91db5546d8eca74c67af2a14e513f936c80b8ba574ac75b8bf"
+    },
+    {
+      "path": "work/completed/006-conformance-fixtures/work-item.json",
+      "sha256": "81efabfed319bb0e04958957030e264f1302149943b55daaf70c47f9fad31fdc"
+    },
+    {
+      "path": "work/completed/007-proving-ground-hardening-spec-and-check-frozen/README.md",
+      "sha256": "1e1c70dee61cc5ea6b1bea4aac954a321a816efb7ead0cdf6949bd31c0fa5092"
+    },
+    {
+      "path": "work/completed/007-proving-ground-hardening-spec-and-check-frozen/work-item.json",
+      "sha256": "a903f2ef7bb032e9356446916e3fe22b27a78e9f02b469ae8bd56361bd44b625"
+    },
+    {
+      "path": "work/completed/008-brownfield-adoption-convert-an-existing-repo-into-a-repopact/README.md",
+      "sha256": "9bce6b0e02728364279ca94c4abbc81119d577deb1a9db8731d8c7e4ff6b11a4"
+    },
+    {
+      "path": "work/completed/008-brownfield-adoption-convert-an-existing-repo-into-a-repopact/work-item.json",
+      "sha256": "81e88d3311c752215daae0fe3139e7e289d082becab95d59cdc6f62eb7c97855"
+    },
+    {
+      "path": "work/completed/009-pypi-trusted-publishing-release-workflow/README.md",
+      "sha256": "8ddae37f7c7a86e9ffdf7ea68a1206cf8db7e7f766d5f0e568aa7bc8169c5f97"
+    },
+    {
+      "path": "work/completed/009-pypi-trusted-publishing-release-workflow/work-item.json",
+      "sha256": "6266bc9a6a965c4163a924818165523674bbc9e5901ffac872fff652f17dea33"
+    },
+    {
+      "path": "work/completed/010-adopt-hardening-f-008-guardrail-and-independent-oss-adoption-evidence/README.md",
+      "sha256": "aa86cffd1c57694ee11dd80e4c15e54889ec7f6db346bc25be3162e649fa09ed"
+    },
+    {
+      "path": "work/completed/010-adopt-hardening-f-008-guardrail-and-independent-oss-adoption-evidence/work-item.json",
+      "sha256": "23a33a91eb5197d0a67d0146a806973c9607bdeccbb0c048e30bc814c075a7a7"
+    },
+    {
+      "path": "work/completed/011-plan-import-bring-existing-todos-and-checklists-into-work/README.md",
+      "sha256": "f1c89ef0564edce73b17658c98ff68cad0cfb70e5775bdf11c04117ca68c3fdc"
+    },
+    {
+      "path": "work/completed/011-plan-import-bring-existing-todos-and-checklists-into-work/work-item.json",
+      "sha256": "19dd4ab346cd73adb3b6a992b8b1b82d974b227b75235fe91efda4286523b022"
+    },
+    {
+      "path": "work/completed/012-plan-import-sources-section-roadmaps-and-github-issues/README.md",
+      "sha256": "3be56a7a9595751a20666bffec4cd2d05ef154af435fb80df8bf3cb3ef91ace9"
+    },
+    {
+      "path": "work/completed/012-plan-import-sources-section-roadmaps-and-github-issues/work-item.json",
+      "sha256": "f801289cf20461dc4ad7f6fda8a46217d16c9dca7293507f17582e15c93197f3"
+    },
+    {
+      "path": "work/completed/013-repopact-doctor-diagnose-and-repair-adoption-drift/README.md",
+      "sha256": "54f88fd1e41f147bb9ef84c5cd61f63ec795fc874c927cbf58cac1af73f1f222"
+    },
+    {
+      "path": "work/completed/013-repopact-doctor-diagnose-and-repair-adoption-drift/work-item.json",
+      "sha256": "1e17c429a8707eea8143dd24215222675380a3780f65a3c3eeb49e79e994782d"
+    },
+    {
+      "path": "work/completed/014-skillforge-adoption-real-world-test-and-todo-prefix-import-handling/README.md",
+      "sha256": "79e45f54ff205f32b5f2512fff9a2e5294e07919e62aaae69b97b5f8e4472495"
+    },
+    {
+      "path": "work/completed/014-skillforge-adoption-real-world-test-and-todo-prefix-import-handling/work-item.json",
+      "sha256": "1fd7d9da1db35b48d1529216fca33567bef8de2ef4b1702db985b9ea9f53c527"
+    },
+    {
+      "path": "work/completed/015-tracking-system-import-and-takeover-of-legacy-methods/README.md",
+      "sha256": "4eb0a6447d7c9dc1ab6818888b4f447b5dd0f4aa62319b96eadc6099e20cf35d"
+    },
+    {
+      "path": "work/completed/015-tracking-system-import-and-takeover-of-legacy-methods/work-item.json",
+      "sha256": "3e56e63513e63cdbe4d2cbf05433950d55e69285dae9803944f25dea61352cc8"
+    },
+    {
+      "path": "work/completed/016-readme-checkbox-parity/README.md",
+      "sha256": "35ef7d65abb9cf6c1d047ce5aad8ff8f17aad49f59d8fb6299c1321888ee5fe5"
+    },
+    {
+      "path": "work/completed/016-readme-checkbox-parity/work-item.json",
+      "sha256": "27b8de87dc849b3aefb0b14b54d9817d3a66eb6b74036f3427ad1a09700b7a48"
+    },
+    {
+      "path": "work/completed/017-add-deferred-and-rejected-decision-statuses/README.md",
+      "sha256": "9212fadf53187b4aa312feb13d7d60481e693a1f5e865188e2c277dd05553bb7"
+    },
+    {
+      "path": "work/completed/017-add-deferred-and-rejected-decision-statuses/work-item.json",
+      "sha256": "6119709ea695213b8448562f23cdf106793e471ffc9465efd7ebc43d3031a68a"
+    },
+    {
+      "path": "work/completed/018-generalized-opt-in-preflight-marker/README.md",
+      "sha256": "1fd946cd3e851c57365a19535c7b55e9930a97cb632fc00723f8f5bf6a4fe6d8"
+    },
+    {
+      "path": "work/completed/018-generalized-opt-in-preflight-marker/work-item.json",
+      "sha256": "aca6582c52c71401cedae3ef71d38ba443dae3cf5e82119c60f5627b218f1c82"
+    },
+    {
+      "path": "work/completed/019-conformance-suite/README.md",
+      "sha256": "89eba2d5428ab3289f283304b60f9d1c1513b85d41e3d3ad8274ef47d71422ac"
+    },
+    {
+      "path": "work/completed/019-conformance-suite/work-item.json",
+      "sha256": "b5f1cb561a0b1d11914ab88633e51b96cb5bd768df54db9117dd51a180088fb4"
+    },
+    {
+      "path": "work/completed/023-preflight-mandatory/README.md",
+      "sha256": "7669d7520979b2957e5a45b58eca125088b9bf21eb769b78df92ed81bf9942da"
+    },
+    {
+      "path": "work/completed/023-preflight-mandatory/work-item.json",
+      "sha256": "5983aab3668e460e62b9b09405fcdd15f625d729423067fa71fb1a06d5fe9781"
+    },
+    {
+      "path": "work/completed/024-provenance-typed-records/README.md",
+      "sha256": "ce3bfa6bef2259788ba9fb50b111242114e13bbdd0585feb57cb1447af423f2b"
+    },
+    {
+      "path": "work/completed/024-provenance-typed-records/work-item.json",
+      "sha256": "d8f9b175385deab5d79c197fb0edacc4711f0a60fc55f5e022d1b9e7de289c8f"
+    },
+    {
+      "path": "work/completed/025-add-proposed-lifecycle-state/README.md",
+      "sha256": "dee3104596fd4a181f8c46aab544907473515812ed1802a0dd32dba310759c9e"
+    },
+    {
+      "path": "work/completed/025-add-proposed-lifecycle-state/work-item.json",
+      "sha256": "32557ba6558a68f7e450aae9b305d4c0b38d0aa91588f4b67a6a635bf3db7905"
+    },
+    {
+      "path": "work/completed/026-deterministic-dashboard-validation/AGENTS.md",
+      "sha256": "eb276e7023de84591dc5b70300d639100ca63da977dbeb44b1decedce858cca9"
+    },
+    {
+      "path": "work/completed/026-deterministic-dashboard-validation/README.md",
+      "sha256": "79cf45ab5865c072ae8dc47e683070bdf7ba7f87acb4cd2eac974e2fc1d8d8f5"
+    },
+    {
+      "path": "work/completed/026-deterministic-dashboard-validation/work-item.json",
+      "sha256": "8ee9829ffbd55dcf358c557b99265bbbd756f72b6908b310b98a486a7e79b4b9"
+    },
+    {
+      "path": "work/completed/027-release-2-2-0-dashboard-integrity/AGENTS.md",
+      "sha256": "6aa1980966089bafd7beb0cb7413ad401c076beae875660cf731bbe9569bc94e"
+    },
+    {
+      "path": "work/completed/027-release-2-2-0-dashboard-integrity/README.md",
+      "sha256": "dacc42ee972100e0682a28f5155a32f0a219e6048820d6f4878c7de7dc0965c6"
+    },
+    {
+      "path": "work/completed/027-release-2-2-0-dashboard-integrity/work-item.json",
+      "sha256": "34229d699e935def13c230579e1d27ab90ed380d59a47f90e0a74768af3d5e62"
+    },
+    {
+      "path": "work/completed/028-repopact-2-2-0-adopter-rollout/README.md",
+      "sha256": "58a5da7cbb56942169d59973d6a7c9e0671437b61bdc380149a64eea73a131a1"
+    },
+    {
+      "path": "work/completed/028-repopact-2-2-0-adopter-rollout/work-item.json",
+      "sha256": "66b899c020855a64848f59e837c5b19b631cc04fab244acf545b0029bbc883fc"
+    },
+    {
+      "path": "work/completed/029-deterministic-adopter-fleet-verification/README.md",
+      "sha256": "bd948323ddafef6b19356e9fc5d79f0b1ed28d521324bda262e19f7e558f0d31"
+    },
+    {
+      "path": "work/completed/029-deterministic-adopter-fleet-verification/work-item.json",
+      "sha256": "9d8d7f6e413d1083884e61559bccbc4a30ab561930b3cc6f0b066b49ecfef27e"
+    },
+    {
+      "path": "work/completed/030-complete-conformance-rule-coverage/README.md",
+      "sha256": "3730fe8d610c3214e954c140528a167c6d51c85929eedb0b12c67d3cc1d6cf1e"
+    },
+    {
+      "path": "work/completed/030-complete-conformance-rule-coverage/work-item.json",
+      "sha256": "0efa6b4f8653507fdaa89a70d3248a24cf41a98828fe092dad7ed352356004e7"
+    },
+    {
+      "path": "work/completed/031-canonical-research-metadata-and-evidence-trace-repair/README.md",
+      "sha256": "af1265ef86a6e0784c039a1a3c6dc76d76e581df356ed7b1e5f74664a9fcbbb7"
+    },
+    {
+      "path": "work/completed/031-canonical-research-metadata-and-evidence-trace-repair/work-item.json",
+      "sha256": "f044ce654b151965352f36acb829db59c15a58ced23a0e3a745dcc089fb672d3"
+    },
+    {
+      "path": "work/completed/033-semantic-ledger-freshness-and-audit-reconciliation/README.md",
+      "sha256": "e25b68e1c5277824d229422ab905bd1483c5fac31c8312e3efaf0fb518f64256"
+    },
+    {
+      "path": "work/completed/033-semantic-ledger-freshness-and-audit-reconciliation/work-item.json",
+      "sha256": "640f980fa4322670a6557f2eb421540da47a3c7b1fbe559363ea4c4f7890f9db"
+    },
+    {
+      "path": "work/completed/035-optional-release-label/README.md",
+      "sha256": "633622cc008c04c8043535e75cfc1c7c0779edadbb6ab44f40b184ffbe2d33d9"
+    },
+    {
+      "path": "work/completed/035-optional-release-label/work-item.json",
+      "sha256": "2e02f3c8cdbb6eec7882c0468aa4878bd233a9a9cc0f5988bdd24fab57bbd0d7"
+    },
+    {
+      "path": "work/completed/036-fix-packaging-namespace-pollution-and-release-surface-drift/README.md",
+      "sha256": "eddcfea0e27819cfa226151a54e59a58eaa1c05646a21976cf470a422b266317"
+    },
+    {
+      "path": "work/completed/036-fix-packaging-namespace-pollution-and-release-surface-drift/work-item.json",
+      "sha256": "d7d9a10a682156f1d24ab6427cc590cad383e51dea96fe16924fe3313fc1d7bb"
+    },
+    {
+      "path": "work/completed/037-reconcile-the-adopter-fleet-and-proving-ground-package-boundary/README.md",
+      "sha256": "77bde9a2dfadf3ac53b4b020fa180dcc2cf2f75111a3986e11d381db62d95665"
+    },
+    {
+      "path": "work/completed/037-reconcile-the-adopter-fleet-and-proving-ground-package-boundary/work-item.json",
+      "sha256": "100961e274b7a5ae9afc170c6713f5a07e1567dc5ec8591ce90598c329f00798"
+    },
+    {
+      "path": "work/completed/038-release-the-approved-repopact-3-0-package-boundary/README.md",
+      "sha256": "688437867138ca3cd096829bfb7f417b91beeea65c06a1af5cc8372b4e59f626"
+    },
+    {
+      "path": "work/completed/038-release-the-approved-repopact-3-0-package-boundary/work-item.json",
+      "sha256": "4ccaf24c9f87957172fb75a2684f5bfc0a3bcad2fdd6f9ee727448d7a4be5dd8"
+    },
+    {
+      "path": "work/completed/039-promote-forgewire-enforcement-closure-case-study/README.md",
+      "sha256": "f27a41dbe3f9c11956a3085abd479999a2be58d744774b594707dd49d6d40192"
+    },
+    {
+      "path": "work/completed/039-promote-forgewire-enforcement-closure-case-study/work-item.json",
+      "sha256": "5ab5579ecd65156a34addd291e3e656b4e4886619feb6fab7539e64d2154219a"
+    },
+    {
+      "path": "work/completed/040-refresh-research-metadata-contract-tests/README.md",
+      "sha256": "d538de70dac8d51b02ada7386df05c830e2955917dfad3521990c11c92b9b9fe"
+    },
+    {
+      "path": "work/completed/040-refresh-research-metadata-contract-tests/work-item.json",
+      "sha256": "b0321161564af12e8e599068b9c47ab37904238eb2198c327cd234573e617413"
+    },
+    {
+      "path": "work/completed/041-record-wi238-upstream-findings-worktree-release-lag-and-doctor-path-resolution/README.md",
+      "sha256": "10d298631867a45a455be919f2b2f99d8353bc7860772eb19d0406db6092c0fb"
+    },
+    {
+      "path": "work/completed/041-record-wi238-upstream-findings-worktree-release-lag-and-doctor-path-resolution/work-item.json",
+      "sha256": "60300511472b66c2dca71a40f2b3aeae9aa3f5b9427ad839d8e316a0f6d707f1"
+    },
+    {
+      "path": "work/completed/042-structural-git-worktree-awareness-in-contract-discovery/README.md",
+      "sha256": "5636e7425e1f37e782b2c988333421455cd7cc2fccca57291bf017c8e41bf05a"
+    },
+    {
+      "path": "work/completed/042-structural-git-worktree-awareness-in-contract-discovery/work-item.json",
+      "sha256": "6f11568c2a446669ba39f55ce7c671c0424854c0b315ec302d623ecd864cd9ba"
+    },
+    {
+      "path": "work/completed/043-define-and-enforce-source-of-truth-path-resolution-semantics/README.md",
+      "sha256": "f3b9c25384dfa75ab504f63a3a832024a1ff069f483906985634ed8d1cbd0d5a"
+    },
+    {
+      "path": "work/completed/043-define-and-enforce-source-of-truth-path-resolution-semantics/work-item.json",
+      "sha256": "216519902cb779d77b0e18c8ec36ee259fbd88e8a004278e3e67b4578cf634f9"
+    },
+    {
+      "path": "work/completed/045-release-repopact-3-0-1-and-reconcile-stable-source-artifact-identity/README.md",
+      "sha256": "6222d3a99ce2862dfa9f0b04c32b2c39d44579f9f28431c449ec6e52be7d4636"
+    },
+    {
+      "path": "work/completed/045-release-repopact-3-0-1-and-reconcile-stable-source-artifact-identity/work-item.json",
+      "sha256": "79f54935f303c245fce7dcdada6bcd5f9fefbffd54a4133cd409ea160d93888a"
+    },
+    {
+      "path": "work/completed/046-runner-neutral-verification-and-admission-checkpoint-architecture/README.md",
+      "sha256": "7aa965c11e136ada0d72615108796717bc955c627ffadd7f7b5bd800c154c204"
+    },
+    {
+      "path": "work/completed/046-runner-neutral-verification-and-admission-checkpoint-architecture/architecture-review.md",
+      "sha256": "ef42aff4d30ae6214954b6e245e4e9439883ba4227f3d309bbfe7ca7aa4ae66c"
+    },
+    {
+      "path": "work/completed/046-runner-neutral-verification-and-admission-checkpoint-architecture/evidence/linux-release-out-1/release-build-report.json",
+      "sha256": "375289ad47bc3e7fdd5996b74119e25210e54be9243860b42c691dabc2ba9bde"
+    },
+    {
+      "path": "work/completed/046-runner-neutral-verification-and-admission-checkpoint-architecture/evidence/linux-release-out-1/release-manifest.json",
+      "sha256": "fbf8aff3484a21acecce674620729609a84be03073680f8ba1221f208dec04cc"
+    },
+    {
+      "path": "work/completed/046-runner-neutral-verification-and-admission-checkpoint-architecture/evidence/linux-release-out-1/release-readiness.json",
+      "sha256": "82fe361954013845994512594a6b8112d8856574175f8dbd2e1dc4c6610eef02"
+    },
+    {
+      "path": "work/completed/046-runner-neutral-verification-and-admission-checkpoint-architecture/implementation-progress.md",
+      "sha256": "8da4cfa7b1edbbec09e8f2d32f64508584d22cc6d5b031e91e91b56435401fad"
+    },
+    {
+      "path": "work/completed/046-runner-neutral-verification-and-admission-checkpoint-architecture/work-item.json",
+      "sha256": "0e49f66e23a365315eb5aebc572f621fd55477f7a8f3736bd8842cf278db6214"
+    },
+    {
+      "path": "work/completed/048-release-repopact-3-0-2-corrective-path-and-worktree-fixes/README.md",
+      "sha256": "ae5d189ef4104e17ddddd36c5016eaddfba4786a37ecfb3950be2b37b5d6ae49"
+    },
+    {
+      "path": "work/completed/048-release-repopact-3-0-2-corrective-path-and-worktree-fixes/work-item.json",
+      "sha256": "625846cb7d02f855f053decbd91857bdd229c9951c51f0fc9f19bdbe93bf7ff7"
+    },
+    {
+      "path": "work/completed/049-reconcile-post-3-0-2-evidence-timestamp-hotfix-and-development-identity/README.md",
+      "sha256": "865806e9fffc8fb19370d5e84718e9cbe0fb5b844165503e7b461cff86cce603"
+    },
+    {
+      "path": "work/completed/049-reconcile-post-3-0-2-evidence-timestamp-hotfix-and-development-identity/work-item.json",
+      "sha256": "0e79eac05b9a358a7964d1ea9802c695ea1ee8db2934f412b45b168f8e172a8c"
+    },
+    {
+      "path": "work/completed/051-assurance-control-mapping-and-sensitive-evidence-boundary/README.md",
+      "sha256": "c25ca1bd945a68719318efc371cbe61ecc8668ed89ef09afd934da54663c9768"
+    },
+    {
+      "path": "work/completed/051-assurance-control-mapping-and-sensitive-evidence-boundary/work-item.json",
+      "sha256": "ec71e2585e16db1744f24d649e8f11ac6f5c9b4eff8dffad68507b73af5572f4"
+    },
+    {
+      "path": "work/completed/052-rust-core-and-tauri-2-user-workbench-foundation/README.md",
+      "sha256": "d2d388c6325aa02ae13898e4c207dfa06cfd3e6290f0f889c0706f2637a47c9e"
+    },
+    {
+      "path": "work/completed/052-rust-core-and-tauri-2-user-workbench-foundation/architecture-inventory.md",
+      "sha256": "6b19d4f40d9fcb823740b5ebe89e62a9a1cd0ac2d7f0dffda426b84f4a351a35"
+    },
+    {
+      "path": "work/completed/052-rust-core-and-tauri-2-user-workbench-foundation/proposal.md",
+      "sha256": "69a53c52e87dd1d87677a499d5c3e03c28e9603e5db134362264a7d72ec96194"
+    },
+    {
+      "path": "work/completed/052-rust-core-and-tauri-2-user-workbench-foundation/work-item.json",
+      "sha256": "e67f4bfe75a8ab54661053724d709e199adcaa2d6e64fcc6cc351e8f82a5171e"
+    },
+    {
+      "path": "work/completed/053-rust-workspace-repository-model-schema-and-validator-conformance/README.md",
+      "sha256": "4eb08f7b808b9b4f88f0ee4897568c62877f4c1b6c8122a6f6d0dde60b79e421"
+    },
+    {
+      "path": "work/completed/053-rust-workspace-repository-model-schema-and-validator-conformance/codex-directive.md",
+      "sha256": "8f62f700e042fdc7f71610228131183d6f24dcc41285ae9d276ab181deb0a385"
+    },
+    {
+      "path": "work/completed/053-rust-workspace-repository-model-schema-and-validator-conformance/work-item.json",
+      "sha256": "3de718671dca070add68a4baaffb7de8d7cca6b8a511cf79fee49355ba0308cf"
+    },
+    {
+      "path": "work/completed/054-rust-graph-analysis-and-transactional-mutation-core/README.md",
+      "sha256": "efe77c139472a5fecaa5495d08430cbaf30795ebd0201f167bed5d450a31d320"
+    },
+    {
+      "path": "work/completed/054-rust-graph-analysis-and-transactional-mutation-core/architecture-review.md",
+      "sha256": "5ea54f38e20670d149588f0e5252533ef898e03af170e3a587476c6c9550ae08"
+    },
+    {
+      "path": "work/completed/054-rust-graph-analysis-and-transactional-mutation-core/codex-directive.md",
+      "sha256": "c37eab2767b7dbbbc25f2b2d091328b9195b5493659da270ec3dfb0602610266"
+    },
+    {
+      "path": "work/completed/054-rust-graph-analysis-and-transactional-mutation-core/proposal.md",
+      "sha256": "721aabcbeb1ad627e13b481d03ffc67b93b73821a6d8bc498f9a12b287fde933"
+    },
+    {
+      "path": "work/completed/054-rust-graph-analysis-and-transactional-mutation-core/work-item.json",
+      "sha256": "cf35347eafc9601df74cf75e4a8f857ae30c1a6de89b3ea2010314b5c6032549"
+    },
+    {
+      "path": "work/completed/055-tauri-2-desktop-governance-workbench/README.md",
+      "sha256": "a4365f8be5f9aa8177fe3a5b48dbe7b49ec99ae53ed01bd2408d87df58ad1043"
+    },
+    {
+      "path": "work/completed/055-tauri-2-desktop-governance-workbench/architecture-review.md",
+      "sha256": "c609b0ec24aa338c1d7d747014803c8b6432f6e30e8e1a8db892b0ad6ac2e113"
+    },
+    {
+      "path": "work/completed/055-tauri-2-desktop-governance-workbench/codex-directive.md",
+      "sha256": "d1744085c30e636aedc67a6e9142aeba63e745a84ceca79a64f66ea0c6a56534"
+    },
+    {
+      "path": "work/completed/055-tauri-2-desktop-governance-workbench/proposal.md",
+      "sha256": "7e5612d21002a118662ebf2b77b0891fc07c1e067d7ef86126f0be22783b2088"
+    },
+    {
+      "path": "work/completed/055-tauri-2-desktop-governance-workbench/work-item.json",
+      "sha256": "8d3fcac00eec1f4f5c39bc203e829cc1e88f8819ad9b64792e988c06c3613e2c"
+    },
+    {
+      "path": "work/completed/056-python-compatibility-and-canonical-rust-core-cutover/README.md",
+      "sha256": "c0b2e8d80503061ccabb2ff5824b7f9481931f1d4e8f8631603bc7f8dc48440a"
+    },
+    {
+      "path": "work/completed/056-python-compatibility-and-canonical-rust-core-cutover/active-plan.md",
+      "sha256": "51d2e9be4031f1a1ca780e5a538b41c6b62732142125ba3b34d8a34f8ecda28b"
+    },
+    {
+      "path": "work/completed/056-python-compatibility-and-canonical-rust-core-cutover/architecture-review.md",
+      "sha256": "a880ce7d215176132b2fcfc3409f35543c3fba8460c6abb17dd667c5c3f1ad46"
+    },
+    {
+      "path": "work/completed/056-python-compatibility-and-canonical-rust-core-cutover/blocked-note.md",
+      "sha256": "1141312efe983137f7b2b2cefbb422ad67b96e47ad6f68e32140fc93aa6fb342"
+    },
+    {
+      "path": "work/completed/056-python-compatibility-and-canonical-rust-core-cutover/codex-directive.blocked-wi057.md",
+      "sha256": "565cc3fd339bdc059b1770fb56369ce79321dba2a0f940d02c84707b4190e7a8"
+    },
+    {
+      "path": "work/completed/056-python-compatibility-and-canonical-rust-core-cutover/codex-directive.md",
+      "sha256": "cfc613822cba2bfc127d7a9c69228a6d34c19bfa5e756e65d16485a85014b5b6"
+    },
+    {
+      "path": "work/completed/056-python-compatibility-and-canonical-rust-core-cutover/codex-directive.pre-wi057.md",
+      "sha256": "cfc613822cba2bfc127d7a9c69228a6d34c19bfa5e756e65d16485a85014b5b6"
+    },
+    {
+      "path": "work/completed/056-python-compatibility-and-canonical-rust-core-cutover/command-authority-inventory.md",
+      "sha256": "d8c29b01ff8f160b10a9ed8aeda2809c83e9da3925ee532c5fc2de058dc22111"
+    },
+    {
+      "path": "work/completed/056-python-compatibility-and-canonical-rust-core-cutover/proposal.md",
+      "sha256": "7a8fe01c8672eb6aee15a6970bdd647c8a118ce034c0ed3c3546e2cc49c4563a"
+    },
+    {
+      "path": "work/completed/056-python-compatibility-and-canonical-rust-core-cutover/work-item.json",
+      "sha256": "891539a47affba6ff57b8d7e7c651188675f33857c8aca14fae83c211db39e94"
+    },
+    {
+      "path": "work/completed/057-desktop-repository-selection-git-process-storm-and-runtime-amplification-audit/README.md",
+      "sha256": "8c1934e9d73ad2f1f7ca2de3058561ac82bf30e99fe0446f46229e8873a8a675"
+    },
+    {
+      "path": "work/completed/057-desktop-repository-selection-git-process-storm-and-runtime-amplification-audit/architecture-review.md",
+      "sha256": "eef3837ae043b2669393b35eec60a589c835ddbc13fe1a7c437f5cc8ce1c32f3"
+    },
+    {
+      "path": "work/completed/057-desktop-repository-selection-git-process-storm-and-runtime-amplification-audit/codex-directive.md",
+      "sha256": "139be8c04736f88323ae877ab74bfd944f8daa42343189fa6665ca0410d9a8a4"
+    },
+    {
+      "path": "work/completed/057-desktop-repository-selection-git-process-storm-and-runtime-amplification-audit/desktop-picker-process-audit.ps1",
+      "sha256": "3f1ceda8ae6f76eb198019ff647f9922d9c82975b85786e67eb918be5ba939a5"
+    },
+    {
+      "path": "work/completed/057-desktop-repository-selection-git-process-storm-and-runtime-amplification-audit/operator-assisted-native-picker-validation.md",
+      "sha256": "ab2e813e5c8fc59a144577ab5f22d8ecada4718cce7272cbc54c810f3d4d6d09"
+    },
+    {
+      "path": "work/completed/057-desktop-repository-selection-git-process-storm-and-runtime-amplification-audit/post-implementation-review.md",
+      "sha256": "6334beb87adf64df4749e09113f6846edd175b92c650bb6d3e99578e4c6c4285"
+    },
+    {
+      "path": "work/completed/057-desktop-repository-selection-git-process-storm-and-runtime-amplification-audit/process-amplification-audit.md",
+      "sha256": "1a0044762bcfe2d488f44fceb044ae1c87b8c00b1d629445a83db99f53dda2e0"
+    },
+    {
+      "path": "work/completed/057-desktop-repository-selection-git-process-storm-and-runtime-amplification-audit/work-item.json",
+      "sha256": "8619e57533456556b7728206964513a6aace3109749c9dd9b2834d6e3a8b6e4b"
+    },
+    {
+      "path": "work/completed/058-user-centric-tabbed-workbench-information-architecture/README.md",
+      "sha256": "b938235e6c3b0b771ab73b00c3629be4cf2cbd008cefc79b61f7eafa980b2a76"
+    },
+    {
+      "path": "work/completed/058-user-centric-tabbed-workbench-information-architecture/architecture-review.md",
+      "sha256": "ca46d8b62c9596196dce3448a4ef484ed14ab142ab9749fca6e64b3504f627ed"
+    },
+    {
+      "path": "work/completed/058-user-centric-tabbed-workbench-information-architecture/codex-directive.md",
+      "sha256": "988783e00f5a3a6fc1ca74cc4b9d994b4a9d51a2512e7f99763ab87a9ae2e0f3"
+    },
+    {
+      "path": "work/completed/058-user-centric-tabbed-workbench-information-architecture/work-item.json",
+      "sha256": "9f7354cb3425ff9f9dd830c4f16a2050404481c5ebc9445b1e7c9d8c469e3e9d"
+    },
+    {
+      "path": "work/completed/059-canonical-rust-validation-self-hosting-and-extended-surface-parity/README.md",
+      "sha256": "cf362b67fdfca2ed6fbd2327c5a1e7f988131fe85303fa68d88f0e9c190d0c9a"
+    },
+    {
+      "path": "work/completed/059-canonical-rust-validation-self-hosting-and-extended-surface-parity/architecture-review.md",
+      "sha256": "ea31a0f0383c771194d7d5bcee2bdaeb51ab98330e196e28152180f78012fdda"
+    },
+    {
+      "path": "work/completed/059-canonical-rust-validation-self-hosting-and-extended-surface-parity/fixture-storage-finding.md",
+      "sha256": "f7ab6cab79a2494bc43f56ab4ca3980e50bd66a6d363c212d8487b18a8bf55a0"
+    },
+    {
+      "path": "work/completed/059-canonical-rust-validation-self-hosting-and-extended-surface-parity/semantic-parity-inventory.md",
+      "sha256": "cbd9040b92b128dab6c769ecf689cb873e8c0fe79ebc70a79208d94495ab84f2"
+    },
+    {
+      "path": "work/completed/059-canonical-rust-validation-self-hosting-and-extended-surface-parity/work-item.json",
+      "sha256": "c7c888b184bd64dbdeb20af909262da17a834d6f542752845126010a0d969bca"
+    },
+    {
+      "path": "work/completed/060-android-workbench-bring-up-runtime-validation-and-repository-access-boundary/README.md",
+      "sha256": "d5cd3d7925cbebcc6233f4009b2b97841701123f725bc54d26afd2c21b64a18d"
+    },
+    {
+      "path": "work/completed/060-android-workbench-bring-up-runtime-validation-and-repository-access-boundary/architecture-review.md",
+      "sha256": "4d714b20ffe04f7fd139d53120a345295f1bf1c11c7271444f14d68c57698408"
+    },
+    {
+      "path": "work/completed/060-android-workbench-bring-up-runtime-validation-and-repository-access-boundary/evidence/device/back-nav-2-detail-open.png",
+      "sha256": "81585f9971c57bbe01a851afccf72d95c2e5fae51cff927acd2b2e5f003732dd"
+    },
+    {
+      "path": "work/completed/060-android-workbench-bring-up-runtime-validation-and-repository-access-boundary/evidence/device/back-nav-3-detail-closed-focused-off.png",
+      "sha256": "6e2b5a3e260123bc8318704706da7aecb89d7c4124e0b3d8d9602ed075996755"
+    },
+    {
+      "path": "work/completed/060-android-workbench-bring-up-runtime-validation-and-repository-access-boundary/evidence/device/back-nav-4-list-state-restored.png",
+      "sha256": "31defc1c605ad934937a96c6cf71e8d61e7794a02404f044755530acea41412e"
+    },
+    {
+      "path": "work/completed/060-android-workbench-bring-up-runtime-validation-and-repository-access-boundary/evidence/device/ia-1-nav-drawer-all-sections.png",
+      "sha256": "d104f197638607a170a5ae5b79b783e90916d10237302132a80fd48800c0fe56"
+    },
+    {
+      "path": "work/completed/060-android-workbench-bring-up-runtime-validation-and-repository-access-boundary/evidence/device/ia-2-decisions-page.png",
+      "sha256": "180208c42fe36dd2d67b5014b5b5fdc6a1532726774acbeb75d584b235a96ed6"
+    },
+    {
+      "path": "work/completed/060-android-workbench-bring-up-runtime-validation-and-repository-access-boundary/evidence/device/ia-3-evidence-page.png",
+      "sha256": "e12b7911ac8a879089f689357554525ac86a27eb9e8b5438a32a64888c0c731d"
+    },
+    {
+      "path": "work/completed/060-android-workbench-bring-up-runtime-validation-and-repository-access-boundary/evidence/device/ia-4-graph-compact-cards.png",
+      "sha256": "ed498194a399945a43b6f76ab0162346807f23df62a586bbcbccee14636a9409"
+    },
+    {
+      "path": "work/completed/060-android-workbench-bring-up-runtime-validation-and-repository-access-boundary/evidence/device/ia-5-validation-page.png",
+      "sha256": "f28e83406bb84f5b93f575252379abf06cf5722de82abbd95a40721ae5b74bcb"
+    },
+    {
+      "path": "work/completed/060-android-workbench-bring-up-runtime-validation-and-repository-access-boundary/evidence/device/ia-6-analysis-page.png",
+      "sha256": "6d7ef7ee0db8e5c14b59802af2cf8c3090559826ec7c52f5d107d64fa397c164"
+    },
+    {
+      "path": "work/completed/060-android-workbench-bring-up-runtime-validation-and-repository-access-boundary/evidence/device/ia-7-settings-page.png",
+      "sha256": "9e84d17892082633f4377297c697d13383e5eec741c55efce73cf27d77e443a2"
+    },
+    {
+      "path": "work/completed/060-android-workbench-bring-up-runtime-validation-and-repository-access-boundary/evidence/device/ia-8-dashboard-restored-clean.png",
+      "sha256": "929c45c188d1e2d45d233733845b8171fda6112bc70e2065b7188ff9162c379f"
+    },
+    {
+      "path": "work/completed/060-android-workbench-bring-up-runtime-validation-and-repository-access-boundary/evidence/device/ime-1-field-visible-above-keyboard.png",
+      "sha256": "1f911b8af1f59b7938ff637095d79cc2b8355fd83ba5373124fec5f09c481f83"
+    },
+    {
+      "path": "work/completed/060-android-workbench-bring-up-runtime-validation-and-repository-access-boundary/evidence/device/ime-2-text-entry-works.png",
+      "sha256": "671af1cd0debb045a707c8335007ae0dc53f2de0073ed326bf51945fe672e214"
+    },
+    {
+      "path": "work/completed/060-android-workbench-bring-up-runtime-validation-and-repository-access-boundary/evidence/device/ime-3-submit-reachable-after-dismiss.png",
+      "sha256": "558a6f5d88015c5e2ea1b7d538e1b9bcf9028ceb6f8fd4e17daf152172debc5d"
+    },
+    {
+      "path": "work/completed/060-android-workbench-bring-up-runtime-validation-and-repository-access-boundary/evidence/device/lifecycle-1-background-resume-same-pid.png",
+      "sha256": "17e467f48224e7dd057a6652d68f557f7970d97c740f8bf1628f330fda4c1832"
+    },
+    {
+      "path": "work/completed/060-android-workbench-bring-up-runtime-validation-and-repository-access-boundary/evidence/device/logcat-back-listener-cycle.txt",
+      "sha256": "48208598821a0eb60caad343c2ebdb27b97177ef2322872941274694a9dd4d47"
+    },
+    {
+      "path": "work/completed/060-android-workbench-bring-up-runtime-validation-and-repository-access-boundary/evidence/device/logcat-startup-clean.txt",
+      "sha256": "c3844932edcd46597f1ec4ad96308fbefbd47ad3f047d4e7d6e39582617078a1"
+    },
+    {
+      "path": "work/completed/060-android-workbench-bring-up-runtime-validation-and-repository-access-boundary/evidence/device/mutation-1-plan-review-opaque-handle.png",
+      "sha256": "69ba9d995fa130c09850af03a198d0fd3b8aeac3324c21c6221511e65b524aa0"
+    },
+    {
+      "path": "work/completed/060-android-workbench-bring-up-runtime-validation-and-repository-access-boundary/evidence/device/mutation-2-plan-diff-and-impacts.png",
+      "sha256": "bd5c34015a3142a0b6e20369b597b3f666a854c35e362ff2e41c307ad5743f0b"
+    },
+    {
+      "path": "work/completed/060-android-workbench-bring-up-runtime-validation-and-repository-access-boundary/evidence/device/mutation-3-applied-post-validated.png",
+      "sha256": "8e76b3279ee4633760aa820602d387d00a4da79356b63639be63c7decab5f96d"
+    },
+    {
+      "path": "work/completed/060-android-workbench-bring-up-runtime-validation-and-repository-access-boundary/evidence/device/orientation-1-landscape-session-preserved.png",
+      "sha256": "5a60874cef491d8dfdd2ab0f5b76a7441188bc85173569f47474fa8b9392890e"
+    },
+    {
+      "path": "work/completed/060-android-workbench-bring-up-runtime-validation-and-repository-access-boundary/evidence/device/orientation-2-back-to-portrait-restored.png",
+      "sha256": "bc8c45c536571c3c7c5ae362e3d2d646cf7c259c49b5f4a84f6a1d82e33c9968"
+    },
+    {
+      "path": "work/completed/060-android-workbench-bring-up-runtime-validation-and-repository-access-boundary/work-item.json",
+      "sha256": "fe3628017d8427333608970d867e058067ef1967f8c6a5d22600852d3811a82a"
+    },
+    {
+      "path": "work/completed/061-mobile-repository-acquisition-app-private-workspace-and-git-strategy/README.md",
+      "sha256": "b9c2e4fd552424012323dcdf10766b07fe051f27e6a90a77f324a32f8ff58245"
+    },
+    {
+      "path": "work/completed/061-mobile-repository-acquisition-app-private-workspace-and-git-strategy/architecture-review.md",
+      "sha256": "187064f278298bf1b8ffb1eccfe63e1b8fec23ccf40466619524b56c0e2355d2"
+    },
+    {
+      "path": "work/completed/061-mobile-repository-acquisition-app-private-workspace-and-git-strategy/mobile-repository-strategy-comparison.md",
+      "sha256": "3acd06b935c371cdbef0ede35de20dea7f29fad32bc116a9b8174735069dc05f"
+    },
+    {
+      "path": "work/completed/061-mobile-repository-acquisition-app-private-workspace-and-git-strategy/work-item.json",
+      "sha256": "8e161564329cfc4b9a41f5e5d50230ceadb460248e5bdb3e5c3f48ee1e935915"
+    },
+    {
+      "path": "work/completed/062-cross-platform-workbench-installation-launcher-integration-and-operator-validation/README.md",
+      "sha256": "9cea8169fcbb80fdfc14aa19628fa77afffa85bdf39a9d84109757039486ae03"
+    },
+    {
+      "path": "work/completed/062-cross-platform-workbench-installation-launcher-integration-and-operator-validation/architecture-review.md",
+      "sha256": "07e5d1442d2b65b486afce63bbd40f9af58a74908c9a779eeb31cc547f04426c"
+    },
+    {
+      "path": "work/completed/062-cross-platform-workbench-installation-launcher-integration-and-operator-validation/evidence/android/app-drawer-new-rp-icon.png",
+      "sha256": "29179ba75080d693b8b371e3dd7896e54f1863a4cd499f95d596b9212246f2a5"
+    },
+    {
+      "path": "work/completed/062-cross-platform-workbench-installation-launcher-integration-and-operator-validation/evidence/android/launched-from-drawer-tap.png",
+      "sha256": "07ce24ec07e82d1ebe4751ace4294163dbbed666d755b1310eac64277f99b89f"
+    },
+    {
+      "path": "work/completed/062-cross-platform-workbench-installation-launcher-integration-and-operator-validation/evidence/android/post-reboot-app-drawer.png",
+      "sha256": "bbc07fdd1b8727ce379098bd30d8124d4a54b6ad91df4929a88d7253faa30cac"
+    },
+    {
+      "path": "work/completed/062-cross-platform-workbench-installation-launcher-integration-and-operator-validation/evidence/android/post-reboot-launch-splash.png",
+      "sha256": "d216b9cb208ce8e38a9e1501c06bda0144b9aec8e16ae4913bba16a581a6cba5"
+    },
+    {
+      "path": "work/completed/062-cross-platform-workbench-installation-launcher-integration-and-operator-validation/evidence/linux/wslg-window-after-reinstall.png",
+      "sha256": "8ca46416901559e4ff1b75e206f2c895b22f5214bcf64bc22e7e89b11dc12551"
+    },
+    {
+      "path": "work/completed/062-cross-platform-workbench-installation-launcher-integration-and-operator-validation/work-item.json",
+      "sha256": "89c8451c767de14e2586a2b789a91dfe181fb97f08bfdb44e4b794c02e86ab64"
+    },
+    {
+      "path": "work/completed/064-research-metadata-consistency-repair-after-h15-s8-governance-continuity-publication/README.md",
+      "sha256": "10dd3c2edcfc500c33b121af14791af495c97f53b3852bbf61e08768261a8225"
+    },
+    {
+      "path": "work/completed/064-research-metadata-consistency-repair-after-h15-s8-governance-continuity-publication/work-item.json",
+      "sha256": "ff70bf90b33281ff5fcf01d599c424f11d5f69ac084dcdd509e06a092a89ad55"
+    },
+    {
+      "path": "work/completed/065-mobile-repository-acquisition-app-private-workspace-and-explicit-import-export-implementation/README.md",
+      "sha256": "250adac8489747710e6f2ed749b0ab5bbacffebd7589d816dee0db7d661be13a"
+    },
+    {
+      "path": "work/completed/065-mobile-repository-acquisition-app-private-workspace-and-explicit-import-export-implementation/work-item.json",
+      "sha256": "6cc081c93b620937be40aab55f218698b50f967710e5bcdaef329e50f48c3967"
+    },
+    {
+      "path": "work/completed/069-post-3-1-1-validation-remediation-and-development-identity-reconciliation/README.md",
+      "sha256": "af5f78cf4722b91c2adde6e08e948e3cf61661e7cc4338018b0833cfc0e86d9c"
+    },
+    {
+      "path": "work/completed/069-post-3-1-1-validation-remediation-and-development-identity-reconciliation/work-item.json",
+      "sha256": "4398745f49fc7bf3f4c4e6581393ea7235c44cda0aaf35a760009a8c50dc03be"
+    },
+    {
+      "path": "work/completed/070-repopact-3-1-3-downloadable-workbench-installers/README.md",
+      "sha256": "881314904b4e7cfe449777129c305d6ec34a17da0b14cf1461013f72fc7e2e9c"
+    },
+    {
+      "path": "work/completed/070-repopact-3-1-3-downloadable-workbench-installers/work-item.json",
+      "sha256": "7c64070775ec84d79f31b4079d1a980054895b4afd5ad9c19c73b75e2c7986ff"
+    },
+    {
+      "path": "work/completed/072-personal-repository-identity/README.md",
+      "sha256": "73dedcb1a3ab85af433927b536cc395e87228c7af66b1ad79b99e510b8064f19"
+    },
+    {
+      "path": "work/completed/072-personal-repository-identity/work-item.json",
+      "sha256": "c91df2713e4e85807f0f89ae226a73431210c2e28405f0f9655120d965714fa1"
+    },
+    {
+      "path": "work/completed/073-ecosystem-repository-owner-routing/README.md",
+      "sha256": "db267f9f1acf8a05bbbbb2f02f42af20da0ea3d9d1a739315851496ee3dc9da8"
+    },
+    {
+      "path": "work/completed/073-ecosystem-repository-owner-routing/work-item.json",
+      "sha256": "0f976878d6c85fa2eb62a4cad8022bc7145f952caa65e3259ea110f30774fcd0"
+    },
+    {
+      "path": "work/deferred/.gitkeep",
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "work/deferred/050-pre-execution-agent-work-admission-and-preflight-enforcement/README.md",
+      "sha256": "6348f5a608eb6565e1e9c97c913a4973f34771e2499f511761e964f07c740b85"
+    },
+    {
+      "path": "work/deferred/050-pre-execution-agent-work-admission-and-preflight-enforcement/architecture.md",
+      "sha256": "1873591ed7f1b426fa018ca3f9cded4378bb8952df8580739bbf343e2cd64819"
+    },
+    {
+      "path": "work/deferred/050-pre-execution-agent-work-admission-and-preflight-enforcement/frozen-surface-proposal.md",
+      "sha256": "6e1769c321f70c29a770016199b6dbbf0508dc199c100e4dc4741695f42a30b3"
+    },
+    {
+      "path": "work/deferred/050-pre-execution-agent-work-admission-and-preflight-enforcement/implementation-approval.md",
+      "sha256": "30a84d123a5299d4c89db66c674847fbb6ab0a23a8def7a9e2c36eb8b3578632"
+    },
+    {
+      "path": "work/deferred/050-pre-execution-agent-work-admission-and-preflight-enforcement/integration-platform.md",
+      "sha256": "350c34b1d5e0ec02206eb5c657ef312f07625292da74d8f974f4c125e0abd31b"
+    },
+    {
+      "path": "work/deferred/050-pre-execution-agent-work-admission-and-preflight-enforcement/landlock-confinement-plan.md",
+      "sha256": "450ecc2536070d5395673ebeece496b038008089eee1bc2d8ffd6cc483617f42"
+    },
+    {
+      "path": "work/deferred/050-pre-execution-agent-work-admission-and-preflight-enforcement/operator-control-plane.md",
+      "sha256": "c29177bfa5507eb27637d511e963c18f93a8258c74458a2a45ecb2549db86dfa"
+    },
+    {
+      "path": "work/deferred/050-pre-execution-agent-work-admission-and-preflight-enforcement/opt-in-capability-model.md",
+      "sha256": "14852b9a4507d6687b9e560375055a1f076c68e37261f8a5ac184570c339ccfd"
+    },
+    {
+      "path": "work/deferred/050-pre-execution-agent-work-admission-and-preflight-enforcement/threat-model.md",
+      "sha256": "b1a41c700d90115cb50286ddd226d38cdc7ff11cb02e5173ff1ca7059a93635e"
+    },
+    {
+      "path": "work/deferred/050-pre-execution-agent-work-admission-and-preflight-enforcement/work-item.json",
+      "sha256": "a0e2e0e352081b8c6d1d8ae632f4c1323156a12cf70f18bed6289bc045075975"
+    },
+    {
+      "path": "work/proposed/.gitkeep",
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "work/proposed/044-typed-capability-completion-and-replacement-cutover-evidence-contracts/README.md",
+      "sha256": "c0f6ba49d7ffa01fc24f7ff718c35e43bc3f63d81e908c98a48b67ddd493a002"
+    },
+    {
+      "path": "work/proposed/044-typed-capability-completion-and-replacement-cutover-evidence-contracts/work-item.json",
+      "sha256": "056ee441fc6d56de55f3e309a34fe60c05e0520ff99abcf6ff3aec3f6ba65bac"
+    },
+    {
+      "path": "work/proposed/068-embedded-mobile-git-backend-and-remote-repository-synchronization/README.md",
+      "sha256": "d94259d32e4e72baa9b69abdeaecbdc6641739f6d757648c1685d435a974fc58"
+    },
+    {
+      "path": "work/proposed/068-embedded-mobile-git-backend-and-remote-repository-synchronization/work-item.json",
+      "sha256": "7021f004695165510e6e49e10fe343fc3ede969a06b0a7e9d29410dfd00e722c"
+    },
+    {
+      "path": "work/proposed/071-repopact-3-1-4-paper-submission-and-research-closeout/README.md",
+      "sha256": "c17de183a2520e3fc807941553604092c499bbe25aebf12332e3cf7a7f722aa1"
+    },
+    {
+      "path": "work/proposed/071-repopact-3-1-4-paper-submission-and-research-closeout/work-item.json",
+      "sha256": "7bd104d09248ecc904f6f916d5dc0d6bb69b79746946efd16b8b49532790c1a8"
+    },
+    {
+      "path": "work/proposed/074-extract-repopact-core-and-independent-workbench/README.md",
+      "sha256": "9cff4de1b06a319a48f855fce092eb6f97f2330f703aff28c71b53f406f3f38a"
+    },
+    {
+      "path": "work/proposed/074-extract-repopact-core-and-independent-workbench/work-item.json",
+      "sha256": "33270190f36270b8e92ab176d0d8c170935b7d8a859fa45d47e23dd92035dd75"
+    }
+  ],
+  "withheld": [
+    {
+      "path": "docs/assets/archive/workbench-governance.jpg",
+      "reason": "historical Workbench visual archive outside standalone Core ownership"
+    },
+    {
+      "path": "docs/launch/public-claims.md",
+      "reason": "private pre-launch content; not included in publication commit"
+    },
+    {
+      "path": "docs/launch/repopact-public-copy.md",
+      "reason": "private pre-launch content; not included in publication commit"
+    },
+    {
+      "path": "evidence/WI074-SOURCE-MANIFEST.json",
+      "reason": "contains local machine paths; original retained in RepoPact governance source checkout"
+    },
+    {
+      "path": "scripts/wi050_native_matrix.py",
+      "reason": "operator-specific destructive proof harness with disposable signer and machine-local key path; excluded from public Core tree"
+    }
+  ]
+}

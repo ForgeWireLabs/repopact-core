@@ -1,0 +1,132 @@
+from __future__ import annotations
+
+import json
+import unittest
+from datetime import date, timedelta
+from pathlib import Path
+
+
+ROOT = Path(__file__).resolve().parents[1]
+
+from repopact import validate_research  # noqa: E402
+from repopact.dev_fixtures import open_fixture_repo  # noqa: E402
+from repopact.validate_repo import validate as validate_repo  # noqa: E402
+
+
+class ResearchMetadataTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.root = open_fixture_repo(self, prefix="repopact-research-metadata-", init_git=False)
+
+    def messages(self) -> list[str]:
+        return [problem.message for problem in validate_research.validate(self.root)]
+
+    def replace(self, relative: str, old: str, new: str) -> None:
+        path = self.root / relative
+        text = path.read_text(encoding="utf-8")
+        self.assertIn(old, text)
+        path.write_text(text.replace(old, new, 1), encoding="utf-8")
+
+    def test_canonical_research_records_validate(self) -> None:
+        self.assertEqual([], self.messages())
+
+    def test_expired_research_claim_contract_is_rejected(self) -> None:
+        metadata = json.loads((self.root / "research" / "metadata.json").read_text(encoding="utf-8"))
+        review_by = date.fromisoformat(metadata["claim_freshness"]["review_by"])
+        problems = validate_research.validate(self.root, today=review_by + timedelta(days=1))
+        self.assertTrue(any(f"freshness expired on {review_by.isoformat()}" in p.message for p in problems))
+
+    def test_unregistered_research_claim_document_is_rejected(self) -> None:
+        (self.root / "research" / "new-claim.md").write_text(
+            "# New current claim\n",
+            encoding="utf-8",
+        )
+        self.assertTrue(any("missing research/new-claim.md" in message for message in self.messages()))
+
+    def test_repeated_threat_identifier_is_rejected_by_repo_gate(self) -> None:
+        self.replace("research/threats-to-validity.md", "## T10 —", "## T7 —")
+        messages = [problem.message for problem in validate_repo(self.root)]
+        self.assertTrue(any("repeated T7" in message for message in messages))
+        self.assertTrue(any("missing T10" in message for message in messages))
+
+    def _set_metadata_field(self, path: str, value) -> None:
+        metadata_path = self.root / "research" / "metadata.json"
+        data = json.loads(metadata_path.read_text(encoding="utf-8"))
+        node = data
+        *parents, leaf = path.split(".")
+        for key in parents:
+            node = node[key]
+        node[leaf] = value
+        metadata_path.write_text(json.dumps(data), encoding="utf-8")
+
+    def test_freshness_policy_escaping_repository_is_rejected(self) -> None:
+        outside = self.root.parent / "outside-policy.md"
+        outside.write_text("# Not part of this repository\n", encoding="utf-8")
+        self.addCleanup(outside.unlink, missing_ok=True)
+        self._set_metadata_field("claim_freshness.policy", "../outside-policy.md")
+        messages = self.messages()
+        self.assertTrue(any("escapes the repository" in message for message in messages))
+        self.assertFalse(any("Not part of this repository" in message for message in messages))
+
+    def test_benchmark_source_escaping_repository_is_rejected(self) -> None:
+        self._set_metadata_field("benchmark.pactbench.source", "../../etc/outside-source.json")
+        messages = self.messages()
+        self.assertTrue(any("escapes the repository" in message for message in messages))
+
+    def test_trace_target_escaping_repository_is_rejected(self) -> None:
+        self._set_metadata_field("proposed_state_trace.work_item", "../outside-work-item.json")
+        messages = self.messages()
+        self.assertTrue(any("escapes the repository" in message for message in messages))
+
+    def test_lifecycle_figure_without_proposed_is_rejected(self) -> None:
+        self.replace("research/figures.md", "│ proposed │", "│ candidate │")
+        self.assertTrue(any("missing state(s): proposed" in message for message in self.messages()))
+
+    def test_stale_pactbench_task_count_is_rejected(self) -> None:
+        self.replace("research/figures.md", "24 pre-registered PactBench tasks", "21 pre-registered PactBench tasks")
+        self.assertTrue(any("expected 24; observed 21" in message for message in self.messages()))
+
+    def test_stale_hypothesis_range_is_rejected(self) -> None:
+        self.replace("research/benchmark-protocol.md", "H8–H15", "H8–H10")
+        self.assertTrue(any("expected H8–H15; observed H8–H10" in message for message in self.messages()))
+
+    def test_missing_s8_mapping_is_rejected(self) -> None:
+        self._set_metadata_field(
+            "benchmark.study_hypotheses",
+            {"S1": "H8", "S2": "H9", "S3": "H10", "S4": "H11", "S5": "H12", "S6": "H13", "S7": "H14"},
+        )
+        self.assertTrue(any("study-to-hypothesis mapping contradicts metadata" in message for message in self.messages()))
+
+    def test_wrong_s8_mapping_is_rejected(self) -> None:
+        self._set_metadata_field(
+            "benchmark.study_hypotheses",
+            {"S1": "H8", "S2": "H9", "S3": "H10", "S4": "H11", "S5": "H12", "S6": "H13", "S7": "H14", "S8": "H16"},
+        )
+        self.assertTrue(any("study-to-hypothesis mapping contradicts metadata" in message for message in self.messages()))
+
+    def test_missing_threat_identifier_is_rejected(self) -> None:
+        self._set_metadata_field(
+            "threats.identifiers",
+            ["T1", "T2", "T3", "T4", "T5", "T6", "T7", "T8", "T9", "T10", "T11", "T12", "T13"],
+        )
+        self.assertTrue(any("missing T13" in message for message in self.messages()))
+
+    def test_current_governance_continuity_publication_shape_validates(self) -> None:
+        text = (self.root / "research" / "paper.md").read_text(encoding="utf-8")
+        self.assertIn("status(w) in {proposed, active, blocked, deferred, completed}", text)
+        self.assertIn("| S8 | H15 |", text)
+        threats_text = (self.root / "research" / "threats-to-validity.md").read_text(encoding="utf-8")
+        self.assertIn("## T11 —", threats_text)
+        self.assertIn("## T12 —", threats_text)
+        self.assertEqual([], self.messages())
+
+    def test_future_provenance_wording_is_rejected(self) -> None:
+        self.replace(
+            "research/figures.md",
+            "RepoPact 2.0 shipped the resolution",
+            "Provenance-typed records are the principled future escape",
+        )
+        self.assertTrue(any("not future work" in message for message in self.messages()))
+
+
+if __name__ == "__main__":
+    unittest.main()

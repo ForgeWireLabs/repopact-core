@@ -1,0 +1,120 @@
+# Threats to validity
+
+Recorded so the paper's evaluation cannot be read as stronger than it is. Updated as
+threats are identified or retired.
+
+## T1 — Reflexivity / progenitor adoption (the central threat)
+
+RepoPact was not designed in the abstract and then tested on forgewire. It was
+**distilled from forgewire's own working practices**: the tiered `AGENTS.md`
+contracts, the `_audit` inventory/alignment system, todos, logs, history, and
+trackers. Consequently:
+
+- forgewire adopting cleanly (capture 004, F-007) is **confirmatory**, not
+  independent — the architecture is meeting the project it was abstracted from. It
+  proves the `adopt` tooling works and that the kernel re-integrates into its source
+  in a structured, explainable way; it does **not** prove the model generalizes.
+- The greenfield proving ground (`unitconv`) was author-built specifically to
+  exercise RepoPact, so it shares the same author-as-evaluator bias.
+
+**Mitigation (in progress).** Adopt repositories with **no lineage to RepoPact** and
+report the result whether it holds or cracks.
+- *Done:* pallets/flask (F-009, capture 006) — an unrelated OSS project reached a
+  conformant RepoPact via `adopt`. This independently exercises the workflows + sparse
+  path.
+- *Done:* SkillForge Academy (F-012, capture 011) — an independent, different-domain
+  real app (Tauri cert-learning) ran the full adopt+import-plan+doctor lifecycle to
+  conformant, non-destructively. Adds an independent datum for flat-todo + sectioned-
+  roadmap import and for coexistence with a homegrown audit/tracking system.
+- *Still open:* an independent repo that also has CODEOWNERS and nested contracts, so
+  those mappings are shown to generalize beyond the progenitor (forgewire). SkillForge
+  has neither, so the CODEOWNERS/nested-contract generality still rests on forgewire.
+
+## T2 — Single evaluator, single session
+
+All evidence was produced by one operator/agent pair in one session. No independent
+re-runner has reproduced the captures. **Mitigation:** every run links a raw capture
+and the exact commands, so the procedure is reproducible by a third party.
+
+## T3 — Scale and domain narrowness
+
+The greenfield subject is trivial (a unit converter); the brownfield subject is a
+single application. The record formats may strain on very large monorepos, polyglot
+trees, or unusual `_audit` layouts. **Mitigation:** the conformance fixtures
+(`tests/fixtures/`) and additional adopters broaden coverage over time.
+
+## T4 — "Holds" findings are absence-of-failure
+
+A finding marked *holds* means a specific adversarial case was caught; it is not a
+proof that no bypass exists. **Mitigation:** treat the hypothesis list as falsifiable
+and additive, not as a closed proof.
+
+## T5 — Benchmark selection and task curation (for H8–H13)
+
+The comparative studies (`benchmark-protocol.md`) are only as honest as their task sets.
+Hand-curating PactBench (S1) toward cases RepoPact handles well, or selecting SWE-bench /
+SWE-EVO slices that favour the governed arm, would manufacture the result.
+**Mitigation:** the PactBench task set and each study's "correct outcome" are
+pre-registered and committed before runs (no post-hoc curation); task-set versions are
+recorded per run; results are reported across at least two model families so a finding is
+not a single-model artefact.
+
+## T6 — Baseline fairness / construct validity (for H8–H13)
+
+A comparative win is meaningless if the baseline is a strawman. Comparing a
+RepoPact-governed repo against an *empty* repo would measure "having any context" rather
+than "having RepoPact." **Mitigation:** the baseline arm carries a genuine, reasonable
+`AGENTS.md` and README over identical source; only the governance layer differs; the
+ceremony cost of RepoPact is counted *against* it (an efficiency gain that is cancelled
+by governance overhead is reported as such, per ¬H9).
+
+## T7 — Token-measurement fairness (for S4 / H11)
+
+Token economics depend on the tokenizer, the model, prompt **caching**, and provider
+pricing. Stable context (convention files, repo records) is cache-friendly; per-request
+RAG injections vary and bust the cache, changing real cost. Measuring raw tokens without
+accounting for caching/pricing misstates the comparison in either direction.
+**Mitigation:** fix tokenizer + model per run; hold *corpus content* constant across
+regimes so we compare the delivery mechanism, not the content; report raw tokens,
+cache-adjusted tokens, and USD at stated rates; measure per-request *and* per-task
+(amortized) so on-demand-fetch regimes are not flattered by a cheap first request.
+
+## T8 — Drift / security task realism and responsible scoping (for S5–S6 / H12–H13)
+
+Induced drift and security temptations must be realistic, not toy, or the results are
+theatre. Security work must also stay defensive. **Mitigation:** drift mutations and
+security tasks are pre-registered and reviewed for realism; security tasks are
+**defensive, sandboxed, and benign-by-construction** (no real exploit development, no live
+targets); RepoPact's own records and evidence are evaluated *as an attack surface* (no
+immunity assumption); injection corpora are synthetic and contained. RepoPact is framed as
+**composing with** runtime guards (e.g. LGA, arXiv:2603.07191), not replacing them.
+
+## T9 — Provenance misuse
+
+Provenance typing can be misunderstood. If users treat `inferred` or `provisional`
+records as equivalent to concrete proof, the type system loses its value. **Mitigation:**
+completion cannot rest on non-concrete evidence; provenance remains visible in generated
+surfaces and review; doctor ratchets only when concrete evidence exists. Comparative and
+longitudinal work must still test whether operators honor the distinction in practice.
+
+## T10 — Standard versus implementation coupling
+
+The reference validator defines RepoPact's current operational semantics. This is useful
+for precision but risks coupling the standard to one Python implementation.
+**Mitigation:** the independently consumable conformance corpus maps standard rules to
+accept/reject fixtures and can run alternative validators. The corpus narrows coupling;
+it does not replace an independent implementation and third-party reproduction.
+
+## T11 — Workbench maturity
+
+The existence of a polished-looking UI can create a false impression that every governance
+capability has reached operator parity. UI claims must distinguish between implemented,
+wired, validated, and merely planned controls. **Mitigation:** missing operator controls
+remain visible as release work rather than being hidden by overall visual quality.
+
+## T12 — Orientation mechanism bias
+
+A future repository graph could be designed around the same tasks later used to evaluate
+it. **Mitigation:** S8 reduces this risk by registering correctness and orientation-cost
+measures before graph design and by requiring any graph-enabled condition to be added
+through a new dated amendment before graph-condition runs.

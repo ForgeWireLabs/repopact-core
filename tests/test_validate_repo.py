@@ -1,0 +1,1817 @@
+from __future__ import annotations
+
+import json
+import os
+import shutil
+import subprocess
+import sys
+import tempfile
+import unittest
+from unittest import mock
+from datetime import date, datetime, timedelta, timezone
+from pathlib import Path
+
+
+ROOT = Path(__file__).resolve().parents[1]
+
+from repopact import (  # noqa: E402
+    adopt_repo,
+    check_frozen_surface,
+    cli as repopact_cli,
+    doctor,
+    generate_dashboard,
+    generate_spec,
+    init_repo,
+    plan_import,
+    repo_model,
+    takeover,
+    validate_repo,
+)
+from repopact.dev_fixtures import open_fixture_repo, robust_rmtree  # noqa: E402
+from repopact.validate_repo import validate  # noqa: E402
+
+
+class RepositoryValidationTests(unittest.TestCase):
+    READ_ONLY_TESTS = {
+        "test_repository_is_valid",
+        "test_dashboard_generation_is_stable_between_audit_transitions",
+        "test_readme_without_checkboxes_is_unaffected",
+        "test_symbol_hits_detects_protected_symbol",
+        "test_symbol_hits_ignores_context_lines",
+        "test_seed_data_uses_package_resources_not_data_files",
+        "test_spec_generation_is_idempotent",
+        "test_split_num_strips_tracker_prefix",
+        "test_section_lifecycle_keywords",
+    }
+    TEMP_ONLY_TESTS = {
+        "test_bootstrap_produces_valid_repo",
+        "test_bootstrap_uses_installed_tooling_instead_of_vendoring_modules",
+        "test_adopt_existing_repo_validates",
+        "test_adopt_is_non_destructive",
+        "test_adopt_maps_workflows_and_codeowners",
+        "test_adopt_dry_run_writes_nothing",
+        "test_adopt_warns_on_gitignored_records",
+        "test_import_plan_populates_and_validates",
+        "test_import_plan_completed_items_are_waived_not_fabricated",
+        "test_import_plan_is_idempotent",
+        "test_import_plan_dry_run_writes_nothing",
+        "test_tracking_import_maps_to_record_types_and_validates",
+        "test_tracking_import_is_idempotent",
+        "test_import_plan_section_roadmap_without_checkboxes",
+    }
+
+    def setUp(self) -> None:
+        if self._testMethodName in self.READ_ONLY_TESTS:
+            self.root = ROOT
+            return
+        if self._testMethodName in self.TEMP_ONLY_TESTS:
+            holder = tempfile.mkdtemp(prefix="repopact-validate-repo-empty-")
+            self.addCleanup(lambda: robust_rmtree(holder))
+            self.temp_dir = Path(holder)
+            self.root = self.temp_dir / "repo"
+            return
+        self.root = open_fixture_repo(self, prefix="repopact-validate-repo-", init_git=False)
+        self.temp_dir = self.root.parent
+
+    def problems(self) -> list[str]:
+        return [problem.message for problem in validate(self.root)]
+
+    def problems_with_severity(self) -> list[tuple[str, str]]:
+        return [(problem.severity, problem.message) for problem in validate(self.root)]
+
+    def manifest(self, item_id: str = "000") -> Path:
+        matches = [
+            path
+            for path in (self.root / "work").glob("*/*/work-item.json")
+            if json.loads(path.read_text(encoding="utf-8")).get("id") == item_id
+        ]
+        self.assertEqual(1, len(matches))
+        return matches[0]
+
+    def write_json(self, path: Path, mutate) -> None:
+        data = json.loads(path.read_text(encoding="utf-8"))
+        mutate(data)
+        path.write_text(json.dumps(data), encoding="utf-8")
+
+    def commit_fixture(self, timestamp: str = "2026-09-01T00:00:00+00:00") -> datetime:
+        """Give a copied fixture deterministic Git recording metadata."""
+        # The repository copy includes WI049's real recording-backed evidence.
+        # Keep that source record legacy-shaped in this synthetic fixture so it
+        # does not become an unrelated failure when the fixture commit is pinned
+        # to an old deterministic timestamp.
+        for evidence_path in (self.root / "evidence" / "runs").glob("*.json"):
+            data = json.loads(evidence_path.read_text(encoding="utf-8"))
+            if data.pop("timestamp_basis", None) is not None:
+                evidence_path.write_text(json.dumps(data), encoding="utf-8")
+        run = lambda args, **kwargs: subprocess.run(
+            args, cwd=self.root, check=True, capture_output=True, text=True, **kwargs
+        )
+        run(["git", "init", "-q"])
+        run(["git", "config", "user.email", "fixture@example.invalid"])
+        run(["git", "config", "user.name", "RepoPact fixture"])
+        run(["git", "add", "-A"])
+        env = os.environ.copy()
+        env["GIT_AUTHOR_DATE"] = timestamp
+        env["GIT_COMMITTER_DATE"] = timestamp
+        run(["git", "commit", "-qm", "fixture recording"], env=env)
+        return datetime.fromisoformat(timestamp).astimezone(timezone.utc)
+
+    def add_work_item(
+        self,
+        item_id: str,
+        status: str = "active",
+        owner_scope: str = "work",
+        preflight: bool = True,
+    ) -> None:
+        directory = self.root / "work" / status / f"{item_id}-probe"
+        directory.mkdir(parents=True)
+        (directory / "README.md").write_text("# probe\n", encoding="utf-8")
+        data = {
+            "id": item_id,
+            "title": "probe",
+            "status": status,
+            "owner_scope": owner_scope,
+            "affected_scopes": [],
+            "depends_on": [],
+            "provenance": "concrete",
+            "acceptance_criteria": [{"id": "AC-1", "text": "x", "state": "pending", "evidence": []}],
+            "created": "2026-06-15",
+            "updated": "2026-06-15",
+        }
+        if preflight:
+            data["preflight"] = {
+                "created_before_work_started": True,
+                "created_at": "2026-06-15T00:00:00Z",
+                "note": "probe",
+            }
+        (directory / "work-item.json").write_text(json.dumps(data), encoding="utf-8")
+        generate_dashboard.write_dashboard(self.root)
+
+    def add_active_item(self, item_id: str, owner_scope: str = "work", preflight: bool = True) -> None:
+        self.add_work_item(item_id, "active", owner_scope, preflight)
+
+    # --- baseline -----------------------------------------------------------
+
+    def test_repository_is_valid(self) -> None:
+        self.assertEqual([], self.problems())
+
+    def test_missing_dashboard_is_rejected(self) -> None:
+        (self.root / "audits" / "reports" / "dashboard.md").unlink()
+        self.assertTrue(any("missing generated dashboard" in value for value in self.problems()))
+
+    def test_stale_dashboard_is_rejected_and_doctor_repairs_it(self) -> None:
+        dashboard = self.root / "audits" / "reports" / "dashboard.md"
+        dashboard.write_text("# obsolete dashboard\n", encoding="utf-8")
+        self.assertTrue(any("generated dashboard is stale" in value for value in self.problems()))
+
+        actions = doctor.fix(self.root, today=date(2026, 7, 18))
+        self.assertIn("regenerated audits/reports/dashboard.md", actions)
+        self.assertEqual([], self.problems())
+
+    def test_dashboard_generation_is_stable_between_audit_transitions(self) -> None:
+        first = generate_dashboard.generate(self.root, today=date(2026, 7, 18))
+        later = generate_dashboard.generate(self.root, today=date(2026, 7, 19))
+        self.assertEqual(first, later)
+        self.assertNotIn("> Generated:", first)
+
+    def test_expired_audit_freshness_is_rejected_even_after_regeneration(self) -> None:
+        registry = self.root / "audits" / "registry.json"
+        self.write_json(
+            registry,
+            lambda data: data["scopes"][0].update({
+                "last_reviewed": "2000-01-01",
+                "next_review": "2000-01-02",
+            }),
+        )
+        generate_dashboard.write_dashboard(self.root)
+        self.assertTrue(any(
+            "audit scope '.' freshness expired on 2000-01-02" in value
+            for value in self.problems()
+        ))
+
+    # --- work lifecycle -----------------------------------------------------
+
+    def test_status_must_match_directory(self) -> None:
+        path = self.manifest()
+        self.write_json(path, lambda d: d.__setitem__(
+            "status", "active" if path.parent.parent.name == "completed" else "completed"))
+        self.assertTrue(any("does not match directory" in v for v in self.problems()))
+
+    def test_satisfied_criterion_requires_evidence(self) -> None:
+        path = self.manifest()
+        self.write_json(path, lambda d: (d["acceptance_criteria"][0].update({"state": "satisfied", "evidence": []})))
+        self.assertTrue(any("satisfied without evidence" in v for v in self.problems()))
+
+    def test_completed_item_cannot_have_pending_criteria(self) -> None:
+        path = self.manifest()
+        self.write_json(path, lambda d: (d["acceptance_criteria"][0].update({"state": "pending", "evidence": []})))
+        self.assertTrue(any("completed item has pending criterion" in v for v in self.problems()))
+
+    def test_valid_proposed_work_item_validates(self) -> None:
+        self.add_work_item("900", status="proposed")
+        self.assertEqual([], self.problems())
+
+    def test_invalid_proposed_work_item_fails_structure_validation(self) -> None:
+        self.add_work_item("900", status="proposed")
+        path = self.root / "work" / "proposed" / "900-probe" / "work-item.json"
+        self.write_json(path, lambda d: d.pop("title"))
+        self.assertTrue(any("missing fields: title" in v for v in self.problems()))
+
+    def test_active_work_cannot_depend_on_proposed_work(self) -> None:
+        self.add_work_item("900", status="proposed")
+        self.add_active_item("901")
+        active = self.root / "work" / "active" / "901-probe" / "work-item.json"
+        self.write_json(active, lambda d: d.__setitem__("depends_on", ["900"]))
+        self.assertTrue(any("depends on proposed work item '900'" in v for v in self.problems()))
+
+    def test_readme_checkbox_parity_flags_contradiction(self) -> None:
+        path = self.manifest()
+        criteria = json.loads(path.read_text(encoding="utf-8"))["acceptance_criteria"]
+
+        def line(criterion: dict, override: str | None = None) -> str:
+            box = override if override is not None else ("x" if criterion["state"] == "satisfied" else " ")
+            return f"- [{box}] **{criterion['id']}** {str(criterion.get('text', ''))[:24]}"
+
+        readme = path.parent / "README.md"
+        # All checkboxes agree with the manifest -> no parity problem.
+        readme.write_text("# item\n\n" + "\n".join(line(c) for c in criteria) + "\n", encoding="utf-8")
+        self.assertFalse(any("checkbox" in v for v in self.problems()))
+
+        # Flip the first criterion's box so the README contradicts the manifest.
+        wrong = " " if criteria[0]["state"] == "satisfied" else "x"
+        lines = [line(criteria[0], override=wrong)] + [line(c) for c in criteria[1:]]
+        readme.write_text("# item\n\n" + "\n".join(lines) + "\n", encoding="utf-8")
+        self.assertTrue(any("checkbox" in v and criteria[0]["id"] in v for v in self.problems()))
+
+    def test_readme_without_checkboxes_is_unaffected(self) -> None:
+        # RepoPact's own work-item READMEs describe criteria in prose; the parity
+        # check is gated on the checklist convention and stays silent for them.
+        self.assertFalse(any("checkbox" in v for v in self.problems()))
+
+    def test_dependency_must_reference_known_work_item(self) -> None:
+        path = self.manifest()
+        self.write_json(path, lambda d: d.__setitem__("depends_on", ["999"]))
+        self.assertTrue(any("unknown dependency" in v for v in self.problems()))
+
+    def test_unknown_affected_scope_is_rejected(self) -> None:
+        path = self.manifest()
+        self.write_json(path, lambda d: d.__setitem__("affected_scopes", ["nope"]))
+        self.assertTrue(any("unknown affected_scope" in v for v in self.problems()))
+
+    # --- evidence -----------------------------------------------------------
+
+    def test_evidence_must_reference_known_work_item(self) -> None:
+        path = next((self.root / "evidence" / "runs").glob("*.json"))
+        self.write_json(path, lambda d: d.__setitem__("work_item", "999"))
+        self.assertTrue(any("unknown work_item" in v for v in self.problems()))
+
+    def test_evidence_timestamp_far_in_the_future_is_rejected(self) -> None:
+        # A recording-backed evidence record cannot claim execution after the
+        # commit that already contains it. This is the deterministic form of
+        # the field defect that motivated f2c80b7.
+        path = next((self.root / "evidence" / "runs").glob("*.json"))
+        self.commit_fixture()
+        self.write_json(path, lambda d: (d.__setitem__("timestamp", "2099-01-01T00:00:00+00:00"), d.__setitem__("timestamp_basis", "git-recording")))
+        self.assertTrue(any("recording commit" in v for v in self.problems()))
+
+    def test_evidence_timestamp_at_now_is_accepted(self) -> None:
+        path = next((self.root / "evidence" / "runs").glob("*.json"))
+        now = self.commit_fixture()
+        self.write_json(path, lambda d: (d.__setitem__("timestamp", now.isoformat()), d.__setitem__("timestamp_basis", "git-recording")))
+        self.assertFalse(any("recording commit" in v for v in self.problems()))
+
+    def test_evidence_timestamp_within_clock_skew_tolerance_is_accepted(self) -> None:
+        # A few minutes of write/commit clock drift remain explicitly allowed.
+        path = next((self.root / "evidence" / "runs").glob("*.json"))
+        commit_time = self.commit_fixture()
+        near_future = (commit_time + timedelta(minutes=2)).isoformat()
+        self.write_json(path, lambda d: (d.__setitem__("timestamp", near_future), d.__setitem__("timestamp_basis", "git-recording")))
+        self.assertFalse(any("recording commit" in v for v in self.problems()))
+
+    def test_evidence_timestamp_without_timezone_is_still_checked(self) -> None:
+        # A naive (timezone-less) ISO timestamp is UTC, not local machine time.
+        path = next((self.root / "evidence" / "runs").glob("*.json"))
+        self.commit_fixture()
+        self.write_json(path, lambda d: (d.__setitem__("timestamp", "2099-01-01T00:00:00"), d.__setitem__("timestamp_basis", "git-recording")))
+        self.assertTrue(any("recording commit" in v for v in self.problems()))
+
+    def test_evidence_timestamp_aware_offset_is_normalized_to_utc(self) -> None:
+        path = next((self.root / "evidence" / "runs").glob("*.json"))
+        commit_time = self.commit_fixture()
+        offset_value = (commit_time + timedelta(hours=2)).isoformat().replace("+00:00", "+02:00")
+        self.write_json(path, lambda d: (d.__setitem__("timestamp", offset_value), d.__setitem__("timestamp_basis", "git-recording")))
+        self.assertFalse(any("recording commit" in v for v in self.problems()))
+
+    def test_evidence_timestamp_historical_value_is_accepted(self) -> None:
+        path = next((self.root / "evidence" / "runs").glob("*.json"))
+        self.commit_fixture()
+        self.write_json(path, lambda d: (d.__setitem__("timestamp", "2020-01-01T00:00:00Z"), d.__setitem__("timestamp_basis", "git-recording")))
+        self.assertFalse(any("recording commit" in v for v in self.problems()))
+
+    def test_evidence_timestamp_malformed_iso_is_rejected(self) -> None:
+        path = next((self.root / "evidence" / "runs").glob("*.json"))
+        self.write_json(path, lambda d: d.__setitem__("timestamp", "not-an-iso-timestamp"))
+        self.assertTrue(any("timestamp must be ISO 8601" in v for v in self.problems()))
+
+    def test_evidence_timestamp_future_does_not_heal_and_repeats_deterministically(self) -> None:
+        path = next((self.root / "evidence" / "runs").glob("*.json"))
+        commit_time = self.commit_fixture()
+        too_late = (commit_time + timedelta(minutes=6)).isoformat()
+        self.write_json(path, lambda d: (d.__setitem__("timestamp", too_late), d.__setitem__("timestamp_basis", "git-recording")))
+        first = self.problems()
+        second = self.problems()
+        self.assertEqual(first, second)
+        self.assertTrue(any("recording commit" in v for v in first))
+
+    def test_evidence_timestamp_git_free_export_skips_history_check(self) -> None:
+        path = next((self.root / "evidence" / "runs").glob("*.json"))
+        self.write_json(path, lambda d: (d.__setitem__("timestamp", "2099-01-01T00:00:00Z"), d.__setitem__("timestamp_basis", "git-recording")))
+        self.assertFalse(any("recording commit" in v for v in self.problems()))
+
+    # --- contracts and audit coverage --------------------------------------
+
+    def test_nested_contract_must_be_registered(self) -> None:
+        extra = self.root / "extra"
+        extra.mkdir()
+        (extra / "AGENTS.md").write_text("# unregistered\n", encoding="utf-8")
+        self.assertTrue(any("not registered in audits/registry.json" in v for v in self.problems()))
+
+    def test_worktree_scratch_checkouts_are_not_scanned_as_nested_contracts(self) -> None:
+        # A `worktrees/<name>/` directory is a second, independent working
+        # copy of this same repository (the convention agent tooling uses for
+        # a scratch `git worktree` checkout) -- its own AGENTS.md belongs to
+        # that checkout, not this one, and must not be flagged as an
+        # unregistered nested contract just because it happens to be reachable
+        # on disk under this root, including several levels deep and left
+        # behind after the session that created it ended.
+        worktree = self.root / "worktrees" / "some-agent-session" / "crates" / "example"
+        worktree.mkdir(parents=True)
+        (worktree / "AGENTS.md").write_text("# from a scratch worktree checkout\n", encoding="utf-8")
+        self.assertFalse(any("not registered in audits/registry.json" in v for v in self.problems()))
+
+    def _seed_git_repo(self, name: str = "git-root") -> Path:
+        repo = self.temp_dir / name
+        init_repo.bootstrap(repo)
+        run = lambda *args: subprocess.run(
+            ["git", *args], cwd=repo, check=True, capture_output=True, text=True
+        )
+        run("init", "--initial-branch=main")
+        run("config", "user.email", "test@example.invalid")
+        run("config", "user.name", "RepoPact Test")
+        run("add", "-A")
+        run("commit", "-m", "seed")
+        return repo
+
+    def test_nonconventional_linked_worktree_is_structurally_excluded(self) -> None:
+        repo = self._seed_git_repo("linked-worktree")
+        worktree = repo / "scratch agent" / "feature x"
+        try:
+            subprocess.run(
+                ["git", "worktree", "add", "--detach", str(worktree), "HEAD"],
+                cwd=repo, check=True, capture_output=True, text=True,
+            )
+            contract = worktree / "AGENTS.md"
+            self.assertTrue((worktree / ".git").is_file())
+            self.assertIn(worktree.resolve(), repo_model.discover_embedded_worktree_roots(repo))
+            self.assertNotIn(contract, repo_model.iter_contracts(repo))
+            self.assertEqual([], [p.message for p in validate(repo)])
+        finally:
+            subprocess.run(
+                ["git", "worktree", "remove", "--force", str(worktree)],
+                cwd=repo, check=True, capture_output=True, text=True,
+            )
+            subprocess.run(["git", "worktree", "prune"], cwd=repo, check=True,
+                           capture_output=True, text=True)
+
+    def test_conventional_forgewire_worktree_is_excluded(self) -> None:
+        repo = self._seed_git_repo("conventional-worktree")
+        worktree = repo / ".claude" / "worktrees" / "wi238-regression-test"
+        try:
+            subprocess.run(
+                ["git", "worktree", "add", "--detach", str(worktree), "HEAD"],
+                cwd=repo, check=True, capture_output=True, text=True,
+            )
+            self.assertNotIn(worktree / "AGENTS.md", repo_model.iter_contracts(repo))
+            self.assertEqual([], [p.message for p in validate(repo)])
+        finally:
+            subprocess.run(
+                ["git", "worktree", "remove", "--force", str(worktree)],
+                cwd=repo, check=True, capture_output=True, text=True,
+            )
+            subprocess.run(["git", "worktree", "prune"], cwd=repo, check=True,
+                           capture_output=True, text=True)
+
+    def test_stale_linked_worktree_git_file_is_excluded_without_git_registry(self) -> None:
+        repo = self._seed_git_repo("stale-linked-worktree")
+        orphan = repo / "scratch-agent" / "orphan"
+        orphan.mkdir(parents=True)
+        (orphan / ".git").write_text(
+            f"gitdir: {repo / '.git' / 'worktrees' / 'orphan'}\n", encoding="utf-8"
+        )
+        (orphan / "AGENTS.md").write_text("# stale linked checkout\n", encoding="utf-8")
+        self.assertNotIn(orphan / "AGENTS.md", repo_model.iter_contracts(repo))
+
+    def test_independent_nested_repository_contract_remains_discoverable(self) -> None:
+        repo = self._seed_git_repo("nested-repository")
+        nested = repo / "vendor" / "component"
+        nested.mkdir(parents=True)
+        (nested / "AGENTS.md").write_text("# independent component\n", encoding="utf-8")
+        subprocess.run(["git", "init", "-q", str(nested)], check=True,
+                       capture_output=True, text=True)
+        registry = json.loads((repo / "audits" / "registry.json").read_text(encoding="utf-8"))
+        registry["scopes"].append({
+            "path": "vendor/component", "owner": "governance-owner",
+            "contract": "vendor/component/AGENTS.md", "last_reviewed": "2026-09-02",
+            "next_review": "2026-12-01", "alignment": "current",
+            "notes": "Independent nested repository contract.",
+        })
+        (repo / "audits" / "registry.json").write_text(
+            json.dumps(registry, indent=2) + "\n", encoding="utf-8"
+        )
+        (nested / "_audit").mkdir()
+        for name in ("README.md", "inventory.md", "alignment-report.md"):
+            (nested / "_audit" / name).write_text(f"# {name}\n", encoding="utf-8")
+        generate_dashboard.write_dashboard(repo)
+        self.assertNotIn(nested.resolve(), repo_model.discover_embedded_worktree_roots(repo))
+        self.assertIn(nested / "AGENTS.md", repo_model.iter_contracts(repo))
+        self.assertEqual([], [p.message for p in validate(repo)])
+
+    def test_exported_tree_discovery_has_no_git_dependency(self) -> None:
+        repo = self.temp_dir / "exported-tree"
+        init_repo.bootstrap(repo)
+        nested = repo / "governed" / "component"
+        nested.mkdir(parents=True)
+        (nested / "AGENTS.md").write_text("# governed component\n", encoding="utf-8")
+        fake = repo / "worktree" / "name"
+        fake.mkdir(parents=True)
+        (fake / "AGENTS.md").write_text("# ordinary governed path\n", encoding="utf-8")
+        first = repo_model.iter_contracts(repo)
+        second = repo_model.iter_contracts(repo)
+        self.assertEqual(first, second)
+        self.assertIn(nested / "AGENTS.md", first)
+        self.assertIn(fake / "AGENTS.md", first)
+
+    def test_existing_audit_companion_must_be_complete(self) -> None:
+        (self.root / "repopact" / "_audit" / "inventory.md").unlink()
+        self.assertTrue(any("incomplete _audit companion" in v for v in self.problems()))
+
+    # --- invariants ---------------------------------------------------------
+
+    def test_invariant_requires_escalation(self) -> None:
+        path = self.root / "governance" / "invariants.json"
+        self.write_json(path, lambda d: d["invariants"][0].__setitem__("escalation", ""))
+        self.assertTrue(any("is missing escalation" in v for v in self.problems()))
+
+    # --- frozen surface -----------------------------------------------------
+
+    def test_frozen_entry_requires_reason(self) -> None:
+        path = self.root / "governance" / "frozen-surface.json"
+        self.write_json(path, lambda d: d["protected"][0].__setitem__("reason", ""))
+        self.assertTrue(any("needs a reason" in v for v in self.problems()))
+
+    # --- roles --------------------------------------------------------------
+
+    def test_role_must_reference_known_scope(self) -> None:
+        path = self.root / "governance" / "owners.json"
+        self.write_json(path, lambda d: d["roles"][0].__setitem__("scopes", ["ghost"]))
+        self.assertTrue(any("references unknown scope" in v for v in self.problems()))
+
+    def test_tracked_path_must_have_exactly_one_owner_scope(self) -> None:
+        with mock.patch.object(validate_repo, "discover_tracked_paths", return_value=["unowned.txt"]):
+            self.assertTrue(any("has no owner scope" in value for value in self.problems()))
+
+        owners = self.root / "governance" / "owners.json"
+        self.write_json(owners, lambda data: data["scopes"][0]["paths"].append("README.md"))
+        with mock.patch.object(validate_repo, "discover_tracked_paths", return_value=["README.md"]):
+            self.assertTrue(any("has multiple owner scopes" in value for value in self.problems()))
+
+    # --- decisions and policies --------------------------------------------
+
+    def test_decision_status_must_be_valid(self) -> None:
+        path = next((self.root / "decisions").glob("0001-*.md"))
+        text = path.read_text(encoding="utf-8").replace("status: accepted", "status: maybe")
+        path.write_text(text, encoding="utf-8")
+        self.assertTrue(any("status 'maybe' must be one of" in v for v in self.problems()))
+
+    def test_decision_status_accepts_deferred_and_rejected(self) -> None:
+        # A deferral and a rejection are recordable decisions, distinct from
+        # proposed/accepted/superseded/deprecated (decision 0017).
+        path = next((self.root / "decisions").glob("0001-*.md"))
+        original = path.read_text(encoding="utf-8")
+        for status in ("deferred", "rejected"):
+            path.write_text(original.replace("status: accepted", f"status: {status}", 1), encoding="utf-8")
+            self.assertFalse(
+                any("must be one of" in message for message in self.problems()),
+                f"decision status '{status}' should be valid",
+            )
+
+    def test_policy_requires_front_matter(self) -> None:
+        path = next((self.root / "governance" / "policies").glob("001-*.md"))
+        path.write_text("# no front matter\n", encoding="utf-8")
+        self.assertTrue(any("front-matter" in v or "front matter" in v for v in self.problems()))
+
+    # --- assurance/control mapping (WI051, decision 0054) ------------------
+
+    def _write_assurance_mapping(self, mapping_id: str, data: dict) -> Path:
+        directory = self.root / "assurance" / "mappings"
+        directory.mkdir(parents=True, exist_ok=True)
+        path = directory / f"{mapping_id}.json"
+        path.write_text(json.dumps({"id": mapping_id, **data}), encoding="utf-8")
+        return path
+
+    def _minimal_mapping_fields(self) -> dict:
+        return {
+            "$schema": "assurance-mapping.schema.json",
+            "version": 1,
+            "framework": {"id": "example-framework", "source_authority": "adopter-extension"},
+            "requirement": {"id": "AC-7"},
+            "applicability": {"status": "unassessed"},
+            "created": "2026-09-14",
+            "updated": "2026-09-14",
+        }
+
+    def test_no_assurance_directory_is_valid(self) -> None:
+        self.assertFalse((self.root / "assurance").exists())
+        self.assertFalse(any("assurance" in v for v in self.problems()))
+
+    def test_minimal_assurance_mapping_is_accepted(self) -> None:
+        self._write_assurance_mapping("example", self._minimal_mapping_fields())
+        self.assertFalse(any("assurance" in v for v in self.problems()))
+
+    def test_assurance_mapping_id_must_match_filename(self) -> None:
+        self._write_assurance_mapping("example", {**self._minimal_mapping_fields(), "id": "different"})
+        self.assertTrue(any("assurance mapping id must match filename" in v for v in self.problems()))
+
+    def test_assurance_mapping_duplicate_id(self) -> None:
+        fields = self._minimal_mapping_fields()
+        self._write_assurance_mapping("example-one", {**fields, "id": "same-id"})
+        self._write_assurance_mapping("example-two", {**fields, "id": "same-id"})
+        self.assertTrue(any("duplicate assurance mapping id" in v for v in self.problems()))
+
+    def test_assurance_mapping_unknown_decision_reference_is_rejected(self) -> None:
+        fields = self._minimal_mapping_fields()
+        fields["control_refs"] = [{"kind": "decision", "ref": "9999"}]
+        self._write_assurance_mapping("example", fields)
+        self.assertTrue(any("references unknown decision '9999'" in v for v in self.problems()))
+
+    def test_assurance_mapping_known_decision_reference_is_accepted(self) -> None:
+        decision_id = next((self.root / "decisions").glob("0001-*.md")).name.split("-", 1)[0]
+        fields = self._minimal_mapping_fields()
+        fields["control_refs"] = [{"kind": "decision", "ref": decision_id}]
+        self._write_assurance_mapping("example", fields)
+        self.assertFalse(any("assurance" in v for v in self.problems()))
+
+    def test_assurance_mapping_unknown_policy_reference_is_rejected(self) -> None:
+        fields = self._minimal_mapping_fields()
+        fields["control_refs"] = [{"kind": "policy", "ref": "999"}]
+        self._write_assurance_mapping("example", fields)
+        self.assertTrue(any("references unknown policy '999'" in v for v in self.problems()))
+
+    def test_assurance_mapping_unknown_invariant_reference_is_rejected(self) -> None:
+        fields = self._minimal_mapping_fields()
+        fields["control_refs"] = [{"kind": "invariant", "ref": "INV-999"}]
+        self._write_assurance_mapping("example", fields)
+        self.assertTrue(any("references unknown invariant 'INV-999'" in v for v in self.problems()))
+
+    def test_assurance_mapping_contract_reference_must_exist(self) -> None:
+        fields = self._minimal_mapping_fields()
+        fields["control_refs"] = [{"kind": "contract", "ref": "no/such/AGENTS.md"}]
+        self._write_assurance_mapping("example", fields)
+        self.assertTrue(any("references unknown contract" in v for v in self.problems()))
+
+    def test_assurance_mapping_known_contract_reference_is_accepted(self) -> None:
+        fields = self._minimal_mapping_fields()
+        fields["control_refs"] = [{"kind": "contract", "ref": "AGENTS.md"}]
+        self._write_assurance_mapping("example", fields)
+        self.assertFalse(any("assurance" in v for v in self.problems()))
+
+    def test_assurance_implementation_reference_rejects_escaping_path(self) -> None:
+        fields = self._minimal_mapping_fields()
+        fields["implementation_refs"] = [{"kind": "source", "ref": "../outside/secret.txt"}]
+        self._write_assurance_mapping("example", fields)
+        self.assertTrue(any("escapes the repository" in v for v in self.problems()))
+
+    def test_assurance_implementation_reference_rejects_missing_path(self) -> None:
+        fields = self._minimal_mapping_fields()
+        fields["implementation_refs"] = [{"kind": "source", "ref": "does/not/exist.txt"}]
+        self._write_assurance_mapping("example", fields)
+        self.assertTrue(any("does not exist" in v for v in self.problems()))
+
+    def test_assurance_implementation_reference_accepts_real_path(self) -> None:
+        fields = self._minimal_mapping_fields()
+        fields["implementation_refs"] = [{"kind": "source", "ref": "AGENTS.md"}]
+        self._write_assurance_mapping("example", fields)
+        self.assertFalse(any("assurance" in v for v in self.problems()))
+
+    def test_assurance_mapping_unknown_evidence_run_is_rejected(self) -> None:
+        fields = self._minimal_mapping_fields()
+        fields["evidence_refs"] = [
+            {"kind": "evidence_run", "sensitivity": "ordinary", "evidence_run_id": "does-not-exist"}
+        ]
+        self._write_assurance_mapping("example", fields)
+        self.assertTrue(any("references unknown evidence run" in v for v in self.problems()))
+
+    def test_assurance_mapping_evidence_artifact_must_exist(self) -> None:
+        fields = self._minimal_mapping_fields()
+        fields["evidence_refs"] = [
+            {"kind": "repository_artifact", "sensitivity": "ordinary", "path": "does/not/exist.txt"}
+        ]
+        self._write_assurance_mapping("example", fields)
+        self.assertTrue(any("assurance evidence artifact does not exist" in v for v in self.problems()))
+
+    def test_assurance_mapping_not_applicable_requires_rationale(self) -> None:
+        fields = self._minimal_mapping_fields()
+        fields["applicability"] = {"status": "not_applicable", "determined_by": "reviewer"}
+        self._write_assurance_mapping("example", fields)
+        self.assertTrue(any("requires a rationale" in v for v in self.problems()))
+
+    def test_assurance_mapping_not_applicable_requires_determined_by(self) -> None:
+        fields = self._minimal_mapping_fields()
+        fields["applicability"] = {"status": "not_applicable", "rationale": "No applicable surface."}
+        self._write_assurance_mapping("example", fields)
+        self.assertTrue(any("requires determined_by" in v for v in self.problems()))
+
+    def test_assurance_mapping_not_applicable_with_rationale_is_accepted(self) -> None:
+        fields = self._minimal_mapping_fields()
+        fields["applicability"] = {
+            "status": "not_applicable",
+            "rationale": "No applicable surface.",
+            "determined_by": "reviewer",
+        }
+        self._write_assurance_mapping("example", fields)
+        self.assertFalse(any("assurance" in v for v in self.problems()))
+
+    def test_assurance_mapping_schema_invalid_status_is_rejected(self) -> None:
+        fields = self._minimal_mapping_fields()
+        fields["applicability"] = {"status": "bogus"}
+        self._write_assurance_mapping("example", fields)
+        self.assertTrue(any("is not one of" in v for v in self.problems()))
+
+    # --- assurance sensitive-evidence guardrails (WI051 phase 2, ACM-004) --
+
+    def _write_evidence_artifact(self, relative: str, content: str | bytes) -> None:
+        target = self.root / relative
+        target.parent.mkdir(parents=True, exist_ok=True)
+        if isinstance(content, str):
+            target.write_text(content, encoding="utf-8")
+        else:
+            target.write_bytes(content)
+
+    def test_restricted_repository_artifact_warns_but_does_not_block(self) -> None:
+        self._write_evidence_artifact("evidence/redacted.md", "bounded synthetic summary")
+        fields = self._minimal_mapping_fields()
+        fields["evidence_refs"] = [
+            {"kind": "repository_artifact", "sensitivity": "restricted", "path": "evidence/redacted.md"}
+        ]
+        self._write_assurance_mapping("example", fields)
+        severities = self.problems_with_severity()
+        matching = [s for s, m in severities if "restricted' evidence artifact" in m]
+        self.assertEqual(["warning"], matching)
+        self.assertFalse(any(s == "error" and "assurance" in m for s, m in severities))
+
+    def test_private_key_material_in_evidence_artifact_is_a_blocking_error(self) -> None:
+        self._write_evidence_artifact(
+            "evidence/leak.txt",
+            "-----BEGIN OPENSSH PRIVATE KEY-----\nsynthetic-test-data-only\n-----END OPENSSH PRIVATE KEY-----\n",
+        )
+        fields = self._minimal_mapping_fields()
+        fields["evidence_refs"] = [
+            {"kind": "repository_artifact", "sensitivity": "ordinary", "path": "evidence/leak.txt"}
+        ]
+        self._write_assurance_mapping("example", fields)
+        severities = self.problems_with_severity()
+        matching = [s for s, m in severities if "private-key marker" in m]
+        self.assertEqual(["error"], matching)
+
+    def test_credential_bearing_external_uri_is_a_blocking_error(self) -> None:
+        fields = self._minimal_mapping_fields()
+        fields["evidence_refs"] = [{
+            "kind": "external_reference", "sensitivity": "ordinary",
+            "external": {"system": "example", "identifier": "1",
+                         "reference": "https://user:synthetic-pw@example.invalid/report"},
+        }]
+        self._write_assurance_mapping("example", fields)
+        severities = self.problems_with_severity()
+        matching = [s for s, m in severities if "embeds userinfo credentials" in m]
+        self.assertEqual(["error"], matching)
+
+    def test_secret_query_param_in_external_reference_is_a_warning(self) -> None:
+        fields = self._minimal_mapping_fields()
+        fields["evidence_refs"] = [{
+            "kind": "external_reference", "sensitivity": "ordinary",
+            "external": {"system": "example", "identifier": "1",
+                         "reference": "https://example.invalid/report?token=synthetic-test-value"},
+        }]
+        self._write_assurance_mapping("example", fields)
+        severities = self.problems_with_severity()
+        matching = [s for s, m in severities if "shaped like a secret/token/credential" in m]
+        self.assertEqual(["warning"], matching)
+
+    def test_luhn_valid_pan_shaped_content_is_a_warning(self) -> None:
+        # Well-known synthetic Visa test PAN; never a real card.
+        self._write_evidence_artifact("evidence/report.txt", "card on file: 4111 1111 1111 1111")
+        fields = self._minimal_mapping_fields()
+        fields["evidence_refs"] = [
+            {"kind": "repository_artifact", "sensitivity": "ordinary", "path": "evidence/report.txt"}
+        ]
+        self._write_assurance_mapping("example", fields)
+        severities = self.problems_with_severity()
+        matching = [s for s, m in severities if "cardholder-data-shaped" in m]
+        self.assertEqual(["warning"], matching)
+
+    def test_identity_marker_content_is_a_warning(self) -> None:
+        self._write_evidence_artifact("evidence/report.txt", "ssn=000-00-0000")
+        fields = self._minimal_mapping_fields()
+        fields["evidence_refs"] = [
+            {"kind": "repository_artifact", "sensitivity": "ordinary", "path": "evidence/report.txt"}
+        ]
+        self._write_assurance_mapping("example", fields)
+        severities = self.problems_with_severity()
+        matching = [s for s, m in severities if "restricted health/identity evidence" in m]
+        self.assertEqual(["warning"], matching)
+
+    def test_binary_evidence_artifact_is_a_coverage_info_diagnostic(self) -> None:
+        self._write_evidence_artifact("evidence/bin.dat", bytes([0, 1, 2, 3, 255, 254]))
+        fields = self._minimal_mapping_fields()
+        fields["evidence_refs"] = [
+            {"kind": "repository_artifact", "sensitivity": "ordinary", "path": "evidence/bin.dat"}
+        ]
+        self._write_assurance_mapping("example", fields)
+        severities = self.problems_with_severity()
+        matching = [s for s, m in severities if "binary or not valid UTF-8" in m]
+        self.assertEqual(["info"], matching)
+
+    def test_oversized_evidence_artifact_is_a_coverage_info_diagnostic(self) -> None:
+        self._write_evidence_artifact("evidence/big.txt", "a" * 300_000)
+        fields = self._minimal_mapping_fields()
+        fields["evidence_refs"] = [
+            {"kind": "repository_artifact", "sensitivity": "ordinary", "path": "evidence/big.txt"}
+        ]
+        self._write_assurance_mapping("example", fields)
+        severities = self.problems_with_severity()
+        matching = [s for s, m in severities if "bounded inspection limit" in m]
+        self.assertEqual(["info"], matching)
+
+    def test_ordinary_evidence_artifact_produces_no_hazard_diagnostics(self) -> None:
+        self._write_evidence_artifact("evidence/report.txt", "42 records reconciled, no issues found")
+        fields = self._minimal_mapping_fields()
+        fields["evidence_refs"] = [
+            {"kind": "repository_artifact", "sensitivity": "ordinary", "path": "evidence/report.txt"}
+        ]
+        self._write_assurance_mapping("example", fields)
+        severities = self.problems_with_severity()
+        self.assertFalse(any("assurance" in m for _, m in severities))
+
+    # --- assurance review/freshness/drift and claim safety (ACM-005) -------
+
+    def test_review_overdue_is_a_warning(self) -> None:
+        fields = self._minimal_mapping_fields()
+        fields["review"] = {"reviewed_at": "2020-01-01T00:00:00Z", "review_due_at": "2020-02-01T00:00:00Z"}
+        self._write_assurance_mapping("example", fields)
+        severities = self.problems_with_severity()
+        matching = [s for s, m in severities if "control review is overdue" in m]
+        self.assertEqual(["warning"], matching)
+
+    def test_review_current_is_silent(self) -> None:
+        fields = self._minimal_mapping_fields()
+        fields["review"] = {"reviewed_at": "2020-01-01T00:00:00Z", "review_due_at": "2099-01-01T00:00:00Z"}
+        self._write_assurance_mapping("example", fields)
+        self.assertFalse(any("control review is overdue" in v for v in self.problems()))
+
+    def test_framework_version_stale_is_a_warning(self) -> None:
+        fields = self._minimal_mapping_fields()
+        fields["framework"]["version"] = "2027"
+        fields["review"] = {"framework_version_reviewed": "2026"}
+        self._write_assurance_mapping("example", fields)
+        severities = self.problems_with_severity()
+        matching = [s for s, m in severities if "differs from the reviewed version" in m]
+        self.assertEqual(["warning"], matching)
+
+    def test_documentation_claim_basis_without_support_is_an_error(self) -> None:
+        fields = self._minimal_mapping_fields()
+        fields["documentation_refs"] = [{"path": "AGENTS.md", "claim_basis": "evidence_reference"}]
+        self._write_assurance_mapping("example", fields)
+        severities = self.problems_with_severity()
+        matching = [s for s, m in severities if "no corresponding data to support it" in m]
+        self.assertEqual(["error"], matching)
+
+    def test_documentation_claim_basis_with_support_is_accepted(self) -> None:
+        fields = self._minimal_mapping_fields()
+        fields["evidence_refs"] = [{
+            "kind": "hash", "sensitivity": "ordinary",
+            "hash": {"algorithm": "sha256", "digest": "a" * 64},
+        }]
+        fields["documentation_refs"] = [{"path": "AGENTS.md", "claim_basis": "evidence_reference"}]
+        self._write_assurance_mapping("example", fields)
+        self.assertFalse(any("no corresponding data to support it" in v for v in self.problems()))
+
+    def test_review_snapshot_matches_rust_engine_for_full_fixture(self) -> None:
+        from repopact import validate_repo
+
+        fields = self._minimal_mapping_fields()
+        fields["control_refs"] = [{"kind": "invariant", "ref": "INV-1"}]
+        self._write_assurance_mapping("example", fields)
+        snapshot = validate_repo.compute_review_snapshot(self.root, "example")
+        self.assertIn("mapping_digest", snapshot)
+        self.assertEqual(64, len(snapshot["mapping_digest"]))
+        self.assertEqual(1, len(snapshot["references"]))
+        self.assertEqual("INV-1", snapshot["references"][0]["ref"])
+
+    def test_review_mapping_drift_detected_after_edit(self) -> None:
+        from repopact import validate_repo
+
+        fields = self._minimal_mapping_fields()
+        fields["review"] = {"reviewed_by": "reviewer"}
+        self._write_assurance_mapping("example", fields)
+        snapshot = validate_repo.compute_review_snapshot(self.root, "example")
+        mapping_path = self.root / "assurance" / "mappings" / "example.json"
+        self.write_json(mapping_path, lambda d: d["review"].__setitem__("snapshot", snapshot))
+        self.assertFalse(any("has changed since its last review snapshot" in v for v in self.problems()))
+
+        self.write_json(mapping_path, lambda d: d.__setitem__("notes", "edited after review"))
+        self.assertTrue(any("has changed since its last review snapshot" in v for v in self.problems()))
+
+    def test_review_reference_drift_for_dirty_uncommitted_change(self) -> None:
+        from repopact import validate_repo
+
+        self._write_evidence_artifact("impl.txt", "version one")
+        fields = self._minimal_mapping_fields()
+        fields["review"] = {"reviewed_by": "reviewer"}
+        fields["implementation_refs"] = [{"kind": "source", "ref": "impl.txt"}]
+        self._write_assurance_mapping("example", fields)
+        snapshot = validate_repo.compute_review_snapshot(self.root, "example")
+        mapping_path = self.root / "assurance" / "mappings" / "example.json"
+        self.write_json(mapping_path, lambda d: d["review"].__setitem__("snapshot", snapshot))
+
+        (self.root / "impl.txt").write_text("version two -- uncommitted edit", encoding="utf-8")
+        self.assertTrue(any("has changed since review" in v for v in self.problems()))
+
+    def test_review_reference_missing_after_deletion(self) -> None:
+        from repopact import validate_repo
+
+        self._write_evidence_artifact("impl.txt", "version one")
+        fields = self._minimal_mapping_fields()
+        fields["review"] = {"reviewed_by": "reviewer"}
+        fields["implementation_refs"] = [{"kind": "source", "ref": "impl.txt"}]
+        self._write_assurance_mapping("example", fields)
+        snapshot = validate_repo.compute_review_snapshot(self.root, "example")
+        mapping_path = self.root / "assurance" / "mappings" / "example.json"
+        self.write_json(mapping_path, lambda d: d["review"].__setitem__("snapshot", snapshot))
+
+        (self.root / "impl.txt").unlink()
+        problems = self.problems()
+        self.assertTrue(any("was reviewed but is now absent" in v for v in problems))
+        self.assertFalse(any("has changed since review" in v for v in problems))
+
+    # --- optional disjoint-scope rule --------------------------------------
+
+    def test_disjoint_scopes_off_by_default(self) -> None:
+        self.add_active_item("900")
+        self.add_active_item("901")
+        self.assertFalse(any("active scope conflict" in v for v in self.problems()))
+
+    def test_disjoint_scopes_enforced_when_enabled(self) -> None:
+        owners = self.root / "governance" / "owners.json"
+        self.write_json(owners, lambda d: d["concurrency"].__setitem__("enforce_disjoint_active_scopes", True))
+        self.add_active_item("900")
+        self.add_active_item("901")
+        self.assertTrue(any("active scope conflict" in v for v in self.problems()))
+
+    # --- optional preflight rule (decision 0018) ---------------------------
+
+    def _enable_preflight(self, **cfg) -> None:
+        owners = self.root / "governance" / "owners.json"
+        self.write_json(owners, lambda d: d.__setitem__("preflight", {"enabled": True, **cfg}))
+
+    def _set_preflight_marker(self, item_id: str) -> None:
+        item = self.root / "work" / "active" / f"{item_id}-probe" / "work-item.json"
+        self.write_json(item, lambda d: d.__setitem__("preflight", {
+            "created_before_work_started": True,
+            "created_at": "2026-06-15T00:00:00Z",
+            "note": "Created before implementation work started.",
+        }))
+
+    # Thresholds are set above this repo's own work-item id/date range so the
+    # probes are isolated from RepoPact's real (marker-less) work items.
+    def test_preflight_on_by_default(self) -> None:
+        # 2.0: mandatory by default (decision 0021). A marker-less item at/above the
+        # repo's threshold (owners.json required_from_id) is flagged - no opt-in needed.
+        self.add_active_item("900", preflight=False)
+        self.assertTrue(any("preflight marker" in v for v in self.problems()))
+
+    def test_preflight_required_from_id(self) -> None:
+        self._enable_preflight(required_from_id=900)
+        self.add_active_item("900", preflight=False)  # at threshold, no marker -> error
+        self.add_active_item("899", preflight=False)  # below threshold -> exempt
+        self.assertEqual(1, sum("preflight marker" in v for v in self.problems()))
+
+    def test_preflight_marker_satisfies_requirement(self) -> None:
+        self._enable_preflight(required_from_id=900)
+        self.add_active_item("900", preflight=False)
+        self._set_preflight_marker("900")
+        self.assertFalse(any("preflight" in v for v in self.problems()))
+
+    def test_preflight_required_from_date(self) -> None:
+        self._enable_preflight(required_from_date="2099-01-01")
+        self.add_active_item("900", preflight=False)  # created 2026-06-15 (before) -> exempt
+        self.add_active_item("901", preflight=False)
+        later = self.root / "work" / "active" / "901-probe" / "work-item.json"
+        self.write_json(later, lambda d: d.__setitem__("created", "2099-06-25"))  # after -> required
+        self.assertEqual(1, sum("preflight marker" in v for v in self.problems()))
+
+    # --- provenance (decision 0021) ----------------------------------------
+
+    def _add_evidence(self, run_id: str, provenance: str, work_item: str = "900") -> None:
+        path = self.root / "evidence" / "runs" / f"{run_id}.json"
+        path.write_text(json.dumps({
+            "id": run_id, "timestamp": "2026-06-15T00:00:00Z", "work_item": work_item,
+            "result": "passed", "provenance": provenance,
+            "commands": [{"command": "x", "exit_code": 0}], "artifacts": [], "environment": {},
+        }), encoding="utf-8")
+
+    def test_provisional_active_item_is_admitted(self) -> None:
+        # P1: a provisional/inferred item is a valid state (the trilemma escape).
+        self.add_active_item("900")
+        item = self.root / "work" / "active" / "900-probe" / "work-item.json"
+        self.write_json(item, lambda d: d.__setitem__("provenance", "provisional"))
+        self.assertFalse(any("provenance" in v or "non-concrete" in v for v in self.problems()))
+
+    def test_completed_item_must_be_concrete(self) -> None:
+        # P2: a completed item cannot be provisional.
+        path = self.manifest()  # item 000 is completed
+        self.write_json(path, lambda d: d.__setitem__("provenance", "provisional"))
+        self.assertTrue(any("cannot be completed" in v for v in self.problems()))
+
+    def test_concrete_item_cannot_rest_on_inferred_evidence(self) -> None:
+        # P3: a concrete item resting on non-concrete evidence is rejected.
+        self.add_active_item("900")
+        self._add_evidence("20260615-inferred", "inferred")
+        item = self.root / "work" / "active" / "900-probe" / "work-item.json"
+        self.write_json(item, lambda d: d["acceptance_criteria"][0].update(
+            {"state": "satisfied", "evidence": ["20260615-inferred"]}))
+        self.assertTrue(any("rests on non-concrete" in v for v in self.problems()))
+
+    def test_provisional_item_may_rest_on_inferred_evidence(self) -> None:
+        # Pre-ratchet state: a provisional item on inferred evidence is admitted.
+        self.add_active_item("900")
+        self._add_evidence("20260615-inferred", "inferred")
+        item = self.root / "work" / "active" / "900-probe" / "work-item.json"
+        self.write_json(item, lambda d: (
+            d.__setitem__("provenance", "provisional"),
+            d["acceptance_criteria"][0].update({"state": "satisfied", "evidence": ["20260615-inferred"]})))
+        self.assertFalse(any("rests on non-concrete" in v for v in self.problems()))
+
+    def test_adopt_emits_provisional_and_inferred(self) -> None:
+        # The trilemma escape: adoption yields a Closed (valid) + Faithful (labelled) record.
+        repo = self._seed_existing_repo()
+        adopt_repo.adopt(repo)
+        self.assertEqual([], [p.message for p in validate(repo)])
+        wi = json.loads((repo / "work" / "active" / "000-adopt-repopact" / "work-item.json")
+                        .read_text(encoding="utf-8"))
+        self.assertEqual("provisional", wi["provenance"])
+        run = next((repo / "evidence" / "runs").glob("*-adopt.json"))
+        self.assertEqual("inferred", json.loads(run.read_text(encoding="utf-8"))["provenance"])
+
+    def test_doctor_ratchets_provisional_to_concrete(self) -> None:
+        repo = self._seed_existing_repo()
+        adopt_repo.adopt(repo)
+        # Attach real verification: upgrade the adoption evidence to concrete.
+        run = next((repo / "evidence" / "runs").glob("*-adopt.json"))
+        ev = json.loads(run.read_text(encoding="utf-8"))
+        ev["provenance"] = "concrete"
+        run.write_text(json.dumps(ev), encoding="utf-8")
+        actions = doctor.fix(repo)
+        self.assertTrue(any("ratcheted work item 000" in a for a in actions))
+        wi = json.loads((repo / "work" / "active" / "000-adopt-repopact" / "work-item.json")
+                        .read_text(encoding="utf-8"))
+        self.assertEqual("concrete", wi["provenance"])
+        self.assertEqual([], [p.message for p in validate(repo)])
+
+    def test_doctor_migrates_preflight_on_upgrade(self) -> None:
+        # Simulate a pre-2.0 repo: governed, no preflight config, a marker-less legacy item.
+        # Under 2.0 default-on it fails; doctor grandfathers it (decision 0021).
+        repo = self.temp_dir / "upgraded"
+        init_repo.bootstrap(repo)
+        self.write_json(repo / "governance" / "owners.json", lambda d: d.pop("preflight", None))
+        d = repo / "work" / "active" / "001-legacy"
+        d.mkdir(parents=True)
+        (d / "README.md").write_text("# legacy\n", encoding="utf-8")
+        (d / "work-item.json").write_text(json.dumps({
+            "id": "001", "title": "legacy", "status": "active",
+            "owner_scope": "governance", "affected_scopes": [], "depends_on": [],
+            "acceptance_criteria": [{"id": "AC-1", "text": "x", "state": "pending", "evidence": []}],
+            "created": "2020-01-01", "updated": "2020-01-01",
+        }), encoding="utf-8")
+        self.assertTrue(any("preflight" in p.message for p in validate(repo)))
+        actions = doctor.fix(repo)
+        self.assertTrue(any("preflight epoch" in a for a in actions))
+        self.assertEqual([], [p.message for p in validate(repo)])
+
+    # --- L3 open obligations (formal-model §5: O-4 temporal, O-6 relational) ----------
+    # Marked honestly: these invariant classes are not mechanizable on a single tree today;
+    # they are enforced by human review (INV-4/INV-5) until O-4/O-6 are discharged.
+
+    @unittest.skip("O-6 open: a refinement order on nested contracts is not mechanized (INV-5; formal-model §5)")
+    def test_relational_contract_weakening_is_caught(self) -> None:
+        # A nested AGENTS.md that explicitly weakens a parent invariant should be rejected.
+        raise AssertionError("not mechanized")  # pragma: no cover
+
+    @unittest.skip("O-4 open: git-trace semantics for history rewrite is not mechanized (INV-4; formal-model §5)")
+    def test_temporal_history_rewrite_is_caught(self) -> None:
+        # Rebasing away a previously blocked/rejected work item should be flagged.
+        raise AssertionError("not mechanized")  # pragma: no cover
+
+    # --- schema layer (decision 0003) --------------------------------------
+
+    def test_schema_rejects_bad_invariant_id(self) -> None:
+        path = self.root / "governance" / "invariants.json"
+        self.write_json(path, lambda d: d["invariants"][0].__setitem__("id", "BAD"))
+        self.assertTrue(any(v.startswith("schema ") for v in self.problems()))
+
+    # --- audit findings -----------------------------------------------------
+
+    def test_audit_finding_state_must_be_valid(self) -> None:
+        path = next((self.root / "audits" / "findings").glob("*.json"))
+        self.write_json(path, lambda d: d.__setitem__("state", "nope"))
+        self.assertTrue(any("schema" in v and "state" in v for v in self.problems()))
+
+    # --- spec version -------------------------------------------------------
+
+    def test_version_must_be_semver(self) -> None:
+        (self.root / "VERSION").write_text("v1\n", encoding="utf-8")
+        self.assertTrue(any("must be semantic" in v for v in self.problems()))
+
+    def _tag_identity_fixture(self) -> None:
+        self.root.joinpath("VERSION").write_text("9.9.9\n", encoding="utf-8")
+        # The source checkout carries the 3.1.3 stable identity. A synthetic
+        # stable v9.9.9 fixture must model an unlabeled
+        # release tree before testing later source identity changes.
+        label = self.root / "RELEASE_LABEL"
+        if label.exists():
+            label.unlink()
+        readme = self.root / "README.md"
+        text = readme.read_text(encoding="utf-8")
+        start = text.index("`pip install repopact`")
+        end = text.index("\n\n", start)
+        readme.write_text(text[:start] + "current release **9.9.9**." + text[end:], encoding="utf-8")
+        generate_dashboard.write_dashboard(self.root)
+        subprocess.run(["git", "init", "--initial-branch=main"], cwd=self.root, check=True,
+                       capture_output=True, text=True)
+        subprocess.run(["git", "config", "user.email", "test@example.invalid"], cwd=self.root, check=True)
+        subprocess.run(["git", "config", "user.name", "RepoPact Test"], cwd=self.root, check=True)
+        subprocess.run(["git", "add", "-A"], cwd=self.root, check=True)
+        subprocess.run(["git", "commit", "-m", "stable"], cwd=self.root, check=True,
+                       capture_output=True, text=True)
+        subprocess.run(["git", "tag", "-a", "v9.9.9", "-m", "9.9.9"], cwd=self.root, check=True)
+
+    def test_exact_tagged_release_tree_is_accepted(self) -> None:
+        self._tag_identity_fixture()
+        self.assertEqual([], self.problems())
+
+    def test_later_package_source_requires_development_identity(self) -> None:
+        self._tag_identity_fixture()
+        (self.root / "repopact" / "repo_model.py").write_text(
+            (self.root / "repopact" / "repo_model.py").read_text(encoding="utf-8") + "\n# later runtime change\n",
+            encoding="utf-8",
+        )
+        self.assertTrue(any("differs from released v9.9.9" in v for v in self.problems()))
+
+    def test_later_package_source_with_label_is_accepted(self) -> None:
+        self._tag_identity_fixture()
+        (self.root / "repopact" / "repo_model.py").write_text(
+            (self.root / "repopact" / "repo_model.py").read_text(encoding="utf-8") + "\n# later runtime change\n",
+            encoding="utf-8",
+        )
+        (self.root / "RELEASE_LABEL").write_text("9.9.9-dev.1\n", encoding="utf-8")
+        self.assertFalse(any("differs from released" in v for v in self.problems()))
+
+    # --- release surface (decision 0028) ------------------------------------
+
+    def set_readme_release(self, line: str) -> None:
+        readme = self.root / "README.md"
+        text = readme.read_text(encoding="utf-8")
+        start = text.index("`pip install repopact`")
+        end = text.index("\n\n", start)
+        readme.write_text(text[:start] + line + text[end:], encoding="utf-8")
+
+    def test_readme_release_line_must_match_version(self) -> None:
+        self.set_readme_release(
+            "current release **9.9.9** "
+            "([changelog](decisions/0030-release-repopact-3-0-0-package-boundary.md))."
+        )
+        self.assertTrue(any("advertises release '9.9.9'" in v for v in self.problems()))
+
+    def test_readme_release_changelog_link_must_name_current_release(self) -> None:
+        self.set_readme_release(
+            "current release **3.1.0** "
+            "([changelog](decisions/0025-release-2.2.0-dashboard-integrity.md))."
+        )
+        self.assertTrue(any("does not name the current release" in v for v in self.problems()))
+
+    def test_readme_release_changelog_link_must_resolve(self) -> None:
+        self.set_readme_release(
+            "current release **3.1.0** ([changelog](decisions/9999-nonexistent.md))."
+        )
+        self.assertTrue(any("does not resolve" in v for v in self.problems()))
+
+    def test_readme_release_line_without_link_is_accepted(self) -> None:
+        self.set_readme_release("current release **3.1.3**.")
+        self.assertEqual([], self.problems())
+
+    def test_readme_without_release_line_is_unaffected(self) -> None:
+        """The rule is gated on the convention, so an adopter README that never
+        advertises a release is not forced to adopt one (decision 0028)."""
+        self.set_readme_release("A repository-native governance kernel.")
+        self.assertEqual([], self.problems())
+
+    def test_readme_release_link_may_be_an_external_url(self) -> None:
+        self.set_readme_release(
+            "current release **3.1.3** ([changelog](https://example.invalid/changelog))."
+        )
+        self.assertEqual([], self.problems())
+
+    def test_readme_release_link_outside_decisions_is_existence_checked_only(self) -> None:
+        (self.root / "CHANGELOG.md").write_text("# Changelog\n", encoding="utf-8")
+        self.set_readme_release("current release **3.1.3** ([changelog](CHANGELOG.md)).")
+        self.assertEqual([], self.problems())
+
+    # --- dependency cycles --------------------------------------------------
+
+    def test_dependency_cycle_detected(self) -> None:
+        self.add_active_item("900")
+        self.add_active_item("901")
+        a = self.manifest("900")
+        b = self.manifest("901")
+        self.write_json(a, lambda d: d.__setitem__("depends_on", ["901"]))
+        self.write_json(b, lambda d: d.__setitem__("depends_on", ["900"]))
+        self.assertTrue(any("dependency cycle" in v for v in self.problems()))
+
+    # --- frozen-surface symbol matching (pure function) --------------------
+
+    def test_symbol_hits_detects_protected_symbol(self) -> None:
+        protected = [{"glob": "x", "reason": "r", "symbols": ["SecretToken"]}]
+        patch = "+    value = SecretToken()\n-    old = 1"
+        hits = check_frozen_surface.symbol_hits(patch, protected)
+        self.assertEqual([("SecretToken", "r")], hits)
+
+    def test_symbol_hits_ignores_context_lines(self) -> None:
+        protected = [{"glob": "x", "reason": "r", "symbols": ["SecretToken"]}]
+        patch = "     unchanged = SecretToken()"  # context line, not +/-
+        self.assertEqual([], check_frozen_surface.symbol_hits(patch, protected))
+
+    # --- bootstrap (003 B1) -------------------------------------------------
+
+    def test_bootstrap_produces_valid_repo(self) -> None:
+        target = self.temp_dir / "seeded"
+        init_repo.bootstrap(target)
+        self.assertTrue((target / "work" / "proposed").is_dir())
+        self.assertEqual([], [p.message for p in validate(target)])
+
+    def test_bootstrap_uses_installed_tooling_instead_of_vendoring_modules(self) -> None:
+        """A seeded repository contains state, while the package supplies tooling."""
+        target = self.temp_dir / "seeded-package-tooling"
+        init_repo.bootstrap(target)
+        self.assertFalse((target / "scripts").exists())
+        proc = subprocess.run(
+            [sys.executable, "-m", "repopact.cli", "validate", "--root", str(target)],
+            capture_output=True,
+            text=True,
+            cwd=str(ROOT),
+        )
+        output = proc.stdout + proc.stderr
+        self.assertEqual(0, proc.returncode, output)
+
+    def test_seed_data_uses_package_resources_not_data_files(self) -> None:
+        pyproject = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
+        self.assertIn('[tool.maturin]', pyproject)
+        self.assertIn('bindings = "bin"', pyproject)
+        self.assertNotIn("[tool.setuptools.data-files]", pyproject)
+        for resource in ("schemas/work-item.schema.json", "templates/work-item.json"):
+            current = init_repo._seed_dir(resource.split("/", 1)[0]).joinpath(
+                resource.split("/", 1)[1]
+            )
+            self.assertTrue(current.is_file(), resource)
+
+    # --- SPEC generator determinism (004) ----------------------------------
+
+    def test_spec_generation_is_idempotent(self) -> None:
+        text = (ROOT / "SPEC.md").read_text(encoding="utf-8")
+        once = generate_spec.render(text)
+        twice = generate_spec.render(once)
+        self.assertEqual(once, twice)
+        self.assertIn("work-item.schema.json", once)
+        self.assertIn("INV-1", once)
+
+    # --- CLI dispatch (005) -------------------------------------------------
+
+    def test_cli_validate_returns_zero_on_valid_repo(self) -> None:
+        target = self.temp_dir / "cli-valid"  # type: ignore[union-attr]
+        init_repo.bootstrap(target)
+        self.assertEqual(0, repopact_cli.main(["validate", "--root", str(target)]))
+
+    def test_cli_new_stamps_a_valid_record(self) -> None:
+        target = self.temp_dir / "cli-new"  # type: ignore[union-attr]
+        init_repo.bootstrap(target)
+        rc = repopact_cli.main(["new", "work-item", "Cli Probe", "--root", str(target)])
+        self.assertEqual(0, rc)
+        stamped = list((target / "work" / "active").glob("*-cli-probe/work-item.json"))
+        self.assertEqual(1, len(stamped))
+        data = json.loads(stamped[0].read_text(encoding="utf-8"))
+        self.assertEqual(
+            "../../../schemas/work-item.schema.json",
+            data["$schema"],
+        )
+        self.assertEqual([], [p.message for p in validate(target)])
+
+    def test_cli_new_can_stamp_proposed_work_item(self) -> None:
+        target = self.temp_dir / "cli-proposal"  # type: ignore[union-attr]
+        init_repo.bootstrap(target)
+        rc = repopact_cli.main(["new", "work-item", "Cli Proposal", "--status", "proposed", "--root", str(target)])
+        self.assertEqual(0, rc)
+        stamped = list((target / "work" / "proposed").glob("*-cli-proposal/work-item.json"))
+        self.assertEqual(1, len(stamped))
+        data = json.loads(stamped[0].read_text(encoding="utf-8"))
+        self.assertEqual("proposed", data["status"])
+        self.assertEqual([], [p.message for p in validate(target)])
+
+    def test_cli_new_uses_conventional_root_schema_in_adopter(self) -> None:
+        target = self.temp_dir / "new-adopter"
+        init_repo.bootstrap(target)
+        rc = repopact_cli.main([
+            "new", "work-item", "Adopter Probe", "--root", str(target),
+        ])
+        self.assertEqual(0, rc)
+        stamped = list((target / "work" / "active").glob("*-adopter-probe/work-item.json"))
+        self.assertEqual(1, len(stamped))
+        data = json.loads(stamped[0].read_text(encoding="utf-8"))
+        self.assertEqual("../../../schemas/work-item.schema.json", data["$schema"])
+        self.assertEqual([], [p.message for p in validate(target)])
+
+    # --- proving-ground hardening (007) -------------------------------------
+
+    def test_cli_spec_fails_cleanly_without_spec_file(self) -> None:
+        """F-001: `spec` must not traceback on a repo that has no SPEC.md."""
+        target = self.temp_dir / "no-spec"
+        init_repo.bootstrap(target)
+        self.assertFalse((target / "SPEC.md").exists())
+        self.assertEqual(1, repopact_cli.main(["spec", "--root", str(target)]))
+
+    def test_check_frozen_detects_working_tree_change(self) -> None:
+        """F-002: an uncommitted change to a protected path must be detected."""
+        import subprocess
+
+        repo = self.temp_dir / "frz"
+        (repo / "governance").mkdir(parents=True)
+        (repo / "governance" / "frozen-surface.json").write_text(
+            json.dumps({"version": 1, "protected": [
+                {"glob": "governance/invariants.json", "reason": "the pact"}]}),
+            encoding="utf-8")
+        (repo / "governance" / "invariants.json").write_text(
+            json.dumps({"version": 1, "invariants": []}), encoding="utf-8")
+        try:
+            run = lambda *a: subprocess.run(["git", *a], cwd=repo, check=True,
+                                            capture_output=True, text=True)
+            run("init"); run("config", "user.email", "t@t"); run("config", "user.name", "t")
+            run("add", "-A"); run("commit", "-m", "init")
+        except (OSError, subprocess.CalledProcessError):
+            self.skipTest("git unavailable")
+        # modify the protected file in the working tree only, no commit
+        (repo / "governance" / "invariants.json").write_text(
+            json.dumps({"version": 1, "invariants": [{"changed": True}]}), encoding="utf-8")
+        hits = check_frozen_surface.violations(repo, "HEAD")
+        self.assertEqual([("governance/invariants.json", "the pact")], hits)
+
+    # --- brownfield adoption (008) ------------------------------------------
+
+    def _seed_existing_repo(self) -> Path:
+        """A minimal pre-existing project: CODEOWNERS, a CI workflow, a nested contract."""
+        repo = self.temp_dir / "existing"
+        (repo / ".github" / "workflows").mkdir(parents=True)
+        (repo / "core").mkdir()
+        (repo / "docs" / "_audit").mkdir(parents=True)
+        (repo / "README.md").write_text("# Existing\n", encoding="utf-8")
+        (repo / "CODEOWNERS").write_text(
+            "# owners\n/core/   @backend-team\n/docs/   @docs-team\n", encoding="utf-8")
+        (repo / ".github" / "workflows" / "ci.yml").write_text(
+            "name: Python CI\non: [push]\njobs:\n  test:\n    runs-on: ubuntu-latest\n", encoding="utf-8")
+        (repo / "docs" / "AGENTS.md").write_text("# Docs contract\n", encoding="utf-8")
+        (repo / "docs" / "_audit" / "inventory.md").write_text("# Inventory\n", encoding="utf-8")
+        return repo
+
+    def test_adopt_existing_repo_validates(self) -> None:
+        repo = self._seed_existing_repo()
+        adopt_repo.adopt(repo)
+        self.assertEqual([], [p.message for p in validate(repo)])
+
+    def test_adopt_is_non_destructive(self) -> None:
+        repo = self._seed_existing_repo()
+        original = (repo / "README.md").read_text(encoding="utf-8")
+        adopt_repo.adopt(repo)
+        # existing files are preserved verbatim
+        self.assertEqual(original, (repo / "README.md").read_text(encoding="utf-8"))
+        self.assertEqual("# Docs contract\n", (repo / "docs" / "AGENTS.md").read_text(encoding="utf-8"))
+
+    def test_adopt_maps_workflows_and_codeowners(self) -> None:
+        repo = self._seed_existing_repo()
+        adopt_repo.adopt(repo)
+        owners = json.loads((repo / "governance" / "owners.json").read_text(encoding="utf-8"))
+        scope_ids = {s["id"] for s in owners["scopes"]}
+        self.assertIn("backend-team", scope_ids)
+        self.assertIn("docs-team", scope_ids)
+        # the workflow becomes a candidate hosted-adapter policy record (not an
+        # enforcement claim -- see adopt_repo.py's WI046 workflow-neutral adoption)
+        # and its path is frozen
+        policies = list((repo / "governance" / "policies").glob("*-hosted-adapter-*.md"))
+        self.assertEqual(1, len(policies))
+        frozen = json.loads((repo / "governance" / "frozen-surface.json").read_text(encoding="utf-8"))
+        self.assertIn(".github/workflows/**", [p["glob"] for p in frozen["protected"]])
+
+    def test_adopt_dry_run_writes_nothing(self) -> None:
+        repo = self._seed_existing_repo()
+        rep = adopt_repo.adopt(repo, dry_run=True)
+        self.assertFalse((repo / "governance").exists())
+        self.assertTrue(rep.created)
+
+    def test_adopt_warns_on_gitignored_records(self) -> None:
+        """F-008: a .gitignore that swallows evidence records must be flagged."""
+        import subprocess
+        repo = self._seed_existing_repo()
+        try:
+            run = lambda *a: subprocess.run(["git", *a], cwd=repo, check=True, capture_output=True, text=True)
+            run("init")
+            # the classic collision: a broad `runs/` rule that also matches evidence/runs/
+            (repo / ".gitignore").write_text("runs/\n", encoding="utf-8")
+            rep = adopt_repo.adopt(repo)
+        except (OSError, subprocess.CalledProcessError):
+            self.skipTest("git unavailable")
+        self.assertTrue(any("evidence/runs/" in r for r in rep.gitignored),
+                        f"expected an evidence record flagged as gitignored, got {rep.gitignored}")
+
+    # --- ROG-014: explicit graph-enabled adoption ---------------------------
+
+    def test_adopt_default_leaves_graph_off(self) -> None:
+        repo = self._seed_existing_repo()
+        rep = adopt_repo.adopt(repo)
+        self.assertFalse(rep.graph_requested)
+        self.assertFalse((repo / "rog").exists())
+        self.assertFalse((repo / "governance" / "rog-capability.json").exists())
+
+    def test_adopt_graph_orchestrates_discovery_through_orientation(self) -> None:
+        repo = self._seed_existing_repo()
+        rep = adopt_repo.adopt(repo, graph=True)
+        self.assertTrue(rep.graph_requested)
+        self.assertIsNone(rep.graph_error)
+        self.assertEqual(rep.graph_capability, "explicit_enabled")
+        self.assertIsNotNone(rep.graph_build)
+        self.assertGreater(rep.graph_build["node_count"], 0)
+        self.assertIsNotNone(rep.orientation_summary)
+        self.assertEqual(rep.orientation_summary["result"]["outcome"], "resolved")
+        self.assertIn("status", rep.orientation_summary)
+        self.assertIn("warnings", rep.orientation_summary)
+        self.assertTrue((repo / "rog" / "manifest.json").exists())
+        self.assertTrue((repo / "governance" / "rog-capability.json").exists())
+        # Governance facts are never fabricated by graph generation: the
+        # CODEOWNERS-derived scopes are exactly what a graph-off adopt
+        # would have produced.
+        owners = json.loads((repo / "governance" / "owners.json").read_text(encoding="utf-8"))
+        scope_ids = {s["id"] for s in owners["scopes"]}
+        self.assertIn("backend-team", scope_ids)
+        self.assertIn("docs-team", scope_ids)
+
+    def test_adopt_dry_run_graph_writes_nothing_graph_related(self) -> None:
+        repo = self._seed_existing_repo()
+        rep = adopt_repo.adopt(repo, dry_run=True, graph=True)
+        self.assertTrue(rep.graph_requested)
+        self.assertIsNone(rep.graph_build)
+        self.assertIsNone(rep.graph_verify)
+        self.assertFalse((repo / "governance").exists())
+        self.assertFalse((repo / "rog").exists())
+
+    def test_adopt_graph_bootstrap_failure_does_not_fabricate_or_rollback_governance(self) -> None:
+        from repopact import engine_client as engine_client_module
+        from repopact.engine_client import EngineUnavailableError
+
+        repo = self._seed_existing_repo()
+
+        class _AlwaysFailsClient:
+            def call(self, *args, **kwargs):
+                raise EngineUnavailableError("simulated engine failure for this test")
+
+        real_client_cls = engine_client_module.EngineClient
+        engine_client_module.EngineClient = _AlwaysFailsClient
+        try:
+            rep = adopt_repo.adopt(repo, graph=True)
+        finally:
+            engine_client_module.EngineClient = real_client_cls
+
+        self.assertTrue(rep.graph_requested)
+        self.assertIsNotNone(rep.graph_error)
+        self.assertFalse((repo / "rog").exists())
+        self.assertFalse((repo / "governance" / "rog-capability.json").exists())
+        # Governance adoption succeeded despite the graph failure -- it
+        # is never rolled back to hide the graph failure. This is also
+        # the exact condition (`graph_requested and graph_error`)
+        # `adopt_repo.main()` checks to decide its non-zero exit code
+        # when --graph was explicitly requested and bootstrap failed.
+        self.assertTrue((repo / "governance" / "owners.json").exists())
+        self.assertEqual([], validate_repo.validate(repo))
+        self.assertTrue(rep.graph_requested and rep.graph_error)
+
+    # --- plan import (011) --------------------------------------------------
+
+    def _seed_adopted_repo_with_plans(self) -> Path:
+        repo = self.temp_dir / "planned"
+        init_repo.bootstrap(repo)
+        # a todos/ tree: one active item, one completed item, one deferred item
+        (repo / "todos" / "12-search").mkdir(parents=True)
+        (repo / "todos" / "12-search" / "README.md").write_text("# Add search\nPlan body.\n", encoding="utf-8")
+        (repo / "todos" / "completed" / "03-login").mkdir(parents=True)
+        (repo / "todos" / "completed" / "03-login" / "README.md").write_text("# Login\nDone earlier.\n", encoding="utf-8")
+        (repo / "todos" / "deferred" / "20-i18n").mkdir(parents=True)
+        (repo / "todos" / "deferred" / "20-i18n" / "README.md").write_text("# i18n\nLater.\n", encoding="utf-8")
+        # a flat checklist file
+        (repo / "TODO.md").write_text("- [ ] wire up metrics\n- [x] choose a license\n", encoding="utf-8")
+        return repo
+
+    def test_import_plan_populates_and_validates(self) -> None:
+        repo = self._seed_adopted_repo_with_plans()
+        plan_import.import_plan(repo)
+        self.assertEqual([], [p.message for p in validate(repo)])
+        # directory items mapped to the right lifecycle
+        self.assertTrue((repo / "work" / "active" / "012-search").is_dir())
+        self.assertTrue((repo / "work" / "completed" / "003-login").is_dir())
+        self.assertTrue((repo / "work" / "deferred" / "020-i18n").is_dir())
+        # checklist items mapped by checkbox state
+        self.assertTrue(list((repo / "work" / "active").glob("*-wire-up-metrics")))
+        self.assertTrue(list((repo / "work" / "completed").glob("*-choose-a-license")))
+
+    def test_import_plan_completed_items_are_waived_not_fabricated(self) -> None:
+        repo = self._seed_adopted_repo_with_plans()
+        plan_import.import_plan(repo)
+        manifest = json.loads((repo / "work" / "completed" / "003-login" / "work-item.json").read_text(encoding="utf-8"))
+        self.assertEqual("waived", manifest["acceptance_criteria"][0]["state"])
+        self.assertEqual([], manifest["acceptance_criteria"][0]["evidence"])  # no fabricated evidence
+        self.assertEqual("todos/completed/03-login", manifest["source"])
+
+    def test_import_plan_is_idempotent(self) -> None:
+        repo = self._seed_adopted_repo_with_plans()
+        plan_import.import_plan(repo)
+        before = len(list(repo.glob("work/*/*/work-item.json")))
+        rep = plan_import.import_plan(repo)  # second run
+        after = len(list(repo.glob("work/*/*/work-item.json")))
+        self.assertEqual(before, after)
+        self.assertEqual([], rep.created)
+        self.assertEqual([], [p.message for p in validate(repo)])
+
+    def test_import_plan_dry_run_writes_nothing(self) -> None:
+        repo = self._seed_adopted_repo_with_plans()
+        rep = plan_import.import_plan(repo, dry_run=True)
+        self.assertFalse(list(repo.glob("work/active/*-search")))
+        self.assertTrue(rep.created)
+
+    # --- tracking import (015) ----------------------------------------------
+
+    def _seed_repo_with_tracking(self) -> Path:
+        repo = self.temp_dir / "tracked"
+        init_repo.bootstrap(repo)
+        (repo / "tracking").mkdir()
+        (repo / "tracking" / "decisions.md").write_text(
+            "# Decision Log\n\n## DEC-001: Use Markdown Foundation\nDate: 2026-06-16  \nStatus: accepted  \n\n"
+            "Decision: keep it repo-native.\n", encoding="utf-8")
+        (repo / "tracking" / "risks.md").write_text(
+            "# Risk Register\n\n| ID | Risk | Severity | Status | Owner | Mitigation |\n"
+            "| --- | --- | --- | --- | --- | --- |\n"
+            "| RISK-001 | Tracking can drift from repo state. | P2 | open | Steward | Validate regularly. |\n",
+            encoding="utf-8")
+        (repo / "tracking" / "milestones.md").write_text(
+            "# Milestones\n\n## M0: MVP\nStatus: shipped\n\nEvidence: it works.\n\n"
+            "## M1: Next thing\nStatus: in progress\n\nRemaining: lots.\n", encoding="utf-8")
+        return repo
+
+    def test_tracking_import_maps_to_record_types_and_validates(self) -> None:
+        repo = self._seed_repo_with_tracking()
+        plan_import.import_plan(repo)
+        self.assertEqual([], [p.message for p in validate(repo)])
+        # decision record created (DEC-001 -> a 4-digit id, 0001 is unused in a fresh bootstrap)
+        self.assertTrue(list((repo / "decisions").glob("*-use-markdown-foundation.md")))
+        # risk -> audit finding: numeric id (schema), RISK-001 kept in source, P2 -> medium, open
+        finding = list((repo / "audits" / "findings").glob("*.json"))
+        self.assertEqual(1, len(finding))
+        data = json.loads(finding[0].read_text(encoding="utf-8"))
+        self.assertRegex(data["id"], r"^[0-9]{3,}$")
+        self.assertEqual(("medium", "open", "governance"), (data["risk"], data["state"], data["scope"]))
+        self.assertTrue(data["source"].endswith("RISK-001"))
+        self.assertIn("[RISK-001]", data["observed"])
+        # milestones -> work items (shipped -> completed/waived, else active/pending)
+        self.assertTrue(list((repo / "work" / "completed").glob("*-milestone-mvp")))
+        self.assertTrue(list((repo / "work" / "active").glob("*-milestone-next-thing")))
+
+    def test_tracking_import_is_idempotent(self) -> None:
+        repo = self._seed_repo_with_tracking()
+        plan_import.import_plan(repo)
+        before = len(list(repo.glob("decisions/*.md"))) + len(list(repo.glob("audits/findings/*.json")))
+        plan_import.import_plan(repo)
+        after = len(list(repo.glob("decisions/*.md"))) + len(list(repo.glob("audits/findings/*.json")))
+        self.assertEqual(before, after)
+        self.assertEqual([], [p.message for p in validate(repo)])
+
+    # --- takeover (015) -----------------------------------------------------
+
+    def test_takeover_archives_fully_migrated_plan_dir(self) -> None:
+        repo = self.temp_dir / "tk"
+        init_repo.bootstrap(repo)
+        (repo / "todos" / "12-search").mkdir(parents=True)
+        (repo / "todos" / "12-search" / "README.md").write_text("# Search\n", encoding="utf-8")
+        plan_import.import_plan(repo)                       # migrate todos -> work/
+        report = takeover.takeover(repo)                    # archive (default)
+        self.assertIn("todos", report["retired"])
+        self.assertFalse((repo / "todos").exists())
+        self.assertTrue((repo / "archive" / "todos" / "12-search" / "README.md").is_file())
+        self.assertEqual([], [p.message for p in validate(repo)])
+
+    def test_takeover_refuses_unmigrated_dir(self) -> None:
+        repo = self.temp_dir / "tk2"
+        init_repo.bootstrap(repo)
+        (repo / "todos" / "12-search").mkdir(parents=True)
+        (repo / "todos" / "12-search" / "README.md").write_text("# Search\n", encoding="utf-8")
+        # do NOT import; takeover must not retire an un-migrated source
+        report = takeover.takeover(repo)
+        self.assertEqual([], report["retired"])
+        self.assertTrue((repo / "todos").exists())
+        self.assertTrue(any(s["dir"] == "todos" for s in report["skipped"]))
+
+    def test_takeover_aborts_when_invalid(self) -> None:
+        repo = self.temp_dir / "tk3"
+        init_repo.bootstrap(repo)
+        (repo / "AGENTS.md").unlink()                       # make it invalid
+        report = takeover.takeover(repo)
+        self.assertFalse(report["validated"])
+        self.assertEqual([], report["retired"])
+
+    def test_takeover_refuses_dir_with_audit_scope_inside(self) -> None:
+        repo = self.temp_dir / "tk_scope"
+        init_repo.bootstrap(repo)
+        (repo / "todos" / "12-search").mkdir(parents=True)
+        (repo / "todos" / "12-search" / "README.md").write_text("# Search\n", encoding="utf-8")
+        (repo / "todos" / "12-search" / "AGENTS.md").write_text("# nested contract\n", encoding="utf-8")
+        plan_import.import_plan(repo)
+        # register an audit scope that lives inside the plan dir
+        reg = json.loads((repo / "audits" / "registry.json").read_text(encoding="utf-8"))
+        reg["scopes"].append({
+            "path": "todos/12-search", "owner": "governance-owner",
+            "contract": "todos/12-search/AGENTS.md", "last_reviewed": "2026-06-15",
+            "next_review": (date.today() + timedelta(days=1)).isoformat(),
+            "alignment": "current", "notes": "nested",
+        })
+        (repo / "audits" / "registry.json").write_text(json.dumps(reg, indent=2) + "\n", encoding="utf-8")
+        generate_dashboard.write_dashboard(repo)
+        report = takeover.takeover(repo, delete=True)
+        self.assertEqual([], report["retired"])               # not retired
+        self.assertTrue((repo / "todos").exists())
+        self.assertTrue(any(b["dir"] == "todos" for b in report["blocked"]))
+
+    def test_takeover_delete_documents_and_deletes_when_git_recoverable(self) -> None:
+        import subprocess
+        repo = self.temp_dir / "tk4"
+        init_repo.bootstrap(repo)
+        (repo / "todos" / "12-search").mkdir(parents=True)
+        (repo / "todos" / "12-search" / "README.md").write_text("# Search\n", encoding="utf-8")
+        (repo / "todos" / "12-search" / "DETAIL.md").write_text("# Detail only in todos\n", encoding="utf-8")
+        plan_import.import_plan(repo)
+        try:
+            run = lambda *a: subprocess.run(["git", *a], cwd=repo, check=True, capture_output=True, text=True)
+            run("init")
+            run("-c", "user.email=t@t", "-c", "user.name=t", "add", "-A")
+            run("-c", "user.email=t@t", "-c", "user.name=t", "commit", "-m", "seed")
+        except (OSError, subprocess.CalledProcessError):
+            self.skipTest("git unavailable")
+        report = takeover.takeover(repo, delete=True)
+        self.assertIn("todos", report["retired"])
+        self.assertFalse((repo / "todos").exists())          # deleted, not archived
+        self.assertFalse((repo / "archive").exists())
+        self.assertEqual([], report["downgraded"])
+        # a decisions/ ADR was written documenting why + how to recover
+        self.assertEqual(1, len(report["decisions"]))
+        adr = (repo / report["decisions"][0]).read_text(encoding="utf-8")
+        self.assertIn("Retire legacy plan directory", adr)
+        self.assertIn("git checkout", adr)
+        self.assertEqual([], [p.message for p in validate(repo)])
+
+    def test_takeover_delete_downgrades_when_dir_has_gitignored_files(self) -> None:
+        import subprocess
+        repo = self.temp_dir / "tk6"
+        init_repo.bootstrap(repo)
+        (repo / "todos" / "12-search").mkdir(parents=True)
+        (repo / "todos" / "12-search" / "README.md").write_text("# Search\n", encoding="utf-8")
+        plan_import.import_plan(repo)
+        try:
+            run = lambda *a: subprocess.run(["git", *a], cwd=repo, check=True, capture_output=True, text=True)
+            run("init")
+            # a present-but-ignored file under the plan dir: not in history, so deleting loses it
+            (repo / ".gitignore").write_text("todos/12-search/out/\n", encoding="utf-8")
+            (repo / "todos" / "12-search" / "out").mkdir()
+            (repo / "todos" / "12-search" / "out" / "build.bin").write_text("ignored output\n", encoding="utf-8")
+            run("-c", "user.email=t@t", "-c", "user.name=t", "add", "-A")
+            run("-c", "user.email=t@t", "-c", "user.name=t", "commit", "-m", "seed")
+        except (OSError, subprocess.CalledProcessError):
+            self.skipTest("git unavailable")
+        report = takeover.takeover(repo, delete=True)
+        # not git-recoverable (ignored file present) -> archived, not deleted
+        self.assertTrue(any(d["dir"] == "todos" for d in report["downgraded"]))
+        self.assertEqual([], report["decisions"])
+        self.assertTrue((repo / "archive" / "todos").exists())
+        self.assertEqual([], [p.message for p in validate(repo)])
+
+    def test_takeover_delete_downgrades_to_archive_when_not_recoverable(self) -> None:
+        repo = self.temp_dir / "tk5"
+        init_repo.bootstrap(repo)
+        (repo / "todos" / "12-search").mkdir(parents=True)
+        (repo / "todos" / "12-search" / "README.md").write_text("# Search\n", encoding="utf-8")
+        plan_import.import_plan(repo)
+        report = takeover.takeover(repo, delete=True)        # no git -> not recoverable
+        self.assertIn("todos", report["retired"])
+        self.assertFalse((repo / "todos").exists())
+        self.assertTrue((repo / "archive" / "todos" / "12-search" / "README.md").is_file())
+        self.assertEqual([], report["decisions"])
+        self.assertTrue(any(d["dir"] == "todos" for d in report["downgraded"]))
+        self.assertEqual([], [p.message for p in validate(repo)])
+
+    # --- doctor (013) -------------------------------------------------------
+
+    def _seed_drifted_repo(self) -> Path:
+        repo = self.temp_dir / "drifted"
+        init_repo.bootstrap(repo)
+        (repo / "AGENTS.md").unlink()                          # missing root contract
+        reg = json.loads((repo / "audits" / "registry.json").read_text(encoding="utf-8"))
+        reg["scopes"].append({"path": "docs", "owner": "x", "contract": "docs/AGENTS.md",
+                              "last_reviewed": "2026-06-16", "next_review": "2026-09-16",
+                              "alignment": "current", "notes": "stale"})
+        (repo / "audits" / "registry.json").write_text(json.dumps(reg), encoding="utf-8")
+        (repo / "service").mkdir()
+        (repo / "service" / "AGENTS.md").write_text("# service\n", encoding="utf-8")  # unregistered
+        return repo
+
+    def test_doctor_diagnoses_drift(self) -> None:
+        codes = {f.code for f in doctor.diagnose(self._seed_drifted_repo())}
+        self.assertIn("no-root-contract", codes)
+        self.assertIn("registry-stale", codes)
+        self.assertIn("contract-unregistered", codes)
+
+    def test_doctor_fix_makes_repo_valid(self) -> None:
+        repo = self._seed_drifted_repo()
+        doctor.fix(repo)
+        self.assertEqual([], [f.code for f in doctor.diagnose(repo) if f.severity == "error"])
+        self.assertEqual([], [p.message for p in validate(repo)])
+
+    def test_doctor_healthy_on_clean_repo(self) -> None:
+        repo = self.temp_dir / "clean"
+        init_repo.bootstrap(repo)
+        self.assertEqual([], [f for f in doctor.diagnose(repo) if f.severity == "error"])
+
+    # --- WI063 adoption/backfill/clean-clone checkpoint: ROG capability -----
+
+    def test_doctor_never_auto_enables_rog_on_a_legacy_absent_repo(self) -> None:
+        repo = self.temp_dir / "rog-legacy-absent"
+        init_repo.bootstrap(repo)
+        findings = doctor.diagnose(repo)
+        self.assertFalse(any(f.code.startswith("rog-") for f in findings))
+        doctor.fix(repo)
+        self.assertFalse((repo / "rog").exists())
+        self.assertFalse((repo / "governance" / "rog-capability.json").exists())
+
+    def test_doctor_reports_enabled_but_missing_and_never_repairs_it(self) -> None:
+        from repopact.engine_client import EngineClient
+
+        repo = self.temp_dir / "rog-enabled-missing"
+        init_repo.bootstrap(repo)
+        EngineClient().call("graph.build", root=repo)
+        shutil.rmtree(repo / "rog")
+
+        findings = doctor.diagnose(repo)
+        codes = {f.code for f in findings}
+        self.assertIn("rog-enabled-missing", codes)
+        enabled_missing = next(f for f in findings if f.code == "rog-enabled-missing")
+        self.assertFalse(enabled_missing.fixable)
+
+        # doctor must never silently rebuild/re-enable ROG on the
+        # caller's behalf -- the repository must still report the exact
+        # same drift after fix() runs.
+        doctor.fix(repo)
+        self.assertFalse((repo / "rog").exists())
+        post_fix_codes = {f.code for f in doctor.diagnose(repo)}
+        self.assertIn("rog-enabled-missing", post_fix_codes)
+
+    # --- orphan work directories & dead source_of_truth pointers -------------
+
+    def test_orphan_work_directory_without_manifest_is_rejected(self) -> None:
+        # A directory under work/ that carries planning content but no work-item.json
+        # is invisible to discover_work_items, so validate must flag it.
+        orphan = self.root / "work" / "active" / "099-ghost"
+        orphan.mkdir(parents=True)
+        (orphan / "README.md").write_text("# ghost plan\n", encoding="utf-8")
+        self.assertTrue(any("no work-item.json" in v or "work-item.json" in v
+                            for v in self.problems()))
+
+    def test_orphan_check_ignores_tracked_items_and_audit_companions(self) -> None:
+        # A properly tracked item — even with an _audit/ companion — is not an orphan.
+        self.add_active_item("099")
+        item = self.root / "work" / "active" / "099-probe"
+        audit = item / "_audit"
+        audit.mkdir()
+        (audit / "README.md").write_text("# audit\n", encoding="utf-8")
+        self.assertEqual([], self.problems())
+
+    def test_doctor_flags_dead_source_of_truth_pointer(self) -> None:
+        decision = self.root / "decisions" / "9999-probe.md"
+        decision.write_text(
+            "---\nid: 9999\ntitle: Probe\nstatus: accepted\ndate: 2026-06-17\n"
+            "source_of_truth: docs/gone.md; AGENTS.md\n---\n\n# 9999: Probe\n",
+            encoding="utf-8")
+        findings = doctor._dead_source_of_truth(self.root)
+        msgs = [f.message for f in findings]
+        self.assertTrue(any("docs/gone.md" in m for m in msgs))
+        # Bare tokens are record-relative too: decisions/AGENTS.md is absent,
+        # even though the bootstrap contract exists at the repository root.
+        self.assertTrue(any("AGENTS.md" in m for m in msgs))
+
+    def test_doctor_accepts_nested_parent_relative_source_of_truth(self) -> None:
+        record = self.root / "work" / "active" / "some" / "nested" / "record.md"
+        target = self.root / "work" / "active" / "some" / "sibling" / "real-record.md"
+        record.parent.mkdir(parents=True)
+        target.parent.mkdir(parents=True)
+        target.write_text("# real record\n", encoding="utf-8")
+        record.write_text(
+            "---\nid: nested\ntitle: Nested\nstatus: active\n"
+            "source_of_truth: ../sibling/real-record.md\n---\n",
+            encoding="utf-8")
+        self.assertEqual([], doctor._dead_source_of_truth(self.root))
+
+    def test_doctor_accepts_bare_record_relative_source_of_truth(self) -> None:
+        record = self.root / "decisions" / "probe.md"
+        target = self.root / "decisions" / "sibling.md"
+        target.write_text("# sibling\n", encoding="utf-8")
+        record.write_text(
+            "---\nid: probe\ntitle: Probe\nstatus: accepted\ndate: 2026-06-17\n"
+            "source_of_truth: sibling.md\n---\n",
+            encoding="utf-8")
+        self.assertEqual([], doctor._dead_source_of_truth(self.root))
+
+    def test_doctor_bare_token_does_not_fall_back_to_root_coincidence(self) -> None:
+        record = self.root / "decisions" / "probe.md"
+        record.write_text(
+            "---\nid: probe\ntitle: Probe\nstatus: accepted\ndate: 2026-06-17\n"
+            "source_of_truth: sibling.md\n---\n",
+            encoding="utf-8")
+        (self.root / "sibling.md").write_text("# root coincidence\n", encoding="utf-8")
+        findings = doctor._dead_source_of_truth(self.root)
+        self.assertEqual(1, len(findings))
+        self.assertIn("decisions/probe.md", findings[0].message)
+        self.assertIn("sibling.md", findings[0].message)
+
+    def test_doctor_source_of_truth_fix_is_non_destructive(self) -> None:
+        record = self.root / "decisions" / "probe.md"
+        original = (
+            "---\nid: probe\ntitle: Probe\nstatus: accepted\ndate: 2026-06-17\n"
+            "source_of_truth: missing.md\n---\n"
+        )
+        record.write_text(original, encoding="utf-8")
+        actions = doctor.fix(self.root)
+        self.assertEqual(original, record.read_text(encoding="utf-8"))
+        self.assertFalse(any("source_of_truth" in action for action in actions))
+        self.assertTrue(any(f.code == "source-of-truth-stale" for f in doctor.diagnose(self.root)))
+
+    def test_import_plan_section_roadmap_without_checkboxes(self) -> None:
+        repo = self.temp_dir / "roadmapped"
+        init_repo.bootstrap(repo)
+        (repo / "ROADMAP.md").write_text(
+            "# Roadmap\n\n## Now\n- Ship the API\n\n## Later\n- Mobile app\n\n"
+            "## Done\n- Initial release\n", encoding="utf-8")
+        plan_import.import_plan(repo)
+        self.assertEqual([], [p.message for p in validate(repo)])
+        self.assertTrue(list((repo / "work" / "active").glob("*-ship-the-api")))
+        self.assertTrue(list((repo / "work" / "deferred").glob("*-mobile-app")))
+        self.assertTrue(list((repo / "work" / "completed").glob("*-initial-release")))
+
+    def test_split_num_strips_tracker_prefix(self) -> None:
+        self.assertEqual(("001", "true-cert-factory"), plan_import._split_num("TODO-001-true-cert-factory"))
+        self.assertEqual(("12", "search"), plan_import._split_num("12-search"))
+        self.assertEqual((None, "freeform-note"), plan_import._split_num("freeform note"))
+
+    def test_section_lifecycle_keywords(self) -> None:
+        self.assertEqual("active", plan_import._section_lifecycle("Now — in progress"))
+        self.assertEqual("deferred", plan_import._section_lifecycle("Later / future"))
+        self.assertEqual("completed", plan_import._section_lifecycle("Shipped"))
+        self.assertIsNone(plan_import._section_lifecycle("Overview"))
+
+
+class ReadOnlyRepositoryValidationTests(unittest.TestCase):
+    """Checks that can safely use the source tree without cloning it per test."""
+
+    def test_adopter_manifest_allows_rollout_to_lag_package_version(self) -> None:
+        problems: list[validate_repo.Problem] = []
+        validate_repo.validate_adopter_manifest(ROOT, problems)
+        self.assertFalse(any("does not target VERSION" in problem.message for problem in problems))
+
+
+if __name__ == "__main__":
+    unittest.main()

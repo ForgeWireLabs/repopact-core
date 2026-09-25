@@ -1,0 +1,203 @@
+"""Run the published RepoPact conformance suite.
+
+The runner materializes each fixture as an isolated temporary repository, injects
+the canonical schemas from this checkout, runs a RepoPact implementation, and
+compares the result with conformance/manifest.json.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import shutil
+import subprocess
+import sys
+import tempfile
+from dataclasses import dataclass
+from pathlib import Path
+
+import jsonschema
+
+from . import engine_client
+from . import generate_dashboard
+from . import legacy_validate
+
+
+ROOT = Path(__file__).resolve().parents[1]
+MANIFEST = ROOT / "conformance" / "manifest.json"
+
+
+@dataclass(frozen=True)
+class CaseResult:
+    case_id: str
+    passed: bool
+    detail: str
+
+
+def load_manifest(path: Path = MANIFEST) -> dict:
+    with path.open(encoding="utf-8") as handle:
+        data = json.load(handle)
+    if not isinstance(data, dict):
+        raise ValueError(f"manifest must be a JSON object: {path}")
+    schema = json.loads(
+        (ROOT / "repopact" / "schemas" / "conformance-manifest.schema.json").read_text(encoding="utf-8")
+    )
+    jsonschema.Draft202012Validator(schema).validate(data)
+    validate_manifest_coverage(data)
+    return data
+
+
+def validate_manifest_coverage(manifest: dict) -> None:
+    """Enforce bidirectional rule/case coverage with deterministic diagnostics."""
+    errors: list[str] = []
+    rule_ids = [str(rule.get("id", "")) for rule in manifest.get("rules", []) if isinstance(rule, dict)]
+    case_ids = [str(case.get("id", "")) for case in manifest.get("cases", []) if isinstance(case, dict)]
+    if len(rule_ids) != len(set(rule_ids)):
+        errors.append("rule ids must be unique")
+    if len(case_ids) != len(set(case_ids)):
+        errors.append("case ids must be unique")
+    known = set(rule_ids)
+    referenced = {
+        str(rule_id)
+        for case in manifest.get("cases", []) if isinstance(case, dict)
+        for rule_id in case.get("rules", [])
+    }
+    uncovered = sorted(known - referenced)
+    unknown = sorted(referenced - known)
+    if uncovered:
+        errors.append(f"rules without conformance cases: {', '.join(uncovered)}")
+    if unknown:
+        errors.append(f"cases reference unknown rules: {', '.join(unknown)}")
+    if errors:
+        raise ValueError("; ".join(errors))
+
+
+def _copy_overlay(src: Path, dst: Path) -> None:
+    for path in src.rglob("*"):
+        if path.is_dir() or path.name == "meta.json":
+            continue
+        target = dst / path.relative_to(src)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(path, target)
+
+
+def materialize_case(root: Path, fixtures_root: Path, case: dict) -> Path:
+    repo = root / "repo"
+    overlay_on = case.get("overlay_on")
+    if overlay_on:
+        shutil.copytree(fixtures_root / str(overlay_on), repo)
+        _copy_overlay(fixtures_root / str(case["path"]), repo)
+    else:
+        shutil.copytree(fixtures_root / str(case["path"]), repo)
+    shutil.copytree(ROOT / "repopact" / "schemas", repo / "schemas")
+    # Overlays intentionally mutate source records. Materialize their canonical
+    # projection unless the dashboard itself is the isolated signal under test.
+    dashboard_mode = case.get("dashboard", "canonical")
+    if dashboard_mode == "canonical":
+        generate_dashboard.write_dashboard(repo)
+    elif dashboard_mode == "remove":
+        (repo / "audits" / "reports" / "dashboard.md").unlink(missing_ok=True)
+    return repo
+
+
+def run_command(command: str, repo: Path) -> subprocess.CompletedProcess[str]:
+    rendered = command.format(repo=str(repo))
+    return subprocess.run(rendered, shell=True, text=True, capture_output=True)
+
+
+def evaluate_case(case: dict, command: str, fixtures_root: Path) -> CaseResult:
+    case_id = str(case["id"])
+    with tempfile.TemporaryDirectory(prefix=f"repopact-conformance-{case_id}-") as tmp:
+        repo = materialize_case(Path(tmp), fixtures_root, case)
+        # The fixture oracle is the explicit Python compatibility surface, not
+        # the historical pre-cutover validator alone. This keeps fixture
+        # isolation independent of the Rust implementation while allowing new
+        # migrated semantic rules (such as WI046 verification contracts) to be
+        # represented without pretending the old module is still complete.
+        reference_problems = legacy_validate.validate(repo)
+        proc = run_command(command, repo)
+    output = "\n".join(part for part in (proc.stdout, proc.stderr) if part)
+    expect = case.get("expect")
+    if expect == "accept":
+        blocking = [problem for problem in reference_problems if problem.severity == "error"]
+        if blocking:
+            observed = "; ".join(problem.message for problem in blocking)
+            return CaseResult(case_id, False, f"fixture isolation failed: unexpected violations: {observed}")
+        passed = proc.returncode == 0
+        detail = "accepted" if passed else f"expected accept, exit={proc.returncode}: {output.strip()}"
+        return CaseResult(case_id, passed, detail)
+    expected = str(case.get("expected_message", ""))
+    matching = [problem for problem in reference_problems if expected in problem.message]
+    unexpected = [problem for problem in reference_problems if expected not in problem.message]
+    if len(matching) != 1 or unexpected:
+        observed = "; ".join(problem.message for problem in reference_problems) or "none"
+        extra = "; ".join(problem.message for problem in unexpected) or "none"
+        return CaseResult(
+            case_id,
+            False,
+            f"fixture isolation failed: expected one '{expected}' violation; observed: {observed}; "
+            f"unexpected violations: {extra}",
+        )
+    passed = proc.returncode != 0 and expected in output
+    detail = (
+        f"rejected with '{expected}'"
+        if passed
+        else f"expected reject containing '{expected}', exit={proc.returncode}: {output.strip()}"
+    )
+    return CaseResult(case_id, passed, detail)
+
+
+def run_suite(command: str, manifest_path: Path = MANIFEST) -> list[CaseResult]:
+    manifest = load_manifest(manifest_path)
+    fixtures_root = manifest_path.parent / str(manifest.get("fixtures_root", "fixtures"))
+    return [evaluate_case(case, command, fixtures_root) for case in manifest.get("cases", [])]
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description="Run the RepoPact conformance suite")
+    parser.add_argument("--manifest", type=Path, default=MANIFEST)
+    parser.add_argument(
+        "--command",
+        default=None,
+        help="Implementation command template; {repo} is replaced with the fixture repo path.",
+    )
+    parser.add_argument(
+        "--legacy-python",
+        action="store_true",
+        help="Also run the independent Python compatibility validator comparator.",
+    )
+    args = parser.parse_args()
+
+    try:
+        canonical = args.command or engine_client.canonical_command_template()
+        results = run_suite(canonical, args.manifest.resolve())
+    except (OSError, ValueError, json.JSONDecodeError, jsonschema.ValidationError, engine_client.EngineError) as exc:
+        print(f"CONFORMANCE MANIFEST ERROR: {exc}", file=sys.stderr)
+        return 2
+    failed = [result for result in results if not result.passed]
+    for result in results:
+        status = "PASS" if result.passed else "FAIL"
+        print(f"{status} {result.case_id}: {result.detail}")
+    print(f"\nCanonical Rust conformance: {len(results) - len(failed)}/{len(results)} cases passed.")
+    if args.legacy_python:
+        legacy_command = f'"{sys.executable}" -m repopact.legacy_validate --root "{{repo}}"'
+        legacy_results = run_suite(legacy_command, args.manifest.resolve())
+        legacy_failed = [result for result in legacy_results if not result.passed]
+        for result in legacy_results:
+            status = "PASS" if result.passed else "FAIL"
+            print(f"{status} legacy-python {result.case_id}: {result.detail}")
+        print(
+            f"\nPython compatibility comparator: "
+            f"{len(legacy_results) - len(legacy_failed)}/{len(legacy_results)} cases passed."
+        )
+    from .admission_conformance import run_admission_corpus
+    admission_results = run_admission_corpus()
+    admission_failed = [row for row in admission_results if not row[1]]
+    for case_id, passed, detail in admission_results:
+        print(f"{'PASS' if passed else 'FAIL'} {case_id}: {detail}")
+    print(f"\nWI050 admission corpus: {len(admission_results) - len(admission_failed)}/{len(admission_results)} vectors passed.")
+    return 1 if failed or admission_failed or (args.legacy_python and legacy_failed) else 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

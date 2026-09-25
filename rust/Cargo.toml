@@ -1,0 +1,45 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/repopact-types",
+    "crates/repopact-protocol",
+    "crates/repopact-schema",
+    "crates/repopact-repository",
+    "crates/repopact-validation",
+    "crates/repopact-graph",
+    "crates/repopact-analysis",
+    "crates/repopact-mutation",
+    "crates/repopact-core",
+    "crates/repopact-confinement",
+    "apps/repopact-cli",
+    "apps/repopact-engine",
+    "apps/repopact-sandbox",
+]
+
+[workspace.dependencies]
+jsonschema = { version = "0.55.1", default-features = false }
+regex = { version = "1", default-features = false, features = ["std", "unicode-perl"] }
+repopact-core = { path = "crates/repopact-core" }
+repopact-analysis = { path = "crates/repopact-analysis" }
+repopact-graph = { path = "crates/repopact-graph" }
+repopact-mutation = { path = "crates/repopact-mutation" }
+repopact-repository = { path = "crates/repopact-repository" }
+repopact-schema = { path = "crates/repopact-schema" }
+repopact-types = { path = "crates/repopact-types" }
+repopact-protocol = { path = "crates/repopact-protocol" }
+repopact-validation = { path = "crates/repopact-validation" }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = { version = "1.0", features = ["preserve_order"] }
+sha2 = "0.10"
+libc = "0.2"
+# Deterministic TOML metadata extraction (WI063 metadata/operational-
+# topology checkpoint, Decision 0048) -- Cargo.toml/pyproject.toml.
+toml = { version = "0.8", default-features = false, features = ["parse"] }
+# Exact pins per Decision 0045: same-major schema compatibility depends on
+# stable, reproducible parser behavior, not a floating grammar version
+# that could shift AST shape between builds.
+tree-sitter = "=0.27.0"
+tree-sitter-rust = "=0.24.2"
+tree-sitter-python = "=0.25.0"
+tree-sitter-javascript = "=0.25.0"
+tree-sitter-typescript = "=0.23.2"

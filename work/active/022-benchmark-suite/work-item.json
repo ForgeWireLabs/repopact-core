@@ -1,0 +1,84 @@
+{
+  "$schema": "../../../repopact/schemas/work-item.schema.json",
+  "id": "022",
+  "title": "Comparative benchmark suite — value, efficiency, drift, security (S2-S6 / H9-H13)",
+  "status": "active",
+  "owner_scope": "tooling",
+  "affected_scopes": [
+    "tooling"
+  ],
+  "depends_on": [
+    "020"
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "AC-1",
+      "text": "Implement the shared multi-arm benchmark harness covering S2 (recovery + efficiency), S3 (multi-agent coordination), S4 (context-provisioning token economy incl. C0-C9 and the C2+C3 hybrid), S5 (drift detection/staleness), and S6 (security enforcement + injection resistance) per research/benchmark-protocol.md. Task sets and per-task expected outcomes are pre-registered before runs (threats T5, T6, T8).",
+      "state": "satisfied",
+      "evidence": [
+        "20260624-pactbench-harness-selftest",
+        "20260726-semantic-ledger-freshness-reconciliation",
+        "20260913-wi022-deterministic-benchmark-tranche",
+        "20260913-wi022-s5-package-boundary-reconciliation",
+        "20260913-wi022-s2-deterministic-materialization"
+      ]
+    },
+    {
+      "id": "AC-2",
+      "text": "Instrumentation: token/cost reporting (per-request input/output tokens, context-vs-task split, requests-per-task, USD, cache-adjusted tokens); drift reporting (detection rate, time-to-detection, silent-staleness, reconciliation cost); security reporting (confusion matrix + injection-followed/detection rates).",
+      "state": "satisfied",
+      "evidence": [
+        "20260624-pactbench-harness-selftest",
+        "20260726-semantic-ledger-freshness-reconciliation",
+        "20260913-wi022-deterministic-benchmark-tranche",
+        "20260913-wi022-s5-package-boundary-reconciliation",
+        "20260913-wi022-ac5-realrunner-smoke",
+        "20260913-wi022-telemetry-v2-checkpoint",
+        "20260913-wi022-ac5-v2-selection",
+        "20260914-wi022-ac5-realrunner-smoke-v2"
+      ]
+    },
+    {
+      "id": "AC-3",
+      "text": "Results across >=2 model families, reproducible from the published task sets, with the Pareto frontier (cost vs success) and scaling-curve figures. Disconfirming results recorded in findings.md with equal weight; feeds paper section 6.",
+      "state": "pending",
+      "evidence": [
+        "20260726-semantic-ledger-freshness-reconciliation",
+        "20260913-wi022-deterministic-benchmark-tranche",
+        "20260914-wi022-ac3-execution-manifest-v2",
+        "20260914-wi022-ac3-budget-checkpoint-v2",
+        "20260914-wi022-ac3-admission-probes",
+        "20260914-wi022-ac3-admission-v2",
+        "20260914-wi022-ac3-windows-workspace-contract",
+        "20260914-wi022-ac3-admission-v3",
+        "20260914-wi022-ac3-whole-program-preflight",
+        "20260914-wi022-ac3-resource-deferred",
+        "20260915-wi022-ac3-sonnet-admission-evidence-v1",
+        "20260915-wi022-ac3-execution-manifest-v3",
+        "20260915-wi022-ac3-whole-program-preflight-v3",
+        "20260915-wi022-ac3-budget-checkpoint-v3"
+      ]
+    },
+    {
+      "id": "AC-4",
+      "text": "Before any live comparative result is interpreted, a dated protocol amendment freezes runs per task and arm, seed and temperature policy, model/version pinning, rubric version, paired analysis, effect sizes and confidence intervals, multiple-comparison handling, missing-run treatment, and stopping rules.",
+      "state": "satisfied",
+      "evidence": [
+        "20260726-semantic-ledger-freshness-reconciliation",
+        "20260913-wi022-deterministic-benchmark-tranche"
+      ]
+    },
+    {
+      "id": "AC-5",
+      "text": "RealRunner completes a documented smoke run on at least three pre-registered tasks with one real model before full studies begin; raw command, provider/model version, prompts, outputs, token/cost telemetry, grader results, and failures are captured, and no MockRunner output is presented as empirical evidence.",
+      "state": "satisfied",
+      "evidence": [
+        "20260726-semantic-ledger-freshness-reconciliation",
+        "20260913-wi022-ac5-realrunner-smoke",
+        "20260914-wi022-ac5-realrunner-smoke-v2"
+      ]
+    }
+  ],
+  "created": "2026-06-24",
+  "updated": "2026-09-15"
+}

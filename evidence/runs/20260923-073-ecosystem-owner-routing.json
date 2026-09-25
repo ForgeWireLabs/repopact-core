@@ -1,0 +1,92 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20260923-073-ecosystem-owner-routing",
+  "timestamp": "2026-09-24T03:52:20Z",
+  "work_item": "073",
+  "result": "partial",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "gh auth status; gh repo list ForgeWireLabs --limit 200 --json nameWithOwner,isPrivate,url; gh repo list JeremyShows --limit 200 --json nameWithOwner,isPrivate,url",
+      "exit_code": 0,
+      "summary": "GitHub CLI is authenticated as DigitalHallucinations. The visible ForgeWireLabs repositories are forgewire, forgewire-fabric, ForgeWireLabs profile, ForgeWire-Overview, and anvil; the account-visible JeremyShows list includes RepoPact, RepoPact Proving Ground, ForgeLink, SkillForge Academy, SCOUT-2, RootWise, Ideas, and Moto One Hyper."
+    },
+    {
+      "command": "gh api repos/ForgeWireLabs/{repository} for the audited owner candidates",
+      "exit_code": 0,
+      "summary": "GitHub API canonical full_name results confirm ForgeLink, SkillForge Academy, SCOUT-2, RootWise, Ideas, Moto One Hyper, RepoPact, and RepoPact Proving Ground are under JeremyShows; the five listed organization repositories are under ForgeWireLabs. ForgeWireLabs/SCOUT-3 returns HTTP 404 and has no verified replacement."
+    },
+    {
+      "command": "gh search code 'org:ForgeWireLabs JeremyShows' --limit 100 --json repository,path,url",
+      "exit_code": 0,
+      "summary": "No indexed old-personal-owner references were found in accessible ForgeWireLabs repositories."
+    },
+    {
+      "command": "gh search code in org:ForgeWireLabs for the prior-owner paths of ForgeLink, SkillForge Academy, SCOUT-2, RootWise, Ideas, Moto One Hyper, and RepoPact Proving Ground",
+      "exit_code": 0,
+      "summary": "All seven searches returned no indexed references in the accessible organization repositories."
+    },
+    {
+      "command": "git remote set-url origin <GitHub API canonical URL> in identified local checkouts; verify with git remote -v",
+      "exit_code": 0,
+      "summary": "Seven stale local origins were corrected: ForgeLink, SkillForge Academy, SCOUT-2, RootWise, Ideas, Moto One Hyper, and RepoPact Proving Ground. ForgeWireLabs-owned checkout remotes remain direct and correct. SCOUT-3 was not changed."
+    },
+    {
+      "command": "rg -n --hidden <verified owner-mapping pattern> C:/Projects",
+      "exit_code": 0,
+      "summary": "Current-facing stale links in ForgeLink, SkillForge Academy, the ForgeWireLabs profile, Moto One Hyper current state/generator, and RepoPact adopter/work-item/runbook records were corrected. Remaining old-owner matches are dated evidence, historical records, and the pre-transfer June Moto integration-plan snapshot."
+    },
+    {
+      "command": "python scripts/validate_repo.py; python -m unittest discover -s tests -v",
+      "exit_code": 0,
+      "summary": "Moto One Hyper governance validation passed; all 150 tests passed."
+    },
+    {
+      "command": "python -m unittest discover -s tests -p test_fleet_verify.py -v in each of repopact-pypi-3.1.0, repopact-release-3.1.1, and repopact-wi050-windows-proof",
+      "exit_code": 0,
+      "summary": "All 11 focused fleet-verification tests passed in each of the three RepoPact checkouts."
+    },
+    {
+      "command": ".venv/Scripts/python.exe -m unittest discover -s tests -v",
+      "exit_code": 1,
+      "summary": "373 tests ran; 11 failed and 3 skipped. Failures include the already-expired research freshness contract (2026-09-18) and generated-dashboard staleness. The dashboard was regenerated afterward; research freshness remains expired and was not fabricated or advanced."
+    },
+    {
+      "command": ".venv/Scripts/repopact.exe dashboard; .venv/Scripts/repopact.exe validate",
+      "exit_code": 1,
+      "summary": "Dashboard regenerated successfully. Repository validation reports only the research freshness expiration dated 2026-09-18."
+    }
+  ],
+  "artifacts": [
+    "governance/adopters.json",
+    "audits/reports/dashboard.md",
+    "work/completed/073-ecosystem-repository-owner-routing/README.md",
+    "work/completed/073-ecosystem-repository-owner-routing/work-item.json",
+    "C:\\local-path-redacted",
+    "C:\\local-path-redacted",
+    "C:\\local-path-redacted",
+    "C:\\local-path-redacted",
+    "C:\\local-path-redacted",
+    "C:\\local-path-redacted",
+    "C:\\local-path-redacted",
+    "C:\\local-path-redacted",
+    "C:\\local-path-redacted",
+    "C:\\local-path-redacted",
+    "evidence/runs/20260923-073-ecosystem-owner-routing.json"
+  ],
+  "environment": {
+    "os": "Windows",
+    "repository": "C:\\local-path-redacted",
+    "github_cli_account": "DigitalHallucinations",
+    "org_owned_repositories_verified": [
+      "ForgeWireLabs/forgewire",
+      "ForgeWireLabs/forgewire-fabric",
+      "ForgeWireLabs/ForgeWireLabs",
+      "ForgeWireLabs/ForgeWire-Overview",
+      "ForgeWireLabs/anvil"
+    ],
+    "excluded_repository": "SCOUT-3 (operator disposition: out of scope; checkout and remote left untouched)",
+    "external_writes": "none",
+    "hosted_ci_triggered": false
+  }
+}

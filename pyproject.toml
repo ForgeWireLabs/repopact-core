@@ -1,0 +1,40 @@
+[build-system]
+requires = ["maturin>=1.15,<2"]
+build-backend = "maturin"
+
+[project]
+name = "repopact"
+# Maturin's bin backend requires a concrete PEP 440 project version. Keep this
+# synchronized with VERSION/RELEASE_LABEL; the engine handshake and release
+# verifier fail closed if the two release identities drift.
+version = "3.1.3.dev1"
+description = "RepoPact Core: repository-native governance, evidence-gated work, and canonical validation."
+readme = "README.md"
+requires-python = ">=3.11"
+license = "Apache-2.0"
+dependencies = ["jsonschema>=4.20"]
+
+[project.optional-dependencies]
+enforcement = ["cryptography>=43"]
+dev = ["maturin>=1.15,<2", "pytest>=8", "twine>=6", "cryptography>=43"]
+
+[project.urls]
+Homepage = "https://github.com/ForgeWireLabs/repopact-core"
+Repository = "https://github.com/ForgeWireLabs/repopact-core"
+
+[tool.maturin]
+bindings = "bin"
+manifest-path = "rust/apps/repopact-engine/Cargo.toml"
+python-source = "."
+python-packages = ["repopact"]
+targets = [
+    { name = "repopact-engine", kind = "bin" },
+    { name = "repopact", kind = "bin" },
+]
+include = [
+    { path = "repopact/schemas/*.json", format = ["sdist", "wheel"] },
+    { path = "repopact/templates/*", format = ["sdist", "wheel"] },
+    { path = "VERSION", format = ["sdist"] },
+    { path = "RELEASE_LABEL", format = ["sdist"] },
+    { path = "LICENSE", format = ["sdist"] },
+]

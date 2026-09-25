@@ -1,0 +1,43 @@
+{
+  "$schema": "../../../repopact/schemas/work-item.schema.json",
+  "id": "072",
+  "title": "Keep RepoPact on the personal GitHub repository",
+  "status": "completed",
+  "owner_scope": "governance",
+  "affected_scopes": ["governance", "docs", "tooling", "evidence", "work"],
+  "depends_on": [],
+  "provenance": "concrete",
+  "preflight": {
+    "created_before_work_started": true,
+    "created_at": "2026-09-23T21:53:30Z",
+    "note": "Recorded before implementation to direct current RepoPact identity references to its personal GitHub repository while preserving historical records and the separate Proving Ground repository."
+  },
+  "acceptance_criteria": [
+    {
+      "id": "AC-1",
+      "text": "The local origin fetch and push URLs directly name JeremyShows/repopact.",
+      "state": "satisfied",
+      "evidence": ["20260923-072-personal-repository-identity"]
+    },
+    {
+      "id": "AC-2",
+      "text": "Current RepoPact and RepoPact Proving Ground links point directly to their current personal repositories.",
+      "state": "satisfied",
+      "evidence": ["20260923-072-personal-repository-identity-followup"]
+    },
+    {
+      "id": "AC-3",
+      "text": "Historical records remain unchanged, and the active work item is closed with linked validation evidence.",
+      "state": "satisfied",
+      "evidence": ["20260923-072-personal-repository-identity"]
+    }
+  ],
+  "documentation_impact": {
+    "state": "affected",
+    "surfaces": ["operations", "contributor_workflow", "configuration"],
+    "evidence": ["20260923-072-personal-repository-identity", "20260923-072-personal-repository-identity-followup"]
+  },
+  "created": "2026-09-23",
+  "updated": "2026-09-23",
+  "notes": "Initially completed after correcting RepoPact's personal owner references. Reopened on 2026-09-23 after a direct GitHub API audit verified that the linked RepoPact Proving Ground repository is also owned by JeremyShows, not ForgeWireLabs. The original evidence run is retained as the earlier snapshot; the follow-up records direct owner verification and current pointer updates. Repository validation reports the unrelated research freshness expiry dated 2026-09-18."
+}
