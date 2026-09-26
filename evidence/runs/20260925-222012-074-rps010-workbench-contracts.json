@@ -1,0 +1,43 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20260925-222012-074-rps010-workbench-contracts",
+  "timestamp": "2026-09-25T22:20:12Z",
+  "work_item": "074",
+  "result": "passed",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "cargo test --workspace --all-targets --locked --jobs 2 --quiet (Windows, Workbench commit 94ac6fd6f5c4500d82a6dc09186fe8c13bd93cef)",
+      "exit_code": 0,
+      "summary": "245 passed, 10 ignored, 0 failed across desktop, desktop API, generated types, verification parity, mobile acquisition, mobile SAF, GitHub provider and remote provider/credential crates."
+    },
+    {
+      "command": "cargo test --workspace --all-targets --locked --jobs 2 --quiet (Debian WSL, isolated HOME/CARGO_HOME/target and disposable Secret Service; Workbench commit 94ac6fd6f5c4500d82a6dc09186fe8c13bd93cef)",
+      "exit_code": 0,
+      "summary": "245 passed, 10 ignored, 0 failed. Isolated Secret Service synthetic write/read/delete passed; no production credentials or user keyring were used."
+    },
+    {
+      "command": "npm ci --no-audit --no-fund; npm run test -- --run; npm run typecheck; npm run types:check; npm run build (Windows)",
+      "exit_code": 0,
+      "summary": "122 packages installed; frontend 33 tests across 8 files passed; typecheck and generated types checks passed; Vite production build passed. One nonfatal canvas warning was emitted."
+    },
+    {
+      "command": "cargo build -p repopact-desktop --locked --jobs 2 (Windows)",
+      "exit_code": 0,
+      "summary": "Desktop Rust application build passed."
+    }
+  ],
+  "artifacts": [
+    "Workbench commit 94ac6fd6f5c4500d82a6dc09186fe8c13bd93cef: https://github.com/ForgeWireLabs/repopact-workbench/commit/94ac6fd6f5c4500d82a6dc09186fe8c13bd93cef",
+    "Workbench evidence: evidence/WI074-RPS-010-2026-09-25.json",
+    "Workbench source: https://github.com/ForgeWireLabs/repopact-workbench/tree/94ac6fd6f5c4500d82a6dc09186fe8c13bd93cef"
+  ],
+  "environment": {
+    "workbench_commit": "94ac6fd6f5c4500d82a6dc09186fe8c13bd93cef",
+    "core_pin": "e15fbcfa4a29e1e6df7339bfed56c15c19185f9a",
+    "windows": "Windows x64; isolated APPDATA/LOCALAPPDATA/TEMP for app launch",
+    "linux": "Debian WSL; isolated HOME, XDG, Cargo home and target; disposable GNOME Keyring Secret Service",
+    "scope": "Rust desktop APIs, repository/session and watcher contracts, mutation and graph contract suites, Tauri command/generated frontend type checks, frontend tests and production build.",
+    "limitations": "Windows UI capture failed with COM error SetIsBorderRequired failed: No such interface supported (0x80004002); desktop interactive repository navigation/core-backed UI operation is unproven. Android emulator could not create its required 7.37 GB userdata partition because the task AVD volume had insufficient free space; no Android runtime or KeyStore test passed. These limitations remain open under RPS-009 and RPS-013."
+  }
+}
