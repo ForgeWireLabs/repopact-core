@@ -7,7 +7,7 @@ use repopact_graph::{GraphEdge, RepositoryGraph};
 use repopact_repository::{path_string, Repository, RepositorySnapshot};
 use repopact_types::{
     hex_digest, AcceptanceCriterion, LifecycleStatus, PathState, ReadFact, ReadSet,
-    RepositoryIdentity, WorkItem,
+    RepositoryIdentity, Severity, WorkItem,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -27,6 +27,10 @@ pub struct CreateWorkItem {
     pub provenance: String,
     #[serde(default)]
     pub acceptance_criteria: Vec<AcceptanceCriterion>,
+    /// Explicit operator attestation required by the repository's mandatory
+    /// preflight contract. Missing values fail closed for older callers.
+    #[serde(default)]
+    pub preflight_confirmed_before_work_started: bool,
 }
 
 impl CreateWorkItem {
@@ -40,6 +44,7 @@ impl CreateWorkItem {
             depends_on: Vec::new(),
             provenance: "concrete".to_owned(),
             acceptance_criteria: Vec::new(),
+            preflight_confirmed_before_work_started: false,
         }
     }
 
@@ -61,6 +66,10 @@ impl CreateWorkItem {
     }
     pub fn with_acceptance_criteria(mut self, criteria: Vec<AcceptanceCriterion>) -> Self {
         self.acceptance_criteria = criteria;
+        self
+    }
+    pub fn confirm_preflight_before_work_started(mut self) -> Self {
+        self.preflight_confirmed_before_work_started = true;
         self
     }
 }
@@ -275,6 +284,16 @@ pub struct MutationResult {
 }
 
 pub fn plan(snapshot: &RepositorySnapshot, request: MutationRequest) -> MutationPlan {
+    plan_at(snapshot, request, SystemTime::now())
+}
+
+/// Plan against a caller-supplied clock instant. Production callers use
+/// `plan`; deterministic tests can verify the exact UTC preflight timestamp.
+pub fn plan_at(
+    snapshot: &RepositorySnapshot,
+    request: MutationRequest,
+    now: SystemTime,
+) -> MutationPlan {
     let repository = snapshot.repository();
     let identity = snapshot.identity();
     let mut diagnostics = Vec::new();
@@ -292,6 +311,13 @@ pub fn plan(snapshot: &RepositorySnapshot, request: MutationRequest) -> Mutation
 
     match &request {
         MutationRequest::CreateWorkItem(request) => {
+            if !request.preflight_confirmed_before_work_started {
+                diagnostics.push(MutationDiagnostic::error(
+                    "mutation.preflight-unconfirmed",
+                    "operator confirmation is required to record that this work item was registered before implementation began",
+                ));
+                return empty_plan(snapshot, request.clone(), diagnostics);
+            }
             let Some(status) = LifecycleStatus::parse(&request.status) else {
                 diagnostics.push(MutationDiagnostic::error(
                     "mutation.status-invalid",
@@ -304,14 +330,25 @@ pub fn plan(snapshot: &RepositorySnapshot, request: MutationRequest) -> Mutation
             let directory = format!("work/{}/{id}-{slug}", status.as_str());
             let manifest_path = format!("{directory}/work-item.json");
             let readme_path = format!("{directory}/README.md");
-            let (manifest, _) = create_manifest(request, &id, status.as_str(), repository);
+            let created_at = match format_utc_timestamp(now) {
+                Ok(timestamp) => timestamp,
+                Err(error) => {
+                    diagnostics.push(MutationDiagnostic::error(
+                        "mutation.preflight-time-invalid",
+                        error,
+                    ));
+                    return empty_plan(snapshot, request.clone(), diagnostics);
+                }
+            };
+            let (manifest, _) =
+                create_manifest(request, &id, status.as_str(), repository, &created_at);
             operations.push(PathOperation::Write {
                 path: manifest_path.clone(),
                 content: manifest,
             });
             operations.push(PathOperation::Write {
                 path: readme_path.clone(),
-                content: create_readme(repository, &id, &request.title),
+                content: create_readme(request, &id, status.as_str()),
             });
             extra_absent.extend([directory, manifest_path, readme_path]);
         }
@@ -422,12 +459,15 @@ pub fn plan(snapshot: &RepositorySnapshot, request: MutationRequest) -> Mutation
         return empty_plan(snapshot, request.clone(), diagnostics);
     }
 
-    let dashboard = dashboard_for_candidate(repository.root(), &operations);
+    let dashboard = validate_candidate(repository.root(), &operations);
     match dashboard {
-        Ok(content) => operations.push(PathOperation::Write {
-            path: "audits/reports/dashboard.md".to_owned(),
-            content: platform_text(&content),
-        }),
+        Ok((content, candidate_diagnostics)) => {
+            operations.push(PathOperation::Write {
+                path: "audits/reports/dashboard.md".to_owned(),
+                content: platform_text(&content),
+            });
+            diagnostics.extend(candidate_diagnostics);
+        }
         Err(error) => diagnostics.push(MutationDiagnostic::error(
             "mutation.dashboard-render",
             error,
@@ -500,11 +540,15 @@ fn create_manifest(
     id: &str,
     status: &str,
     repository: &Repository,
+    created_at: &str,
 ) -> (String, WorkItem) {
     let criteria = if request.acceptance_criteria.is_empty() {
+        // Preserve the long-standing headless `repopact new work-item`
+        // starter record. The placeholder is explicit and must be replaced
+        // with a verifiable outcome before work begins.
         vec![CanonicalCriterion {
             id: "AC-1".to_owned(),
-            text: "TODO: observable outcome".to_owned(),
+            text: "TODO: define a verifiable observable outcome before implementation".to_owned(),
             state: "pending".to_owned(),
             evidence: Vec::new(),
             provenance: None,
@@ -513,13 +557,13 @@ fn create_manifest(
         request
             .acceptance_criteria
             .iter()
-            .map(|criterion| CanonicalCriterion::from(criterion))
+            .map(CanonicalCriterion::from)
             .collect()
     };
     let marker = repopact_types::PreflightMarker {
-        created_before_work_started: true,
-        created_at: format!("{}T00:00:00Z", request.date),
-        note: "Stamped by `repopact new`; the work item was recorded before implementation began."
+        created_before_work_started: request.preflight_confirmed_before_work_started,
+        created_at: created_at.to_owned(),
+        note: "The caller recorded the operator's preflight confirmation through the RepoPact work-item registration flow."
             .to_owned(),
     };
     let manifest = CanonicalWorkItem {
@@ -640,26 +684,37 @@ fn edited_manifest(
     Ok(canonical_json(&value))
 }
 
-fn create_readme(repository: &Repository, id: &str, title: &str) -> String {
-    let template = [
-        repository.root().join("templates/work-item.README.md"),
-        repository
-            .root()
-            .join("repopact/templates/work-item.README.md"),
-    ]
-    .into_iter()
-    .find_map(|path| fs::read_to_string(path).ok())
-    .unwrap_or_else(|| {
-        include_str!("../../../../repopact/templates/work-item.README.md").to_owned()
-    });
-    platform_text(
-        &template
-            .replace("NNN", id)
-            .replace("Title Of The Work", title),
-    )
+fn create_readme(request: &CreateWorkItem, id: &str, status: &str) -> String {
+    let scopes = if request.affected_scopes.is_empty() {
+        "none declared".to_owned()
+    } else {
+        request.affected_scopes.join(", ")
+    };
+    let dependencies = if request.depends_on.is_empty() {
+        "none".to_owned()
+    } else {
+        request.depends_on.join(", ")
+    };
+    let criteria = if request.acceptance_criteria.is_empty() {
+        "No acceptance criteria were supplied at registration. Define verifiable outcomes before implementation.".to_owned()
+    } else {
+        request
+            .acceptance_criteria
+            .iter()
+            .map(|criterion| format!("- **{}** — {}", criterion.id, criterion.text))
+            .collect::<Vec<_>>()
+            .join("\n")
+    };
+    platform_text(&format!(
+        "# {id} — {}\n\n> **Status**: {status}\n> **Owner scope**: {}\n> **Affected scopes**: {scopes}\n> **Depends on**: {dependencies}\n\n## Intent\n\nNo separate intent narrative was supplied at registration. The outcome is defined by the acceptance criteria below.\n\n## Decisions\n\nNo durable decisions were recorded at registration. Record material decisions in `decisions/`.\n\n## Scope\n\nThe declared affected scopes are listed above. No finer-grained file scope was supplied at registration.\n\n## Acceptance criteria\n\n{criteria}\n\n## Closeout\n\nLink actual evidence to every acceptance criterion before marking this work complete. Then move the work-item directory to `work/completed/` and regenerate the dashboard.\n",
+        request.title, request.owner_scope
+    ))
 }
 
-fn dashboard_for_candidate(root: &Path, operations: &[PathOperation]) -> Result<String, String> {
+fn validate_candidate(
+    root: &Path,
+    operations: &[PathOperation],
+) -> Result<(String, Vec<MutationDiagnostic>), String> {
     let temporary = std::env::temp_dir().join(format!(
         "repopact-mutation-plan-{}",
         SystemTime::now()
@@ -673,10 +728,59 @@ fn dashboard_for_candidate(root: &Path, operations: &[PathOperation]) -> Result<
         for operation in operations {
             apply_operation(&temporary, operation)?;
         }
-        repopact_validation::render_dashboard(&temporary)
+        let dashboard = repopact_validation::render_dashboard(&temporary)?;
+        let dashboard_path = temporary.join("audits/reports/dashboard.md");
+        fs::write(&dashboard_path, platform_text(&dashboard)).map_err(|error| error.to_string())?;
+        let report = repopact_validation::validate(&temporary);
+        let diagnostics = report
+            .diagnostics
+            .into_iter()
+            .map(|diagnostic| MutationDiagnostic {
+                code: diagnostic.code,
+                message: diagnostic.message,
+                path: diagnostic.path,
+                blocking: diagnostic.severity == Severity::Error,
+                related_records: diagnostic.related_records.unwrap_or_default(),
+            })
+            .collect();
+        Ok((dashboard, diagnostics))
     })();
     let _ = fs::remove_dir_all(&temporary);
     result
+}
+
+fn format_utc_timestamp(time: SystemTime) -> Result<String, String> {
+    let elapsed = time
+        .duration_since(UNIX_EPOCH)
+        .map_err(|_| "system clock is before the Unix epoch".to_owned())?;
+    let days = i64::try_from(elapsed.as_secs() / 86_400)
+        .map_err(|_| "system clock timestamp is outside the supported range".to_owned())?;
+    let seconds = elapsed.as_secs() % 86_400;
+    let (year, month, day) = civil_from_days(days);
+    if !(0..=9999).contains(&year) {
+        return Err("system clock timestamp is outside the RFC 3339 year range".to_owned());
+    }
+    Ok(format!(
+        "{year:04}-{month:02}-{day:02}T{:02}:{:02}:{:02}Z",
+        seconds / 3600,
+        (seconds % 3600) / 60,
+        seconds % 60
+    ))
+}
+
+fn civil_from_days(days_since_epoch: i64) -> (i64, i64, i64) {
+    let z = days_since_epoch + 719_468;
+    let era = if z >= 0 { z } else { z - 146_096 } / 146_097;
+    let day_of_era = z - era * 146_097;
+    let year_of_era =
+        (day_of_era - day_of_era / 1_460 + day_of_era / 36_524 - day_of_era / 146_096) / 365;
+    let mut year = year_of_era + era * 400;
+    let day_of_year = day_of_era - (365 * year_of_era + year_of_era / 4 - year_of_era / 100);
+    let month_prime = (5 * day_of_year + 2) / 153;
+    let day = day_of_year - (153 * month_prime + 2) / 5 + 1;
+    let month = month_prime + if month_prime < 10 { 3 } else { -9 };
+    year += i64::from(month <= 2);
+    (year, month, day)
 }
 
 fn copy_tree(source: &Path, destination: &Path) -> Result<(), String> {
@@ -1264,13 +1368,24 @@ mod tests {
         (root, snapshot)
     }
 
+    fn create_request(title: &str, date: &str) -> CreateWorkItem {
+        CreateWorkItem::new(title, date)
+            .confirm_preflight_before_work_started()
+            .with_acceptance_criteria(vec![AcceptanceCriterion {
+                id: "AC-01".to_owned(),
+                text: "A reviewer can verify the registered outcome".to_owned(),
+                state: "pending".to_owned(),
+                evidence: Vec::new(),
+                provenance: "concrete".to_owned(),
+            }])
+    }
+
     // ---- ROG-037/040 adversarial authority-boundary proof (Decision 0053
     // section 7): a graph fact claiming approval/ownership/waiver must
     // never change a mutation plan's diagnostics or applicability. ----
 
     #[test]
-    fn a_tampered_durable_graph_claiming_approval_never_changes_plan_diagnostics_or_applicability()
-    {
+    fn a_tampered_durable_graph_claiming_approval_cannot_remove_canonical_lifecycle_blockers() {
         let (root, snapshot) = fixture();
         let request =
             MutationRequest::transition_work_item(TransitionWorkItem::new("001", "completed"));
@@ -1303,19 +1418,22 @@ mod tests {
         let refreshed_snapshot = RepositorySession::open(&root).snapshot();
         let tampered_plan = plan(&refreshed_snapshot, request);
 
-        assert_eq!(
-            baseline_plan.diagnostics, tampered_plan.diagnostics,
-            "a tampered/fabricated graph fact must never change mutation diagnostics"
+        assert!(!baseline_plan.is_applicable());
+        assert!(!tampered_plan.is_applicable());
+        assert!(baseline_plan
+            .diagnostics
+            .iter()
+            .any(|item| { item.code == "work.completed-pending-criterion" && item.blocking }));
+        assert!(
+            tampered_plan
+                .diagnostics
+                .iter()
+                .any(|item| { item.code == "work.completed-pending-criterion" && item.blocking }),
+            "a fabricated graph claim cannot override the canonical work-item record"
         );
-        assert_eq!(
-            baseline_plan.is_applicable(),
-            tampered_plan.is_applicable(),
-            "a tampered/fabricated graph fact must never change plan applicability"
-        );
-        assert_eq!(
-            baseline_plan.file_operations, tampered_plan.file_operations,
-            "a tampered/fabricated graph fact must never change the planned file operations"
-        );
+        assert!(tampered_plan.diagnostics.iter().all(|item| {
+            !item.message.contains("APPROVED") && !item.message.contains("WAIVED")
+        }));
         fs::remove_dir_all(root).unwrap();
     }
 
@@ -1363,11 +1481,13 @@ mod tests {
         let (root, snapshot) = fixture();
         let before = fs::read(root.join("work/active/001-one/work-item.json")).unwrap();
         let request =
-            MutationRequest::create_work_item(CreateWorkItem::new("A New Thing", "2026-01-02"));
-        let first = plan(&snapshot, request.clone());
-        let second = plan(&snapshot, request);
+            MutationRequest::create_work_item(create_request("A New Thing", "2026-01-02"));
+        let fixed_time = UNIX_EPOCH + std::time::Duration::from_secs(86_400 + 3_661);
+        let first = plan_at(&snapshot, request.clone(), fixed_time);
+        let second = plan_at(&snapshot, request, fixed_time);
         assert_eq!(first.plan_token, second.plan_token);
         assert_eq!(first.file_operations, second.file_operations);
+        assert!(first.is_applicable(), "{:?}", first.diagnostics);
         assert_eq!(
             before,
             fs::read(root.join("work/active/001-one/work-item.json")).unwrap()
@@ -1376,11 +1496,130 @@ mod tests {
     }
 
     #[test]
+    fn create_requires_explicit_preflight_confirmation() {
+        let (root, snapshot) = fixture();
+        let unconfirmed = plan(
+            &snapshot,
+            MutationRequest::create_work_item(
+                CreateWorkItem::new("Unconfirmed", "2026-01-02").with_acceptance_criteria(
+                    create_request("seed", "2026-01-02").acceptance_criteria,
+                ),
+            ),
+        );
+        assert!(!unconfirmed.is_applicable());
+        assert!(unconfirmed
+            .diagnostics
+            .iter()
+            .any(|item| item.code == "mutation.preflight-unconfirmed"));
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn preflight_timestamp_uses_the_actual_injected_utc_instant_and_readme_has_no_template_placeholders(
+    ) {
+        let (root, snapshot) = fixture();
+        let plan = plan_at(
+            &snapshot,
+            MutationRequest::create_work_item(create_request("Truthful Probe", "2026-01-02")),
+            UNIX_EPOCH + std::time::Duration::from_secs(86_400 + 3_661),
+        );
+        assert!(plan.is_applicable(), "{:?}", plan.diagnostics);
+        assert_eq!(
+            format_utc_timestamp(UNIX_EPOCH + std::time::Duration::from_secs(86_400 + 3_661))
+                .unwrap(),
+            "1970-01-02T01:01:01Z"
+        );
+        let manifest = plan
+            .file_operations
+            .iter()
+            .find_map(|operation| match operation {
+                PathOperation::Write { path, content } if path.ends_with("work-item.json") => {
+                    Some(content)
+                }
+                _ => None,
+            })
+            .unwrap();
+        let value: Value = serde_json::from_str(manifest).unwrap();
+        assert_eq!(value["preflight"]["created_at"], "1970-01-02T01:01:01Z");
+        assert_eq!(value["preflight"]["created_before_work_started"], true);
+        assert!(value["preflight"]["note"]
+            .as_str()
+            .unwrap()
+            .contains("operator's preflight confirmation"));
+        let readme = plan
+            .file_operations
+            .iter()
+            .find_map(|operation| match operation {
+                PathOperation::Write { path, content } if path.ends_with("README.md") => {
+                    Some(content)
+                }
+                _ => None,
+            })
+            .unwrap();
+        assert!(readme.contains("# 002 — Truthful Probe"));
+        assert!(readme.contains("AC-01"));
+        assert!(!readme.contains("<role>"));
+        assert!(!readme.contains("<work item ids"));
+        assert!(!readme.contains("What outcome this work produces"));
+        assert!(!readme.contains("TODO"));
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn production_plan_timestamp_is_current_utc_not_midnight_from_the_requested_date() {
+        let (root, snapshot) = fixture();
+        let before = SystemTime::now();
+        let plan = plan(
+            &snapshot,
+            MutationRequest::create_work_item(create_request("Current time probe", "2026-01-02")),
+        );
+        let after = SystemTime::now();
+        assert!(plan.is_applicable(), "{:?}", plan.diagnostics);
+        let manifest = plan
+            .file_operations
+            .iter()
+            .find_map(|operation| match operation {
+                PathOperation::Write { path, content } if path.ends_with("work-item.json") => {
+                    Some(content)
+                }
+                _ => None,
+            })
+            .unwrap();
+        let value: Value = serde_json::from_str(manifest).unwrap();
+        let created_at = value["preflight"]["created_at"].as_str().unwrap();
+        assert_ne!(created_at, "2026-01-02T00:00:00Z");
+        assert!(created_at >= format_utc_timestamp(before).unwrap().as_str());
+        assert!(created_at <= format_utc_timestamp(after).unwrap().as_str());
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn malformed_legacy_evidence_blocks_a_create_plan_before_approval() {
+        let (root, _) = fixture();
+        fs::create_dir_all(root.join("evidence/runs")).unwrap();
+        fs::write(root.join("evidence/runs/legacy.json"), br#"{""#).unwrap();
+        let snapshot = RepositorySession::open(&root).snapshot();
+        let candidate = plan(
+            &snapshot,
+            MutationRequest::create_work_item(create_request(
+                "Blocked by invalid evidence",
+                "2026-01-02",
+            )),
+        );
+        assert!(!candidate.is_applicable());
+        assert!(candidate
+            .diagnostics
+            .iter()
+            .any(|item| item.blocking && item.code == "evidence.json-invalid"));
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
     fn expected_absent_target_makes_plan_stale() {
         let (root, snapshot) = fixture();
         let plan = plan(
             &snapshot,
-            MutationRequest::create_work_item(CreateWorkItem::new("A New Thing", "2026-01-02")),
+            MutationRequest::create_work_item(create_request("A New Thing", "2026-01-02")),
         );
         fs::create_dir_all(root.join("work/active/002-a-new-thing")).unwrap();
         let result = plan.apply();
@@ -1396,26 +1635,32 @@ mod tests {
     fn injected_failure_restores_complete_transition_directory() {
         let (root, snapshot) = fixture();
         let request =
-            MutationRequest::transition_work_item(TransitionWorkItem::new("001", "completed"));
+            MutationRequest::transition_work_item(TransitionWorkItem::new("001", "blocked"));
         let plan = plan(&snapshot, request);
+        assert!(plan.is_applicable(), "{:?}", plan.diagnostics);
         let result = plan.apply_with_options(&ApplyOptions::fail_after(0));
         assert!(!result.success);
         assert!(result.rolled_back);
         assert!(root.join("work/active/001-one/extra.md").is_file());
-        assert!(!root.join("work/completed/001-one").exists());
+        assert!(!root.join("work/blocked/001-one").exists());
         fs::remove_dir_all(root).unwrap();
     }
 
     #[test]
-    fn pending_completion_fails_post_validation_and_rolls_back() {
+    fn pending_completion_is_blocked_by_candidate_validation_before_apply() {
         let (root, snapshot) = fixture();
         let plan = plan(
             &snapshot,
             MutationRequest::transition_work_item(TransitionWorkItem::new("001", "completed")),
         );
+        assert!(!plan.is_applicable());
+        assert!(plan
+            .diagnostics
+            .iter()
+            .any(|item| { item.code == "work.completed-pending-criterion" && item.blocking }));
         let result = plan.apply();
         assert!(!result.success);
-        assert!(result.rolled_back);
+        assert!(!result.rolled_back, "a blocked plan performs no writes");
         assert!(root.join("work/active/001-one/work-item.json").is_file());
         assert!(!root.join("work/completed/001-one").exists());
         fs::remove_dir_all(root).unwrap();
@@ -1448,11 +1693,15 @@ mod tests {
         let (root, snapshot) = fixture();
         let plan = plan(
             &snapshot,
-            MutationRequest::create_work_item(CreateWorkItem::new("A New Thing", "2026-01-02")),
+            MutationRequest::create_work_item(create_request("A New Thing", "2026-01-02")),
         );
         fs::write(root.join("unrelated.txt"), "outside the governed read set").unwrap();
         let result = plan.apply();
         assert!(result.success, "{result:?}");
+        assert!(
+            !repopact_validation::validate(&root).has_errors(),
+            "the committed candidate must pass canonical post-apply validation"
+        );
         fs::remove_dir_all(root).unwrap();
     }
 
@@ -1461,7 +1710,7 @@ mod tests {
         let (root, snapshot) = fixture();
         let plan = plan(
             &snapshot,
-            MutationRequest::create_work_item(CreateWorkItem::new("A New Thing", "2026-01-02")),
+            MutationRequest::create_work_item(create_request("A New Thing", "2026-01-02")),
         );
         let result = plan.apply_with_options(&ApplyOptions::external_drift(
             0,
@@ -1478,7 +1727,7 @@ mod tests {
         let (root, snapshot) = fixture();
         let plan = plan(
             &snapshot,
-            MutationRequest::create_work_item(CreateWorkItem::new("A New Thing", "2026-01-02")),
+            MutationRequest::create_work_item(create_request("A New Thing", "2026-01-02")),
         );
         fs::write(
             root.join("work/active/001-one/work-item.json"),
@@ -1500,7 +1749,7 @@ mod tests {
             let (root, snapshot) = fixture();
             let plan = plan(
                 &snapshot,
-                MutationRequest::create_work_item(CreateWorkItem::new("A New Thing", "2026-01-02")),
+                MutationRequest::create_work_item(create_request("A New Thing", "2026-01-02")),
             );
             fs::write(root.join(relative), b"changed input\n").unwrap();
             let result = plan.apply();

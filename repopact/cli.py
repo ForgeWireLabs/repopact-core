@@ -566,7 +566,12 @@ def main(argv: list[str] | None = None) -> int:
             return _rust_mutation(
                 root,
                 "work.create",
-                {"title": args.title, "date": date.today().isoformat(), "status": args.status},
+                {
+                    "title": args.title,
+                    "date": date.today().isoformat(),
+                    "status": args.status,
+                    "preflight_confirmed_before_work_started": True,
+                },
                 "Created",
             )
         else:

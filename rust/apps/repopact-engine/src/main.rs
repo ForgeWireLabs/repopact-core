@@ -11,7 +11,7 @@ use repopact_mutation::{
 use repopact_protocol::{
     capabilities, EngineRequest, EngineResponse, ProtocolDiagnostic, PROTOCOL, PROTOCOL_VERSION,
 };
-use repopact_types::{Diagnostic, Severity, WorkItem};
+use repopact_types::{AcceptanceCriterion, Diagnostic, Severity, WorkItem};
 use serde::Deserialize;
 use serde_json::{json, Value};
 
@@ -25,6 +25,10 @@ struct CreateParams {
     date: String,
     #[serde(default = "default_active")]
     status: String,
+    #[serde(default)]
+    preflight_confirmed_before_work_started: bool,
+    #[serde(default)]
+    acceptance_criteria: Vec<AcceptanceCriterion>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -265,7 +269,12 @@ fn create_work(request: &EngineRequest) -> EngineResponse {
     };
     let core = RepoPactCore::open(&root);
     let snapshot = core.snapshot();
-    let intent = CreateWorkItem::new(params.title, params.date).with_status(status);
+    let mut intent = CreateWorkItem::new(params.title, params.date)
+        .with_status(status)
+        .with_acceptance_criteria(params.acceptance_criteria);
+    if params.preflight_confirmed_before_work_started {
+        intent = intent.confirm_preflight_before_work_started();
+    }
     let plan = core.plan_mutation_snapshot(&snapshot, MutationRequest::create_work_item(intent));
     let result = plan.apply();
     mutation_response(request, result)

@@ -47,7 +47,14 @@ def new_work_item(title: str, today: date, root: Path = ROOT, status: str = "act
 
     response = EngineClient().call(
         "work.create", root=root,
-        params={"title": title, "date": today.isoformat(), "status": status},
+        params={
+            "title": title,
+            "date": today.isoformat(),
+            "status": status,
+            # Invoking the dedicated registration command is the operator's
+            # preflight act; implementation is not performed by this command.
+            "preflight_confirmed_before_work_started": True,
+        },
     )
     result = validated_mutation_result(response)
     paths = result["changed_paths"]

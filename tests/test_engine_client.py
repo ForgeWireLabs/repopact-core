@@ -77,7 +77,12 @@ class EngineClientContractTests(unittest.TestCase):
             self.assertEqual(root / "work/proposed/001-probe/work-item.json", created)
             client_type.return_value.call.assert_called_once_with(
                 "work.create", root=root,
-                params={"title": "Probe", "date": "2026-09-25", "status": "proposed"},
+                params={
+                    "title": "Probe",
+                    "date": "2026-09-25",
+                    "status": "proposed",
+                    "preflight_confirmed_before_work_started": True,
+                },
             )
 
     def test_takeover_preserves_source_when_canonical_engine_is_unavailable(self) -> None:
