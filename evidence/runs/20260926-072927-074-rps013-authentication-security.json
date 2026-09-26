@@ -1,0 +1,47 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20260926-072927-074-rps013-authentication-security",
+  "timestamp": "2026-09-26T07:29:27Z",
+  "work_item": "074",
+  "result": "passed",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "cargo test --workspace (Workbench published source commit c2730ec8d5a6055aef6597f004fb7b47b24be1c2, Windows x64)",
+      "exit_code": 0,
+      "summary": "245 passed, 0 failed, 10 ignored; includes native Windows credential-store and redaction tests."
+    },
+    {
+      "command": "Android API 35 x86_64 debug-only Keystore tests using synthetic values; restart the app process; delete test entries",
+      "exit_code": 0,
+      "summary": "Write/read, mismatch rejection, overwrite, token-kind separation, identity isolation, deletion and persistence across process restart passed. All synthetic entries were deleted; no production credentials used."
+    },
+    {
+      "command": "Inspect release APK native library with NDK llvm-nm and scan Workbench history, source tree and release APK with Gitleaks 8.30.1 --redact=100",
+      "exit_code": 0,
+      "summary": "No debug credential command symbols in the release library; Workbench history/tree/release APK scans each had zero findings. Core's scan repeated only the three previously reviewed inherited marker/test-detection matches rooted at e15fbcfa; no new finding."
+    },
+    {
+      "command": "Reuse immutable Windows 11 x64 and Debian WSL2 Secret Service credential evidence from 2026-09-25",
+      "exit_code": 0,
+      "summary": "Existing evidence records Windows Credential Manager lifecycle/redaction tests and isolated Debian Secret Service synthetic write/read/delete; credential-store implementation and Core dependency pin are unchanged. Windows 10 and Windows 11 plus Linux test environments are intentional matrix coverage, not version mismatches."
+    }
+  ],
+  "artifacts": [
+    "https://github.com/ForgeWireLabs/repopact-workbench/blob/c2730ec8d5a6055aef6597f004fb7b47b24be1c2/evidence/WI074-RPS-013-android-credential-followup-2026-09-26.json",
+    "https://github.com/ForgeWireLabs/repopact-workbench/blob/c2730ec8d5a6055aef6597f004fb7b47b24be1c2/evidence/WI074-RPS-009-android-runtime-followup-2026-09-26.json",
+    "evidence/runs/20260925-034355-074-s4-1-release-gates.json",
+    "evidence/runs/20260926-072434-074-core-secret-scan-review.json"
+  ],
+  "environment": {
+    "workbench_revision": "c2730ec8d5a6055aef6597f004fb7b47b24be1c2",
+    "core_revision": "e15fbcfa4a29e1e6df7339bfed56c15c19185f9a",
+    "platforms": [
+      "Windows 10 Pro 10.0.19045 x64",
+      "Windows 11 x64 (prior evidence)",
+      "Debian WSL2 x86_64 (prior evidence)",
+      "Android 15 API 35 x86_64"
+    ],
+    "security": "No production credentials, GitHub/PyPI credentials, paid service, or hosted workflow used; synthetic Android entries were deleted. GitHub Actions are disabled at the repository level."
+  }
+}

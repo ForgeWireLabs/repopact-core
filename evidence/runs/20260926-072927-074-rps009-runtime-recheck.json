@@ -1,0 +1,40 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20260926-072927-074-rps009-runtime-recheck",
+  "timestamp": "2026-09-26T07:29:27Z",
+  "work_item": "074",
+  "result": "partial",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "Launch the native Workbench executable on Windows 10 Pro x64 with PATH=C:\\Windows\\System32 and isolated APPDATA, LOCALAPPDATA, TEMP, TMP and WebView2 data; inspect its GUI window and process tree",
+      "exit_code": 0,
+      "summary": "RepoPact Workbench window title and nonzero window handle observed; only child was msedgewebview2.exe, with no Python or pip child. The native app launched without Python/pip available on PATH."
+    },
+    {
+      "command": "Install Android API 35 x86_64 debug APK; use SAF to acquire a clean Core checkout; open it in the Workbench UI; validate and run a typed graph search",
+      "exit_code": 0,
+      "summary": "Android app opened the SAF-granted repository. Core returned valid=true, zero errors/warnings; graph query returned 50 nodes with working_overlay basis. The APK contains no Python interpreter, pip executable or libpython, and no Python/pip process was observed."
+    },
+    {
+      "command": "Reuse Windows 11 x64 native launch evidence from Workbench commit 9894b03eb77bc70bdee2aebcbc712de307c254a6",
+      "exit_code": 0,
+      "summary": "Prior isolated launch also excluded Python/pip from PATH and observed no Python child. Windows 10 and Windows 11 are intentional separate platform matrix entries."
+    }
+  ],
+  "artifacts": [
+    "https://github.com/ForgeWireLabs/repopact-workbench/blob/c2730ec8d5a6055aef6597f004fb7b47b24be1c2/evidence/WI074-RPS-009-android-runtime-followup-2026-09-26.json",
+    "https://github.com/ForgeWireLabs/repopact-workbench/blob/c2730ec8d5a6055aef6597f004fb7b47b24be1c2/evidence/artifacts/WI074-RPS-009-013-2026-09-26/android-dashboard.png",
+    "https://github.com/ForgeWireLabs/repopact-workbench/blob/c2730ec8d5a6055aef6597f004fb7b47b24be1c2/evidence/artifacts/WI074-RPS-009-013-2026-09-26/android-saf-grant.png"
+  ],
+  "environment": {
+    "workbench_revision": "c2730ec8d5a6055aef6597f004fb7b47b24be1c2",
+    "core_revision": "e15fbcfa4a29e1e6df7339bfed56c15c19185f9a",
+    "platforms": [
+      "Windows 10 Pro 10.0.19045 x64",
+      "Windows 11 x64 (prior evidence)",
+      "Android 15 API 35 x86_64"
+    ],
+    "limitation": "Desktop repository-picker interaction was not exercised; the prior capture helper failed with SetIsBorderRequired (0x80004002) and was not retried. Keep RPS-009 pending until the desktop interaction boundary is operator-verified."
+  }
+}

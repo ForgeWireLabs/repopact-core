@@ -1,0 +1,56 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20260926-075220-074-platform-validation-closeout",
+  "timestamp": "2026-09-26T07:52:20Z",
+  "work_item": "074",
+  "result": "partial",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "python -m unittest discover -s tests -v (Core current origin/main source, task-local Python environment and matching native engine)",
+      "exit_code": 0,
+      "summary": "Full suite: 380 tests ran in 1256.382 seconds; OK, 4 skipped, no failures or errors."
+    },
+    {
+      "command": "repopact --version; repopact validate",
+      "exit_code": 0,
+      "summary": "Task-local CLI and native engine matched the current Core source at 3.1.3.dev1 (CLI prints 3.1.3dev1); canonical repository governance validation passed. The unrelated global installation was not changed."
+    },
+    {
+      "command": "repopact check-frozen --base origin/main; git diff --check",
+      "exit_code": 0,
+      "summary": "No frozen-surface changes detected; diff whitespace check passed."
+    },
+    {
+      "command": "Gitleaks 8.30.1 detect source tree and git history with --redact=100",
+      "exit_code": 1,
+      "summary": "Both scans found exactly the same three previously reviewed inherited private-key rule matches, all rooted at Core source commit e15fbcfa4a29e1e6df7339bfed56c15c19185f9a: the intentional invalid assurance fixture and two detector/validator source markers. No new finding appeared. Reports are fully redacted and retained outside the repository at C:\\w074\\app-data\\rps009-20260926\\core-closeout-tree.json and core-closeout-history.json."
+    },
+    {
+      "command": "GitHub repository Actions permissions API for ForgeWireLabs/repopact-core and ForgeWireLabs/repopact-workbench",
+      "exit_code": 0,
+      "summary": "Actions enabled=false for both repositories. No workflow was triggered."
+    },
+    {
+      "command": "cargo clean --manifest-path C:\\Projects\\repopact-core-platform-closeout\\rust\\Cargo.toml --target-dir C:\\w074\\core-validation-target",
+      "exit_code": 0,
+      "summary": "Removed 1,158 task-generated files (429.6 MiB). The external Core target directory and checkout target directories are absent; shared toolchain caches were preserved."
+    }
+  ],
+  "artifacts": [
+    "C:\\w074\\app-data\\rps009-20260926\\core-closeout-tree.json",
+    "C:\\w074\\app-data\\rps009-20260926\\core-closeout-history.json"
+  ],
+  "environment": {
+    "core_source_revision": "4d8e7ddf9c1a34422c22207624063992cbb40959",
+    "core_engine_version": "3.1.3.dev1",
+    "workbench_published_revision": "c2730ec8d5a6055aef6597f004fb7b47b24be1c2",
+    "platform_tested": "Windows x64",
+    "platform_matrix_note": "Windows 10 and Windows 11 and the separately evidenced Linux distributions are intentional platform-matrix entries; they are not version mismatches.",
+    "github_actions": {
+      "ForgeWireLabs/repopact-core": false,
+      "ForgeWireLabs/repopact-workbench": false
+    },
+    "limitations": "RPS-009 remains pending because desktop repository-picker interaction was not exercised. RPS-011 remains pending until its native-platform acceptance evidence is complete. Gitleaks exit code 1 reflects only the three reviewed inherited matches described above."
+  }
+}
