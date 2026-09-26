@@ -1,0 +1,36 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20260926-025300-074-rps009-runtime-prerequisite-review",
+  "timestamp": "2026-09-26T02:53:00Z",
+  "work_item": "074",
+  "result": "partial",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "git ls-remote https://github.com/ForgeWireLabs/repopact-workbench.git refs/heads/main",
+      "exit_code": 0,
+      "summary": "Workbench main is 7c2c9500d58387b5afbcba6d1c3e96e102b7b72a, which contains the follow-up evidence and preserves the implementation at 9894b03eb77bc70bdee2aebcbc712de307c254a6."
+    },
+    {
+      "command": "Get-CimInstance Win32_LogicalDisk; adb.exe devices -l; inspect isolated API-35 AVD config",
+      "exit_code": 0,
+      "summary": "The suitable local NTFS volume has 1.91 GB free. The other visible volume is Google Drive/FAT32 and was not used. No adb device is attached. The isolated AVD has a 6 GiB userdata profile; its prior startup required 7372.80 MB free."
+    },
+    {
+      "command": "Get-FileHash app-universal-debug.apk -Algorithm SHA256; check for an isolated Workbench executable and targetable Workbench app",
+      "exit_code": 0,
+      "summary": "The existing debug APK matches SHA-256 A6AC7A3F9DE7F467E32EEA141DF830E0973506ABEF43AA1C732D9C98B6A27AA4. No Workbench executable is currently present in the isolated checkout/build location and no Workbench app window is available."
+    }
+  ],
+  "artifacts": [
+    "Workbench follow-up evidence: https://github.com/ForgeWireLabs/repopact-workbench/blob/7c2c9500d58387b5afbcba6d1c3e96e102b7b72a/evidence/WI074-RPS-009-013-followup-2026-09-26.json",
+    "Previously recorded Windows process-only launch and Android build evidence: https://github.com/ForgeWireLabs/repopact-workbench/blob/94ac6fd6f5c4500d82a6dc09186fe8c13bd93cef/evidence/WI074-RPS-009-2026-09-25.json"
+  ],
+  "environment": {
+    "workbench_commit": "7c2c9500d58387b5afbcba6d1c3e96e102b7b72a",
+    "core_pin": "e15fbcfa4a29e1e6df7339bfed56c15c19185f9a",
+    "windows": "Windows 11 x64",
+    "android": "API 35 x86_64 AVD; no attached device",
+    "limitations": "The prior Computer Use capture failed twice with SetIsBorderRequired: No such interface supported (0x80004002); it was not retried. The only local volume lacks the capacity for a safe native rebuild and the required emulator userdata plus headroom. Repository selection, navigation, dashboard/validation operations, graph queries, mutation preview/apply, refresh and repository switching remain untested interactively. No Android installation, acquisition, session or Core-backed runtime operation was attempted."
+  }
+}
