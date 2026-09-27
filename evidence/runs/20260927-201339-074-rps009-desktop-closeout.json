@@ -1,0 +1,49 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20260927-201339-074-rps009-desktop-closeout",
+  "timestamp": "2026-09-27T20:13:39Z",
+  "work_item": "074",
+  "result": "passed",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "Review prior isolated Windows 10/11 native-launch and Android API 35 runtime evidence for absence of Python and pip, then reconcile with current Workbench and Core revisions",
+      "exit_code": 0,
+      "summary": "Previously recorded Windows 10 and Windows 11 native launches succeeded with Python/pip excluded from PATH and no Python/pip child process. Previously recorded Android 15 API 35 x86_64 runtime opened a SAF-granted repository, completed Core validation and graph search, and the APK contained no Python interpreter, pip executable, or libpython. The source evidence is linked below; these historical platform runs were not rerun in this closeout."
+    },
+    {
+      "command": "Operator-confirmed manual acceptance of corrected desktop mutation review/apply and repository switching on the published Workbench build",
+      "exit_code": 0,
+      "summary": "The operator confirmed the updated Workbench interaction: the proposed mutation was applicable with no blocking diagnostics, Apply completed post-validation, switching repositories did not restore the prior toast or draft, and repository state was verified correct across repositories. The immutable Workbench closeout is linked below."
+    },
+    {
+      "command": "Debian GNU/Linux 13 WSL2 clean-clone cargo build --workspace --locked and cargo test --workspace --all-targets --locked with isolated D-Bus and disposable GNOME Keyring",
+      "exit_code": 0,
+      "summary": "The independent clean-clone workspace build passed. Full Linux Workbench Rust suites passed: 245 passed, 10 intentionally ignored, 0 failed. This is WSL2 build/test evidence, not WSLg GUI or bare-metal Linux desktop runtime evidence."
+    },
+    {
+      "command": "Gitleaks 8.30.1 --redact=100 scan of published Workbench commit b29efccf2697e9e725e39bce5b6921b7550e0ab1 history and clean publication tree",
+      "exit_code": 0,
+      "summary": "Both scans reported zero findings. Redacted JSON reports are retained outside the repository."
+    }
+  ],
+  "artifacts": [
+    "https://github.com/ForgeWireLabs/repopact-workbench/blob/b29efccf2697e9e725e39bce5b6921b7550e0ab1/evidence/WI074-RPS-009-loading-closeout-2026-09-27.json",
+    "https://github.com/ForgeWireLabs/repopact-workbench/blob/c2730ec8d5a6055aef6597f004fb7b47b24be1c2/evidence/WI074-RPS-009-013-followup-2026-09-26.json",
+    "https://github.com/ForgeWireLabs/repopact-workbench/blob/c2730ec8d5a6055aef6597f004fb7b47b24be1c2/evidence/WI074-RPS-009-android-runtime-followup-2026-09-26.json",
+    "https://github.com/ForgeWireLabs/repopact-workbench/blob/94ac6fd6f5c4500d82a6dc09186fe8c13bd93cef/evidence/WI074-RPS-009-2026-09-25.json",
+    "C:\\w074\\app-data\\rps009-20260926\\workbench-publication-history-b29efcc.json",
+    "C:\\w074\\app-data\\rps009-20260926\\workbench-publication-tree-b29efcc.json"
+  ],
+  "environment": {
+    "core_revision": "1c1f32ae619e8135227acfa87393696ff608951c",
+    "workbench_revision": "b29efccf2697e9e725e39bce5b6921b7550e0ab1",
+    "linux": "Debian GNU/Linux 13.5 x86_64 under WSL2; isolated D-Bus session and disposable Secret Service keyring",
+    "windows_and_android_runtime_evidence": "Historical linked evidence: Windows 10 Pro x64, Windows 11 x64, Android 15 API 35 x86_64; no Python or pip required at runtime",
+    "github_actions": {
+      "ForgeWireLabs/repopact-core": false,
+      "ForgeWireLabs/repopact-workbench": false
+    },
+    "limitations": "Desktop interaction was operator-verified on 2026-09-27 and the published Workbench closeout records exact local tests and commits. Windows/Android runtime proof is cited from prior immutable evidence, not rerun here. The Android proof used Core e15fbcfa4a29e1e6df7339bfed56c15c19185f9a, not current pin 1c1f32ae619e8135227acfa87393696ff608951c; therefore RPS-011 remains pending until repeatable current-pin Android native build/runtime evidence is recorded. WSL2 does not establish WSLg GUI or bare-metal Linux desktop runtime. macOS and iOS remain untested and are not claimed."
+  }
+}
