@@ -1,0 +1,66 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20260928-002117-074-rps011-native-platform-acceptance",
+  "timestamp": "2026-09-28T00:21:17Z",
+  "work_item": "074",
+  "result": "partial",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "Verify ForgeWireLabs/repopact-core main at 2fc5f5821f20c958edd6027b1ba31cb96c62a74b, Workbench main at b29efccf2697e9e725e39bce5b6921b7550e0ab1, and Workbench Core pin 1c1f32ae619e8135227acfa87393696ff608951c; inspect Cargo metadata, tree and lockfile",
+      "exit_code": 0,
+      "summary": "Both remote baselines matched. All eight direct repopact-* dependencies resolve to the same immutable Core SHA in cargo metadata, cargo tree and Cargo.lock."
+    },
+    {
+      "command": "Windows: cargo test --workspace --all-targets --locked; cargo build --locked --package repopact-desktop; npm test -- --run; npm run typecheck; npm run build; npm run types:check",
+      "exit_code": 0,
+      "summary": "Rust workspace tests and native desktop build passed; all 38 frontend tests across 8 files, typecheck, production build and generated protocol-type check passed. Existing operator-confirmed GUI mutation, repository switching and asynchronous loading evidence is linked in the Workbench RPS-009 records."
+    },
+    {
+      "command": "Debian 13 WSL2 clean-clone: cargo test --workspace --all-targets --locked; cargo build --locked --package repopact-desktop; isolated dbus-run-session Secret Service read/write/delete probe",
+      "exit_code": 0,
+      "summary": "The locked full Linux Rust suite and native desktop build passed in the completed isolated run; the focused credential-store suite passed 5 tests, 3 intentionally ignored, 0 failed, and the independent disposable Secret Service probe passed. The final Linux GUI-window capture exposed the Codex/Windows desktop rather than Workbench, so graphical runtime was not demonstrated."
+    },
+    {
+      "command": "Android 15 API 35 x86_64: build split debug APKs for aarch64, armv7, i686 and x86_64; install/launch x86_64; SAF import; initialize session; validate; graph query; Work/Decisions navigation; preview/apply disposable mutation; post-apply validation; restart/resume",
+      "exit_code": 0,
+      "summary": "All four ABI APK builds passed; x86_64 runtime scenarios passed with clean validation before and after the disposable mutation. arm, arm64 and x86 are build-only. SAF Download-root restriction recovered, but this did not demonstrate an OS permission-denial dialog or all permission-revocation paths. Six sanitized screenshots and exact APK hashes are in the linked Workbench evidence record."
+    },
+    {
+      "command": "Gitleaks 8.30.1 --redact=100: scan complete Workbench history/tree and Android APKs; scan Core inherited history/tree and compare to the reviewed baseline",
+      "exit_code": 0,
+      "summary": "Workbench history, tree and APK scans had zero findings. Core history and tree each retained exactly the three reviewed inherited private-key findings at the same source paths and historical commit e15fbcfa4a29e1e6df7339bfed56c15c19185f9a as the pre-task baseline; no new finding was introduced. Redacted reports remain outside repositories."
+    },
+    {
+      "command": "Check GitHub Actions permissions for ForgeWireLabs/repopact-core and ForgeWireLabs/repopact-workbench",
+      "exit_code": 0,
+      "summary": "Both repositories reported enabled=false. No hosted workflow was triggered."
+    }
+  ],
+  "artifacts": [
+    "https://github.com/ForgeWireLabs/repopact-workbench/blob/64575d84b6ab83b67556325f2b54428fb0872d68/evidence/WI074-RPS-011-native-platform-acceptance-2026-09-28.json",
+    "https://github.com/ForgeWireLabs/repopact-workbench/tree/64575d84b6ab83b67556325f2b54428fb0872d68/evidence/artifacts/wi074-rps011-android-api35-x86_64-2026-09-27",
+    "C:\\w074\\app-data\\rps011-20260927\\workbench-rps011-postcommit-history.json (redacted Gitleaks report)",
+    "C:\\w074\\app-data\\rps011-20260927\\workbench-rps011-postcommit-tree.json (redacted Gitleaks report)",
+    "C:\\w074\\app-data\\rps011-20260927\\workbench-rps011-apks.json (redacted Gitleaks report)",
+    "C:\\w074\\app-data\\rps011-20260927\\core-rps011-history.json and core-rps011-tree.json (redacted Gitleaks reports; compared against core-baseline-history-redacted.json)",
+    "C:\\w074\\wi074-rps011-workbench-b29\\src-tauri\\gen\\android\\app\\build\\outputs\\apk\\arm\\debug\\app-arm-debug.apk SHA-256 F3EFDB5C376449694537B66737B3A1D08CA6A0EFF81826D88CA3BB3DED6F689D",
+    "C:\\w074\\wi074-rps011-workbench-b29\\src-tauri\\gen\\android\\app\\build\\outputs\\apk\\arm64\\debug\\app-arm64-debug.apk SHA-256 1A928F0FF2ABD8D0B662A4E2FF77FF914A450F63970E1230D21E271DF72024FF",
+    "C:\\w074\\wi074-rps011-workbench-b29\\src-tauri\\gen\\android\\app\\build\\outputs\\apk\\x86\\debug\\app-x86-debug.apk SHA-256 660EDD30B6BCF60EA5A3FB8DC2CCC2B4AA520A80325646BFFF3E0F5E7F4ADB51",
+    "C:\\w074\\wi074-rps011-workbench-b29\\src-tauri\\gen\\android\\app\\build\\outputs\\apk\\x86_64\\debug\\app-x86_64-debug.apk SHA-256 0E9A6743EA1D5F6450A8B71E7AE48FD60662577844ABE28F76686D85A2D9637D"
+  ],
+  "environment": {
+    "workbench_repository": "ForgeWireLabs/repopact-workbench",
+    "workbench_revision": "64575d84b6ab83b67556325f2b54428fb0872d68",
+    "core_repository": "ForgeWireLabs/repopact-core",
+    "core_revision": "1c1f32ae619e8135227acfa87393696ff608951c",
+    "linux": "Debian GNU/Linux 13 x86_64 under WSL2; isolated D-Bus and disposable Secret Service test data",
+    "android": "Android 15 API 35 x86_64 emulator; isolated disposable AVD and app-private repository copy",
+    "windows": "Windows x64; native Workbench build and frontend/Rust regression suite",
+    "github_actions": {
+      "ForgeWireLabs/repopact-core": false,
+      "ForgeWireLabs/repopact-workbench": false
+    },
+    "limitations": "RPS-011 remains pending. Linux WSL2 source/build/test success is not Linux graphical desktop runtime proof; the target Workbench GUI surface was not available to capture/control, and bare-metal Linux has not been tested. Android runtime was demonstrated only on x86_64; other ABI artifacts are build-only. SAF folder restriction recovery is not equivalent to an OS permission-denial or revocation test. macOS and iOS remain untested and are not claimed. No installers were created or released."
+  }
+}
