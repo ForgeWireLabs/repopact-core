@@ -1,0 +1,96 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261008-214940-074-rps012-local-validation",
+  "timestamp": "2026-10-08T21:49:40Z",
+  "work_item": "074",
+  "result": "partial",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "python -m pip install -e \".[dev]\"",
+      "exit_code": 0,
+      "summary": "System Python 3.12.4 built and installed RepoPact 3.1.3.dev1. The subsequent system-path CLI validation found the pre-existing repopact-engine.exe at 3.1.0.dev1, so final checks were isolated in a checkout-local virtual environment."
+    },
+    {
+      "command": "repopact check-frozen --base origin/main",
+      "exit_code": 0,
+      "summary": "No frozen-surface changes detected."
+    },
+    {
+      "command": "repopact validate",
+      "exit_code": 1,
+      "summary": "System script resolution paired RepoPact 3.1.3.dev1 with the stale system engine 3.1.0.dev1. No repository files were changed by this failed invocation."
+    },
+    {
+      "command": "python -m venv .venv; .venv/Scripts/python.exe -m pip install -e \".[dev]\"",
+      "exit_code": 0,
+      "summary": "Checkout-local Python 3.12.4 environment installed the editable RepoPact package and built its Rust engine. The CLI reports 3.1.3dev1 and the paired engine reports 3.1.3.dev1."
+    },
+    {
+      "command": ".venv/Scripts/repopact.exe check-frozen --base origin/main",
+      "exit_code": 0,
+      "summary": "No frozen-surface changes detected."
+    },
+    {
+      "command": ".venv/Scripts/repopact.exe validate",
+      "exit_code": 0,
+      "summary": "Canonical repository governance validation passed."
+    },
+    {
+      "command": ".venv/Scripts/python.exe -m unittest tests.test_admission tests.test_admission_security tests.test_guard_authority tests.test_landlock_confinement -v",
+      "exit_code": 0,
+      "summary": "All 51 Windows admission, guard-authority and confinement tests passed in 413.936 seconds."
+    },
+    {
+      "command": ".venv/Scripts/python.exe -m repopact.run_admission_platform_conformance --root .",
+      "exit_code": 0,
+      "summary": "The Windows semantic/pre-action harness passed all seven cases. The report classified its backend as testing-only with process_confined=false and path_confined=false; the protected production service was unavailable and not run."
+    },
+    {
+      "command": ".venv/Scripts/python.exe -m repopact.run_conformance --legacy-python",
+      "exit_code": 0,
+      "summary": "The Python compatibility comparator passed 37/37 cases and the WI050 admission corpus passed 8/8 vectors."
+    },
+    {
+      "command": ".venv/Scripts/python.exe -m unittest discover -s tests -v",
+      "exit_code": 0,
+      "summary": "Full suite passed: 380 tests, 3 skips, 0 failures, in 1423.567 seconds. Skips were the Windows-inapplicable Unix service test and the documented O-4/O-6 formal-model tests."
+    },
+    {
+      "command": ".venv/Scripts/repopact.exe dashboard",
+      "exit_code": 0,
+      "summary": "Dashboard regenerated after recording the RPS-012 partial validation evidence."
+    },
+    {
+      "command": ".venv/Scripts/repopact.exe validate",
+      "exit_code": 0,
+      "summary": "Final canonical validation passed after the work-item evidence link and dashboard were updated."
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "summary": "No whitespace errors."
+    }
+  ],
+  "artifacts": [
+    "C:/Users/jerem/AppData/Local/Temp/repopact-wi074-rps012-20261008/admission-tests.log",
+    "C:/Users/jerem/AppData/Local/Temp/repopact-wi074-rps012-20261008/admission-platform-conformance.log",
+    "C:/Users/jerem/AppData/Local/Temp/repopact-wi074-rps012-20261008/canonical-conformance.log",
+    "C:/Users/jerem/AppData/Local/Temp/repopact-wi074-rps012-20261008/full-tests.log"
+  ],
+  "environment": {
+    "repository": "ForgeWireLabs/repopact-core",
+    "source_revision": "6ef7e137da77c1e96c4b521669a3ebb3a6d0a798",
+    "branch": "codex/wi074-rps012-validation-20261008",
+    "platform": "Windows x64",
+    "python": "3.12.4",
+    "repopact": "3.1.3.dev1",
+    "rust_engine": "3.1.3.dev1 (checkout-local virtual environment)",
+    "hosted_actions": "disabled; no hosted workflow invoked",
+    "limitations": [
+      "RPS-012 remains pending because this run did not install or exercise a production protected service. The passing Windows harness proves semantic/pre-action behavior only.",
+      "Prior Linux WSL2 admission and Landlock evidence remains partial and does not prove production protected-service installation or macOS behavior.",
+      "The system-wide script directory still contains a stale 3.1.0.dev1 engine; all passing final checks used the checkout-local virtual environment."
+    ]
+  }
+}

@@ -85,17 +85,23 @@ change the Workbench Core pin, alter PyPI, or begin unrelated acceptance work.
 ## Current acceptance state and next slice
 
 The canonical 24-criterion matrix is in [work-item.json](work-item.json). Its
-current state is **8 satisfied, 16 pending**. RPS-001, RPS-002 and RPS-017 were
-closed with the source-preservation, complete path/hash reconciliation and
-governance-continuity evidence recorded in the linked immutable run. S2-S5
-publication still does not imply full Android feature acceptance,
-cross-platform native acceptance, release readiness, downstream migration, or
-rollback proof. Evidence references for satisfied criteria point to immutable
-run IDs with source provenance and portable artifact links.
+current state is **16 satisfied, 8 pending**. RPS-001, RPS-002 and RPS-017 were
+closed with source-preservation, complete path/hash reconciliation and
+governance-continuity evidence. Core packaging, CLI identity, conformance and
+the Workbench contract gates are also satisfied. S2-S5 publication does not
+imply full Android feature acceptance, complete cross-platform native
+acceptance, release readiness, downstream migration, or rollback proof.
+
+RPS-012 remains pending. The 2026-10-08 local revalidation passed the Windows
+admission/guard test group (51/51), the semantic/pre-action platform harness,
+the admission corpus (8/8), and the full unit suite (380 tests, 3 documented
+skips). A production protected service was not installed or exercised, so this
+run does not establish process-enforced service behavior or justify a stronger
+assurance claim.
 
 The [next-slice directive](../../../evidence/WI074-transfer/next-slice.md)
-defines the next bounded work: complete the Core-side governance-continuity
-manifest and acceptance mapping, then pursue independently executable
-platform/feature gates in dependency order. It is planning only; implementation
-outside this authorized governance transfer requires the applicable work-item
-authority.
+defines the dependency order. Governance continuity, Core packaging and
+Workbench contract gates are complete. RPS-012 still needs criterion-specific
+production-service evidence or a separately approved scope disposition before
+the remaining Workbench platform, release, rollback and consumer gates can
+close. Proving Ground and ForgeWire remain separate consumer decisions.
