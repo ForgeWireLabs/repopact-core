@@ -1,0 +1,55 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261021-074-public-readme-finalization",
+  "timestamp": "2026-10-21T18:00:00Z",
+  "work_item": "074",
+  "result": "partial",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": ".venv/Scripts/repopact.exe check-frozen --base origin/main",
+      "exit_code": 0,
+      "summary": "No frozen-surface changes detected."
+    },
+    {
+      "command": ".venv/Scripts/repopact.exe validate",
+      "exit_code": 1,
+      "summary": "After regenerating the dashboard, validation reports only two expired historical audit scopes (026 and 027, due 2026-10-16). The dashboard-stale error is resolved; the unrelated expired scopes are left unchanged."
+    },
+    {
+      "command": ".venv/Scripts/python.exe -m unittest discover -s tests -v",
+      "exit_code": 1,
+      "summary": "Ran 380 tests: 368 passed, 9 failed, and 3 skipped in 1339.681 seconds. Every failure is a repository-validation fixture expecting no audit freshness errors, but the current repository's two expired scopes (026 and 027) are emitted. No failure concerns the README/tutorial content; three skips are explicitly marked formal-model obligations."
+    },
+    {
+      "command": ".venv/Scripts/repopact.exe dashboard",
+      "exit_code": 0,
+      "summary": "Regenerated the derived dashboard with 185 evidence runs and the two expired audit scopes listed."
+    },
+    {
+      "command": "README Markdown local-link and image-reference check",
+      "exit_code": 0,
+      "summary": "All 40 local targets exist."
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "summary": "No whitespace errors."
+    }
+  ],
+  "artifacts": [
+    "README.md",
+    "docs/assets/readme/repopact-architecture.svg",
+    "docs/work-item-walkthrough.md"
+  ],
+  "environment": {
+    "repository": "ForgeWireLabs/repopact-core",
+    "baseline_revision": "e6a980bc87b4698f8c031d56b64ad3629ad99c82",
+    "branch": "codex/public-docs-core-final",
+    "platform": "Windows x64",
+    "scope": "Public README architecture/adoption/research improvements and a schema-grounded lifecycle tutorial. This is partial evidence for RPS-020; the broader documentation inventory remains open.",
+    "limitations": [
+      "Canonical validation and 9 unit tests remain failing because audit scopes 026 and 027 are past their review date. The generated dashboard now reflects those findings; changing their review dates is outside this documentation change."
+    ]
+  }
+}
