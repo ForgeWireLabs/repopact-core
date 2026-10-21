@@ -14,7 +14,7 @@ RepoPact puts that load-bearing engineering state in versioned repository record
 
 [Get started](#get-started) · [How it works](#how-the-pact-works) · [Documentation](#documentation) · [Research](#research)
 
-RepoPact Core is the home of the `repopact` command-line package, canonical semantic engine, schemas, conformance suite, and reference governance records. It is open source under [Apache-2.0](LICENSE). The stable CLI package is published on [PyPI](https://pypi.org/project/repopact/); current release **3.1.3**. The separate [RepoPact Workbench](https://github.com/ForgeWireLabs/repopact-workbench) is a native interface that consumes Core; it is not part of the PyPI package.
+RepoPact Core is the home of the `repopact` command-line package, canonical semantic engine, schemas, conformance suite, and reference governance records. It is open source under [Apache-2.0](LICENSE). The stable CLI package is published on [PyPI](https://pypi.org/project/repopact/). The separate [RepoPact Workbench](https://github.com/ForgeWireLabs/repopact-workbench) is a native interface that consumes Core; it is not part of the PyPI package.
 
 ## Why RepoPact exists
 
@@ -31,7 +31,7 @@ RepoPact treats this as **governance discontinuity**: the loss or divergence of 
 | Inferred from an older repository | Honest about provenance and remaining uncertainty |
 | Reflected in stale dashboards or indexes | Reconciled from authoritative source records |
 
-The goal is not more ceremony. It is to make engineering work easier to resume, review, and verify across human and AI contributors.
+That makes engineering work easier to resume, review, and verify across human and AI contributors.
 
 ## Get started
 
@@ -105,7 +105,7 @@ The repository contains the Rust workspace, packaged schemas and templates, the 
 
 Core owns governance schemas and interpretation, validation, graph and analysis semantics, and typed mutation behavior. Workbench owns its interface, application orchestration, session handling, filesystem observation, and native desktop/mobile integration. It consumes one immutable Core revision and must not create a competing governance engine.
 
-Install the CLI with `pip install repopact`. Workbench is a separate Tauri application with its own build and platform evidence; see [its repository](https://github.com/ForgeWireLabs/repopact-workbench) for current instructions. There are no Workbench installers in the PyPI package.
+Install the CLI with `pip install repopact`. The current release is **3.1.3** ([PyPI](https://pypi.org/project/repopact/)). Workbench is a separate Tauri application with its own build and platform evidence; see [its repository](https://github.com/ForgeWireLabs/repopact-workbench) for current instructions. There are no Workbench installers in the PyPI package.
 
 ### Local-first verification
 
