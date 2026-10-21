@@ -5,7 +5,7 @@
   "work_item": "075",
   "result": "partial",
   "provenance": "concrete",
-  "summary": "Clean committed-state Core test rerun completed with 371 passing, 9 failing, and 3 skipped tests; all nine failures are caused by the two expired audit scopes 026 and 027, while the other Core release, conformance, packaging, and frozen-surface gates passed.",
+  "summary": "Clean committed-state Core test rerun completed with 368 passing, 9 failing, and 3 skipped tests; all nine failures are caused by the two expired audit scopes 026 and 027, while the other Core release, conformance, packaging, and frozen-surface gates passed.",
   "source_revisions": {
     "core_review_commit": "ce1b30c"
   },
@@ -14,7 +14,7 @@
       "command": ".audit-core-venv\\Scripts\\python.exe -m unittest discover -s tests -v",
       "exit_code": 1,
       "tests_run": 380,
-      "passed": 371,
+      "passed": 368,
       "failed": 9,
       "skipped": 3,
       "failure_names": [
