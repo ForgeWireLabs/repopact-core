@@ -38,7 +38,10 @@
       "id": "FLAUD-003",
       "text": "Re-run Core canonical validation, affected audit tests, full tests, conformance, derived-output checks, and distribution metadata checks; update audit review dates only if both scopes remain aligned and all required Core gates pass.",
       "state": "pending",
-      "evidence": []
+      "evidence": [
+        "20261021-forgelink-adopter-audit-rereview",
+        "20261021-forgelink-core-clean-tests"
+      ]
     }
   ],
   "documentation_impact": {
