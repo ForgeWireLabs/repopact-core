@@ -10,12 +10,13 @@ A contributor wants to add retry behavior to a network client. They record the
 intent before implementation:
 
 ```console
-repopact new work-item "Add bounded retry policy"
+repopact work propose "Add bounded retry policy"
 ```
 
-Core creates a work-item directory and JSON manifest. The contributor completes
-its scope, owner, and acceptance criterion. A representative criterion uses the
-schema's actual `id`, `text`, `state`, and `evidence` fields:
+Core creates a proposed work-item directory and JSON manifest without
+implementation authority. The contributor records its owner, affected scopes,
+and acceptance criterion before an operator accepts it. A representative
+criterion uses the schema's actual `id`, `text`, `state`, and `evidence` fields:
 
 ```json
 {
@@ -29,6 +30,13 @@ schema's actual `id`, `text`, `state`, and `evidence` fields:
 The work-item README records the motivation and tradeoffs; `work-item.json`
 holds machine-readable lifecycle and relationship state. The `owner_scope` and
 `affected_scopes` must follow this repository's `governance/owners.json`.
+
+The current CLI can create and amend a proposal, but it does not provide a
+general command to assign its scopes or transition an existing item. Those
+authoritative record edits remain explicit repository changes. Once an operator
+accepts the proposal, update `status` to `active` and move the whole directory to
+`work/active/` in the same change. Workbench offers typed plans for the
+work-item operations it supports; it does not automate every lifecycle step.
 
 ## 2. Read the authority that applies
 
@@ -61,8 +69,10 @@ criterion without linked evidence. A generic green test run does not establish
 an unrelated behavior.
 
 When all criteria are properly evidence-closed, move the full item directory to
-`work/completed/`, set its JSON `status` to `completed`, and reconcile derived
-state:
+`work/completed/` and set its JSON `status` to `completed` in the same repository
+change. This explicit file edit and move are the current Core CLI workflow;
+`repopact` has no general-purpose lifecycle-transition command. Then reconcile
+derived state:
 
 ```console
 repopact dashboard
