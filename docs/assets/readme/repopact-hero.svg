@@ -1,130 +1,77 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="640" viewBox="0 0 1280 640" role="img" aria-labelledby="title desc">
-  <title id="title">RepoPact turns fragmented session context into durable repository state</title>
-  <desc id="desc">Human, agent, and tool sessions send fragmented context into a repository panel containing intent, authority, decisions, work state, invariants, evidence, and provenance. The repository sends recoverable state back to the next worker.</desc>
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="520" viewBox="0 0 1280 520" role="img" aria-labelledby="title desc">
+  <title id="title">The repository is the pact</title>
+  <desc id="desc">Loose fragments of engineering context become connected, durable records in a repository. The record spine connects intent, authority, decisions, work, invariants, evidence, and provenance; people and tools can resume from the same state.</desc>
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#08111f"/>
-      <stop offset="0.58" stop-color="#102238"/>
-      <stop offset="1" stop-color="#0b1728"/>
+    <linearGradient id="field" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0c1726"/>
+      <stop offset="1" stop-color="#172c42"/>
     </linearGradient>
-    <linearGradient id="repo" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#0e6e73"/>
-      <stop offset="1" stop-color="#124c68"/>
+    <linearGradient id="spine" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#d9f3eb"/>
+      <stop offset="1" stop-color="#e7eff7"/>
     </linearGradient>
-    <linearGradient id="teal" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#5de0c3"/>
-      <stop offset="1" stop-color="#54aef1"/>
-    </linearGradient>
-    <filter id="shadow" x="-30%" y="-30%" width="160%" height="180%">
-      <feDropShadow dx="0" dy="14" stdDeviation="18" flood-color="#000" flood-opacity="0.28"/>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#000" flood-opacity=".24"/>
     </filter>
-    <filter id="soft" x="-30%" y="-30%" width="160%" height="180%">
-      <feGaussianBlur stdDeviation="20"/>
-    </filter>
-    <marker id="arrow" markerWidth="12" markerHeight="12" refX="9" refY="6" orient="auto">
-      <path d="M0 0 L12 6 L0 12 Z" fill="#5de0c3"/>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0 0L10 5L0 10Z" fill="#58bca8"/>
     </marker>
     <style>
-      .sans { font-family: Inter, Segoe UI, Arial, sans-serif; }
-      .mono { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; }
-      .eyebrow { font: 700 13px Inter, Segoe UI, Arial, sans-serif; letter-spacing: 2.5px; fill: #6fe4c7; }
-      .label { font: 600 15px Inter, Segoe UI, Arial, sans-serif; fill: #c6d4e5; }
-      .small { font: 500 13px Inter, Segoe UI, Arial, sans-serif; fill: #8ea5bb; }
-      .title { font: 800 40px Inter, Segoe UI, Arial, sans-serif; fill: #f5fbff; letter-spacing: -1px; }
-      .repoTitle { font: 800 25px Inter, Segoe UI, Arial, sans-serif; fill: #f5fbff; }
-      .core { font: 700 14px Inter, Segoe UI, Arial, sans-serif; fill: #eafcff; }
-      .coreSmall { font: 500 12px Inter, Segoe UI, Arial, sans-serif; fill: #b7d8df; }
+      .sans{font-family:Inter,"Segoe UI",Arial,sans-serif}
+      .eyebrow{font:700 14px Inter,"Segoe UI",Arial,sans-serif;letter-spacing:2px;fill:#8fd9c7}
+      .title{font:700 47px Inter,"Segoe UI",Arial,sans-serif;letter-spacing:-1.2px;fill:#f4f7fa}
+      .sub{font:400 20px Inter,"Segoe UI",Arial,sans-serif;fill:#bdcad7}
+      .node{font:700 16px Inter,"Segoe UI",Arial,sans-serif;letter-spacing:.2px;fill:#153048}
+      .micro{font:500 13px Inter,"Segoe UI",Arial,sans-serif;fill:#d2dee8}
     </style>
   </defs>
+  <rect width="1280" height="520" fill="url(#field)"/>
+  <path d="M0 420H1280" stroke="#30475b" stroke-width="1" opacity=".7"/>
+  <text x="72" y="64" class="eyebrow">REPOPACT CORE · REPOSITORY-NATIVE GOVERNANCE</text>
+  <text x="72" y="128" class="title">The repository is the pact.</text>
+  <text x="72" y="165" class="sub">One durable record of what matters, who may act, and what proves the work.</text>
 
-  <rect width="1280" height="640" fill="url(#bg)"/>
-  <circle cx="1130" cy="80" r="150" fill="#2ca98f" opacity="0.13" filter="url(#soft)"/>
-  <circle cx="150" cy="555" r="160" fill="#3972c5" opacity="0.12" filter="url(#soft)"/>
-
-  <text x="64" y="62" class="eyebrow">FORGEWIRELABS / REPOSITORY-NATIVE GOVERNANCE</text>
-  <text x="64" y="111" class="title">When the session ends, the pact remains.</text>
-  <text x="64" y="143" class="label">Fragmented context becomes recoverable engineering state in the repository.</text>
-
-  <text x="64" y="194" class="eyebrow">FRAGMENTED SESSION STATE</text>
-  <g filter="url(#shadow)">
-    <rect x="64" y="218" width="214" height="62" rx="13" fill="#192b43" stroke="#35516d"/>
-    <rect x="83" y="238" width="26" height="21" rx="5" fill="#4d88db" opacity="0.9"/>
-    <path d="M89 244h14M89 250h10" stroke="#d9efff" stroke-width="2" stroke-linecap="round"/>
-    <text x="123" y="244" class="label">coding session</text>
-    <text x="123" y="263" class="small">intent in motion</text>
-
-    <rect x="88" y="306" width="214" height="62" rx="13" fill="#1a3044" stroke="#35516d"/>
-    <circle cx="113" cy="337" r="14" fill="#e6a45c" opacity="0.9"/>
-    <path d="M107 337h12M113 331v12" stroke="#fff5dd" stroke-width="2" stroke-linecap="round"/>
-    <text x="138" y="334" class="label">operator memory</text>
-    <text x="138" y="353" class="small">authority implied</text>
-
-    <rect x="58" y="394" width="214" height="62" rx="13" fill="#202b48" stroke="#35516d"/>
-    <path d="M82 416h28v22H82z M88 410h16" fill="none" stroke="#b68be8" stroke-width="3"/>
-    <text x="124" y="422" class="label">issue tracker</text>
-    <text x="124" y="441" class="small">completion asserted</text>
-
-    <rect x="96" y="482" width="214" height="62" rx="13" fill="#193a42" stroke="#35516d"/>
-    <path d="M120 511c8-13 20-13 28 0c-8 13-20 13-28 0Z" fill="none" stroke="#5de0c3" stroke-width="3"/>
-    <circle cx="134" cy="511" r="4" fill="#5de0c3"/>
-    <text x="157" y="510" class="label">agent handoff</text>
-    <text x="157" y="529" class="small">context reconstructed</text>
+  <!-- Context fragments become connected repository records. -->
+  <g fill="none" stroke="#91a4b5" stroke-width="2" opacity=".72">
+    <path d="M128 244l62-27 37 30-45 27z"/>
+    <path d="M155 305l42-26 34 22-36 28z"/>
+    <path d="M211 356l35-25 38 18-35 31z"/>
+    <path d="M274 228l34 26-20 28-42-23z"/>
+    <path d="M300 320l37-24 35 24-29 30z"/>
   </g>
+  <g fill="#8fa2b4" opacity=".68">
+    <circle cx="139" cy="343" r="4"/><circle cx="319" cy="213" r="4"/><circle cx="357" cy="365" r="4"/>
+    <circle cx="247" cy="203" r="3"/><circle cx="103" cy="292" r="3"/><circle cx="373" cy="266" r="3"/>
+  </g>
+  <text x="112" y="395" class="micro">sessions · memory · tools</text>
 
-  <path d="M312 250 C355 250 361 293 392 293" fill="none" stroke="#5de0c3" stroke-width="2" stroke-dasharray="7 8" marker-end="url(#arrow)" opacity="0.9"/>
-  <path d="M319 423 C350 423 361 350 392 350" fill="none" stroke="#5de0c3" stroke-width="2" stroke-dasharray="7 8" marker-end="url(#arrow)" opacity="0.9"/>
-  <text x="322" y="224" class="small">session boundary</text>
+  <path d="M375 300C414 300 418 300 449 300" fill="none" stroke="#58bca8" stroke-width="3" marker-end="url(#arrow)"/>
+  <text x="382" y="278" class="micro">made durable</text>
 
   <g filter="url(#shadow)">
-    <rect x="392" y="184" width="496" height="360" rx="22" fill="url(#repo)" stroke="#63d8c5" stroke-width="2"/>
-    <rect x="416" y="208" width="448" height="48" rx="12" fill="#082f43" opacity="0.8"/>
-    <circle cx="442" cy="232" r="10" fill="#5de0c3"/>
-    <path d="M437 232h10M442 227v10" stroke="#09263a" stroke-width="2" stroke-linecap="round"/>
-    <text x="466" y="237" class="repoTitle">REPOSITORY / DURABLE STATE</text>
-    <text x="416" y="283" class="small">The shared rendezvous point for humans and agents</text>
-
-    <g>
-      <rect x="416" y="305" width="132" height="65" rx="12" fill="#195c70" stroke="#4fc0c1"/>
-      <text x="432" y="330" class="core">INTENT</text><text x="432" y="351" class="coreSmall">what matters</text>
-      <rect x="560" y="305" width="132" height="65" rx="12" fill="#195c70" stroke="#4fc0c1"/>
-      <text x="576" y="330" class="core">AUTHORITY</text><text x="576" y="351" class="coreSmall">who may act</text>
-      <rect x="704" y="305" width="160" height="65" rx="12" fill="#195c70" stroke="#4fc0c1"/>
-      <text x="720" y="330" class="core">DECISIONS</text><text x="720" y="351" class="coreSmall">why it is settled</text>
-
-      <rect x="416" y="386" width="132" height="65" rx="12" fill="#154d68" stroke="#4f9cd0"/>
-      <text x="432" y="411" class="core">WORK STATE</text><text x="432" y="432" class="coreSmall">what remains</text>
-      <rect x="560" y="386" width="132" height="65" rx="12" fill="#154d68" stroke="#4f9cd0"/>
-      <text x="576" y="411" class="core">INVARIANTS</text><text x="576" y="432" class="coreSmall">what must hold</text>
-      <rect x="704" y="386" width="160" height="65" rx="12" fill="#154d68" stroke="#4f9cd0"/>
-      <text x="720" y="411" class="core">EVIDENCE</text><text x="720" y="432" class="coreSmall">what proves it</text>
-
-      <rect x="416" y="467" width="448" height="52" rx="12" fill="#092f4d" stroke="#538cb9"/>
-      <text x="436" y="490" class="core">PROVENANCE</text><text x="436" y="508" class="coreSmall">what is concrete, provisional, inferred, or still unknown</text>
+    <rect x="470" y="202" width="410" height="198" rx="20" fill="url(#spine)" stroke="#94c9bc" stroke-width="2"/>
+    <path d="M511 250V360" stroke="#247e77" stroke-width="3"/>
+    <g fill="#fff" stroke="#247e77" stroke-width="2">
+      <circle cx="511" cy="250" r="8"/><circle cx="511" cy="286" r="8"/><circle cx="511" cy="322" r="8"/><circle cx="511" cy="358" r="8"/>
     </g>
+    <text x="540" y="256" class="node">Intent &amp; authority</text>
+    <text x="540" y="292" class="node">Decisions &amp; invariants</text>
+    <text x="540" y="328" class="node">Work &amp; acceptance</text>
+    <text x="540" y="364" class="node">Evidence &amp; provenance</text>
+    <path d="M818 222v158" stroke="#b5c4d1" stroke-width="1"/>
+    <path d="M836 253h22M836 300h22M836 347h22" stroke="#247e77" stroke-width="2"/>
   </g>
 
-  <path d="M894 290 C940 290 946 242 984 242" fill="none" stroke="#5de0c3" stroke-width="2" marker-end="url(#arrow)"/>
-  <path d="M894 370 C940 370 948 370 984 370" fill="none" stroke="#5de0c3" stroke-width="2" marker-end="url(#arrow)"/>
-  <path d="M894 450 C940 450 947 498 984 498" fill="none" stroke="#5de0c3" stroke-width="2" marker-end="url(#arrow)"/>
-
-  <text x="984" y="194" class="eyebrow">RECOVERABLE HANDOFF</text>
-  <g filter="url(#shadow)">
-    <rect x="984" y="218" width="232" height="62" rx="13" fill="#1a3044" stroke="#35516d"/>
-    <circle cx="1011" cy="249" r="14" fill="#5de0c3" opacity="0.9"/>
-    <path d="M1004 249l5 5 9-11" fill="none" stroke="#082b37" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-    <text x="1036" y="246" class="label">next human</text><text x="1036" y="265" class="small">continues with context</text>
-
-    <rect x="962" y="306" width="232" height="62" rx="13" fill="#1a3044" stroke="#35516d"/>
-    <circle cx="989" cy="337" r="14" fill="#54aef1" opacity="0.9"/>
-    <path d="M982 337h14M989 330v14" stroke="#082b37" stroke-width="2" stroke-linecap="round"/>
-    <text x="1014" y="334" class="label">next agent</text><text x="1014" y="353" class="small">acts inside the pact</text>
-
-    <rect x="984" y="394" width="232" height="62" rx="13" fill="#1a3044" stroke="#35516d"/>
-    <path d="M1004 416h20v21h-20z M1008 410h12" fill="none" stroke="#e6a45c" stroke-width="3"/>
-    <text x="1036" y="422" class="label">next tool</text><text x="1036" y="441" class="small">reads the same state</text>
+  <path d="M895 300C930 300 940 300 967 300" fill="none" stroke="#58bca8" stroke-width="3" marker-end="url(#arrow)"/>
+  <g fill="#21384d" stroke="#68839a" stroke-width="1.5">
+    <rect x="989" y="220" width="220" height="52" rx="12"/>
+    <rect x="1009" y="286" width="220" height="52" rx="12"/>
+    <rect x="989" y="352" width="220" height="52" rx="12"/>
   </g>
-
-  <rect x="64" y="584" width="1152" height="1" fill="#34506c"/>
-  <text x="64" y="613" class="mono" fill="#7fa0ba" font-size="13">INTENT  •  AUTHORITY  •  DECISIONS  •  WORK  •  INVARIANTS  •  EVIDENCE  •  PROVENANCE</text>
-  <text x="1216" y="613" text-anchor="end" class="mono" fill="#5de0c3" font-size="13">THE REPOSITORY IS THE PACT</text>
+  <text x="1015" y="252" class="sub" font-size="17">Next contributor</text>
+  <text x="1035" y="318" class="sub" font-size="17">Next agent</text>
+  <text x="1015" y="384" class="sub" font-size="17">Next tool</text>
+  <path d="M1209 246h26M1229 312h6M1209 378h26" stroke="#58bca8" stroke-width="2"/>
+  <text x="72" y="478" class="eyebrow">SHARED AUTHORITY · TRACEABLE DECISIONS · REVIEWABLE EVIDENCE</text>
+  <text x="1208" y="478" text-anchor="end" class="micro">HUMANS AND TOOLS RESUME FROM THE SAME STATE</text>
 </svg>
