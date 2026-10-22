@@ -1,0 +1,53 @@
+{
+  "$schema": "../../../repopact/schemas/work-item.schema.json",
+  "id": "075",
+  "title": "Re-review ForgeLink adopter evidence for audit scopes 026 and 027",
+  "status": "active",
+  "owner_scope": "governance",
+  "lead": "governance-owner",
+  "affected_scopes": [
+    "governance",
+    "work",
+    "evidence"
+  ],
+  "depends_on": [],
+  "provenance": "concrete",
+  "preflight": {
+    "created_before_work_started": true,
+    "created_at": "2026-10-21T18:58:49Z",
+    "note": "Registered before governed audit registry updates and canonical Core validation. Initial read-only identity discovery showed current governance/adopter locator already points to JeremyShows/ForgeLink; no ownership change is authorized."
+  },
+  "acceptance_criteria": [
+    {
+      "id": "FLAUD-001",
+      "text": "Re-run the deterministic dashboard audit against ForgeLink's current pinned RepoPact implementation, recording immutable repository revision, exact command outcomes, and unrelated adopter failures without changing ForgeLink or historical evidence.",
+      "state": "satisfied",
+      "evidence": [
+        "20261021-forgelink-adopter-audit-rereview"
+      ]
+    },
+    {
+      "id": "FLAUD-002",
+      "text": "Re-verify the historical RepoPact 2.2.0 release and formal ForgeLink adoption claim in scope 027; record current external confirmation and preserve the original release evidence.",
+      "state": "satisfied",
+      "evidence": [
+        "20261021-forgelink-adopter-audit-rereview"
+      ]
+    },
+    {
+      "id": "FLAUD-003",
+      "text": "Re-run Core canonical validation, affected audit tests, full tests, conformance, derived-output checks, and distribution metadata checks; update audit review dates only if both scopes remain aligned and all required Core gates pass.",
+      "state": "pending",
+      "evidence": [
+        "20261021-forgelink-adopter-audit-rereview",
+        "20261021-forgelink-core-clean-tests"
+      ]
+    }
+  ],
+  "documentation_impact": {
+    "state": "none",
+    "rationale": "The work reviews governance records and validation evidence; it does not change user behavior, public interfaces, contributor workflow, architecture, or documentation claims."
+  },
+  "created": "2026-10-21",
+  "updated": "2026-10-21"
+}

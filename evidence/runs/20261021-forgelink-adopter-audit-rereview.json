@@ -1,0 +1,84 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261021-forgelink-adopter-audit-rereview",
+  "timestamp": "2026-10-21T19:33:06Z",
+  "work_item": "075",
+  "result": "partial",
+  "provenance": "concrete",
+  "summary": "Re-reviewed ForgeLink identity and the 026/027 claims using current public GitHub and PyPI data. The current locator is already correct and the dashboard-integrity behavior is present, but the full adopter validator is blocked by 16 unrelated expired ForgeLink audit scopes; no Core audit dates were advanced.",
+  "source_revisions": {
+    "core_base": "e6a980bc87b4698f8c031d56b64ad3629ad99c82",
+    "forgelink_main": "06be2fe26812e980d82766297fee475ad5538736",
+    "forgelink_2_2_0_adoption": "86f8d67c9ea8770f364b35d06a5c417a00f31815",
+    "forgelink_repository_id": 1062084554,
+    "forgelink_archive_sha256": "04a8612dd05b330b53b5c021ebc40870e35dec971ecc1e8038aeF49d62f540a2"
+  },
+  "identity_review": {
+    "current_repository": "JeremyShows/ForgeLink",
+    "repository_public": true,
+    "repository_archived": false,
+    "repository_disabled_api": false,
+    "default_branch": "main",
+    "governance_locator": "governance/adopters.json already declares JeremyShows/ForgeLink",
+    "schema_limitation": "adopter-fleet.schema.json stores owner/repository as a mutable owner/name locator and has no immutable GitHub repository ID field; the current numeric repository ID is retained in this evidence instead of changing schema",
+    "historical_locator_references": "The old ForgeWireLabs/ForgeLink slug remains only in dated July 18 and July 26 evidence records; those immutable observations were not rewritten. No old-owner locator occurs in current governance, scopes, tests, scripts, or docs.",
+    "git_transport": "git ls-remote and gh repo clone return HTTP 403 text claiming the repository is disabled, while GitHub REST metadata reports disabled=false and an API archive download succeeds; this transport inconsistency is not treated as repository status."
+  },
+  "adopter_checks": {
+    "current_pinned_version": "3.0.2",
+    "required_validation_command": "python .local/validate_system.py",
+    "initial_result": "exit 1: 16 expired ForgeLink audit-scope freshness errors plus generated dashboard stale",
+    "stale_dashboard_probe": "After canonical dashboard regeneration, a temporary appended line was rejected with the canonical dashboard.stale diagnostic; the 16 existing scope-expiry findings were also reported.",
+    "regenerated_result": "exit 1: 16 expired ForgeLink audit-scope freshness errors remain; no dashboard.stale error remains",
+    "scope_026_conclusion": "Dashboard-integrity rejection is confirmed on the current pinned upstream implementation, but full adopter governance validation does not pass; do not renew the Core scope until the adopter audit findings are reconciled.",
+    "scope_027_conclusion": "The July 18 formal-release adoption commit remains an ancestor of current main (54 commits ahead, 0 behind); current main has since advanced to exact PyPI pin 3.0.2. Historical 2.2.0 evidence remains valid and unchanged."
+  },
+  "external_release_checks": {
+    "pypi_2_2_0": "Public PyPI JSON confirms non-yanked version 2.2.0, uploaded 2026-07-18; wheel SHA-256 a254a6b23af94d30118b53422082c7a1e52310e1e40c58e16c6cb3716fa8f3ba; sdist SHA-256 f137400f74b0fb743cffcf8b28dbe5d24b6a1fe13fc37b75af977f9745d437b8.",
+    "pypi_3_0_2": "Public PyPI JSON confirms version 3.0.2; ForgeLink main requirements file pins repopact==3.0.2."
+  },
+  "commands": [
+    {"command": "GitHub REST GET /repos/JeremyShows/ForgeLink and GET /commits/main", "exit_code": 0, "summary": "Repository API returned public=true, archived=false, disabled=false, repository ID 1062084554, default branch main, and revision 06be2fe26812e980d82766297fee475ad5538736."},
+    {"command": "git ls-remote --symref https://github.com/JeremyShows/ForgeLink.git HEAD refs/heads/main", "exit_code": 1, "summary": "GitHub Git transport returned HTTP 403 and text 'Repository JeremyShows/ForgeLink is disabled', in conflict with REST metadata."},
+    {"command": "GET https://api.github.com/repos/JeremyShows/ForgeLink/zipball/06be2fe26812e980d82766297fee475ad5538736", "exit_code": 0, "summary": "Downloaded read-only source archive; SHA-256 recorded above."},
+    {"command": ".audit-venv\\Scripts\\python.exe -m pip install -r requirements-repopact.txt", "exit_code": 0, "summary": "Installed the adopter's exact repopact==3.0.2 pin in a scratch venv."},
+    {"command": ".audit-venv\\Scripts\\python.exe .local/validate_system.py", "exit_code": 1, "summary": "16 expired audit scopes plus stale generated dashboard; no repository files were changed."},
+    {"command": ".audit-venv\\Scripts\\python.exe -m repopact.cli dashboard --root .", "exit_code": 0, "summary": "Canonical dashboard generation completed in the downloaded scratch archive."},
+    {"command": ".audit-venv\\Scripts\\python.exe .local/validate_system.py (temporary stale-dashboard mutation)", "exit_code": 1, "summary": "The deliberate stale dashboard produced the expected stale-dashboard diagnostic; unrelated expired-scope diagnostics remained."},
+    {"command": ".audit-venv\\Scripts\\python.exe -m repopact.cli validate --root . (after dashboard regeneration)", "exit_code": 1, "summary": "16 ForgeLink audit-scope freshness errors remained; the stale-dashboard diagnostic was gone."},
+    {"command": "GET https://api.github.com/repos/JeremyShows/ForgeLink/commits/86f8d67c9ea8770f364b35d06a5c417a00f31815 and compare 86f8d67...main", "exit_code": 0, "summary": "Formal 2.2.0 adoption commit exists and is an ancestor of main; main is 54 commits ahead and 0 behind."},
+    {"command": "python -m pip install -e \".[dev]\" (isolated .audit-core-venv)", "exit_code": 0, "summary": "Built and installed Core 3.1.3.dev1 and its matching engine in an isolated venv."},
+    {"command": ".audit-core-venv\\Scripts\\repopact.exe validate", "exit_code": 1, "summary": "Canonical validator reports only expired Core audit scopes 026 and 027, both due 2026-10-16."},
+    {"command": ".audit-core-venv\\Scripts\\repopact.exe dashboard --root .; .audit-core-venv\\Scripts\\repopact.exe spec --root .", "exit_code": 0, "summary": "Regenerated dashboard and SPEC after adding the review work item."},
+    {"command": "python -m repopact.run_conformance", "exit_code": 0, "summary": "Canonical Rust conformance 37/37 and WI050 admission corpus 8/8 passed."},
+    {"command": "python -m build --sdist --wheel", "exit_code": 0, "summary": "Built repopact-3.1.3.dev1.tar.gz and repopact-3.1.3.dev1-py3-none-win_amd64.whl."},
+    {"command": "python -m twine check dist\\repopact-3.1.3.dev1.tar.gz rust\\target\\wheels\\repopact-3.1.3.dev1-py3-none-win_amd64.whl", "exit_code": 0, "summary": "Both distributions passed; wheel METADATA reports Version: 3.1.3.dev1."},
+    {"command": "python scripts/validate_repo.py", "exit_code": 2, "summary": "The completed 026/027 contracts reference this former script path, which does not exist in the extracted Core repository; canonical replacement is repopact validate, and the Python compatibility comparator is repopact.legacy_validate."},
+    {"command": ".audit-core-venv\\Scripts\\repopact.exe check-frozen --base origin/main", "exit_code": 0, "summary": "No frozen-surface changes detected."}
+  ],
+  "artifacts": [
+    "governance/adopters.json",
+    "repopact/schemas/adopter-fleet.schema.json",
+    "audits/registry.json",
+    "work/completed/026-deterministic-dashboard-validation/AGENTS.md",
+    "work/completed/027-release-2-2-0-dashboard-integrity/AGENTS.md",
+    "work/active/075-forgelink-adopter-audit-rereview/work-item.json",
+    "audits/reports/dashboard.md",
+    "SPEC.md"
+  ],
+  "environment": {
+    "core_repository": "ForgeWireLabs/repopact-core",
+    "core_revision": "e6a980bc87b4698f8c031d56b64ad3629ad99c82",
+    "adopter_repository": "JeremyShows/ForgeLink",
+    "adopter_revision": "06be2fe26812e980d82766297fee475ad5538736",
+    "os": "Windows",
+    "python": "3.12",
+    "core_engine": "3.1.3.dev1",
+    "audit_time_utc": "2026-10-21T19:33:06Z"
+  },
+  "limitations": [
+    "Core audit dates for scopes 026 and 027 were not advanced; required full clean adopter validation did not pass.",
+    "Core full unittest suite is pending a clean committed-state rerun; no result from the interrupted dirty-tree run is claimed.",
+    "The pre-existing completed-scope procedure command scripts/validate_repo.py is absent; current canonical command is repopact validate."
+  ]
+}

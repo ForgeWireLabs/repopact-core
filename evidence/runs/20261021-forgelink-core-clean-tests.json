@@ -1,0 +1,105 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261021-forgelink-core-clean-tests",
+  "timestamp": "2026-10-21T19:58:34Z",
+  "work_item": "075",
+  "result": "partial",
+  "provenance": "concrete",
+  "summary": "Clean committed-state Core test rerun completed with 368 passing, 9 failing, and 3 skipped tests; all nine failures are caused by the two expired audit scopes 026 and 027, while the other Core release, conformance, packaging, and frozen-surface gates passed.",
+  "source_revisions": {
+    "core_review_commit": "ce1b30c"
+  },
+  "core_test_results": {
+    "full_suite": {
+      "command": ".audit-core-venv\\Scripts\\python.exe -m unittest discover -s tests -v",
+      "exit_code": 1,
+      "tests_run": 380,
+      "passed": 368,
+      "failed": 9,
+      "skipped": 3,
+      "failure_names": [
+        "test_exact_tagged_release_tree_is_accepted",
+        "test_orphan_check_ignores_tracked_items_and_audit_companions",
+        "test_readme_release_line_without_link_is_accepted",
+        "test_readme_release_link_may_be_an_external_url",
+        "test_readme_release_link_outside_decisions_is_existence_checked_only",
+        "test_readme_without_release_line_is_unaffected",
+        "test_repository_is_valid",
+        "test_stale_dashboard_is_rejected_and_doctor_repairs_it",
+        "test_valid_proposed_work_item_validates"
+      ],
+      "finding": "Every listed failure expected an otherwise clean validation result but received exactly the same two unrelated freshness errors: scope 026 expired 2026-10-16 and scope 027 expired 2026-10-16. The stale-dashboard behavior itself remains covered by separate adopter probe evidence; these Core tests are blocked by the expired registry entries."
+    },
+    "affected_test_rerun": {
+      "command": "python -m unittest <nine affected RepositoryValidationTests> -v, followed by the missing release-line case explicitly",
+      "exit_code": 1,
+      "tests_run": 10,
+      "failed": 9,
+      "passed": 1,
+      "failure_names": [
+        "test_exact_tagged_release_tree_is_accepted",
+        "test_orphan_check_ignores_tracked_items_and_audit_companions",
+        "test_readme_release_line_without_link_is_accepted",
+        "test_readme_release_link_may_be_an_external_url",
+        "test_readme_release_link_outside_decisions_is_existence_checked_only",
+        "test_readme_without_release_line_is_unaffected",
+        "test_repository_is_valid",
+        "test_stale_dashboard_is_rejected_and_doctor_repairs_it",
+        "test_valid_proposed_work_item_validates"
+      ],
+      "passed_name": "test_readme_release_changelog_link_must_name_current_release",
+      "finding": "All nine failing tests reproduced only the two scope-expiry diagnostics; the selected passing test is unaffected by those diagnostics."
+    }
+  },
+  "readiness": {
+    "scope_026": "not ready for renewal: the targeted adopter dashboard behavior passes, but full ForgeLink validation still reports 16 expired adopter audit scopes",
+    "scope_027": "historical release claim remains supported, but Core freshness renewal is blocked by the full required Core gates",
+    "registry_dates_changed": false,
+    "flaud_003": "pending; acceptance requires all required gates to pass and both scopes to remain aligned"
+  },
+  "artifacts": [
+    "work/active/075-forgelink-adopter-audit-rereview/work-item.json",
+    "audits/registry.json",
+    "audits/reports/dashboard.md"
+  ],
+  "environment": {
+    "core_repository": "ForgeWireLabs/repopact-core",
+    "core_revision": "ce1b30c",
+    "os": "Windows",
+    "python": "3.12",
+    "core_engine": "3.1.3.dev1",
+    "audit_time_utc": "2026-10-21T19:58:34Z"
+  },
+  "limitations": [
+    "The clean full suite is not green: nine validator-dependent tests fail because scopes 026 and 027 remain expired.",
+    "No audit review dates were advanced and no historical evidence was modified.",
+    "The clean full test run took 23 minutes 6.975 seconds."
+  ],
+  "commands": [
+    {
+      "exit_code": 1,
+      "command": ".audit-core-venv\\Scripts\\python.exe -m unittest discover -s tests -v",
+      "summary": "380 tests ran in 1386.975 seconds: 371 passed, 9 failed, 3 skipped. All nine failures received only the two expired scope diagnostics for scopes 026 and 027."
+    },
+    {
+      "exit_code": 1,
+      "command": "python -m unittest <nine affected RepositoryValidationTests> -v plus test_readme_release_line_without_link_is_accepted",
+      "summary": "10 affected tests rerun: 9 failed on the same two expired scope diagnostics and test_readme_release_changelog_link_must_name_current_release passed."
+    },
+    {
+      "exit_code": 0,
+      "command": ".audit-core-venv\\Scripts\\repopact.exe dashboard --root .",
+      "summary": "Regenerated derived audit dashboard after appending immutable test evidence."
+    },
+    {
+      "exit_code": 0,
+      "command": ".audit-core-venv\\Scripts\\repopact.exe spec --root .",
+      "summary": "Regenerated derived SPEC blocks after work-item evidence linkage."
+    },
+    {
+      "exit_code": 1,
+      "command": ".audit-core-venv\\Scripts\\repopact.exe validate",
+      "summary": "Only the known expired scopes 026/027 plus evidence.fields-missing were reported before adding this command record; the evidence schema command requirement has now been satisfied."
+    }
+  ]
+}
