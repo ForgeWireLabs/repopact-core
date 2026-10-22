@@ -2,8 +2,8 @@
 
 > **Status**: 📋 Proposed (not activated)
 > **Owners**: TBD (lead) at activation time.
-> **Depends on**: [065](../../active/065-mobile-repository-acquisition-app-private-workspace-and-explicit-import-export-implementation/README.md) (Mobile Repository Acquisition, Stage 1 — SAF/archive import-export; expected to move to `work/completed/` at WI065's own closeout in this session).
-> **Cross-references**: [Decision 0056](../../../decisions/0056-mobile-repositories-use-app-private-working-copies-with-explicit-acquisition-and-synchronization-boundaries.md), [Decision 0057](../../../decisions/0057-mobile-acquisition-runtime-workspace-registry-and-bounded-import-export-contract.md), [067](../067-github-repository-provider-secure-user-authorization-and-remote-repository-import/README.md) (GitHub Repository Provider — related but distinct, see below). Not a hard dependency on 067.
+> **Depends on**: [065](../../completed/065-mobile-repository-acquisition-app-private-workspace-and-explicit-import-export-implementation/README.md) (Mobile Repository Acquisition, Stage 1 — SAF/archive import-export; completed).
+> **Cross-references**: [Decision 0056](../../../decisions/0056-mobile-repositories-use-app-private-working-copies-with-explicit-acquisition-and-synchronization-boundaries.md), [Decision 0057](../../../decisions/0057-mobile-acquisition-runtime-workspace-registry-and-bounded-import-export-contract.md), [067](../../active/067-github-repository-provider-secure-user-authorization-and-remote-repository-import/README.md) (GitHub Repository Provider — related but distinct, see below). Not a hard dependency on 067.
 
 ## Intent
 

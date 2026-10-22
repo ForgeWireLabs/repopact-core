@@ -2,7 +2,7 @@
 
 > **Status**: 📋 Proposed
 > **Owners**: governance-owner (lead).
-> **Depends on**: [`070`](../../active/070-repopact-3-1-3-downloadable-workbench-installers/) (paper should cite the 3.1.3-or-later release-candidate tree), [`063`](../../active/063-durable-repository-orientation-graph-and-incremental-semantic-index/) (ROG-028/034/038 close out here).
+> **Depends on**: [`070`](../../completed/070-repopact-3-1-3-downloadable-workbench-installers/README.md) (paper should cite the 3.1.3-or-later release-candidate tree), [`063`](../../active/063-durable-repository-orientation-graph-and-incremental-semantic-index/README.md) (ROG-028/034/038 close out here).
 
 ## Intent
 

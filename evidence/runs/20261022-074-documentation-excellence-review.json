@@ -1,0 +1,162 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261022-074-documentation-excellence-review",
+  "timestamp": "2026-10-22T16:46:14-05:00",
+  "work_item": "074",
+  "result": "partial",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "python -m pip install -e \".[dev]\" (Core isolated Python 3.12.4 runtime)",
+      "exit_code": 0,
+      "summary": "Editable Core development install completed."
+    },
+    {
+      "command": "repopact check-frozen --root . --base origin/main",
+      "exit_code": 0,
+      "summary": "No frozen-surface changes detected."
+    },
+    {
+      "command": "repopact dashboard --root . (Core isolated development runtime)",
+      "exit_code": 0,
+      "summary": "Regenerated audits/reports/dashboard.md after governed record changes."
+    },
+    {
+      "command": "repopact validate --root . (Core isolated development runtime)",
+      "exit_code": 1,
+      "summary": "Two existing audit-registry findings remain: completed scopes 026 and 027 expired 2026-10-16. No freshness dates were advanced."
+    },
+    {
+      "command": "python -m unittest discover -s tests -v (Core isolated development runtime)",
+      "exit_code": 1,
+      "summary": "385 tests ran; 9 failed and 3 were skipped before dashboard regeneration. The full suite was not rerun after the dashboard was refreshed."
+    },
+    {
+      "command": "python -m unittest test_validate_repo.RepositoryValidationTests.test_exact_tagged_release_tree_is_accepted test_validate_repo.RepositoryValidationTests.test_orphan_check_ignores_tracked_items_and_audit_companions test_validate_repo.RepositoryValidationTests.test_readme_release_line_without_link_is_accepted test_validate_repo.RepositoryValidationTests.test_readme_release_link_may_be_an_external_url test_validate_repo.RepositoryValidationTests.test_stale_dashboard_is_rejected_and_doctor_repairs_it test_validate_repo.RepositoryValidationTests.test_valid_proposed_work_item_validates -v (tests directory; after dashboard regeneration)",
+      "exit_code": 1,
+      "summary": "All 6 selected cases failed only because repository validation reported the two expired audit scopes 026/027; the refreshed dashboard itself was no longer reported stale."
+    },
+    {
+      "command": "python -m unittest discover -s tests -p test_validate_docs.py -v (Core isolated development runtime)",
+      "exit_code": 0,
+      "summary": "All 6 focused documentation-link and asset-validator tests passed."
+    },
+    {
+      "command": "python scripts/validate_docs.py --root . --repo ForgeWireLabs/repopact-workbench=C:\\Projects\\repopact-docs-workbench --repo ForgeWireLabs/ForgeWireLabs=C:\\Projects\\forgewirelabs-docs",
+      "exit_code": 0,
+      "summary": "Core documentation validation passed across 331 Markdown files; 12 external GitHub links were reported as unchecked."
+    },
+    {
+      "command": "python ..\\repopact-docs-core\\scripts\\validate_docs.py --root . --repo ForgeWireLabs/repopact-core=..\\repopact-docs-core",
+      "exit_code": 0,
+      "summary": "Workbench documentation validation passed across 14 Markdown files; 8 external GitHub links were reported as unchecked."
+    },
+    {
+      "command": "python ..\\repopact-docs-core\\scripts\\validate_docs.py --root . --repo ForgeWireLabs/repopact-core=..\\repopact-docs-core --repo ForgeWireLabs/repopact-workbench=..\\repopact-docs-workbench",
+      "exit_code": 0,
+      "summary": "Portfolio documentation and social-asset validation passed across 8 Markdown files; 25 external GitHub links were reported as unchecked. Listed asset targets, SHA-256 values, sizes, and PNG dimensions matched."
+    },
+    {
+      "command": "repopact --version and --help checks using stable repopact==3.1.3 outside the source checkout",
+      "exit_code": 0,
+      "summary": "Installed metadata and CLI reported 3.1.3; all 21 documented command groups accepted --help and the documented key options were checked."
+    },
+    {
+      "command": "Stable 3.1.3 disposable onboarding tutorial: init, work-item creation, repopact verify --evidence-work-item 001, evidence linking, completion, directory transition, dashboard regeneration, and final validate",
+      "exit_code": 0,
+      "summary": "End-to-end tutorial passed in C:\\Projects\\repopact-docs-tutorial-run-20261022. Verification evidence ID: 20261022-211043-025078-verify-governance."
+    },
+    {
+      "command": "repopact adopt --dry-run (stable 3.1.3 disposable preview)",
+      "exit_code": 0,
+      "summary": "Reported 38 planned records; confirmed the preview target was unchanged."
+    },
+    {
+      "command": "npm ci (Workbench)",
+      "exit_code": 0,
+      "summary": "Installed 120 packages; npm audit reported 0 vulnerabilities."
+    },
+    {
+      "command": "npm run typecheck (Workbench)",
+      "exit_code": 0,
+      "summary": "Frontend typecheck passed."
+    },
+    {
+      "command": "npm test -- --run (Workbench)",
+      "exit_code": 0,
+      "summary": "8 test files and 38 tests passed. Vitest emitted a benign canvas warning."
+    },
+    {
+      "command": "npm run build (Workbench)",
+      "exit_code": 0,
+      "summary": "Frontend production build passed."
+    },
+    {
+      "command": "npm run types:check (Workbench)",
+      "exit_code": 0,
+      "summary": "Generated frontend type check passed; generated source was unchanged."
+    },
+    {
+      "command": "cargo test --workspace --all-targets --locked (Workbench)",
+      "exit_code": 0,
+      "summary": "238 Rust tests passed, 10 were ignored, and none failed."
+    },
+    {
+      "command": "cargo build --locked --package repopact-desktop (Workbench)",
+      "exit_code": 0,
+      "summary": "Windows desktop package build passed."
+    },
+    {
+      "command": "git diff --check (Core, Workbench, portfolio)",
+      "exit_code": 0,
+      "summary": "Whitespace/error checks passed in all three candidate repositories."
+    }
+  ],
+  "artifacts": [
+    "work/active/074-extract-repopact-core-and-independent-workbench/documentation-excellence-checklist.md",
+    "work/active/074-extract-repopact-core-and-independent-workbench/documentation-coverage-matrix.md",
+    "audits/reports/dashboard.md",
+    "SECURITY.md",
+    "docs/cli-reference.md",
+    "docs/troubleshooting.md",
+    "docs/guides/validate-documentation.md",
+    "scripts/validate_docs.py",
+    "tests/test_validate_docs.py",
+    "C:/Projects/repopact-docs-workbench/CONTRIBUTING.md",
+    "C:/Projects/repopact-docs-workbench/SECURITY.md",
+    "C:/Projects/repopact-docs-workbench/docs/user-guide.md",
+    "C:/Projects/forgewirelabs-docs/social/asset-inventory.json"
+  ],
+  "environment": {
+    "os": "Windows",
+    "python": "3.12.4",
+    "pip": "24.0",
+    "node": "v24.15.0",
+    "npm": "11.12.1",
+    "cargo": "1.96.0",
+    "rustc": "1.96.0",
+    "git": "2.53.0.windows.3",
+    "stable_core_package": "repopact==3.1.3",
+    "core_development_package": "3.1.3.dev1",
+    "repositories": {
+      "ForgeWireLabs/repopact-core": {
+        "base_revision": "9a3e51f5669fc2bc4d513d1c64929d3c5636d4ac",
+        "branch": "codex/documentation-excellence-core",
+        "working_tree_at_review": "dirty; commands ran against the candidate documentation changes"
+      },
+      "ForgeWireLabs/repopact-workbench": {
+        "base_revision": "59e71418f26cdc2ea31c7cb23e85cb52d9803289",
+        "branch": "codex/documentation-excellence-workbench",
+        "working_tree_at_review": "dirty; commands ran against the candidate documentation changes"
+      },
+      "ForgeWireLabs/ForgeWireLabs": {
+        "base_revision": "53f5ba6b02d73000f9f902c7b45987390dee4ba9",
+        "branch": "codex/documentation-excellence-portfolio",
+        "working_tree_at_review": "dirty; commands ran against the candidate documentation changes"
+      }
+    },
+    "research_freshness": "14 documents retain verified_on 2026-09-24 and review_by 2026-10-24; review is still due and no date was advanced.",
+    "unverified_remote_state": "GitHub App registration and live social-preview settings were not inspected. External GitHub links counted by the local checker were not all checked live.",
+    "governance_limits": "RPS-020 remains pending; WI047 remains unchanged and its open acceptance criteria are not closed by this run."
+  }
+}
