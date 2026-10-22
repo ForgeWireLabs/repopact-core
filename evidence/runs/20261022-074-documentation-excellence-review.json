@@ -1,7 +1,7 @@
 {
   "$schema": "../../repopact/schemas/evidence-run.schema.json",
   "id": "20261022-074-documentation-excellence-review",
-  "timestamp": "2026-10-22T16:52:39-05:00",
+  "timestamp": "2026-10-22T16:54:47-05:00",
   "work_item": "074",
   "result": "partial",
   "provenance": "concrete",
@@ -112,9 +112,9 @@
       "summary": "Whitespace/error checks passed in all three candidate repositories."
     },
     {
-      "command": "GitHub rendered-page review: Core CLI page at the default desktop viewport; Core and Workbench docs indexes and the ForgeWire Labs portfolio README at 390x844",
+      "command": "GitHub rendered-page review: Core CLI page at the default desktop viewport; Core and Workbench docs indexes, ForgeWire Labs portfolio README, and all four PR pages at 390x844",
       "exit_code": 0,
-      "summary": "Desktop and mobile Markdown renders were inspected. The portfolio's original three-column overview table overflowed its 324px content region at a 390px viewport, so it was changed to a list. After that commit the document width was 375px within the 390px viewport and the README rendered cleanly."
+      "summary": "Desktop and mobile Markdown renders and all four mobile PR pages were inspected; the PR pages had a 375px document width inside the 390px viewport. The portfolio's original three-column overview table overflowed its 324px content region at a 390px viewport, so it was changed to a list. After that commit the document width was 375px within the 390px viewport and the README rendered cleanly."
     }
   ],
   "artifacts": [
@@ -146,7 +146,7 @@
     "repositories": {
       "ForgeWireLabs/repopact-core": {
         "base_revision": "9a3e51f5669fc2bc4d513d1c64929d3c5636d4ac",
-        "candidate_revision": "4794cc9005779a8bb12a2e3d28e7edd93fb45869",
+        "candidate_revision": "8cae3e74ca012a42b10bf221d8d99bc570939a32",
         "branch": "codex/documentation-excellence-core",
         "working_tree_at_review": "clean after commit; the evidence and checklist follow-up is part of the open PR"
       },
