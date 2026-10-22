@@ -14,6 +14,13 @@ below. RepoPact 3.1.3 was published subsequently on 2026-09-18; this review did
 not rebuild the manuscript, change its results or snapshot, or submit it.
 Publication and independent reproduction remain separate work.
 
+**Source availability review — 2026-10-22.** The cited snapshot commit
+`6d782116fc9762da00439cf079d0f50585fea52` is not retrievable from the current
+public RepoPact archive or the checked local project repositories. GitHub's
+public `v3.1.0` tag resolves to a different commit (`a87ea20e808ba67c04f625d7cc44c7f8f92487eb`);
+this review did not treat those snapshots as equivalent or substitute one for
+the other.
+
 ## Abstract
 
 Agentic software engineering increasingly distributes work across humans, coding agents,
@@ -49,10 +56,12 @@ We evaluate RepoPact reflexively and adversarially using its packaged implementa
 conformance suite, recorded findings, naturalistic case studies, and a pre-registered
 comparative benchmark program. The implementation has evolved from a Python reference
 system into a canonical Rust semantic engine consumed by compatibility tooling and a Tauri
-2 Workbench, while preserving repository-level interoperability. RepoPact 3.1.0 is the
-stable public boundary and ships the canonical engine, local-first verification/release
-surface, additive graph capability, and optional assurance-mapping capability in the
-Python/Rust package. WI063's graph implementation is substantially operational but remains
+2 Workbench, while preserving repository-level interoperability. This manuscript evaluates
+the frozen 3.1.0 implementation/evidence snapshot, which ships the canonical engine,
+local-first verification/release surface, additive graph capability, and optional
+assurance-mapping capability in the Python/Rust package. RepoPact 3.1.3 became the current
+stable public release on 2026-09-18; it was not evaluated in this frozen manuscript.
+WI063's graph implementation is substantially operational but remains
 active at 37/40 satisfied criteria; WI065's app-private mobile acquisition checkpoint is
 real but active at 4/9 satisfied criteria. Windows, Linux, and Android evidence exists for
 the Workbench, while macOS and iOS still require platform-specific validation. RealRunner
@@ -151,10 +160,12 @@ This paper makes six contributions.
    machine-checkable conformance suite, naturalistic field observations, and
    pre-registered comparative benchmarks. Disconfirming results are in scope by design.
 
-RepoPact is open source under Apache-2.0. The current stable public release is 3.1.0;
-the implementation/evidence snapshot named above is the release-candidate source snapshot
-used for this manuscript. It is part of the ForgeWire Labs inspectable-infrastructure
-stack, but the system and model described here are independently useful.
+RepoPact is open source under Apache-2.0. The manuscript's frozen stable-product baseline
+is 3.1.0, and the implementation/evidence snapshot named above is the source snapshot used
+for this evaluation. RepoPact 3.1.3 became the current stable public release on 2026-09-18;
+the manuscript has not been rebuilt to claim evaluation of that release. RepoPact is part of
+the ForgeWire Labs inspectable-infrastructure stack, but the system and model described
+here are independently useful.
 
 ## 2. Background and Related Work
 
@@ -556,10 +567,10 @@ The current RepoPact release line is no longer accurately described as only a Py
 The architecture has evolved while preserving one important rule: there should be **one
 semantic authority** for the governance model.
 
-The current stable public release is 3.1.0. The release-candidate implementation snapshot
-at `6d782116fc9762da00439cf079d0f50585fea52` includes a canonical Rust semantic engine, a
-compatibility-oriented Python command surface, local-first verification and release
-operations, a Tauri 2 Workbench, schemas, templates, a conformance suite, migration tools,
+The manuscript's frozen implementation/evidence baseline is 3.1.0. The release-candidate
+implementation snapshot at `6d782116fc9762da00439cf079d0f50585fea52` includes a canonical
+Rust semantic engine, a compatibility-oriented Python command surface, local-first
+verification and release operations, a Tauri 2 Workbench, schemas, templates, a conformance suite, migration tools,
 evidence records, and the research corpus. The stable Python/Rust artifact includes the
 engine and CLI surfaces; Workbench installers/APKs follow their own platform release path
 and are not silently implied by the PyPI artifact. The snapshot also contains substantially
@@ -635,9 +646,9 @@ The public command surface includes operations such as:
 | `check-frozen` | enforce frozen-surface changes against a base |
 | `doctor` | diagnose, repair, and migrate drift |
 
-The stable 3.1.0 package exposes newer operational surfaces, including `verify ci`, grouped
-`release` verification/build/inspect commands, graph operations, assurance snapshots, and
-the bounded admission/approval surfaces. These are additive to the earlier CLI. The package
+The frozen 3.1.0 package snapshot exposes newer operational surfaces, including `verify ci`,
+grouped `release` verification/build/inspect commands, graph operations, assurance
+snapshots, and the bounded admission/approval surfaces. These are additive to the earlier CLI. The package
 surface does not imply that every external release, platform, or research gate has closed.
 
 Mandatory preflight makes intent visible before implementation begins. Existing repositories
@@ -1416,6 +1427,6 @@ and software catalog documentation. https://backstage.io/docs/features/software-
 and Karthik Narasimhan. **SWE-bench: Can Language Models Resolve Real-World GitHub
 Issues?** arXiv:2310.06770, 2023. https://arxiv.org/abs/2310.06770
 
-[9] Minh V. T. Thai, Tue Le, Dung Nguyen Manh, Huy Phan Nhat, and Nghi D. Q. Bui.
+[9] Tue Le, Minh V. T. Thai, Dung Nguyen Manh, Huy Phan Nhat, and Nghi D. Q. Bui.
 **SWE-EVO: Benchmarking Coding Agents in Long-Horizon Software Evolution Scenarios.**
 arXiv:2512.18470, 2025. https://arxiv.org/abs/2512.18470

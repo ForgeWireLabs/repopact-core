@@ -1,0 +1,134 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261022-074-research-freshness-review",
+  "timestamp": "2026-10-22T18:27:41.5112522-05:00",
+  "work_item": "074",
+  "result": "partial",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "Live public check: PyPI project and RepoPact GitHub Releases",
+      "exit_code": 0,
+      "summary": "Both identify 3.1.3 as current stable; the GitHub release page identifies the 2026-09-18 v3.1.3 release. The frozen September 14 manuscript remains a 3.1.0 snapshot."
+    },
+    {
+      "command": "Live public check: arXiv record https://arxiv.org/abs/2512.18470",
+      "exit_code": 0,
+      "summary": "Verified the current v6 author order as Tue Le, Minh V. T. Thai, Dung Nguyen Manh, Huy Phan Nhat, Nghi D. Q. Bui; corrected the manuscript citation."
+    },
+    {
+      "command": "GitHub API GET for manuscript snapshot commit 6d782116fc9762da00439cf079d0f50585fea52 in the current public RepoPact archive",
+      "exit_code": 1,
+      "summary": "GitHub returns 422, no commit found. The same SHA was absent from the checked local project repositories."
+    },
+    {
+      "command": "GitHub API GET for public v3.1.0 tag and its annotated tag object",
+      "exit_code": 0,
+      "summary": "The tag resolves to commit a87ea20e808ba67c04f625d7cc44c7f8f92487eb, not the manuscript's 6d782116fc9762da00439cf079d0f50585fea52. No source-tree equivalence was established, so the tag was not substituted."
+    },
+    {
+      "command": "GitHub API GET for recorded Moto One Hyper repository and commit 0adb522ab4b3e4c33b0beb101ae637ad737c5e91",
+      "exit_code": 1,
+      "summary": "The public repository and commit endpoints return 404. The full commit object still resolves in the local checkout. Public availability could not be verified; current metadata preserves the SHA and records no usable public URL, while the historical capture remains unchanged."
+    },
+    {
+      "command": "GitHub Security Advisories and repository security settings for Core and Workbench",
+      "exit_code": 0,
+      "summary": "After explicit operator approval, private reporting is enabled in both repositories. Both public Security Advisories pages display the Report a vulnerability button; policy branches link directly to each repository's form."
+    },
+    {
+      "command": "Live destination review for install, release, contribution, documentation, research, and Core/Workbench navigation links",
+      "exit_code": 0,
+      "summary": "Targeted live checks opened PyPI and the current Core release; Core CONTRIBUTING.md and adoption guide; the Workbench release destination and PR-branch CONTRIBUTING.md; the public Core/Workbench security reporting forms; official GitHub integration references; cited research references; and Core/Workbench cross-repository decision links. Workbench CONTRIBUTING.md is introduced by its open PR and is therefore not yet on main. The portfolio PR's ForgeLink, SkillForge Academy, Anvil, ForgeWire Overview, Core, Workbench, and release destinations were also opened; no demonstrated failures required corrections. The Moto adopter commit and manuscript snapshot remain unavailable as recorded above; no unsupported replacement links were added."
+    },
+    {
+      "command": "python -m repopact.validate_research --root .",
+      "exit_code": 0,
+      "summary": "Canonical research metadata, lifecycle, benchmark mappings, threat identifiers, trace, and the 14-document freshness registry passed."
+    },
+    {
+      "command": "python -m unittest discover -s tests -p test_research_metadata.py -v",
+      "exit_code": 0,
+      "summary": "All 15 focused research metadata tests passed."
+    },
+    {
+      "command": "python -m unittest discover -s tests -v (unchanged Core main baseline at 9a3e51f5669fc2bc4d513d1c64929d3c5636d4ac; isolated 3.1.3.dev1 runtime)",
+      "exit_code": 1,
+      "summary": "Baseline: 380 tests ran, 9 failed, and 3 were skipped. All nine failing IDs were repository-validation cases: test_exact_tagged_release_tree_is_accepted; test_orphan_check_ignores_tracked_items_and_audit_companions; test_readme_release_line_without_link_is_accepted; test_readme_release_link_may_be_an_external_url; test_readme_release_link_outside_decisions_is_existence_checked_only; test_readme_without_release_line_is_unaffected; test_repository_is_valid; test_stale_dashboard_is_rejected_and_doctor_repairs_it; test_valid_proposed_work_item_validates. Each reported only expired completed audit scopes 026/027."
+    },
+    {
+      "command": "python -m unittest discover -s tests -v (Core PR #7 branch based on 9a3e51f5669fc2bc4d513d1c64929d3c5636d4ac; isolated 3.1.3.dev1 runtime)",
+      "exit_code": 1,
+      "summary": "PR branch: 386 tests ran, 9 failed, and 3 were skipped. Its nine failing test IDs are identical to the baseline list above and each reports the same expired audit scopes 026/027. The six added documentation-validator tests all passed, so this documentation branch introduced no new full-suite failures."
+    },
+    {
+      "command": "python scripts/validate_docs.py --root . --repo ForgeWireLabs/repopact-workbench=C:\\Projects\\repopact-docs-workbench --repo ForgeWireLabs/ForgeWireLabs=C:\\Projects\\forgewirelabs-docs",
+      "exit_code": 0,
+      "summary": "Core local links and anchors passed across 331 Markdown files. The offline checker reported 32 external GitHub links unchecked; those are not represented as verified by this result."
+    },
+    {
+      "command": "python ..\\repopact-docs-core\\scripts\\validate_docs.py --root . --repo ForgeWireLabs/repopact-core=..\\repopact-docs-core (Workbench branch)",
+      "exit_code": 0,
+      "summary": "Workbench local links and anchors passed across 14 Markdown files. Nine external GitHub links remain unchecked by the offline checker."
+    },
+    {
+      "command": "python ..\\repopact-docs-core\\scripts\\validate_docs.py --root . --repo ForgeWireLabs/repopact-core=..\\repopact-docs-core --repo ForgeWireLabs/repopact-workbench=..\\repopact-docs-workbench (portfolio branch)",
+      "exit_code": 0,
+      "summary": "Portfolio local links and assets passed across 8 Markdown files; 25 external GitHub links remain unchecked by the offline checker. Asset hashes, sizes, and dimensions match."
+    },
+    {
+      "command": "repopact validate --root . (isolated 3.1.3.dev1 runtime)",
+      "exit_code": 1,
+      "summary": "Only completed audit scopes 026 and 027 are expired (2026-10-16). Research freshness passes. No audit dates were renewed and the dashboard is not stale."
+    }
+  ],
+  "artifacts": [
+    "research/README.md",
+    "research/arxiv-submission-prep.md",
+    "research/metadata.json",
+    "research/paper.md",
+    "work/active/074-extract-repopact-core-and-independent-workbench/documentation-excellence-checklist.md",
+    "work/active/074-extract-repopact-core-and-independent-workbench/documentation-coverage-matrix.md",
+    "work/active/074-extract-repopact-core-and-independent-workbench/work-item.json",
+    "audits/reports/dashboard.md",
+    "evidence/runs/20261022-074-documentation-excellence-review.json",
+    "https://pypi.org/project/repopact/",
+    "https://github.com/JeremyShows/repopact/releases",
+    "https://github.com/ForgeWireLabs/repopact-core/security/advisories",
+    "https://github.com/ForgeWireLabs/repopact-workbench/security/advisories",
+    "https://github.com/ForgeWireLabs/repopact-core/pull/6",
+    "https://github.com/ForgeWireLabs/repopact-workbench/pull/6",
+    "https://github.com/ForgeWireLabs/ForgeWireLabs/pull/3",
+    "C:\\Users\\jerem\\AppData\\Local\\Temp\\repopact-core-baseline-suite-20261022.log",
+    "C:\\Users\\jerem\\AppData\\Local\\Temp\\repopact-core-pr7-suite-20261022.log",
+    "https://arxiv.org/abs/2512.18470",
+    "https://arxiv.org/abs/2310.06770",
+    "https://arxiv.org/abs/2310.08560",
+    "https://agents.md/",
+    "https://www.linuxfoundation.org/press/linux-foundation-announces-the-formation-of-the-agentic-ai-foundation",
+    "https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions",
+    "https://www.openpolicyagent.org/docs/",
+    "https://www.conftest.dev/",
+    "https://www.oreilly.com/library/view/building-evolutionary-architectures/9781491986356/",
+    "https://backstage.io/docs/features/software-catalog/",
+    "https://github.com/JeremyShows/repopact/commit/a87ea20e808ba67c04f625d7cc44c7f8f92487eb",
+    "https://github.com/ForgeWireLabs/repopact-core/pull/7"
+  ],
+  "environment": {
+    "os": "Windows",
+    "python": "3.12.4",
+    "repository": "ForgeWireLabs/repopact-core",
+    "branch": "codex/documentation-excellence-core",
+    "baseline_revision": "9a3e51f5669fc2bc4d513d1c64929d3c5636d4ac",
+    "pr_branch_head_before_evidence_commit": "dd74363b0d54748bf492ff47c21ab3c6e4e01eaf",
+    "review_date": "2026-10-22",
+    "next_research_review_by": "2026-11-21",
+    "limitations": [
+      "The public Moto One Hyper source repository/commit returns 404; no replacement URL was guessed.",
+      "The manuscript's 3.1.0 source snapshot commit returns 422 from the public archive; the public v3.1.0 tag points to a different commit and was not substituted.",
+      "The offline Markdown checker does not verify external links.",
+      "No research experiments were rerun; the manuscript snapshot and historical experimental results remain unchanged.",
+      "Core repository validation remains non-passing because audit scopes 026 and 027 expired before this review."
+    ]
+  }
+}
