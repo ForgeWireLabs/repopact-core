@@ -1,7 +1,7 @@
 {
   "$schema": "../../repopact/schemas/evidence-run.schema.json",
   "id": "20261022-074-documentation-excellence-review",
-  "timestamp": "2026-10-22T16:54:47-05:00",
+  "timestamp": "2026-10-22T17:18:38-05:00",
   "work_item": "074",
   "result": "partial",
   "provenance": "concrete",
@@ -29,7 +29,12 @@
     {
       "command": "python -m unittest discover -s tests -v (Core isolated development runtime)",
       "exit_code": 1,
-      "summary": "385 tests ran; 9 failed and 3 were skipped before dashboard regeneration. The full suite was not rerun after the dashboard was refreshed."
+      "summary": "Initial run before dashboard regeneration: 385 tests ran; 9 failed and 3 were skipped. A complete post-regeneration run is recorded below."
+    },
+    {
+      "command": "python -m unittest discover -s tests -v (Core isolated development runtime; after dashboard regeneration)",
+      "exit_code": 1,
+      "summary": "Final run: 386 tests ran; 9 failed and 3 were skipped. The failing repository-validation cases reported the two expired audit scopes 026/027; the regenerated dashboard was not reported stale."
     },
     {
       "command": "python -m unittest test_validate_repo.RepositoryValidationTests.test_exact_tagged_release_tree_is_accepted test_validate_repo.RepositoryValidationTests.test_orphan_check_ignores_tracked_items_and_audit_companions test_validate_repo.RepositoryValidationTests.test_readme_release_line_without_link_is_accepted test_validate_repo.RepositoryValidationTests.test_readme_release_link_may_be_an_external_url test_validate_repo.RepositoryValidationTests.test_stale_dashboard_is_rejected_and_doctor_repairs_it test_validate_repo.RepositoryValidationTests.test_valid_proposed_work_item_validates -v (tests directory; after dashboard regeneration)",
@@ -146,9 +151,9 @@
     "repositories": {
       "ForgeWireLabs/repopact-core": {
         "base_revision": "9a3e51f5669fc2bc4d513d1c64929d3c5636d4ac",
-        "candidate_revision": "8cae3e74ca012a42b10bf221d8d99bc570939a32",
+        "candidate_revision": "98211e072227603a879ff05c0a0f35ffd7012990",
         "branch": "codex/documentation-excellence-core",
-        "working_tree_at_review": "clean after commit; the evidence and checklist follow-up is part of the open PR"
+        "working_tree_at_review": "candidate content was committed and tested at this revision; this follow-up records the final suite result"
       },
       "ForgeWireLabs/repopact-workbench": {
         "base_revision": "59e71418f26cdc2ea31c7cb23e85cb52d9803289",
