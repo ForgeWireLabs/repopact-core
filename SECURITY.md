@@ -9,16 +9,12 @@ own build and integration surfaces; this policy covers Core and this repository.
 
 ## Reporting a vulnerability
 
-If you believe you have found a vulnerability, report it privately through
-GitHub's **Report a vulnerability** feature when available for this repository.
-If private reporting is unavailable, contact the maintainers through the
-ForgeWire Labs organization profile. Do not include credentials, tokens, or
-private repository data in a public issue. This project does not promise a
-response or remediation time.
+Use the [private vulnerability reporting form](https://github.com/ForgeWireLabs/repopact-core/security/advisories/new) to
+report suspected security issues. GitHub private vulnerability reporting is
+enabled for this repository. Do not report suspected vulnerabilities through
+public issues or include credentials, tokens, or private repository data there.
 
-Include the affected release or commit, the relevant input and command, the
-security property you expected, and reproducible impact when it is safe to
-share. Do not publish exploit details before coordinating a fix.
+Include the affected release or commit, relevant input and command, expected security property, and reproducible impact when safe to share. Do not publish exploit details before coordinating a fix.
 
 ## Scope and trust boundaries
 
