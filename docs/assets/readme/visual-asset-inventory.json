@@ -1,0 +1,19 @@
+{
+  "format": "repopact-core-visual-assets-v1",
+  "repository": "ForgeWireLabs/repopact-core",
+  "social_preview": {
+    "svg": "docs/assets/readme/repopact-hero.svg",
+    "png": "docs/assets/readme/repopact-hero-social.png",
+    "size": [
+      1280,
+      640
+    ],
+    "sha256": "966DAA02B0A91E117878A7F8D9A3250496B8590CF63B98F3441AAF75A7CB1486",
+    "description": "A sparse record spine turns fragmented session context into durable repository authority shared by the next human, agent, or tool."
+  },
+  "technical_illustration": {
+    "path": "docs/assets/readme/repopact-architecture.svg",
+    "description": "Detailed system boundaries among repository records, Core semantics, clients, derived views, and optional host integrations."
+  },
+  "social_preview_status": "Prepared for owner upload. This repository revision does not claim that GitHub settings have the image active."
+}

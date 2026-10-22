@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
+  <title id="title">RepoPact Core architecture and authority boundaries</title>
+  <desc id="desc">People and clients use the Core CLI or Workbench to read authoritative repository records and request typed operations. The Rust semantic engine validates records and prepares plans. Evidence records observed results. Dashboards, the Repository Orientation Graph, and Workbench screens are derived views. Optional host integrations enforce only the boundary they can demonstrate.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#52657b"/></marker>
+    <marker id="arrow-blue" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#2563a6"/></marker>
+    <style>
+      text{font-family:Inter,Segoe UI,Arial,sans-serif;fill:#17283b}.h{font-size:21px;font-weight:700}.p{font-size:16px}.s{font-size:14px}.cap{font-size:13px;font-weight:700;letter-spacing:1.2px}.box{rx:16;stroke-width:2}.authority{fill:#eaf3fc;stroke:#2563a6}.engine{fill:#173653;stroke:#173653}.engineText{fill:#fff}.derived{fill:#f2f6f9;stroke:#8798a9;stroke-dasharray:7 5}.optional{fill:#fff7e8;stroke:#a77722}.human{fill:#f0edf9;stroke:#6d55a2}.line{fill:none;stroke:#52657b;stroke-width:2.5;marker-end:url(#arrow)}.lineBlue{fill:none;stroke:#2563a6;stroke-width:2.5;marker-end:url(#arrow-blue)}
+    </style>
+  </defs>
+  <rect width="1200" height="720" rx="24" fill="#fbfcfe"/>
+  <text x="48" y="54" class="cap" fill="#2563a6">REPOPACT CORE · AUTHORITY AND DATA FLOW</text>
+  <text x="48" y="88" class="h">The repository is the pact</text>
+  <text x="48" y="116" class="p">Clients help people inspect and change governed state; the checked-in records remain authoritative.</text>
+
+  <rect x="48" y="166" width="238" height="104" class="box human"/>
+  <text x="70" y="201" class="h">People &amp; agents</text><text x="70" y="231" class="p">Propose · inspect · review</text><text x="70" y="253" class="s">Human authority remains explicit</text>
+  <rect x="48" y="330" width="238" height="128" class="box authority"/>
+  <text x="70" y="366" class="h">Core CLI</text><text x="70" y="395" class="p">Init · adopt · validate</text><text x="70" y="420" class="p">Typed work and record commands</text><text x="70" y="443" class="s">Python command surface</text>
+  <rect x="48" y="516" width="238" height="104" class="box authority"/>
+  <text x="70" y="551" class="h">Workbench</text><text x="70" y="580" class="p">Native human interface</text><text x="70" y="602" class="s">Separate project and release stream</text>
+  <path d="M167 270V326" class="line"/>
+
+  <rect x="365" y="166" width="300" height="292" class="box authority"/>
+  <text x="389" y="204" class="cap" fill="#2563a6">AUTHORITATIVE REPOSITORY RECORDS</text>
+  <text x="389" y="246" class="h">Intent &amp; decisions</text><text x="389" y="276" class="p">Work items · ownership · scopes</text>
+  <text x="389" y="315" class="p">Invariants · frozen surfaces</text><text x="389" y="345" class="p">Evidence · provenance · code</text>
+  <line x1="389" y1="370" x2="641" y2="370" stroke="#b8cce0" stroke-width="2"/>
+  <text x="389" y="405" class="s">Versioned files are the source of truth.</text><text x="389" y="431" class="s">A conversation may start work; it does not</text><text x="389" y="451" class="s">replace the repository’s durable state.</text>
+
+  <rect x="730" y="183" width="252" height="190" class="box engine"/>
+  <text x="754" y="224" class="cap engineText">CANONICAL RUST AUTHORITY</text>
+  <text x="754" y="266" class="h engineText">Rust Core engine</text>
+  <text x="754" y="299" class="p engineText">Validate · diagnose</text>
+  <text x="754" y="326" class="p engineText">Analyze · query · plan</text>
+  <text x="754" y="353" class="p engineText">Apply typed operations</text>
+  <path d="M665 267H724" class="lineBlue"/><path d="M730 330H671" class="lineBlue"/>
+  <path d="M286 382H326V130H700V230H724" class="lineBlue"/><path d="M286 568H320V475H700V348H724" class="lineBlue"/>
+  <text x="682" y="249" class="s" text-anchor="middle">read</text><text x="682" y="355" class="s" text-anchor="middle">results</text>
+
+  <rect x="1010" y="164" width="145" height="130" class="box optional"/>
+  <text x="1027" y="201" class="h">Optional</text><text x="1027" y="229" class="p">host / CI</text><text x="1027" y="255" class="s">Boundary is</text><text x="1027" y="276" class="s">provider-specific</text>
+  <path d="M982 230H1004" class="line"/>
+
+  <rect x="365" y="516" width="300" height="104" class="box derived"/>
+  <text x="389" y="552" class="h">Derived views</text><text x="389" y="581" class="p">Dashboard · orientation graph</text><text x="389" y="604" class="s">Useful indexes; never authority</text>
+  <rect x="730" y="516" width="425" height="104" class="box derived"/>
+  <text x="754" y="552" class="h">Workbench screens &amp; reports</text><text x="754" y="581" class="p">Presentation of Core and repository state</text><text x="754" y="604" class="s">If a view disagrees with its source, reconcile the view</text>
+  <path d="M852 373V495H671V568H665" class="line"/><path d="M983 373V476H942V510" class="line"/>
+  <text x="48" y="672" class="s">Instructions and checks do not create OS confinement. “Sandbox/process-enforced” requires independent, platform-specific native proof.</text>
+</svg>

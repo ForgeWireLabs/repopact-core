@@ -2,11 +2,11 @@
 
 The README's public visual surface is intentionally small and evidence-backed.
 
-- `readme/repopact-hero.svg` is the current deterministic hero: it explains the
-  fragmented-session to durable-repository transition without mutable release
-  numbers, metrics, or generic AI imagery.
-- `readme/repopact-hero-social.png` is the generated 1280×640 social-preview
-  raster derived from that same hero.
+- `readme/repopact-hero.svg` is the scalable README hero. Its sparse record
+  spine communicates how project context becomes connected, durable authority.
+- `readme/repopact-hero-social.png` is a separately rendered 1280×640 social
+  preview for GitHub and other link cards. The image is ready to upload; no claim
+  is made that it is active in repository settings.
 - The real Windows Workbench capture formerly at
   `readme/workbench-governance.jpg` is retained as historical evidence under
   `archive/workbench-governance.jpg`; it is not a Core product asset.
