@@ -10,9 +10,9 @@ RepoPact puts that load-bearing engineering state in versioned repository record
 >
 > People, agents, and tools coordinate through the same durable project records.
 
-![When the session ends, the pact remains: fragmented context becomes recoverable engineering state in the repository.](docs/assets/readme/repopact-hero-social.png)
+![A compact visual of loose context becoming linked repository records that let the next human, agent, or tool resume from shared state.](docs/assets/readme/repopact-hero.svg)
 
-[Get started](#choose-your-path) · [Architecture](#core-architecture) · [Documentation](#documentation) · [Research](#research)
+[Install and get started](#choose-your-path) · [Understand the model](#how-the-pact-works) · [Read the specification](SPEC.md) · [Explore the research](#research)
 
 RepoPact Core is the home of the `repopact` command-line package, canonical semantic engine, schemas, conformance suite, and reference governance records. It is open source under [Apache-2.0](LICENSE). The stable CLI package is published on [PyPI](https://pypi.org/project/repopact/). The separate [RepoPact Workbench](https://github.com/ForgeWireLabs/repopact-workbench) is a native interface that consumes Core; it is not part of the PyPI package.
 
@@ -32,6 +32,10 @@ RepoPact treats this as **governance discontinuity**: the loss or divergence of 
 | Reflected in stale dashboards or indexes | Reconciled from authoritative source records |
 
 That makes engineering work easier to resume, review, and verify across human and AI contributors.
+
+**Start with Core:** install the CLI and initialize a repository below. If you
+want a visual interface, explore [RepoPact Workbench](https://github.com/ForgeWireLabs/repopact-workbench),
+which uses the same Core semantics and keeps repository records authoritative.
 
 ## Choose your path
 
@@ -125,7 +129,12 @@ Core is the semantic authority shared by command-line and graphical clients. The
 
 The repository contains the Rust workspace, packaged schemas and templates, the 3.1.3 conformance corpus, documentation, and reference governance records. The [conformance contract](CONFORMANCE.md) defines what it means to claim compatibility with a specific RepoPact version. A conformance result is scoped to that version; it does not make claims about future versions.
 
+<details>
+<summary>View the Core architecture and authority boundaries</summary>
+
 ![Architecture diagram showing authoritative repository records, the canonical Rust semantic engine, clients, derived views, and optional integrations with distinct boundaries.](docs/assets/readme/repopact-architecture.svg)
+
+</details>
 
 The diagram distinguishes source records from projections. CLI and Workbench clients ask Core to interpret records and perform supported typed operations; dashboards, graph indexes, and screens help people navigate the resulting state. Optional host integrations have only the enforcement boundary they can demonstrate. See the [concrete work-item walkthrough](docs/work-item-walkthrough.md) for a proposal-to-evidence handoff grounded in the actual Core record shape and commands.
 
