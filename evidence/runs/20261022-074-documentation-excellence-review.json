@@ -1,7 +1,7 @@
 {
   "$schema": "../../repopact/schemas/evidence-run.schema.json",
   "id": "20261022-074-documentation-excellence-review",
-  "timestamp": "2026-10-22T16:46:14-05:00",
+  "timestamp": "2026-10-22T16:52:39-05:00",
   "work_item": "074",
   "result": "partial",
   "provenance": "concrete",
@@ -44,7 +44,7 @@
     {
       "command": "python scripts/validate_docs.py --root . --repo ForgeWireLabs/repopact-workbench=C:\\Projects\\repopact-docs-workbench --repo ForgeWireLabs/ForgeWireLabs=C:\\Projects\\forgewirelabs-docs",
       "exit_code": 0,
-      "summary": "Core documentation validation passed across 331 Markdown files; 12 external GitHub links were reported as unchecked."
+      "summary": "Final Core documentation validation passed across 331 Markdown files; 31 external GitHub links were reported as unchecked."
     },
     {
       "command": "python ..\\repopact-docs-core\\scripts\\validate_docs.py --root . --repo ForgeWireLabs/repopact-core=..\\repopact-docs-core",
@@ -110,6 +110,11 @@
       "command": "git diff --check (Core, Workbench, portfolio)",
       "exit_code": 0,
       "summary": "Whitespace/error checks passed in all three candidate repositories."
+    },
+    {
+      "command": "GitHub rendered-page review: Core CLI page at the default desktop viewport; Core and Workbench docs indexes and the ForgeWire Labs portfolio README at 390x844",
+      "exit_code": 0,
+      "summary": "Desktop and mobile Markdown renders were inspected. The portfolio's original three-column overview table overflowed its 324px content region at a 390px viewport, so it was changed to a list. After that commit the document width was 375px within the 390px viewport and the README rendered cleanly."
     }
   ],
   "artifacts": [
@@ -141,19 +146,28 @@
     "repositories": {
       "ForgeWireLabs/repopact-core": {
         "base_revision": "9a3e51f5669fc2bc4d513d1c64929d3c5636d4ac",
+        "candidate_revision": "4794cc9005779a8bb12a2e3d28e7edd93fb45869",
         "branch": "codex/documentation-excellence-core",
-        "working_tree_at_review": "dirty; commands ran against the candidate documentation changes"
+        "working_tree_at_review": "clean after commit; the evidence and checklist follow-up is part of the open PR"
       },
       "ForgeWireLabs/repopact-workbench": {
         "base_revision": "59e71418f26cdc2ea31c7cb23e85cb52d9803289",
+        "candidate_revision": "b690ce5046c5ab4f9db63d441b31530f36a41eeb",
         "branch": "codex/documentation-excellence-workbench",
-        "working_tree_at_review": "dirty; commands ran against the candidate documentation changes"
+        "working_tree_at_review": "clean after commit"
       },
       "ForgeWireLabs/ForgeWireLabs": {
         "base_revision": "53f5ba6b02d73000f9f902c7b45987390dee4ba9",
+        "candidate_revision": "314a9f86712afe77a5fbb3d7e212d016a2f0a8c3",
         "branch": "codex/documentation-excellence-portfolio",
-        "working_tree_at_review": "dirty; commands ran against the candidate documentation changes"
+        "working_tree_at_review": "clean after mobile readability follow-up"
       }
+    },
+    "pull_requests": {
+      "core_security": "https://github.com/ForgeWireLabs/repopact-core/pull/6",
+      "core_documentation": "https://github.com/ForgeWireLabs/repopact-core/pull/7",
+      "workbench_documentation": "https://github.com/ForgeWireLabs/repopact-workbench/pull/6",
+      "portfolio_documentation": "https://github.com/ForgeWireLabs/ForgeWireLabs/pull/3"
     },
     "research_freshness": "14 documents retain verified_on 2026-09-24 and review_by 2026-10-24; review is still due and no date was advanced.",
     "unverified_remote_state": "GitHub App registration and live social-preview settings were not inspected. External GitHub links counted by the local checker were not all checked live.",
