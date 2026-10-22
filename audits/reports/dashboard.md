@@ -15,7 +15,7 @@
 | Audit findings | 3 |
 | Decision records | 75 |
 | Policy records | 2 |
-| Evidence runs | 184 |
+| Evidence runs | 185 |
 
 ## Work
 
@@ -29,7 +29,10 @@
 
 ## Audit freshness
 
-All audit scopes are within their review cadence.
+| Scope | Review was due |
+| --- | --- |
+| work/completed/026-deterministic-dashboard-validation | 2026-10-16 |
+| work/completed/027-release-2-2-0-dashboard-integrity | 2026-10-16 |
 
 ## Active items
 

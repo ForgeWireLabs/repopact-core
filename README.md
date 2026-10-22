@@ -12,7 +12,7 @@ RepoPact puts that load-bearing engineering state in versioned repository record
 
 ![When the session ends, the pact remains: fragmented context becomes recoverable engineering state in the repository.](docs/assets/readme/repopact-hero-social.png)
 
-[Get started](#get-started) · [How it works](#how-the-pact-works) · [Documentation](#documentation) · [Research](#research)
+[Get started](#choose-your-path) · [Architecture](#core-architecture) · [Documentation](#documentation) · [Research](#research)
 
 RepoPact Core is the home of the `repopact` command-line package, canonical semantic engine, schemas, conformance suite, and reference governance records. It is open source under [Apache-2.0](LICENSE). The stable CLI package is published on [PyPI](https://pypi.org/project/repopact/). The separate [RepoPact Workbench](https://github.com/ForgeWireLabs/repopact-workbench) is a native interface that consumes Core; it is not part of the PyPI package.
 
@@ -33,9 +33,11 @@ RepoPact treats this as **governance discontinuity**: the loss or divergence of 
 
 That makes engineering work easier to resume, review, and verify across human and AI contributors.
 
-## Get started
+## Choose your path
 
-Install the stable Core CLI from PyPI:
+### Start a new governed repository
+
+Install the stable Core CLI, then initialize a project:
 
 ```bash
 python -m pip install repopact
@@ -44,21 +46,43 @@ python -m pip install repopact
 Create a governed repository and record a unit of work:
 
 ```bash
-repopact init --target ../your-repo
-cd ../your-repo
+repopact init --target ./your-repo
+cd ./your-repo
 
-repopact new work-item "Add retry policy"
 repopact validate
-repopact dashboard
 ```
 
-For an existing project, preview what adoption would add before writing files:
+Then follow the [adoption tutorial](docs/adopt-repopact.md) to define project
+governance, create a work item, record verification evidence, and complete the
+item with evidence.
+
+### Adopt an existing repository
+
+Preview the proposed changes first:
 
 ```bash
-repopact adopt --target ../existing-repo --dry-run
+repopact adopt --target ./existing-repo --dry-run
 ```
 
-Review the plan, then run `repopact adopt --target ../existing-repo` to create its initial RepoPact records. Continue with the step-by-step [adoption tutorial](docs/adopt-repopact.md).
+Review the preview. If it matches the repository's needs, run
+`repopact adopt --target ./existing-repo`, then inspect and validate the new
+records. Adoption can preserve uncertainty as provisional or inferred rather
+than presenting a reconstruction as a known fact. See the [adoption guide](docs/adopt-repopact.md).
+
+### Use RepoPact with coding agents
+
+RepoPact is not tied to a particular agent host. Give the agent access to the
+repository's `AGENTS.md`, active work item, applicable governance, and relevant
+decisions. The repository records provide durable shared context; the agent
+still needs appropriate tool permissions, and RepoPact does not turn written
+rules into an operating-system sandbox. See [the contributor workflow](CONTRIBUTING.md)
+and the [optional pre-execution admission guide](docs/guides/pre-execution-admission.md).
+
+### Explore the model and research
+
+Read the [specification](SPEC.md) and [formal model](research/formal-model.md) for
+the semantics. Research protocols, findings, and threats to validity are linked
+in the [Research section](#research).
 
 RepoPact does not require a particular coding agent, model provider, editor, CI vendor, or cloud account. The records are ordinary repository files and can be used by humans and tools that read them.
 
@@ -101,6 +125,10 @@ Core is the semantic authority shared by command-line and graphical clients. The
 
 The repository contains the Rust workspace, packaged schemas and templates, the 3.1.3 conformance corpus, documentation, and reference governance records. The [conformance contract](CONFORMANCE.md) defines what it means to claim compatibility with a specific RepoPact version. A conformance result is scoped to that version; it does not make claims about future versions.
 
+![Architecture diagram showing authoritative repository records, the canonical Rust semantic engine, clients, derived views, and optional integrations with distinct boundaries.](docs/assets/readme/repopact-architecture.svg)
+
+The diagram distinguishes source records from projections. CLI and Workbench clients ask Core to interpret records and perform supported typed operations; dashboards, graph indexes, and screens help people navigate the resulting state. Optional host integrations have only the enforcement boundary they can demonstrate. See the [concrete work-item walkthrough](docs/work-item-walkthrough.md) for a proposal-to-evidence handoff grounded in the actual Core record shape and commands.
+
 ### Core and Workbench are separate products
 
 Core owns governance schemas and interpretation, validation, graph and analysis semantics, and typed mutation behavior. Workbench owns its interface, application orchestration, session handling, filesystem observation, and native desktop/mobile integration. It consumes one immutable Core revision and must not create a competing governance engine.
@@ -113,9 +141,9 @@ Repositories can define their own verification profiles and run them locally thr
 
 ## Research
 
-RepoPact is both a usable tool and an ongoing software-engineering research project. The repository contains a [paper draft](research/paper.md), a [formal model](research/formal-model.md), experiment and benchmark protocols, a findings register, and [threats to validity](research/threats-to-validity.md). The research is intended to test the architecture, including where its assumptions fail; a protocol or benchmark harness is not itself a completed comparative result.
+RepoPact is both a usable tool and an ongoing software-engineering research project. The repository contains a [paper draft](research/paper.md), a [formal model](research/formal-model.md), the [adversarial research protocol](research/protocol.md), a separate [comparative benchmark protocol](research/benchmark-protocol.md), the [Proving Ground lab notebook](research/README.md), a [findings register](research/findings.md), and [threats to validity](research/threats-to-validity.md). These materials distinguish hypotheses and registered methods from observed findings; the existence of a protocol or harness is not itself a completed comparative result. Research findings have bounded scope and documented validity threats; they do not establish universal effectiveness.
 
-The machine-readable [conformance suite](CONFORMANCE.md) provides version-scoped compatibility cases. Research protocols and the proving-ground experiments are separate from that normative compatibility contract.
+The machine-readable [conformance suite](CONFORMANCE.md) provides version-scoped compatibility cases. Conformance is an implementation contract, not experimental evidence for the research hypotheses.
 
 ## Documentation
 
