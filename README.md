@@ -2,19 +2,15 @@
 
 **Repository-native governance for durable human–agent software engineering.**
 
-AI-assisted development can move faster than a team can preserve the context that makes its changes responsible: what the project intends, who may change which paths, why a decision was made, which constraints are binding, what remains unfinished, and what evidence makes work complete.
+**Keep project intent, authority, and evidence in the repository so the next contributor can resume from the same state.**
 
-RepoPact puts that load-bearing engineering state in versioned repository records. A new contributor can recover the represented project state from a clone instead of depending on a previous session, model, or private memory.
-
-> **The repository is the pact.**
->
-> People, agents, and tools coordinate through the same durable project records.
+RepoPact gives people and coding agents a shared, inspectable record of what a project intends, what work is authorized, which constraints bind, what remains open, and what evidence supports completion. The records travel with a clone; they do not depend on one session, model, or private memory.
 
 ![A compact visual of loose context becoming linked repository records that let the next human, agent, or tool resume from shared state.](docs/assets/readme/repopact-hero.svg)
 
-[Install and get started](#choose-your-path) · [Understand the model](#how-the-pact-works) · [Read the specification](SPEC.md) · [Explore the research](#research)
+[Install the CLI](#choose-your-path) · [Follow the adoption tutorial](docs/adopt-repopact.md) · [Read the specification](SPEC.md) · [Explore the research](#research) · [Open RepoPact Workbench](https://github.com/ForgeWireLabs/repopact-workbench)
 
-RepoPact Core is the home of the `repopact` command-line package, canonical semantic engine, schemas, conformance suite, and reference governance records. It is open source under [Apache-2.0](LICENSE). The stable CLI package is published on [PyPI](https://pypi.org/project/repopact/). The separate [RepoPact Workbench](https://github.com/ForgeWireLabs/repopact-workbench) is a native interface that consumes Core; it is not part of the PyPI package.
+RepoPact Core contains the `repopact` CLI, canonical semantic engine, schemas, conformance suite, and reference records. It is open source under [Apache-2.0](LICENSE); the stable CLI package is available on [PyPI](https://pypi.org/project/repopact/). [RepoPact Workbench](https://github.com/ForgeWireLabs/repopact-workbench) is a separate native interface that consumes Core and is not included in the PyPI package.
 
 ## Why RepoPact exists
 
@@ -32,10 +28,6 @@ RepoPact treats this as **governance discontinuity**: the loss or divergence of 
 | Reflected in stale dashboards or indexes | Reconciled from authoritative source records |
 
 That makes engineering work easier to resume, review, and verify across human and AI contributors.
-
-**Start with Core:** install the CLI and initialize a repository below. If you
-want a visual interface, explore [RepoPact Workbench](https://github.com/ForgeWireLabs/repopact-workbench),
-which uses the same Core semantics and keeps repository records authoritative.
 
 ## Choose your path
 
