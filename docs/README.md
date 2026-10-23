@@ -13,6 +13,7 @@ Start here if you want to govern a repository rather than develop RepoPact itsel
 - [Adopt RepoPact](adopt-repopact.md) — end-to-end first use on the stable package.
 - [Define your governance](guides/define-your-governance.md) — roles, scopes, invariants, and frozen surfaces.
 - [Author records](guides/author-records.md) — work items, evidence, decisions, and policies.
+- [Check documentation freshness](guides/documentation-freshness.md) — opt-in source/documentation mappings, drift review, and generated-output freshness boundaries.
 - [Local-first verification and release](guides/local-ci-cd.md) — repository-defined verification, evidence recording, release build/inspection, and optional hosted adapters.
 
 ## Understand RepoPact

@@ -1,0 +1,14 @@
+{
+  "version": 2,
+  "enforce_tracked_path_ownership": false,
+  "scopes": [
+    {"id": "governance", "paths": ["AGENTS.md", "governance/**", "schemas/**"], "owner": "governance-owner"}
+  ],
+  "roles": [
+    {"id": "governance-owner", "description": "Maintains the pact and schemas.", "scopes": ["governance"]}
+  ],
+  "concurrency": {"enforce_disjoint_active_scopes": false},
+  "preflight": {"enabled": true, "required_from_id": 2},
+  "documentation_impact": {"enabled": true, "required_from_id": 900},
+  "documentation_mappings": {"enabled": true, "path": "governance/documentation-mappings.json"}
+}

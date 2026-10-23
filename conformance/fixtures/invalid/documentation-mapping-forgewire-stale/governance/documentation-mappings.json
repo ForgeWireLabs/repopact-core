@@ -1,0 +1,21 @@
+{
+  "$schema": "documentation-mappings.schema.json",
+  "version": 1,
+  "mappings": [
+    {
+      "id": "auth-guide",
+      "kind": "manual",
+      "source_paths": [
+        "src/repopact/auth.py"
+      ],
+      "documentation_paths": [
+        "docs/security/auth.md"
+      ],
+      "description": "Synthetic ForgeWire-shaped auth source and security guide mapping.",
+      "snapshot": {
+        "source_digest": "a7e8ad7855977d9d04297f940ea1e69e6855750904204fa2eeda11df9bc549e9",
+        "documentation_digest": "a986bd37a4295aff109551d3c2aa508a2c2917ec18b431556b9cb3b83f870981"
+      }
+    }
+  ]
+}

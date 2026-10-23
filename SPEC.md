@@ -86,6 +86,7 @@ Structure is defined by the schemas; this catalog is generated from them.
 | Record | Location | Schema | Required fields |
 | --- | --- | --- | --- |
 | Work item | `work/<status>/NNN-slug/work-item.json` | [`work-item.schema.json`](repopact/schemas/work-item.schema.json) | `id`, `title`, `status`, `owner_scope`, `affected_scopes`, `depends_on`, `acceptance_criteria`, `created`, `updated` |
+| Documentation mapping | `governance/documentation-mappings.json` | [`documentation-mappings.schema.json`](repopact/schemas/documentation-mappings.schema.json) | `$schema`, `version`, `mappings` |
 | Evidence run | `evidence/runs/<id>.json` | [`evidence-run.schema.json`](repopact/schemas/evidence-run.schema.json) | `id`, `timestamp`, `work_item`, `result`, `commands`, `artifacts`, `environment` |
 | Audit finding | `audits/findings/NNN-slug.json` | [`audit-finding.schema.json`](repopact/schemas/audit-finding.schema.json) | `id`, `scope`, `observed`, `risk`, `reconciliation`, `state`, `created` |
 | Invariants | `governance/invariants.json` | [`invariants.schema.json`](repopact/schemas/invariants.schema.json) | `version`, `invariants` |
@@ -230,6 +231,22 @@ cross-record consistency.
     `"none"`. A repository that has not enabled `documentation_impact`, and
     every work item created on or before the configured epoch date
     (including already-`completed` items), remain fully valid.
+
+18. **Mapped documentation freshness (opt-in, Decision 0076, WI047).** If
+    `governance/owners.json` enables `documentation_mappings`, RepoPact validates
+    the configured versioned mapping file and requires each exact source and
+    documentation path to resolve to a regular file inside the repository.
+    The recorded source and documentation digests are recomputed from their
+    sorted paths and bytes. Source-only drift, documentation-only drift, or a
+    changed pair is an error until a reviewer reconciles the files and
+    explicitly refreshes the snapshot. `generated` mappings identify declared
+    generator/output risk pairs; RepoPact does not execute an adopter-supplied
+    command or claim generator provenance. `repopact documentation snapshot`
+    prints digests but never writes them. `doctor` surfaces the same drift as a
+    non-destructive warning. Matching digests prove byte equality to the
+    reviewed snapshot, not prose correctness or mapping completeness. The
+    feature is disabled when the setting is absent or disabled, preserving
+    existing adopter compatibility.
 
 ## 5. Lifecycle state machine
 

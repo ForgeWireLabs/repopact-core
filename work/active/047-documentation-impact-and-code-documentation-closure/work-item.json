@@ -4,6 +4,7 @@
   "title": "Documentation Impact and Code/Documentation Closure",
   "status": "active",
   "owner_scope": "governance",
+  "lead": "governance-owner",
   "affected_scopes": ["governance", "tooling", "docs", "evidence", "work"],
   "depends_on": [],
   "provenance": "concrete",
@@ -15,7 +16,7 @@
   "documentation_impact": {
     "state": "affected",
     "surfaces": ["architecture", "configuration", "contributor_workflow"],
-    "evidence": ["20260918-047-documentation-closure-implementation"]
+    "evidence": ["20260918-047-documentation-closure-implementation", "20261022-047-documentation-mapping-freshness"]
   },
   "acceptance_criteria": [
     {
@@ -57,14 +58,14 @@
     {
       "id": "AC-7",
       "text": "The architecture supports adopter-declared source-to-documentation mappings or an equivalent mechanism so RepoPact can detect structural freshness risks when mapped source changes and related documentation remains unchanged, without claiming generic analysis can prove prose semantics.",
-      "state": "pending",
-      "evidence": []
+      "state": "satisfied",
+      "evidence": ["20261022-047-documentation-mapping-freshness"]
     },
     {
       "id": "AC-8",
       "text": "Generated documentation follows derive-over-declare: when a governed generator or source changes, stale generated documentation is detectable and closeout requires regeneration/reconciliation rather than hand-maintained divergence.",
-      "state": "pending",
-      "evidence": []
+      "state": "satisfied",
+      "evidence": ["20261022-047-documentation-mapping-freshness"]
     },
     {
       "id": "AC-9",
@@ -75,20 +76,20 @@
     {
       "id": "AC-10",
       "text": "Doctor and audit behavior is reconciled with documentation closure so RepoPact can surface stale, missing, or suspiciously unchanged mapped documentation non-destructively after closeout.",
-      "state": "pending",
-      "evidence": []
+      "state": "satisfied",
+      "evidence": ["20261022-047-documentation-mapping-freshness"]
     },
     {
       "id": "AC-11",
       "text": "Conformance and regression coverage includes: code changed plus affected docs updated; internal refactor plus justified no-impact declaration; code changed with no documentation-impact resolution; mapped public or configuration source changed while docs remain untouched; documentation required but evidence absent; and generated documentation source changed while output is stale.",
-      "state": "pending",
-      "evidence": []
+      "state": "satisfied",
+      "evidence": ["20261022-047-documentation-mapping-freshness"]
     },
     {
       "id": "AC-12",
       "text": "The design is validated against at least one ForgeWire-shaped change and one adopter-neutral fixture, with closeout evidence explaining what would falsify the claim that the mechanism is generic.",
-      "state": "pending",
-      "evidence": []
+      "state": "satisfied",
+      "evidence": ["20261022-047-documentation-mapping-freshness"]
     },
     {
       "id": "AC-13",
@@ -99,10 +100,10 @@
     {
       "id": "AC-14",
       "text": "After contract and compatibility decisions are accepted, the selected mechanism is implemented consistently across required schema, validator, CLI, templates, SPEC, workflow guidance, doctor/audit, reporting, conformance, and tests. Closeout includes negative proof that unresolved documentation impact is rejected.",
-      "state": "pending",
-      "evidence": []
+      "state": "satisfied",
+      "evidence": ["20261022-047-documentation-mapping-freshness"]
     }
   ],
   "created": "2026-09-02",
-  "updated": "2026-09-18"
+  "updated": "2026-10-22"
 }

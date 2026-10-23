@@ -1,0 +1,55 @@
+{
+  "$schema": "documentation-mappings.schema.json",
+  "version": 1,
+  "mappings": [
+    {
+      "id": "documentation-freshness-tooling",
+      "kind": "manual",
+      "source_paths": [
+        "repopact/cli.py",
+        "repopact/documentation_mappings.py",
+        "repopact/release_build.py",
+        "repopact/schemas/documentation-mappings.schema.json",
+        "rust/apps/repopact-engine/src/main.rs",
+        "rust/crates/repopact-core/src/lib.rs",
+        "rust/crates/repopact-protocol/src/lib.rs",
+        "rust/crates/repopact-validation/src/lib.rs",
+        "rust/crates/repopact-validation/src/documentation.rs"
+      ],
+      "documentation_paths": [
+        "docs/guides/documentation-freshness.md"
+      ],
+      "description": "The opt-in mapping diagnostics and snapshot command are explained by the adopter-facing freshness guide.",
+      "snapshot": {
+        "source_digest": "90ae66ac8b020b02179617abca52c4a81529213e00017858f451b90e204cbe59",
+        "documentation_digest": "6a7b56a721f7965e9cafedb5f980758d186016f15bb4be426b429c9c0d8b618b"
+      }
+    },
+    {
+      "id": "generated-spec-reference",
+      "kind": "generated",
+      "source_paths": [
+        "VERSION",
+        "governance/invariants.json",
+        "repopact/generate_spec.py",
+        "repopact/schemas/assurance-mapping.schema.json",
+        "repopact/schemas/audit-finding.schema.json",
+        "repopact/schemas/documentation-mappings.schema.json",
+        "repopact/schemas/evidence-run.schema.json",
+        "repopact/schemas/frozen-surface.schema.json",
+        "repopact/schemas/invariants.schema.json",
+        "repopact/schemas/record-frontmatter.schema.json",
+        "repopact/schemas/verification-profile.schema.json",
+        "repopact/schemas/work-item.schema.json"
+      ],
+      "documentation_paths": [
+        "SPEC.md"
+      ],
+      "description": "The generated SPEC catalog, version statement, and invariant table are derived from the listed generator inputs.",
+      "snapshot": {
+        "source_digest": "a4939ebee471f63b0c97f4c70c669f6dd2e0e779862c0e38adf0a90d6e108e9e",
+        "documentation_digest": "0bd8275d32a2dcd30450058b2e2535f19d77d8a162d60810daa7beffc0f1de3a"
+      }
+    }
+  ]
+}
