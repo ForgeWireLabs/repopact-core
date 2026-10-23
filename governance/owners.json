@@ -48,5 +48,10 @@
     "enabled": true,
     "required_from_date": "2026-09-17",
     "note": "Mandatory documentation-impact closure (decision 0065, WI047): work items created after 2026-09-17 cannot transition to completed without a resolved documentation_impact ('affected' with surfaces+evidence, or 'none' with a rationale). Every item created on/before that date, including WI047 itself and every already-completed item up to WI069, is grandfathered -- the mandate applies prospectively from this adoption epoch, not retroactively (decision 0065, AC-13)."
+  },
+  "documentation_mappings": {
+    "enabled": true,
+    "path": "governance/documentation-mappings.json",
+    "note": "Optional structural source-to-documentation freshness checking (decision 0076, WI047). A mapping's digest drift is a review signal, never proof that prose is semantically accurate."
   }
 }

@@ -62,6 +62,20 @@ impl RepoPactCore {
         repopact_validation::compute_review_snapshot(snapshot, mapping_id)
     }
 
+    /// Fresh-snapshot convenience for a documentation freshness mapping.
+    pub fn documentation_snapshot(&self, mapping_id: &str) -> Result<serde_json::Value, String> {
+        let snapshot = self.snapshot();
+        self.documentation_snapshot_snapshot(&snapshot, mapping_id)
+    }
+
+    pub fn documentation_snapshot_snapshot(
+        &self,
+        snapshot: &RepositorySnapshot,
+        mapping_id: &str,
+    ) -> Result<serde_json::Value, String> {
+        repopact_validation::compute_documentation_snapshot(snapshot, mapping_id)
+    }
+
     /// Fresh-snapshot convenience for isolated callers.
     pub fn graph(&self) -> RepositoryGraph {
         self.graph_snapshot(&self.snapshot())

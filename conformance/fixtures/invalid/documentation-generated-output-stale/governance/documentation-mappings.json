@@ -1,0 +1,22 @@
+{
+  "$schema": "documentation-mappings.schema.json",
+  "version": 1,
+  "mappings": [
+    {
+      "id": "api-reference",
+      "kind": "generated",
+      "source_paths": [
+        "schema/openapi.json",
+        "tools/generate-api.py"
+      ],
+      "documentation_paths": [
+        "docs/api-reference.md"
+      ],
+      "description": "Synthetic generator inputs and generated API reference mapping.",
+      "snapshot": {
+        "source_digest": "96df4885d6868e828dcd82966a3701cd211b0945980254536dd9dad4586d5687",
+        "documentation_digest": "5f153b91300a582cbcded4174bdb8c229583668bbb444586dcdba218ae4d1e5c"
+      }
+    }
+  ]
+}

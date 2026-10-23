@@ -19,6 +19,8 @@ ROOT = Path(__file__).resolve().parents[1]
 RECORDS = [
     ("work-item.schema.json", "Work item", "work/<status>/NNN-slug/work-item.json",
      "Unit of work: intent, scope, dependencies, acceptance criteria."),
+    ("documentation-mappings.schema.json", "Documentation mapping", "governance/documentation-mappings.json",
+     "Optional adopter-authored structural source-to-documentation freshness mapping (Decision 0076)."),
     ("evidence-run.schema.json", "Evidence run", "evidence/runs/<id>.json",
      "Immutable record of a validation run and its results."),
     ("audit-finding.schema.json", "Audit finding", "audits/findings/NNN-slug.json",
@@ -91,9 +93,16 @@ def render(text: str, root: Path = ROOT) -> str:
     return text
 
 
+def write_spec(root: Path = ROOT) -> None:
+    """Write generated SPEC blocks with repository-canonical LF newlines."""
+    spec = root / "SPEC.md"
+    rendered = render(spec.read_text(encoding="utf-8"), root)
+    with spec.open("w", encoding="utf-8", newline="\n") as stream:
+        stream.write(rendered)
+
+
 def main() -> None:
-    spec = ROOT / "SPEC.md"
-    spec.write_text(render(spec.read_text(encoding="utf-8"), ROOT), encoding="utf-8")
+    write_spec()
     print("Generated SPEC.md derived blocks")
 
 

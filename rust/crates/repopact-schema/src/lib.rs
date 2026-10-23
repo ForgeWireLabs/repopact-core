@@ -10,6 +10,10 @@ const EMBEDDED_SCHEMAS: &[(&str, &str)] = &[
         include_str!("../../../../repopact/schemas/evidence-run.schema.json"),
     ),
     (
+        "documentation-mappings.schema.json",
+        include_str!("../../../../repopact/schemas/documentation-mappings.schema.json"),
+    ),
+    (
         "frozen-surface.schema.json",
         include_str!("../../../../repopact/schemas/frozen-surface.schema.json"),
     ),

@@ -32,8 +32,8 @@ from .package_version import package_version
 # families alongside the pre-existing record schemas. Keep this count aligned
 # with the checked-in package resource inventory so release inspection fails
 # closed on accidental omission or injection.
-EXPECTED_SCHEMAS = 17
-EXPECTED_TEMPLATES = 7
+EXPECTED_SCHEMAS = 18
+EXPECTED_TEMPLATES = 8
 _SBOM_SOURCE_PATH = re.compile(
     r"path\+file:///[^\" ]+?/(repopact-[^/\" ]+)/"
 )

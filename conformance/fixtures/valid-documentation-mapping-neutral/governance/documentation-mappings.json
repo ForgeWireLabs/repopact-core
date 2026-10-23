@@ -1,0 +1,21 @@
+{
+  "$schema": "documentation-mappings.schema.json",
+  "version": 1,
+  "mappings": [
+    {
+      "id": "neutral-api-guide",
+      "kind": "manual",
+      "source_paths": [
+        "src/api.py"
+      ],
+      "documentation_paths": [
+        "docs/api.md"
+      ],
+      "description": "Synthetic adopter-neutral API-to-guide mapping.",
+      "snapshot": {
+        "source_digest": "d5c6e73ed00a11101c4a1f093d85607daa47e9b236e1d6882a13211e85413f1a",
+        "documentation_digest": "b9d5fa8c2c0f906f16d93f2e08b4cc1e314a6192e45f2cb4254c68224bb33e23"
+      }
+    }
+  ]
+}

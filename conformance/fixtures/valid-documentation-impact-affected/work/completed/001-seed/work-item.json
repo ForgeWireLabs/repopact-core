@@ -1,0 +1,19 @@
+{
+  "$schema": "../../../schemas/work-item.schema.json",
+  "id": "001",
+  "title": "Update documented configuration",
+  "status": "completed",
+  "owner_scope": "governance",
+  "affected_scopes": [],
+  "depends_on": [],
+  "acceptance_criteria": [
+    {"id": "AC-1", "text": "The changed setting and its documentation are reconciled", "state": "satisfied", "evidence": ["20260101-doc-updated"]}
+  ],
+  "documentation_impact": {
+    "state": "affected",
+    "surfaces": ["configuration"],
+    "evidence": ["20260101-doc-updated"]
+  },
+  "created": "2026-01-01",
+  "updated": "2026-01-01"
+}

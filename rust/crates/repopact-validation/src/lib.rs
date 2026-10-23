@@ -1,5 +1,6 @@
 mod adopters;
 mod assurance;
+mod documentation;
 mod graph;
 mod research;
 mod verification;
@@ -60,6 +61,16 @@ pub fn compute_review_snapshot(
     mapping_id: &str,
 ) -> Result<Value, String> {
     Validator::from_snapshot(snapshot).compute_review_snapshot(mapping_id)
+}
+
+/// Compute the current byte snapshot for one explicitly declared
+/// source-to-documentation mapping (WI047, Decision 0076). This is read-only;
+/// reviewers merge the returned hashes into the mapping after reconciliation.
+pub fn compute_documentation_snapshot(
+    snapshot: &RepositorySnapshot,
+    mapping_id: &str,
+) -> Result<Value, String> {
+    documentation::compute_documentation_snapshot(snapshot, mapping_id)
 }
 
 /// Render the owned dashboard projection without writing it. Mutation planning
@@ -164,6 +175,7 @@ impl Validator {
         self.validate_dashboard();
         self.validate_adopters();
         self.validate_research();
+        self.validate_documentation_mappings();
         self.validate_graph();
         self.diagnostics.sort_by(|left, right| {
             (left.path.as_deref(), &left.message).cmp(&(right.path.as_deref(), &right.message))

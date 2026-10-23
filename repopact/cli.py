@@ -254,6 +254,15 @@ def main(argv: list[str] | None = None) -> int:
     p_snapshot.add_argument("mapping_id")
     p_snapshot.add_argument("--root", type=Path, default=Path.cwd())
 
+    p_documentation = sub.add_parser("documentation", help="Source-to-documentation freshness operations (WI047)")
+    documentation_sub = p_documentation.add_subparsers(dest="documentation_command", required=True)
+    p_documentation_snapshot = documentation_sub.add_parser(
+        "snapshot",
+        help="Print current byte digests for a mapped source/documentation pair after review or regeneration",
+    )
+    p_documentation_snapshot.add_argument("mapping_id")
+    p_documentation_snapshot.add_argument("--root", type=Path, default=Path.cwd())
+
     p_appr = sub.add_parser("approval", help="Operator approval receipt operations")
     appr_sub = p_appr.add_subparsers(dest="approval_command", required=True)
     p_req = appr_sub.add_parser("request", help="Create and save an authorization request")
@@ -342,7 +351,7 @@ def main(argv: list[str] | None = None) -> int:
         except Exception as exc:
             print(f"Guard operation failed: {exc}", file=sys.stderr); return 1
 
-    if args.command in {"admission", "work", "assurance", "approval"}:
+    if args.command in {"admission", "work", "assurance", "documentation", "approval"}:
         from . import admission
         if args.command == "admission":
             root = args.root.resolve(); protected = args.protected_dir.resolve() if args.protected_dir else None
@@ -386,6 +395,21 @@ def main(argv: list[str] | None = None) -> int:
                 try:
                     response = EngineClient().call(
                         "assurance.snapshot", root=root, params={"mapping_id": args.mapping_id}
+                    )
+                except EngineError as exc:
+                    print(f"Rust engine compatibility error: {exc}", file=sys.stderr)
+                    return 1
+                result = response.get("result") or {}
+                print(json.dumps(result, indent=2, sort_keys=True))
+                return 0
+        if args.command == "documentation":
+            root = args.root.resolve()
+            if args.documentation_command == "snapshot":
+                from .engine_client import EngineError, EngineClient
+
+                try:
+                    response = EngineClient().call(
+                        "documentation.snapshot", root=root, params={"mapping_id": args.mapping_id}
                     )
                 except EngineError as exc:
                     print(f"Rust engine compatibility error: {exc}", file=sys.stderr)
@@ -554,7 +578,7 @@ def main(argv: list[str] | None = None) -> int:
                 file=sys.stderr,
             )
             return 1
-        spec.write_text(generate_spec.render(spec.read_text(encoding="utf-8"), root), encoding="utf-8")
+        generate_spec.write_spec(root)
         print("Generated SPEC.md derived blocks")
         return 0
 

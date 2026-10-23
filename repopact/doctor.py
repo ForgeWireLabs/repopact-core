@@ -238,6 +238,9 @@ def diagnose(root: Path) -> list[Finding]:
     findings += _gitignored_records(root)
     findings += _dead_source_of_truth(root)
     findings += _rog_capability_drift(root)
+    from .documentation_mappings import inspect as inspect_documentation_mappings
+    for code, message, path in inspect_documentation_mappings(root):
+        findings.append(Finding("warn", code, f"{path.relative_to(root).as_posix()}: {message}", False))
     # WI050 is opt-in.  The diagnostic API is consulted for every repository so
     # status/doctor can expose an explicit ``not-required`` baseline, while an
     # absent policy still contributes no warning or error to legacy adopters.
