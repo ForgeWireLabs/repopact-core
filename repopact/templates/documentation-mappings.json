@@ -1,0 +1,17 @@
+{
+  "$schema": "documentation-mappings.schema.json",
+  "version": 1,
+  "mappings": [
+    {
+      "id": "replace-with-a-stable-mapping-id",
+      "kind": "manual",
+      "source_paths": ["src/path/to/governed-source.py"],
+      "documentation_paths": ["docs/path/to-related-guide.md"],
+      "description": "Replace this example with repository-specific source and documentation paths.",
+      "snapshot": {
+        "source_digest": "0000000000000000000000000000000000000000000000000000000000000000",
+        "documentation_digest": "0000000000000000000000000000000000000000000000000000000000000000"
+      }
+    }
+  ]
+}

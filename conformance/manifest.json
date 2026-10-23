@@ -159,6 +159,12 @@
       "source": "SPEC.md#4-validation-rules-semantics",
       "enforced_by": "repopact/validate_repo.py:validate_documentation_impact",
       "description": "Where enabled and at/after the configured epoch, a completed work item must carry a resolved documentation_impact ('affected' with surfaces+evidence, or 'none' with a rationale); linked evidence must resolve to a real evidence run (decision 0065)."
+    },
+    {
+      "id": "SPEC-4-documentation-freshness-mappings",
+      "source": "SPEC.md#4-validation-rules-semantics",
+      "enforced_by": "rust/crates/repopact-validation/src/documentation.rs:validate_documentation_mappings",
+      "description": "When an adopter opts in, exact source-to-documentation file mappings are contained and snapshotted; source-only, output-only, and paired byte drift require a human review snapshot refresh, without semantic or generator-provenance claims (decision 0076)."
     }
   ],
   "cases": [
@@ -572,6 +578,70 @@
         "SPEC-4-documentation-closure"
       ],
       "description": "A completed item declares documentation_impact.state 'affected' but links a nonexistent evidence run; a bare declaration is not evidence (decision 0065)."
+    },
+    {
+      "id": "documentation-impact-affected-evidence-empty",
+      "path": "invalid/documentation-impact-affected-evidence-empty",
+      "overlay_on": "valid",
+      "expect": "reject",
+      "expected_message": "documentation_impact/evidence",
+      "rules": [
+        "SPEC-4-documentation-closure"
+      ],
+      "description": "A completed item claims affected documentation but provides an empty evidence list, so the schema rejects unsupported closure (decision 0065)."
+    },
+    {
+      "id": "documentation-impact-justified-none",
+      "path": "valid-documentation-impact-none",
+      "overlay_on": "valid",
+      "expect": "accept",
+      "rules": [
+        "SPEC-4-documentation-closure"
+      ],
+      "description": "A post-epoch internal refactor with an explicit, reviewable no-impact rationale is accepted without meaningless documentation edits."
+    },
+    {
+      "id": "documentation-impact-affected-updated",
+      "path": "valid-documentation-impact-affected",
+      "overlay_on": "valid",
+      "expect": "accept",
+      "rules": [
+        "SPEC-4-documentation-closure",
+        "SPEC-4-documentation-freshness-mappings"
+      ],
+      "description": "A changed configuration source with updated documentation, linked evidence, and a matching reviewed structural snapshot is accepted."
+    },
+    {
+      "id": "documentation-mapping-neutral-current",
+      "path": "valid-documentation-mapping-neutral",
+      "overlay_on": "valid",
+      "expect": "accept",
+      "rules": [
+        "SPEC-4-documentation-freshness-mappings"
+      ],
+      "description": "An adopter-neutral source-to-guide mapping with matching reviewed digests validates."
+    },
+    {
+      "id": "documentation-mapping-forgewire-stale",
+      "path": "invalid/documentation-mapping-forgewire-stale",
+      "overlay_on": "valid",
+      "expect": "reject",
+      "expected_message": "mapped source changed while related documentation stayed at its reviewed bytes",
+      "rules": [
+        "SPEC-4-documentation-freshness-mappings"
+      ],
+      "description": "A ForgeWire-shaped auth source changes while its mapped security guide remains at the reviewed bytes; this structural fixture tests path neutrality, not private adopter state."
+    },
+    {
+      "id": "documentation-generated-output-stale",
+      "path": "invalid/documentation-generated-output-stale",
+      "overlay_on": "valid",
+      "expect": "reject",
+      "expected_message": "mapped source/generator changed while generated documentation stayed at its reviewed bytes",
+      "rules": [
+        "SPEC-4-documentation-freshness-mappings"
+      ],
+      "description": "A mapped schema/generator change with an unchanged generated API reference is rejected pending regeneration and review."
     }
   ]
 }

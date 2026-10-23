@@ -1,5 +1,17 @@
 # Tooling Alignment Report
 
+## 2026-10-22 WI047 structural documentation freshness
+
+- Added opt-in versioned source-to-documentation mappings with exact contained
+  paths, deterministic reviewed hashes, canonical Rust validation, Python
+  compatibility checks, and read-only doctor warnings.
+- `repopact documentation snapshot <id>` returns current digests only; baseline
+  advancement stays a human review action. Generated mappings identify risks
+  without claiming semantic accuracy or running arbitrary generators.
+- Added neutral and ForgeWire-shaped conformance examples, stale manual and
+  generated-output negatives, path containment checks, an adopter template,
+  normative SPEC guidance, and a Diataxis how-to guide.
+
 ## 2026-09-13 WI037 adopter-boundary reconciliation
 
 - `governance/adopters.json` now describes the five-adopter fleet at the public

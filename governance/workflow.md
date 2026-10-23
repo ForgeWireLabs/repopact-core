@@ -45,6 +45,12 @@ supports. Failed runs are retained when they explain a decision or blocker.
 Update affected audit registry rows and findings. An audit answers whether the
 declared system and implemented system agree; it is not a second backlog.
 Regenerate derived artifacts (the dashboard) rather than editing them by hand.
+Repositories that opt into `documentation_mappings` in `owners.json` also run
+`repopact validate` to detect drift in mapped source/documentation pairs. Review
+or regenerate the affected docs before explicitly refreshing that mapping's
+snapshot with `repopact documentation snapshot <id>`; the command only prints
+hashes and never advances the baseline. See [the freshness guide](../docs/guides/documentation-freshness.md)
+and [Decision 0076](../decisions/0076-structural-documentation-freshness-mappings.md).
 
 ## 7. Transition state
 

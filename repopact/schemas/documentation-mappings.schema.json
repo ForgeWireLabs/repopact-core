@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "documentation-mappings.schema.json",
+  "title": "RepoPact source-to-documentation freshness mappings",
+  "description": "Adopter-authored structural mappings from governed source files to documentation files. Snapshot drift detects that mapped bytes changed; it does not establish prose correctness or prove which generator produced an output.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["$schema", "version", "mappings"],
+  "properties": {
+    "$schema": {"type": "string", "minLength": 1},
+    "version": {"const": 1},
+    "mappings": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/mapping"}
+    }
+  },
+  "$defs": {
+    "mapping": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "source_paths", "documentation_paths", "description", "snapshot"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^[a-z0-9]([a-z0-9-]*[a-z0-9])?$"},
+        "kind": {"enum": ["manual", "generated"]},
+        "source_paths": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/repository_path"}},
+        "documentation_paths": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/repository_path"}},
+        "description": {"type": "string", "minLength": 1},
+        "snapshot": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["source_digest", "documentation_digest"],
+          "properties": {
+            "source_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+            "documentation_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+          }
+        }
+      }
+    },
+    "repository_path": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Repository-relative POSIX path to one regular file. Absolute paths, backslashes, and dot-segments are rejected by the semantic validator."
+    }
+  }
+}

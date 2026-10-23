@@ -19,6 +19,8 @@ ROOT = Path(__file__).resolve().parents[1]
 RECORDS = [
     ("work-item.schema.json", "Work item", "work/<status>/NNN-slug/work-item.json",
      "Unit of work: intent, scope, dependencies, acceptance criteria."),
+    ("documentation-mappings.schema.json", "Documentation mapping", "governance/documentation-mappings.json",
+     "Optional adopter-authored structural source-to-documentation freshness mapping (Decision 0076)."),
     ("evidence-run.schema.json", "Evidence run", "evidence/runs/<id>.json",
      "Immutable record of a validation run and its results."),
     ("audit-finding.schema.json", "Audit finding", "audits/findings/NNN-slug.json",

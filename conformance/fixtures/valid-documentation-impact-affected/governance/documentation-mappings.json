@@ -1,0 +1,21 @@
+{
+  "$schema": "documentation-mappings.schema.json",
+  "version": 1,
+  "mappings": [
+    {
+      "id": "configuration-documentation",
+      "kind": "manual",
+      "source_paths": [
+        "config/settings.json"
+      ],
+      "documentation_paths": [
+        "docs/configuration.md"
+      ],
+      "description": "The updated setting and its human-readable configuration guide are reviewed together.",
+      "snapshot": {
+        "source_digest": "4f13af180189c73af54f09c8e9f4a061f41b741bdcce166459224e8bb6a054e6",
+        "documentation_digest": "79fe1f98a7cef984ea1ec64de02f3cfa330665d5c5468ea953aafa513cc6cfdc"
+      }
+    }
+  ]
+}

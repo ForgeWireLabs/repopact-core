@@ -10,5 +10,8 @@ it to the correct location.
 | decision | `decision.md` | `decisions/NNNN-slug.md` |
 | policy | `policy.md` | `governance/policies/NNN-slug.md` |
 | evidence run | `evidence-run.json` | `evidence/runs/<id>.json` |
+| source-to-documentation mapping | `documentation-mappings.json` | `governance/documentation-mappings.json` |
 
 Templates are reference material; they are not validated as live records.
+The documentation-mapping template is an opt-in starter; replace its example
+paths and establish the initial reviewed snapshot before enabling it.

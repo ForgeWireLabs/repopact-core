@@ -17,6 +17,7 @@ import jsonschema
 
 from .frontmatter import FrontMatterError, parse_file
 from . import generate_dashboard
+from . import documentation_mappings
 from . import validate_research
 from .package_version import RELEASE_LABEL_RE, PackageVersionError, package_version
 from .repo_model import STATUSES, discover_evidence_ids, discover_work_items, iter_contracts, load_json
@@ -1939,6 +1940,20 @@ def validate(root: Path) -> list[Problem]:
     validate_frozen_surface(root, problems)
     validate_adopter_manifest(root, problems)
     owner_scopes, enforce_disjoint = validate_owners(root, problems)
+    mapping_path, mapping_findings = documentation_mappings._configuration(root)
+    problems.extend(Problem(path, message) for _, message, path in mapping_findings)
+    if mapping_path is not None and mapping_path.is_file():
+        try:
+            mapping_data = load_json(mapping_path)
+        except (OSError, ValueError, json.JSONDecodeError):
+            mapping_data = None
+        if mapping_data is not None:
+            check_schema(mapping_data, load_schema(root, "documentation-mappings.schema.json"), mapping_path, problems)
+    if mapping_path is not None:
+        problems.extend(
+            Problem(path, message)
+            for _, message, path in documentation_mappings.inspect(root)
+        )
     validate_findings(root, owner_scopes, problems)
     work_ids = validate_work(root, owner_scopes, enforce_disjoint, problems)
     validate_orphan_work_dirs(root, problems)

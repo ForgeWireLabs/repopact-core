@@ -15,6 +15,11 @@ completed work item with a satisfied criterion linked to evidence.
 
 `valid-proposed/` and `valid-provisional/` are overlays proving those intermediate
 states are admitted without granting completion authority.
+`valid-documentation-mapping-neutral/` proves a reviewed, adopter-neutral mapping;
+`valid-documentation-impact-none/` proves justified no-impact closure for an item
+inside its configured epoch; `valid-documentation-impact-affected/` proves an
+affected source/documentation pair can close with linked evidence and a matching
+reviewed mapping snapshot.
 
 ## invalid/
 
@@ -41,6 +46,9 @@ the dashboard unless a dashboard fixture explicitly selects `preserve` or `remov
 | `disjoint-active-scopes` | Optional concurrency | `active scope conflict` |
 | `missing-dashboard` | Dashboard integrity / INV-7 | `missing generated dashboard` |
 | `stale-dashboard` | Dashboard integrity / INV-7 | `dashboard is stale` |
+| `documentation-mapping-forgewire-stale` | Documentation freshness / Decision 0076 | `mapped source changed while related documentation stayed at its reviewed bytes` |
+| `documentation-generated-output-stale` | Generated documentation freshness / Decision 0076 | `mapped source/generator changed while generated documentation stayed at its reviewed bytes` |
+| `documentation-impact-affected-evidence-empty` | Documentation closure / Decision 0065 | `documentation_impact.evidence` |
 
 To add a rule to the corpus: create `invalid/<name>/` with the violating file(s),
 add the rule inventory and case mapping to `manifest.json`, and keep `meta.json` in

@@ -1,0 +1,15 @@
+{
+  "$schema": "../../../schemas/work-item.schema.json",
+  "id": "001",
+  "title": "Seed work item with unsupported documentation claim",
+  "status": "completed",
+  "owner_scope": "governance",
+  "affected_scopes": [],
+  "depends_on": [],
+  "acceptance_criteria": [
+    {"id": "AC-1", "text": "The repository validates", "state": "satisfied", "evidence": ["20260101-seed"]}
+  ],
+  "documentation_impact": {"state": "affected", "surfaces": ["user_behavior"], "evidence": []},
+  "created": "2026-01-01",
+  "updated": "2026-01-01"
+}

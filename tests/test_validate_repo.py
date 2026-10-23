@@ -18,6 +18,7 @@ from repopact import (  # noqa: E402
     adopt_repo,
     check_frozen_surface,
     cli as repopact_cli,
+    documentation_mappings,
     doctor,
     generate_dashboard,
     generate_spec,
@@ -1054,6 +1055,19 @@ class RepositoryValidationTests(unittest.TestCase):
         start = text.index("`pip install repopact`")
         end = text.index("\n\n", start)
         readme.write_text(text[:start] + "current release **9.9.9**." + text[end:], encoding="utf-8")
+        spec = self.root / "SPEC.md"
+        spec.write_text(
+            generate_spec.render(spec.read_text(encoding="utf-8"), self.root),
+            encoding="utf-8",
+        )
+        mappings_path = self.root / "governance" / "documentation-mappings.json"
+        mappings = json.loads(mappings_path.read_text(encoding="utf-8"))
+        for mapping in mappings["mappings"]:
+            if mapping["id"] == "generated-spec-reference":
+                mapping["snapshot"] = documentation_mappings.compute_snapshot(
+                    self.root, "generated-spec-reference"
+                )
+        mappings_path.write_text(json.dumps(mappings, indent=2) + "\n", encoding="utf-8")
         generate_dashboard.write_dashboard(self.root)
         subprocess.run(["git", "init", "--initial-branch=main"], cwd=self.root, check=True,
                        capture_output=True, text=True)

@@ -4,6 +4,7 @@
   "title": "Documentation Impact and Code/Documentation Closure",
   "status": "active",
   "owner_scope": "governance",
+  "lead": "governance-owner",
   "affected_scopes": ["governance", "tooling", "docs", "evidence", "work"],
   "depends_on": [],
   "provenance": "concrete",
@@ -104,5 +105,5 @@
     }
   ],
   "created": "2026-09-02",
-  "updated": "2026-09-18"
+  "updated": "2026-10-22"
 }
