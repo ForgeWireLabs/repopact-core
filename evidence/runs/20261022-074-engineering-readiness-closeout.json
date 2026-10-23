@@ -24,7 +24,8 @@
     "core_7": {
       "state": "open",
       "local_head": "8ab81c887feb051ab502d598d71c74414ce2c917",
-      "remote_head_before_push": "30d785e554167038bdeb3c008191b9286bb3bd34"
+      "remote_head_before_push": "30d785e554167038bdeb3c008191b9286bb3bd34",
+      "current_head_at_review": "b6b3b57a0795f0bc01062cdde2899983d3d51fa0"
     },
     "workbench_6": {
       "state": "open",
@@ -126,6 +127,14 @@
       "next_review": "2026-11-21",
       "manuscript_commit": "6d782116fc9762da00439cf079d0f50585fea52",
       "manuscript_source_recovered": false
+    },
+    "core_github_releases_api_entries": 0,
+    "workbench_github_releases_api_entries": 0,
+    "core_workbench_navigation": {
+      "core_contributing_main": "resolves",
+      "core_security_main": "resolves; corrected content is in Core #6",
+      "workbench_github_app_guide_main": "resolves; updated content is in Workbench #6",
+      "workbench_snapshot_guide_main": "resolves; updated content is in Workbench #6"
     }
   },
   "commands": [
@@ -203,6 +212,16 @@
       "command": "REPOPACT_ENGINE=rust/target/debug/repopact-engine.exe python -m repopact.cli validate --root . (updated Core #7 working tree)",
       "exit_code": 0,
       "summary": "Canonical Core validation passed with the matching 3.1.3.dev1 engine."
+    },
+    {
+      "command": "GET https://api.github.com/repos/ForgeWireLabs/repopact-core/releases; GET https://api.github.com/repos/ForgeWireLabs/repopact-workbench/releases",
+      "exit_code": 0,
+      "summary": "Both public GitHub Releases collections returned empty arrays; Core stable 3.1.3 is available from PyPI, and Workbench documents that it has no installers."
+    },
+    {
+      "command": "GET Core CONTRIBUTING.md and Core SECURITY.md on main; GET both Workbench guide paths on main and on the documentation PR branch",
+      "exit_code": 0,
+      "summary": "All cross-repository paths resolve on main. Core #6 and Workbench #6 update the existing targets with the reviewed content."
     }
   ],
   "artifacts": [
@@ -228,6 +247,7 @@
     "RPS-020 remains pending until Core #6 and Workbench #6 merge and Core #7 is refreshed and rechecked against those destinations.",
     "RPS-022 remains partial: tested package rollback and artifact rejection do not simulate power loss during installation or Workbench native-application recovery.",
     "A prior draft incorrectly recorded ForgeWire Labs #3 as merged; current GitHub metadata confirms it is open and mergeable at 314a9f86712afe77a5fbb3d7e212d016a2f0a8c3. All four PRs have no associated workflow runs, commit statuses, or submitted reviews; no PR was merged.",
-    "A first canonical validation attempt selected a stale globally installed 3.1.0.dev1 engine and exited on the product-version handshake; rebuilding repopact-engine from this checkout and explicitly selecting it passed validation."
+    "A first canonical validation attempt selected a stale globally installed 3.1.0.dev1 engine and exited on the product-version handshake; rebuilding repopact-engine from this checkout and explicitly selecting it passed validation.",
+    "Core #7 cross-repository Workbench guide paths resolve on main today; Workbench #6 updates their content. A prior draft incorrectly described the paths as branch-only, corrected after GitHub API checks."
   ]
 }
