@@ -1,7 +1,7 @@
 {
   "$schema": "../../repopact/schemas/evidence-run.schema.json",
   "id": "20261022-074-readiness-followup",
-  "timestamp": "2026-10-22T22:23:43-05:00",
+  "timestamp": "2026-10-22T22:27:03-05:00",
   "work_item": "074",
   "result": "partial",
   "provenance": "concrete",
@@ -21,6 +21,7 @@
     "core_7": {"state": "open", "mergeable": true, "head": "240c19f7476827f35c76bddb3b5db657227ad824", "base": "9a3e51f5669fc2bc4d513d1c64929d3c5636d4ac"},
     "workbench_6": {"state": "open", "mergeable": true, "head": "74462c67021a2ec28a6b46b3e7240d2545113a82", "base": "59e71418f26cdc2ea31c7cb23e85cb52d9803289"},
     "forgewire_labs_3": {"state": "open", "mergeable": true, "head": "314a9f86712afe77a5fbb3d7e212d016a2f0a8c3", "base": "53f5ba6b02d73000f9f902c7b45987390dee4ba9"},
+    "wi047_separate_followup": {"state": "draft", "url": "https://github.com/ForgeWireLabs/repopact-core/pull/8"},
     "github_review_state": {"actions_runs": 0, "commit_statuses": 0, "submitted_reviews": 0, "checked_at": "2026-10-22"}
   },
   "private_reporting": {
@@ -83,7 +84,8 @@
     "https://github.com/ForgeWireLabs/repopact-core/pull/6",
     "https://github.com/ForgeWireLabs/repopact-core/pull/7",
     "https://github.com/ForgeWireLabs/repopact-workbench/pull/6",
-    "https://github.com/ForgeWireLabs/ForgeWireLabs/pull/3"
+    "https://github.com/ForgeWireLabs/ForgeWireLabs/pull/3",
+    "https://github.com/ForgeWireLabs/repopact-core/pull/8"
   ],
   "environment": {
     "os": "Windows 11 x64",
