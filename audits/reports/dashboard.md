@@ -15,24 +15,21 @@
 | Audit findings | 3 |
 | Decision records | 76 |
 | Policy records | 2 |
-| Evidence runs | 188 |
+| Evidence runs | 195 |
 
 ## Work
 
 | Status | Count |
 | --- | ---: |
 | proposed | 3 |
-| active | 10 |
+| active | 9 |
 | blocked | 1 |
 | deferred | 1 |
-| completed | 61 |
+| completed | 62 |
 
 ## Audit freshness
 
-| Scope | Review was due |
-| --- | --- |
-| work/completed/026-deterministic-dashboard-validation | 2026-10-16 |
-| work/completed/027-release-2-2-0-dashboard-integrity | 2026-10-16 |
+All audit scopes are within their review cadence.
 
 ## Active items
 
@@ -45,5 +42,4 @@
 - 066: RepoPact 3.1.0 Milestone Release and Research Snapshot Reconciliation (active)
 - 067: GitHub Repository Provider, Secure User Authorization, and Remote Repository Import (active)
 - 074: Extract RepoPact Core and Independent Workbench (active)
-- 075: Re-review ForgeLink adopter evidence for audit scopes 026 and 027 (active)
 - 032: Restore remote cross-platform governance enforcement (blocked)

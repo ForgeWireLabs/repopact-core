@@ -11,6 +11,9 @@ This page is the entry point for the documentation set. Choose the path that mat
 Start here if you want to govern a repository rather than develop RepoPact itself.
 
 - [Adopt RepoPact](adopt-repopact.md) — end-to-end first use on the stable package.
+- [CLI reference](cli-reference.md) — supported top-level commands, common arguments, and command groups.
+- [Troubleshooting](troubleshooting.md) — diagnose installation, validation, evidence, and drift failures.
+- [Check documentation links locally](guides/validate-documentation.md) — repeatable relative-link, heading, asset, and cross-repository checks.
 - [Define your governance](guides/define-your-governance.md) — roles, scopes, invariants, and frozen surfaces.
 - [Author records](guides/author-records.md) — work items, evidence, decisions, and policies.
 - [Check documentation freshness](guides/documentation-freshness.md) — opt-in source/documentation mappings, drift review, and generated-output freshness boundaries.
@@ -32,8 +35,9 @@ Start here if another tool, agent host, IDE, execution system, or repository ser
 
 - [Pre-execution admission](guides/pre-execution-admission.md) — optional admission, guard, adapter, and confinement model.
 - [CI integration](guides/ci-integration.md) — hosted checks as adapters rather than authority.
-- [GitHub App setup](guides/github-app-setup.md) and [GitHub snapshot import](guides/github-snapshot-import.md) — GitHub-specific integration surfaces.
+- [GitHub App setup](https://github.com/ForgeWireLabs/repopact-workbench/blob/main/docs/guides/github-app-setup.md) and [GitHub snapshot import](https://github.com/ForgeWireLabs/repopact-workbench/blob/main/docs/guides/github-snapshot-import.md) — Workbench-owned GitHub integration guides. Core owns the shared semantic contract and package; Workbench owns this application's GitHub authorization and repository-acquisition flows. These guides are maintained in Workbench rather than copied into Core.
 - [Install and build the engine](guides/packaging-and-engine.md) — canonical Rust engine packaging and compatibility boundary.
+- [Extend the validator](guides/extend-the-validator.md) — boundaries for retained Python surfaces and canonical Rust semantics.
 
 RepoPact does not require a particular model provider, coding agent, editor, CI vendor, or runtime. Those systems integrate with RepoPact; they do not become RepoPact's source of truth.
 

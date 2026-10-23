@@ -1,0 +1,145 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261022-075-forgelink-core-full-rereview",
+  "timestamp": "2026-10-22T19:41:29-05:00",
+  "work_item": "075",
+  "result": "passed",
+  "provenance": "concrete",
+  "summary": "Scopes 026 and 027 received scope-specific source, adopter, release, and current-engine re-reviews. The exact nine baseline failures were reproduced on unchanged Core main, then all nine passed on the revised Core #7 branch. Full Core validation, 386 tests, canonical/Python/WI050 conformance, frozen-surface checks, and two-export normalized distribution reproducibility passed. Dates were advanced only after these checks passed.",
+  "source_revisions": {
+    "core_base": "9a3e51f5669fc2bc4d513d1c64929d3c5636d4ac",
+    "core_review_branch": "8ab81c887feb051ab502d598d71c74414ce2c917",
+    "forgelink_main": "06be2fe26812e980d82766297fee475ad5538736",
+    "forgelink_repository_id": 1062084554,
+    "repopact_2_2_0_commit": "2b3b549e915bbe69264ac59401cf533d11cc6532",
+    "repopact_2_2_0_tree": "a07fada2496c07825eb1dae4e499ec846805033c"
+  },
+  "audit_reviews": {
+    "scope_026": {
+      "decision": "reviewed and aligned for the reviewed Core implementation",
+      "verified": [
+        "Canonical dashboard generation is deterministic and derives from authoritative source records.",
+        "Canonical validation is read-only.",
+        "Missing and stale dashboard detection and non-destructive doctor regeneration are covered by passing current tests.",
+        "The ForgeLink dashboard probe remains applicable to ForgeLink main 06be2fe with its exact repopact==3.0.2 pin; the Core validator implementation has no runtime-source changes since the review baseline."
+      ],
+      "limitation": "ForgeLink's full validator still reports 16 unrelated expired adopter scopes; this is recorded and does not establish a clean full adopter validation."
+    },
+    "scope_027": {
+      "decision": "historical 2.2.0 identity and current 3.1.3 distinction verified",
+      "verified": [
+        "The public v2.2.0 tag resolves to commit 2b3b549e915bbe69264ac59401cf533d11cc6532 and tree a07fada2496c07825eb1dae4e499ec846805033c.",
+        "The exact PyPI 2.2.0 wheel and source archive bytes match their published SHA-256 metadata.",
+        "The archived public 2.2.0 release page remains viewable; Git transport for the historical repository remains unavailable.",
+        "Current stable 3.1.3 and development 3.1.3.dev1 identities were tested separately."
+      ],
+      "limitation": "Unavailable historical Git transport is not represented as restored; no substitute commit or release identity was used."
+    },
+    "reviewed_at": "2026-10-22",
+    "next_review": "2027-01-20",
+    "registry_dates_changed_after_checks": true,
+    "historical_completed_work_items_modified": false
+  },
+  "core_test_results": {
+    "unchanged_main_affected_tests": {
+      "tests_run": 9,
+      "passed": 0,
+      "failed": 9,
+      "finding": "All nine reported cases reproduce on unchanged main. They fail on expired scopes 026/027; five also observe the stale committed dashboard (186 displayed manifests versus 187 authoritative manifests)."
+    },
+    "review_branch_affected_tests": {
+      "tests_run": 9,
+      "passed": 9,
+      "failed": 0,
+      "finding": "Every previously failing test passes after the substantive scope reviews and dashboard regeneration."
+    },
+    "full_suite": {
+      "tests_run": 386,
+      "passed": 383,
+      "failed": 0,
+      "skipped": 3,
+      "command": "python -m unittest discover -s tests -v"
+    },
+    "conformance": {
+      "canonical_rust": "37/37 passed",
+      "python_compatibility": "37/37 passed",
+      "wi050_admission": "8/8 passed"
+    }
+  },
+  "distribution": {
+    "build_source_commit": "8ab81c887feb051ab502d598d71c74414ce2c917",
+    "independent_clean_exports": 2,
+    "reproducible": true,
+    "version": "3.1.3",
+    "artifact_version": "3.1.3.dev1",
+    "wheel": {
+      "path": "repopact-3.1.3.dev1-py3-none-win_amd64.whl",
+      "sha256": "e4ace34784fc2b356420ae1ecb13bfbdf74bcf17bda245421aefa15ebded6efe",
+      "schemas": 17,
+      "templates": 7,
+      "native_engine_and_launcher": true
+    },
+    "sdist": {
+      "path": "repopact-3.1.3.dev1.tar.gz",
+      "sha256": "5c62f1348f3fc5c8995ca7d405a6bc1df1a78a527a0b906e9caa7487ed496c73",
+      "rust_sources": 75,
+      "root_modules": []
+    }
+  },
+  "commands": [
+    {
+      "command": "repopact validate --root . (revised Core #7 branch)",
+      "exit_code": 0,
+      "summary": "Canonical Core validation passed after both scope reviews and the dashboard was current."
+    },
+    {
+      "command": "python -m unittest <nine affected RepositoryValidationTests> -v (unchanged Core main)",
+      "exit_code": 1,
+      "summary": "All nine exact failures reproduced on base main with the pre-existing 026/027 expiry findings; five also reported the stale dashboard."
+    },
+    {
+      "command": "python -m unittest <same nine affected RepositoryValidationTests> -v (revised Core #7 branch)",
+      "exit_code": 0,
+      "summary": "9/9 previously failing cases passed."
+    },
+    {
+      "command": "python -m unittest discover -s tests -v (revised Core #7 branch, Python 3.12)",
+      "exit_code": 0,
+      "summary": "386 tests ran: 383 passed, 0 failed, 3 documented platform/formal-model skips."
+    },
+    {
+      "command": "python -m repopact.run_conformance --legacy-python (revised Core #7 branch)",
+      "exit_code": 0,
+      "summary": "Canonical Rust 37/37; Python compatibility 37/37; WI050 corpus 8/8."
+    },
+    {
+      "command": "repopact check-frozen --base origin/main",
+      "exit_code": 0,
+      "summary": "No frozen-surface paths changed in this branch."
+    },
+    {
+      "command": "repopact release-build --root . --outdir <isolated output> --revision HEAD",
+      "exit_code": 0,
+      "summary": "Two clean Git exports produced structurally valid, byte-reproducible wheel and source distribution; hashes are recorded above."
+    }
+  ],
+  "artifacts": [
+    "audits/registry.json",
+    "audits/reports/dashboard.md",
+    "evidence/runs/20261022-075-forgelink-core-full-rereview.json",
+    "work/completed/075-forgelink-adopter-audit-rereview/work-item.json"
+  ],
+  "environment": {
+    "core_repository": "ForgeWireLabs/repopact-core",
+    "core_revision": "8ab81c887feb051ab502d598d71c74414ce2c917",
+    "os": "Windows 11 x64",
+    "python": "3.12",
+    "rust_engine": "3.1.3.dev1",
+    "review_time": "2026-10-22T19:41:29-05:00"
+  },
+  "limitations": [
+    "The scope-review registry changes and this evidence are on the unmerged Core #7 branch; main remains unchanged until an authorized merge.",
+    "ForgeLink's own 16 expired scope findings remain outside this Core review and were not edited.",
+    "Three full-suite skips are existing documented platform/formal-model exclusions, not skips added to obtain a green run."
+  ]
+}

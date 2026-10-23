@@ -93,9 +93,16 @@ def render(text: str, root: Path = ROOT) -> str:
     return text
 
 
+def write_spec(root: Path = ROOT) -> None:
+    """Write generated SPEC blocks with repository-canonical LF newlines."""
+    spec = root / "SPEC.md"
+    rendered = render(spec.read_text(encoding="utf-8"), root)
+    with spec.open("w", encoding="utf-8", newline="\n") as stream:
+        stream.write(rendered)
+
+
 def main() -> None:
-    spec = ROOT / "SPEC.md"
-    spec.write_text(render(spec.read_text(encoding="utf-8"), ROOT), encoding="utf-8")
+    write_spec()
     print("Generated SPEC.md derived blocks")
 
 

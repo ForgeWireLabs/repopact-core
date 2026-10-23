@@ -3,7 +3,7 @@
 > **Status:** Active (canonical ledger transferred to ForgeWireLabs/repopact-core on 2026-09-25)
 > **Owner:** tooling
 > **Lead:** tooling-owner
-> **Affected scopes:** tooling, governance, docs, evidence
+> **Affected scopes:** tooling, governance, docs, evidence, work
 > **Created:** 2026-09-24
 > **Provenance:** Concrete; original preflight and source history retained.
 

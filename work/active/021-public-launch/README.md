@@ -2,14 +2,14 @@
 
 > **Status**: 🟢 Active  
 > **Owners**: governance-owner (lead); docs + tooling support.  
-> **Depends on**: [`019`](../019-conformance-suite/) (the public conformance claim needs the conformance suite green).
+> **Depends on**: the [current conformance contract](../../../CONFORMANCE.md) (the public conformance claim needs the conformance suite green). The machine-readable dependency still names WI019; its work-item directory is not present in this extracted tree and remains a separate governance reconciliation issue.
 
 ## Needs you (operator gates)
 
 This work item cannot be completed by an agent alone. The remaining human/operator actions are:
 
 1. **arXiv** (AC-2) — create/confirm an arXiv account; cs.SE may require endorsement for a first submission; approve the final paper text; submit. Drafting can be agent-assisted, but the account and submission are operator actions.
-2. **PyPI / launch reconciliation** (AC-3) — satisfied: RepoPact 3.1.2 is published on PyPI as the current stable package line, with a positioning-aligned README and a green conformance suite, reconciled against durable publication/clean-install evidence (`20260917-069-release-3-1-2`, `20260917-069-publication`) rather than closed from narrative alone.
+2. **PyPI / launch reconciliation** (AC-3) — satisfied at the 2026-09-17 checkpoint: RepoPact 3.1.2 had been published on PyPI with a positioning-aligned README and a green conformance suite, reconciled against durable publication/clean-install evidence (`20260917-069-release-3-1-2`, `20260917-069-publication`) rather than closed from narrative alone. Core has since advanced to stable 3.1.3; consult the current [Core README](../../../README.md) and [PyPI release page](https://pypi.org/project/repopact/) for present release status.
 3. **Show HN + socials** (AC-4) — the operator owns the accounts, final copy approval, and posting. No automated posting or vote solicitation.
 
 These gates remain pending until the corresponding durable evidence and lifecycle records say otherwise.

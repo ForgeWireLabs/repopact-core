@@ -1,0 +1,152 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261023-074-readiness-integration-reproducibility",
+  "timestamp": "2026-10-23T17:34:04-05:00",
+  "work_item": "074",
+  "result": "partial",
+  "provenance": "concrete",
+  "summary": "Corrects the current readiness narrative, rechecks existing documentation PRs and the required integration order, reproduces the Core baseline failure attribution, and identifies/fixes the Workbench Windows MSVC PE metadata nondeterminism in a separate draft PR. No PR was merged. RPS-020 and WI047 remain independently governed and pending/active.",
+  "source_revisions": {
+    "core_main": "9a3e51f5669fc2bc4d513d1c64929d3c5636d4ac",
+    "core_security_pr_6": "2125b97ad1cdf9d3b45aacac6bd2c1aec43a9b62",
+    "core_documentation_pr_7_at_recheck": "e68099b14d88c9193a2c8841cabcd9d462c9f4c5",
+    "core_wi047_pr_8": "627efe25ed4195ee83fb394485b9407e2aa6c955",
+    "workbench_main": "59e71418f26cdc2ea31c7cb23e85cb52d9803289",
+    "workbench_documentation_pr_6": "74462c67021a2ec28a6b46b3e7240d2545113a82",
+    "workbench_rps015_pr_7": "54ce42876729470df3bc90b5971b730c89671d28",
+    "portfolio_main": "53f5ba6b02d73000f9f902c7b45987390dee4ba9",
+    "portfolio_pr_3": "314a9f86712afe77a5fbb3d7e212d016a2f0a8c3"
+  },
+  "documentation_prs": {
+    "core_6": {"state": "open", "draft": false, "mergeable": true, "head": "2125b97ad1cdf9d3b45aacac6bd2c1aec43a9b62", "base": "9a3e51f5669fc2bc4d513d1c64929d3c5636d4ac"},
+    "workbench_6": {"state": "open", "draft": false, "mergeable": true, "head": "74462c67021a2ec28a6b46b3e7240d2545113a82", "base": "59e71418f26cdc2ea31c7cb23e85cb52d9803289"},
+    "forgewire_labs_3": {"state": "open", "draft": false, "mergeable": true, "head": "314a9f86712afe77a5fbb3d7e212d016a2f0a8c3", "base": "53f5ba6b02d73000f9f902c7b45987390dee4ba9"},
+    "core_7": {"state": "open", "draft": false, "mergeable": true, "head_at_recheck": "e68099b14d88c9193a2c8841cabcd9d462c9f4c5", "base": "9a3e51f5669fc2bc4d513d1c64929d3c5636d4ac", "integration": "blocked pending Core #6 and Workbench #6 merges; refresh and rerun checks afterwards"},
+    "workbench_rps015_7": {"state": "open", "draft": true, "head": "54ce42876729470df3bc90b5971b730c89671d28", "base": "59e71418f26cdc2ea31c7cb23e85cb52d9803289"},
+    "core_wi047_8": {"state": "open", "draft": true, "head": "627efe25ed4195ee83fb394485b9407e2aa6c955", "base": "9a3e51f5669fc2bc4d513d1c64929d3c5636d4ac"}
+  },
+  "github_checks_and_reviews": {
+    "four_documentation_prs": {"actions_runs": 0, "commit_statuses": 0, "check_runs": 0, "submitted_reviews": 0},
+    "workbench_rps015_draft_pr_7": {"commit_statuses": 0, "check_runs": 0, "submitted_reviews": 0},
+    "mergeable": "GitHub currently reports each PR mergeable; this is not evidence of passing checks, review approval, or integrated acceptance."
+  },
+  "merge_order": [
+    "ForgeWireLabs/repopact-core#6",
+    "ForgeWireLabs/repopact-workbench#6",
+    "Refresh ForgeWireLabs/repopact-core#7 against the updated Core default branch and rerun canonical validation, full tests, conformance, documentation checks, frozen-surface validation, and dashboard generation",
+    "Review and merge ForgeWireLabs/repopact-core#7 only after its refreshed evidence passes"
+  ],
+  "core_audit_classification": {
+    "baseline": "Core main at 9a3e51f5669fc2bc4d513d1c64929d3c5636d4ac has scopes 026 and 027 last_reviewed 2026-07-18 and next_review 2026-10-16; canonical validation reports both expired plus stale dashboard.",
+    "nine_cases": "All nine reported failing test methods were rerun on unchanged main and reproduced. All were blocked by those expired audit scopes; five also saw the stale dashboard (186 committed manifest rows versus 187 authoritative manifests). The same nine pass on Core #7 after substantive reviews and derived-dashboard regeneration. These are baseline governance-state failures, not regressions from the docs PR.",
+    "core_pr_7_dates": "Core #7 changes scopes 026 and 027 to last_reviewed 2026-10-22 and next_review 2027-01-20 after substantive WI075 reviews. Do not advance them again without another substantive review.",
+    "wi075_scope": "WI075 complete state covers only its bounded ForgeLink adopter re-review. Sixteen unrelated ForgeLink audit scopes remain expired; no wider clean-governance claim is made.",
+    "failed_test_methods": [
+      "test_exact_tagged_release_tree_is_accepted",
+      "test_orphan_check_ignores_tracked_items_and_audit_companions",
+      "test_readme_release_line_without_link_is_accepted",
+      "test_readme_release_link_may_be_an_external_url",
+      "test_readme_release_link_outside_decisions_is_existence_checked_only",
+      "test_readme_without_release_line_is_unaffected",
+      "test_repository_is_valid",
+      "test_stale_dashboard_is_rejected_and_doctor_repairs_it",
+      "test_valid_proposed_work_item_validates"
+    ]
+  },
+  "private_reporting": {
+    "core_enabled": true,
+    "workbench_enabled": true,
+    "public_security_pages_show_report_entry": true,
+    "submission_requires_github_sign_in": true,
+    "core_security_policy_fallback": "Core #6 links directly to the Core private vulnerability form.",
+    "workbench_security_policy_fallback": "Workbench #6 links directly to the Workbench private vulnerability form.",
+    "personal_contact_or_new_account": false
+  },
+  "live_links": {
+    "checked_groups": ["installation and PyPI release", "GitHub Releases", "private security reporting", "contributing", "documentation", "cited research records", "Core/Workbench navigation"],
+    "result": "No demonstrated permanent destination failure required correction. The historical Core v3.1.3 release link resolves; the current Core and Workbench Releases collections contain no entries. Core CONTRIBUTING and published documentation/research/cross-repository links resolve. Workbench main lacks SECURITY.md and CONTRIBUTING.md before PR #6; exact paths resolve at PR #6 head.",
+    "checker_boundary": "The offline Markdown checker checks local links only. External URLs reported as unchecked remain unchecked by that checker and are covered only by the separate targeted live requests."
+  },
+  "workbench_rps015": {
+    "original_source_export_sha256": "2B9A0146E362DEA7E48CA40A91D749BC2A5D152F481CFBB97673A321BA020EC0",
+    "original_executable_bytes": 26998784,
+    "original_hashes": [
+      "6B8E9FFD8ACE9192B9CF4E07947D74CF8403EFB5E513F24FF5B8CD08F9D3E491",
+      "71A278754E548A187F742124D4A26E940BBD56278C46C77BFE0F224D6266F99B",
+      "601C05584ABBBAB18CE83C13629DB5A26957209FAFAC4C14824D876EF9288838"
+    ],
+    "binary_difference": "Exactly 24 bytes: 2 bytes in PE COFF TimeDateStamp, 2 bytes in each of three .rdata debug-directory timestamps, and 16-byte RSDS CodeView/PDB GUID. Timestamps matched link time. .text, .data, .pdata, .rsrc, .reloc, resources, and basename repopact_desktop.pdb matched.",
+    "cause": "Default MSVC link.exe link-time timestamps and fresh CodeView/PDB identity.",
+    "correction_pr": "https://github.com/ForgeWireLabs/repopact-workbench/pull/7",
+    "correction_commit": "39e0524fcd4fffe7f2a12ad61d25f13a9f7c7c8e",
+    "correction": "Target-scoped /Brepro only for repopact-desktop on windows-msvc; no post-build normalization.",
+    "clean_build_hashes": [
+      "21211B7050BD12F4403DD6B849E772C5CA0BBFABE108EE8E7A4433874FDF207F",
+      "21211B7050BD12F4403DD6B849E772C5CA0BBFABE108EE8E7A4433874FDF207F"
+    ],
+    "clean_comparison": "26,998,784 bytes each, zero differing bytes, section hashes match; PE reproducibility directory and deterministic COFF timestamp confirmed.",
+    "environment": "Windows 10 Pro 10.0.19045; Rust/Cargo 1.96.0; target x86_64-pc-windows-msvc; MSVC toolset 14.44.35207; linker 14.44.35225.0; LLVM 22.1.2; Node 24.15.0; npm 11.12.1; Python 3.12.4. No RUSTFLAGS, target rustflags, or SOURCE_DATE_EPOCH in the ordinary environment.",
+    "validation": {
+      "npm_ci_ignore_scripts": "passed; 0 reported vulnerabilities",
+      "npm_run_build": "passed",
+      "two_clean_cargo_release_builds": "passed; byte-identical",
+      "rustfmt_changed_file": "passed",
+      "git_diff_check": "passed",
+      "cargo_fmt_all": "failed only on unrelated pre-existing rust/crates/repopact-mobile-acquisition/src/operation.rs formatting; unchanged"
+    },
+    "acceptance": "RPS-015 pending; this addresses only the Windows PE binary metadata finding, not the full source-export, artifact, wheel-content, provenance, and normalization requirements. No runtime launch, installer, package, or release claimed."
+  },
+  "core8_wi047": {
+    "core_8_status": "draft; do not refresh before Core #7 integrates",
+    "frozen_schema_authorization_evidence": "evidence/runs/20261022-047-documentation-mapping-freshness.json",
+    "wi047_status": "active; independent sign-off required after acceptance criteria and merged implementation are reviewed",
+    "required_followup": "After Core #7 integration, refresh Core #8; resolve overlapping audit/docs/spec/dashboard changes; preserve WI026/WI027 reviews; regenerate derived records; review mapped source/documentation relationships before recomputing snapshots; recheck Rust/Python parity, conformance, full suite, security, backward compatibility, and exact frozen-schema authorization."
+  },
+  "governance": {
+    "RPS020": "pending until complete documentation acceptance is verified against integrated default branches",
+    "WI047": "active and independently governed",
+    "RPS011": "pending: evidence only for tested Windows and Android API 35 x86_64 profiles; no native Linux/macOS/iOS claim",
+    "RPS012": "pending: no protected-service or process/path-confinement evidence",
+    "RPS016": "pending: compatibility combinations and installer-based upgrades remain unverified",
+    "RPS018": "pending: no paid or empirical consumer benchmark run",
+    "RPS019": "pending: no private consumer migration or adoption authorization",
+    "RPS022": "pending: interruption recovery and Workbench native-app recovery remain untested",
+    "research_freshness": "October 24, 2026 deadline remains active; substantive review completed October 22 across 14 registered documents; next review 2026-11-21; no experiments rerun",
+    "publication": "No packages, installers, papers, or releases published. No PR merged."
+  },
+  "commands": [
+    {"command": "python -m repopact.generate_dashboard --root .", "exit_code": 0, "summary": "Regenerated audits/reports/dashboard.md after linking this evidence to WI074."},
+    {"command": "python -m repopact.cli validate --root .", "exit_code": 0, "summary": "Canonical validation passed after the evidence record was completed and the dashboard regenerated."},
+    {"command": "python -m unittest discover -s tests -v", "exit_code": 0, "summary": "386 tests ran; 383 passed, 3 skipped, 0 failed."},
+    {"command": "python -m repopact.run_conformance --legacy-python", "exit_code": 0, "summary": "Rust conformance 37/37; Python compatibility 37/37; WI050 8/8."},
+    {"command": "python scripts/validate_docs.py", "exit_code": 0, "summary": "332 Markdown files passed local-link checks; 37 external GitHub links were reported unchecked by the offline checker."},
+    {"command": "python -m repopact.cli check-frozen --base origin/main", "exit_code": 0, "summary": "No frozen-surface changes detected."},
+    {"command": "git diff --check", "exit_code": 0, "summary": "No whitespace errors in the Core documentation branch diff."}
+  ],
+  "environment": {
+    "os": "Microsoft Windows 10 Pro 10.0.19045",
+    "python": "3.12.4",
+    "rust": "rustc 1.96.0 (ac68faa20 2026-05-25)",
+    "core_rust_engine": "rust/target/debug/repopact-engine.exe",
+    "checked_at": "2026-10-23T17:34:04-05:00"
+  },
+  "artifacts": [
+    "work/active/074-extract-repopact-core-and-independent-workbench/engineering-readiness-report-2026-10-22.md",
+    "work/active/074-extract-repopact-core-and-independent-workbench/work-item.json",
+    "evidence/runs/20261023-074-readiness-integration-reproducibility.json",
+    "https://github.com/ForgeWireLabs/repopact-core/pull/6",
+    "https://github.com/ForgeWireLabs/repopact-core/pull/7",
+    "https://github.com/ForgeWireLabs/repopact-core/pull/8",
+    "https://github.com/ForgeWireLabs/repopact-workbench/pull/6",
+    "https://github.com/ForgeWireLabs/repopact-workbench/pull/7",
+    "https://github.com/ForgeWireLabs/ForgeWireLabs/pull/3"
+  ],
+  "limitations": [
+    "No documentation PR was merged; Core #7 has not been refreshed against a post-Core-#6 default branch.",
+    "Core suite and conformance results are the existing verified Core #7 branch results before the current evidence/report-only update; no post-merge validation is claimed.",
+    "The local link checker does not validate external URLs; targeted live requests are separately described.",
+    "RPS-015 remains pending despite reproducible Windows PE output because the broader acceptance wording is not satisfied.",
+    "No native-platform, protected-service, consumer-migration, interruption-recovery, package, installer, paper, or release acceptance is claimed."
+  ],
+  "no_secrets_confirmation": "No tokens, passwords, private keys, personal contact details, or new accounts were added."
+}

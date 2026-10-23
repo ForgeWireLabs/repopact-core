@@ -578,7 +578,7 @@ def main(argv: list[str] | None = None) -> int:
                 file=sys.stderr,
             )
             return 1
-        spec.write_text(generate_spec.render(spec.read_text(encoding="utf-8"), root), encoding="utf-8")
+        generate_spec.write_spec(root)
         print("Generated SPEC.md derived blocks")
         return 0
 

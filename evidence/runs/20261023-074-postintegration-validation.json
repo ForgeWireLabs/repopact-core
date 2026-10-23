@@ -1,0 +1,115 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261023-074-postintegration-validation",
+  "timestamp": "2026-10-23T23:29:27Z",
+  "work_item": "074",
+  "result": "passed",
+  "provenance": "concrete",
+  "summary": "Refreshed the existing Core #7 branch from the integrated default branch and validated its documentation, evidence, mapping, generator, and Core #8 integration. This records scoped branch validation only: WI047 remains active pending independent sign-off and RPS-020 remains pending.",
+  "commands": [
+    {
+      "command": "cargo build --manifest-path rust/Cargo.toml -p repopact-engine",
+      "exit_code": 0,
+      "summary": "Built the matching repository-local Core engine for this integrated source tree."
+    },
+    {
+      "command": "repopact spec --root .",
+      "exit_code": 0,
+      "summary": "Regenerated SPEC.md with canonical LF newlines; the reviewed source/documentation mapping now remains byte-stable across Windows and Unix checkouts."
+    },
+    {
+      "command": "repopact documentation snapshot generated-spec-reference --root .; repopact documentation snapshot documentation-freshness-tooling --root .",
+      "exit_code": 0,
+      "summary": "After reviewing both mapped relationships, refreshed generated-spec-reference to source 4afb47e5e20690b4b50c4ea11430a5181fbff95bc45eed637515b2f303a5f755 / documentation eb9f55441ab866f107b39bc822fa26696b1cc03f7e0f89f2e08d46d9fd4d8c8e, and documentation-freshness-tooling to source 96d875d92d7cecb68d50772e955bf502713c4f5972897b4168cdd2c0ce746fa0 / documentation 6a7b56a721f7965e9cafedb5f980758d186016f15bb4be426b429c9c0d8b618b."
+    },
+    {
+      "command": "repopact dashboard --root .",
+      "exit_code": 0,
+      "summary": "Regenerated the derived dashboard from the integrated governance records."
+    },
+    {
+      "command": "repopact validate --root .",
+      "exit_code": 0,
+      "summary": "Canonical governance validation passed with the matching Rust engine."
+    },
+    {
+      "command": "python -m unittest discover -s tests -v",
+      "exit_code": 0,
+      "summary": "392 tests ran: 389 passed, 3 skipped, 0 failed."
+    },
+    {
+      "command": "cargo fmt --manifest-path rust/Cargo.toml --all -- --check",
+      "exit_code": 0,
+      "summary": "Rust workspace formatting check passed."
+    },
+    {
+      "command": "cargo test --manifest-path rust/Cargo.toml --workspace --locked",
+      "exit_code": 0,
+      "summary": "All locked Rust workspace crate and integration test targets passed; repopact-validation reported 79/79 with no failures."
+    },
+    {
+      "command": "python -m repopact.run_conformance --legacy-python",
+      "exit_code": 0,
+      "summary": "Canonical Rust conformance 43/43; Python compatibility comparator 43/43; WI050 admission corpus 8/8."
+    },
+    {
+      "command": "python scripts/validate_docs.py",
+      "exit_code": 0,
+      "summary": "338 Markdown sources and local links passed; 39 external GitHub URLs were intentionally left unchecked by the offline checker."
+    },
+    {
+      "command": "repopact check-frozen --base origin/main",
+      "exit_code": 0,
+      "summary": "No frozen-surface changes were detected in the refreshed Core #7 diff. The documentation-mappings schema change is already in merged Core #8 and is covered by its existing operator-authorization record."
+    },
+    {
+      "command": "git diff --check origin/main...HEAD",
+      "exit_code": 0,
+      "summary": "No whitespace errors in the refreshed branch diff."
+    }
+  ],
+  "artifacts": [
+    "work/active/074-extract-repopact-core-and-independent-workbench/engineering-readiness-report-2026-10-22.md",
+    "work/active/074-extract-repopact-core-and-independent-workbench/work-item.json",
+    "governance/documentation-mappings.json",
+    "repopact/cli.py",
+    "repopact/generate_spec.py",
+    "tests/test_validate_repo.py",
+    "evidence/runs/20261022-047-documentation-mapping-freshness.json",
+    "https://github.com/ForgeWireLabs/repopact-core/pull/6",
+    "https://github.com/ForgeWireLabs/repopact-core/pull/7",
+    "https://github.com/ForgeWireLabs/repopact-core/pull/8",
+    "https://github.com/ForgeWireLabs/repopact-workbench/pull/6",
+    "https://github.com/ForgeWireLabs/repopact-workbench/pull/7",
+    "https://github.com/ForgeWireLabs/ForgeWireLabs/pull/3"
+  ],
+  "environment": {
+    "os": "Windows 10 Pro (10.0.19045)",
+    "python": "3.12.4",
+    "rust": "1.96.0",
+    "branch": "codex/documentation-excellence-core",
+    "base_commit": "4e8e0b18831275c8c0a3f3b747ad30ea097c3020",
+    "implementation_commit": "f6f4323e608ed5c3db334757250f62a68d71fcf3",
+    "engine": "repository-local repopact-engine built from the refreshed branch",
+    "merged_prs": {
+      "Core #8": "52974409b0dbc6e0fe25aec7dfe12ec3b5ae1f0b",
+      "Core #6": "4e8e0b18831275c8c0a3f3b747ad30ea097c3020",
+      "Workbench #6": "79f894e778897a5d9c266b9e6dc8dd92ba4dafed",
+      "Workbench #7": "414a4a78091796735a1b97b03fd8c3cf1c105f30",
+      "ForgeWire Labs #3": "616c0b55f06409dea8d5e37da245da0797c633df"
+    },
+    "core_7_merge_base": "4e8e0b18831275c8c0a3f3b747ad30ea097c3020",
+    "audit_scopes_026_027": {
+      "last_reviewed": "2026-10-22",
+      "next_review": "2027-01-20",
+      "renewed_during_this_run": false
+    },
+    "wi075_scope": "bounded ForgeLink adopter re-review only; 16 unrelated ForgeLink audit scopes remain expired",
+    "wi047": "active; independent sign-off remains outstanding",
+    "rps_020": "pending; this validation does not close the complete documentation acceptance wording",
+    "rps_015": "pending; merged Workbench #7 covers only the scoped Windows MSVC PE correction",
+    "research_freshness_deadline": "2026-10-24; remains active",
+    "publication": "No package, installer, research paper, or release was published."
+  },
+  "no_secrets_confirmation": "No credential, token, password, or private key value appears in this evidence record or the associated changes."
+}

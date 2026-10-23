@@ -2,8 +2,8 @@
   "version": 1,
   "claim_freshness": {
     "policy": "governance/policies/002-semantic-claim-freshness.md",
-    "verified_on": "2026-09-24",
-    "review_by": "2026-10-24",
+    "verified_on": "2026-10-22",
+    "review_by": "2026-11-21",
     "documents": [
       "research/README.md",
       "research/benchmark-protocol.md",
@@ -96,7 +96,10 @@
     "implementation_evidence": "evidence/runs/20260629-proposed-lifecycle-state.json",
     "release_tag": "v2.1.0",
     "release_commit": "f4a237d03105c991afcc4b371259f06200e7b226",
-    "adopter_commit": "https://github.com/ForgeWireLabs/moto-one-hyper-forgewire-rom-lab/commit/0adb522ab4b3e4c33b0beb101ae637ad737c5e91",
+    "adopter_commit": "0adb522ab4b3e4c33b0beb101ae637ad737c5e91",
+    "adopter_repository": "JeremyShows/moto-one-hyper-forgewire-rom-lab",
+    "adopter_commit_public_url": null,
+    "adopter_commit_visibility_reviewed_on": "2026-10-22",
     "rollout_evidence": "evidence/runs/20260718-repopact-2-2-0-adopter-rollout.json"
   }
 }

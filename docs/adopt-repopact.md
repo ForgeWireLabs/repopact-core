@@ -56,23 +56,35 @@ Run `repopact validate` again before doing the implementation.
 
 ## 5. Do the work and run repository-defined verification
 
-Make the implementation change, then run the repository's quick verification profile:
+Make the implementation change, then run the repository's default verification
+profile. A newly initialized repository uses the `governance` profile, which
+runs canonical RepoPact validation. Other repositories may define profiles such
+as `quick`, `ci`, or `release` in `governance/verification.json`; use a profile
+that exists in the repository you are checking.
 
 ```powershell
-repopact verify quick
+repopact verify
 ```
 
 A passing verification run is evidence about the checks that actually executed on this host. It does not automatically complete the work item or grant authority.
 
+For the initialized example, a successful run reports the `governance` profile,
+`executed=1/1 required`, and `result: PASS`. Timing and any other repository's
+step count depend on its local profile.
+
 When you are ready to preserve a real verification run as RepoPact evidence, run the profile again with the work-item id:
 
 ```powershell
-repopact verify quick --evidence-work-item NNN
+repopact verify --evidence-work-item NNN
 ```
 
 Replace `NNN` with the work-item id RepoPact created.
 
 RepoPact writes an immutable concrete evidence record under `evidence/runs/` and refreshes derived state as part of the write. If evidence recording cannot complete safely, it fails closed rather than leaving a partial record.
+
+The command prints the generated evidence path, for example
+`evidence/runs/<generated-id>-verify-governance.json`; use the ID in that
+record when linking the criterion. IDs are unique to each run.
 
 ## 6. Link evidence to the acceptance criterion
 

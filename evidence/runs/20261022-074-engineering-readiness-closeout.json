@@ -1,0 +1,253 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261022-074-engineering-readiness-closeout",
+  "timestamp": "2026-10-22T19:41:29-05:00",
+  "work_item": "074",
+  "result": "partial",
+  "provenance": "concrete",
+  "summary": "Executed available Core, Workbench, rollback, and public Proving Ground checks and recorded their limits. Live GitHub metadata currently shows all four documentation PRs open; no merges were performed. WI074 remains active with eight acceptance criteria pending; this evidence does not convert partial results into passes.",
+  "source_revisions": {
+    "core_main": "9a3e51f5669fc2bc4d513d1c64929d3c5636d4ac",
+    "core_documentation_branch": "8ab81c887feb051ab502d598d71c74414ce2c917",
+    "core_security_pr": "2125b97ad1cdf9d3b45aacac6bd2c1aec43a9b62",
+    "workbench_documentation_pr": "74462c67021a2ec28a6b46b3e7240d2545113a82",
+    "workbench_main": "59e71418f26cdc2ea31c7cb23e85cb52d9803289",
+    "portfolio_pr_head": "314a9f86712afe77a5fbb3d7e212d016a2f0a8c3",
+    "proving_ground_public_archive": "54edc0305c4f577a00a436a76902da098cffa5d8"
+  },
+  "documentation_prs": {
+    "core_6": {
+      "state": "open",
+      "head": "2125b97ad1cdf9d3b45aacac6bd2c1aec43a9b62",
+      "private_reporting_enabled": true
+    },
+    "core_7": {
+      "state": "open",
+      "local_head": "8ab81c887feb051ab502d598d71c74414ce2c917",
+      "remote_head_before_push": "30d785e554167038bdeb3c008191b9286bb3bd34",
+      "current_head_at_review": "b6b3b57a0795f0bc01062cdde2899983d3d51fa0"
+    },
+    "workbench_6": {
+      "state": "open",
+      "head": "74462c67021a2ec28a6b46b3e7240d2545113a82",
+      "private_reporting_enabled": true
+    },
+    "portfolio_3": {
+      "state": "open",
+      "head": "314a9f86712afe77a5fbb3d7e212d016a2f0a8c3"
+    },
+    "github_status": {
+      "all_four_open": true,
+      "all_four_mergeable": true,
+      "workflow_runs": 0,
+      "commit_statuses": 0,
+      "submitted_reviews": 0,
+      "checked_at": "2026-10-22"
+    }
+  },
+  "results": {
+    "core_full_suite": {
+      "tests_run": 386,
+      "passed": 383,
+      "failed": 0,
+      "skipped": 3
+    },
+    "core_conformance": {
+      "rust": "37/37 passed",
+      "python_compatibility": "37/37 passed",
+      "wi050": "8/8 passed"
+    },
+    "workbench_frontend": {
+      "typecheck": "passed",
+      "tests": "38/38 passed",
+      "build": "passed",
+      "generated_types": "passed"
+    },
+    "workbench_rust": {
+      "passed": 245,
+      "failed": 0,
+      "ignored": 10,
+      "command": "cargo test --workspace --all-targets --locked --quiet"
+    },
+    "workbench_windows_build": {
+      "result": "passed",
+      "sha256": "6fd5822b61b11c90411823343a583c5bfc69953a1e77bac95097bf6ff9d57ac6"
+    },
+    "private_reporting": {
+      "core": true,
+      "workbench": true
+    },
+    "core_docs_local": {
+      "markdown_files": 332,
+      "missing_links": 0,
+      "external_github_unchecked": 34
+    },
+    "workbench_docs_local": {
+      "markdown_files": 14,
+      "missing_links": 0,
+      "external_github_unchecked": 9
+    },
+    "portfolio_docs_local": {
+      "markdown_files": 8,
+      "missing_links": 0,
+      "external_github_unchecked": 25
+    },
+    "core_distribution": {
+      "independent_builds": 2,
+      "reproducible": true,
+      "wheel_sha256": "e4ace34784fc2b356420ae1ecb13bfbdf74bcf17bda245421aefa15ebded6efe",
+      "sdist_sha256": "5c62f1348f3fc5c8995ca7d405a6bc1df1a78a527a0b906e9caa7487ed496c73"
+    },
+    "core_rollback": {
+      "stable_to_development_to_stable": "passed",
+      "repository_hash_preserved": "df7b14169deab26ba5f6cfabb88f3d874610dffc715cd50095681c52af2e2609",
+      "working_tree_after": "clean",
+      "missing_release_rejected": true,
+      "corrupt_wheel_rejected": true
+    },
+    "admission": {
+      "pre_action_cases": "passed",
+      "native_windows_service": "not installed",
+      "process_confinement": false,
+      "path_confinement": false
+    },
+    "proving_ground": {
+      "revision": "54edc0305c4f577a00a436a76902da098cffa5d8",
+      "archive_sha256": "960f9d39d1ed16edbf8786d3eabf0a636c5ac25c3c233be37c16b782e72467a1",
+      "pinned_core": "3.0.2",
+      "pinned_wheel_sha256": "d7781495977a686ab791d4ce97467a3714474c7682253d9d81f4edcfe4a2fa77",
+      "unit_tests": "96/96 passed with declared tiktoken==0.9.0 dependency",
+      "pactbench_mock": "24-task self-test passed",
+      "s5_drift": "self-test passed",
+      "canonical_validation": "failed with 15 current archive governance/evidence findings",
+      "paid_calls": false
+    },
+    "documentation_freshness": {
+      "reviewed_at": "2026-10-22",
+      "next_review": "2026-11-21",
+      "manuscript_commit": "6d782116fc9762da00439cf079d0f50585fea52",
+      "manuscript_source_recovered": false
+    },
+    "core_github_releases_api_entries": 0,
+    "workbench_github_releases_api_entries": 0,
+    "core_workbench_navigation": {
+      "core_contributing_main": "resolves",
+      "core_security_main": "resolves; corrected content is in Core #6",
+      "workbench_github_app_guide_main": "resolves; updated content is in Workbench #6",
+      "workbench_snapshot_guide_main": "resolves; updated content is in Workbench #6"
+    }
+  },
+  "commands": [
+    {
+      "command": "python -m unittest discover -s tests -v (Core PR #7 updated branch)",
+      "exit_code": 0,
+      "summary": "386 tests ran; 383 passed, 0 failed, 3 existing skips."
+    },
+    {
+      "command": "python -m repopact.cli validate --root . (Core PR #7 updated branch)",
+      "exit_code": 0,
+      "summary": "Canonical Core validator passed."
+    },
+    {
+      "command": "python -m repopact.run_conformance --legacy-python (Core PR #7 updated branch)",
+      "exit_code": 0,
+      "summary": "Rust 37/37, Python compatibility 37/37, WI050 8/8."
+    },
+    {
+      "command": "npm run typecheck; npm test -- --run; npm run build; npm run types:check (Workbench PR #6 branch)",
+      "exit_code": 0,
+      "summary": "Typecheck, 38 frontend tests, production build, and generated type check passed."
+    },
+    {
+      "command": "cargo test --workspace --all-targets --locked --quiet (Workbench PR #6 branch)",
+      "exit_code": 0,
+      "summary": "245 passed, 10 ignored, 0 failed."
+    },
+    {
+      "command": "cargo build --locked --package repopact-desktop (Workbench PR #6 branch)",
+      "exit_code": 0,
+      "summary": "Windows desktop executable built; SHA-256 recorded above."
+    },
+    {
+      "command": "repopact validate (Core stable 3.1.3 offline install), upgrade to branch wheel 3.1.3.dev1, validate, roll back to 3.1.3, validate",
+      "exit_code": 0,
+      "summary": "All three validations passed from a neutral working directory; governed record hash and clean clone status were unchanged."
+    },
+    {
+      "command": "python -m pip install --no-index --find-links <empty wheelhouse> repopact==3.1.4; python -m pip install --no-index --find-links <malformed wheelhouse> repopact==9.9.9",
+      "exit_code": 1,
+      "summary": "Unavailable and malformed artifacts were rejected; stable 3.1.3 remained installed and the repository still validated."
+    },
+    {
+      "command": "python -m unittest discover -s tests -q (public Proving Ground archive at 54edc030)",
+      "exit_code": 0,
+      "summary": "96 tests passed after installing the repository-declared tiktoken==0.9.0 dependency into an isolated venv."
+    },
+    {
+      "command": "python benchmarks/harness/run.py --selftest; python benchmarks/drift/harness.py --selftest (public Proving Ground archive)",
+      "exit_code": 0,
+      "summary": "Deterministic 24-task mock and S5 drift self-tests passed; no model/API calls were made."
+    },
+    {
+      "command": "repopact validate --root . (Core 3.0.2 pinned Proving Ground archive)",
+      "exit_code": 1,
+      "summary": "15 current findings: expired audit, stale dashboard, unknown historical work-item references, and incomplete legacy evidence records; consumer files were not changed."
+    },
+    {
+      "command": "gh api repos/ForgeWireLabs/repopact-core/private-vulnerability-reporting; gh api repos/ForgeWireLabs/repopact-workbench/private-vulnerability-reporting",
+      "exit_code": 0,
+      "summary": "Both repositories report private vulnerability reporting enabled after operator approval."
+    },
+    {
+      "command": "python scripts/validate_docs.py (updated Core #7 working tree)",
+      "exit_code": 0,
+      "summary": "332 Markdown source files; no missing local links; 34 external GitHub links intentionally unchecked."
+    },
+    {
+      "command": "cargo build --manifest-path rust/Cargo.toml --package repopact-engine (updated Core #7 working tree)",
+      "exit_code": 0,
+      "summary": "Canonical engine rebuilt from this checkout after the installed global engine was found to be stale."
+    },
+    {
+      "command": "REPOPACT_ENGINE=rust/target/debug/repopact-engine.exe python -m repopact.cli validate --root . (updated Core #7 working tree)",
+      "exit_code": 0,
+      "summary": "Canonical Core validation passed with the matching 3.1.3.dev1 engine."
+    },
+    {
+      "command": "GET https://api.github.com/repos/ForgeWireLabs/repopact-core/releases; GET https://api.github.com/repos/ForgeWireLabs/repopact-workbench/releases",
+      "exit_code": 0,
+      "summary": "Both public GitHub Releases collections returned empty arrays; Core stable 3.1.3 is available from PyPI, and Workbench documents that it has no installers."
+    },
+    {
+      "command": "GET Core CONTRIBUTING.md and Core SECURITY.md on main; GET both Workbench guide paths on main and on the documentation PR branch",
+      "exit_code": 0,
+      "summary": "All cross-repository paths resolve on main. Core #6 and Workbench #6 update the existing targets with the reviewed content."
+    }
+  ],
+  "artifacts": [
+    "work/active/074-extract-repopact-core-and-independent-workbench/engineering-readiness-report-2026-10-22.md",
+    "evidence/runs/20261022-074-engineering-readiness-closeout.json",
+    "evidence/runs/20261022-075-forgelink-core-full-rereview.json",
+    "audits/registry.json",
+    "audits/reports/dashboard.md"
+  ],
+  "environment": {
+    "os": "Windows 11 x64",
+    "python": "3.12",
+    "workbench_node": "Node 22",
+    "workbench_rust": "locked Cargo workspace",
+    "readiness_review_time": "2026-10-22T19:41:29-05:00"
+  },
+  "limitations": [
+    "RPS-011 remains partial: no native Linux graphical runtime or macOS/iOS environment; prior Android evidence is bounded to API 35 x86_64 and does not cover every ABI or permission-denial flow.",
+    "RPS-012 remains partial: testing-only pre-action proof passed, but no protected Windows service was installed; native process and path confinement are unproven.",
+    "RPS-015 and RPS-016 remain pending: Core artifacts are reproducible, but a repeated independent clean Workbench source build and complete dynamic Core/Workbench compatibility matrix remain outstanding.",
+    "RPS-018 remains pending: Proving Ground uses a verified 3.0.2 pin and its safe self-tests pass, but current canonical validation reports 15 findings and no new empirical model benchmark was run.",
+    "RPS-019 remains pending: ForgeWire private systems were neither inspected nor migrated; the report provides only a bounded plan based on public compatibility evidence.",
+    "RPS-020 remains pending until Core #6 and Workbench #6 merge and Core #7 is refreshed and rechecked against those destinations.",
+    "RPS-022 remains partial: tested package rollback and artifact rejection do not simulate power loss during installation or Workbench native-application recovery.",
+    "A prior draft incorrectly recorded ForgeWire Labs #3 as merged; current GitHub metadata confirms it is open and mergeable at 314a9f86712afe77a5fbb3d7e212d016a2f0a8c3. All four PRs have no associated workflow runs, commit statuses, or submitted reviews; no PR was merged.",
+    "A first canonical validation attempt selected a stale globally installed 3.1.0.dev1 engine and exited on the product-version handshake; rebuilding repopact-engine from this checkout and explicitly selecting it passed validation.",
+    "Core #7 cross-repository Workbench guide paths resolve on main today; Workbench #6 updates their content. A prior draft incorrectly described the paths as branch-only, corrected after GitHub API checks."
+  ]
+}

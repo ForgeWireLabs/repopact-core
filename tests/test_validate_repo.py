@@ -1216,6 +1216,10 @@ class RepositoryValidationTests(unittest.TestCase):
         self.assertIn("work-item.schema.json", once)
         self.assertIn("INV-1", once)
 
+    def test_spec_generation_writes_canonical_lf_newlines(self) -> None:
+        self.assertEqual(0, repopact_cli.main(["spec", "--root", str(self.root)]))
+        self.assertNotIn(b"\r", (self.root / "SPEC.md").read_bytes())
+
     # --- CLI dispatch (005) -------------------------------------------------
 
     def test_cli_validate_returns_zero_on_valid_repo(self) -> None:

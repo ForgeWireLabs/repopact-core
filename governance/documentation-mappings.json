@@ -21,7 +21,7 @@
       ],
       "description": "The opt-in mapping diagnostics and snapshot command are explained by the adopter-facing freshness guide.",
       "snapshot": {
-        "source_digest": "90ae66ac8b020b02179617abca52c4a81529213e00017858f451b90e204cbe59",
+        "source_digest": "96d875d92d7cecb68d50772e955bf502713c4f5972897b4168cdd2c0ce746fa0",
         "documentation_digest": "6a7b56a721f7965e9cafedb5f980758d186016f15bb4be426b429c9c0d8b618b"
       }
     },
@@ -47,8 +47,8 @@
       ],
       "description": "The generated SPEC catalog, version statement, and invariant table are derived from the listed generator inputs.",
       "snapshot": {
-        "source_digest": "a4939ebee471f63b0c97f4c70c669f6dd2e0e779862c0e38adf0a90d6e108e9e",
-        "documentation_digest": "0bd8275d32a2dcd30450058b2e2535f19d77d8a162d60810daa7beffc0f1de3a"
+        "source_digest": "4afb47e5e20690b4b50c4ea11430a5181fbff95bc45eed637515b2f303a5f755",
+        "documentation_digest": "eb9f55441ab866f107b39bc822fa26696b1cc03f7e0f89f2e08d46d9fd4d8c8e"
       }
     }
   ]

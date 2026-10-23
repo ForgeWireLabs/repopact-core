@@ -2,10 +2,15 @@
 
 **Status:** preparation only — **ARXIV NOT SUBMITTED**.
 
-**Editorial status — 2026-09-24.** The compiled-manuscript record below remains
-the September 14 preparation against the 3.1.0 snapshot. RepoPact 3.1.3
-superseded 3.1.0 as the stable distribution on 2026-09-18, but this review did
-not rebuild or submit the manuscript or change its recorded page count.
+**Editorial status — 2026-10-22.** The compiled-manuscript record below remains
+the September 14 preparation against the frozen 3.1.0 snapshot. PyPI and the
+GitHub Releases page still identify 3.1.3 as the current stable release,
+published on 2026-09-18. This review did not rebuild or submit the manuscript or
+change its recorded page count.
+The cited 3.1.0 snapshot SHA is not retrievable from the current public archive;
+the public `v3.1.0` tag points to a different commit, whose equivalence was not
+established. Resolve or explicitly disclose this source-availability limit
+before submission.
 Publication remains a separate operator decision.
 
 This file stages the metadata and checklist for a future RepoPact arXiv submission. Publication, account/endorsement steps, final license selection, and operator approval are intentionally not performed in this preparation pass.
@@ -41,7 +46,7 @@ We present RepoPact, a repository-native governance kernel for durable human-age
 
 RepoPact models the repository as a six-layer kernel: typed records, work-item lifecycle, invariant monitoring, a typed enforcement lattice, deterministic derived views, and a brownfield adoption boundary. Its central primitive is the binding invariant, a declared guarantee coupled to rationale, escalation, and, where logically possible, machine enforcement. Provenance types distinguish concrete, provisional, and inferred reconstructed state without weakening evidence-gated completion.
 
-We evaluate the system through released packages, the current implementation, its conformance suite, adversarial findings, naturalistic adoption cases, and a pre-registered comparative benchmark program. The implementation now uses a canonical Rust semantic engine with compatibility tooling, local-first verification/release operations, and a Tauri 2 Workbench. The stable public boundary is 3.1.0. The manuscript distinguishes stable Python/Rust package surfaces from active WI063/WI065 implementation checkpoints and from research infrastructure. RealRunner smoke execution has been demonstrated, but comparative cross-model results remain pending and will be reported whether they support or challenge the claims.
+We evaluate the system through released packages, the current implementation, its conformance suite, adversarial findings, naturalistic adoption cases, and a pre-registered comparative benchmark program. The implementation now uses a canonical Rust semantic engine with compatibility tooling, local-first verification/release operations, and a Tauri 2 Workbench. This manuscript uses the frozen 3.1.0 implementation/evidence snapshot; 3.1.3 is the current stable public release and was not evaluated in this manuscript. The manuscript distinguishes its frozen Python/Rust package surface from active WI063/WI065 implementation checkpoints and from research infrastructure. RealRunner smoke execution has been demonstrated, but comparative cross-model results remain pending and will be reported whether they support or challenge the claims.
 
 ## Candidate comments field
 
@@ -70,14 +75,19 @@ The final locally compiled manuscript reports its verified page and figure count
 
 The September 14 manuscript must not be submitted unchanged. Before final export:
 
-- identify stable public release `3.1.0` and its exact implementation/evidence snapshot;
+- distinguish current stable public release `3.1.3` from the manuscript's frozen
+  3.1.0 implementation/evidence snapshot;
+- recover an accessible copy of the exact frozen snapshot commit or disclose its
+  unavailability; do not substitute the public `v3.1.0` tag without verifying
+  snapshot equivalence;
 - update the findings discussion from the original fourteen-entry summary through the current findings register, including the F-019 pre-execution-admission boundary;
 - describe WI046 local-first verification/release as completed development architecture rather than future work;
 - replace the statement that a Repository Orientation Graph is merely future work with the current active-implementation boundary;
 - update Workbench future-work wording to reflect completed core operator workflows while keeping newer graph/orientation and platform work explicit;
 - update benchmark maturity to acknowledge RealRunner smoke execution without turning telemetry plumbing into comparative findings;
 - soften the `AGENTS.md` comparison to "records, validates, and where enforceable, enforces";
-- distinguish the stable 3.1.0 CLI surface from active/incomplete Workbench, mobile, and graph-evaluation boundaries;
+- distinguish the frozen 3.1.0 CLI surface from active/incomplete Workbench,
+  mobile, and graph-evaluation boundaries;
 - update the revision date;
 - pin the paper's implementation snapshot to an exact settled `main` commit so claims remain reproducible while development continues;
 - regenerate any paper figures/tables whose counts or implementation-state labels changed.
