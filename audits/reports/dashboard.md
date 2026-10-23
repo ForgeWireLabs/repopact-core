@@ -15,17 +15,17 @@
 | Audit findings | 3 |
 | Decision records | 75 |
 | Policy records | 2 |
-| Evidence runs | 189 |
+| Evidence runs | 191 |
 
 ## Work
 
 | Status | Count |
 | --- | ---: |
 | proposed | 3 |
-| active | 10 |
+| active | 9 |
 | blocked | 1 |
 | deferred | 1 |
-| completed | 61 |
+| completed | 62 |
 
 ## Audit freshness
 
@@ -42,5 +42,4 @@ All audit scopes are within their review cadence.
 - 066: RepoPact 3.1.0 Milestone Release and Research Snapshot Reconciliation (active)
 - 067: GitHub Repository Provider, Secure User Authorization, and Remote Repository Import (active)
 - 074: Extract RepoPact Core and Independent Workbench (active)
-- 075: Re-review ForgeLink adopter evidence for audit scopes 026 and 027 (active)
 - 032: Restore remote cross-platform governance enforcement (blocked)
