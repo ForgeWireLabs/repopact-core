@@ -1,0 +1,88 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261022-047-documentation-mapping-freshness",
+  "timestamp": "2026-10-23T02:39:23Z",
+  "work_item": "047",
+  "result": "partial",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "cargo fmt --manifest-path rust/Cargo.toml --all -- --check",
+      "exit_code": 0,
+      "summary": "Rust formatting check passed."
+    },
+    {
+      "command": "cargo test --manifest-path rust/Cargo.toml --workspace --locked",
+      "exit_code": 0,
+      "summary": "Locked Rust workspace tests passed; repopact-validation reported 79 passed, with no failures across the workspace or doc tests."
+    },
+    {
+      "command": "python -m unittest discover -s tests -q",
+      "exit_code": 1,
+      "summary": "385 tests: 373 passed, 9 failed, 3 skipped. All nine failures reproduce the unchanged expired audit-scope 026/027 baseline: test_exact_tagged_release_tree_is_accepted; test_orphan_check_ignores_tracked_items_and_audit_companions; test_readme_release_line_without_link_is_accepted; test_readme_release_link_may_be_an_external_url; test_readme_release_link_outside_decisions_is_existence_checked_only; test_readme_without_release_line_is_unaffected; test_repository_is_valid; test_stale_dashboard_is_rejected_and_doctor_repairs_it; test_valid_proposed_work_item_validates. Five also observe the stale dashboard on unchanged main. No audit dates were renewed."
+    },
+    {
+      "command": "python -m repopact.run_conformance --legacy-python",
+      "exit_code": 0,
+      "summary": "Canonical Rust conformance 43/43, Python compatibility comparator 43/43, and WI050 admission corpus 8/8 passed, including ForgeWire-shaped and adopter-neutral mapping fixtures plus stale generated-output rejection."
+    },
+    {
+      "command": "repopact documentation snapshot documentation-freshness-tooling --root .; repopact documentation snapshot generated-spec-reference --root .",
+      "exit_code": 0,
+      "summary": "Both read-only snapshots matched their reviewed SHA-256 pairs: tooling source 90ae66ac8b020b02179617abca52c4a81529213e00017858f451b90e204cbe59 and documentation 6a7b56a721f7965e9cafedb5f980758d186016f15bb4be426b429c9c0d8b618b; generated SPEC source a4939ebee471f63b0c97f4c70c669f6dd2e0e779862c0e38adf0a90d6e108e9e and output 0bd8275d32a2dcd30450058b2e2535f19d77d8a162d60810daa7beffc0f1de3a."
+    },
+    {
+      "command": "repopact check-frozen --base origin/main --ack",
+      "exit_code": 0,
+      "summary": "The operator-authorized frozen-surface change is limited to repopact/schemas/documentation-mappings.schema.json."
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "summary": "No whitespace errors."
+    },
+    {
+      "command": "python -m repopact.generate_dashboard --root .",
+      "exit_code": 0,
+      "summary": "Regenerated the canonical dashboard after updating the active WI047 evidence and criterion links."
+    },
+    {
+      "command": "repopact validate --root .",
+      "exit_code": 1,
+      "summary": "Exactly two errors remain: scopes 026 and 027 expired on 2026-10-16. No mapping, generated-output, evidence-reference, or dashboard errors remain; audit records were not changed."
+    },
+    {
+      "command": "repopact doctor --root .",
+      "exit_code": 1,
+      "summary": "Reports the same two expired audit scopes; mapping configuration and generated SPEC snapshots are current. Doctor was run without --fix and made no repairs."
+    }
+  ],
+  "artifacts": [
+    "decisions/0076-structural-documentation-freshness-mappings.md",
+    "governance/documentation-mappings.json",
+    "repopact/schemas/documentation-mappings.schema.json",
+    "repopact/documentation_mappings.py",
+    "rust/crates/repopact-validation/src/documentation.rs",
+    "repopact/cli.py",
+    "repopact/doctor.py",
+    "repopact/templates/documentation-mappings.json",
+    "docs/guides/documentation-freshness.md",
+    "conformance/fixtures/invalid/documentation-mapping-forgewire-stale",
+    "conformance/fixtures/valid-documentation-mapping-neutral",
+    "conformance/fixtures/invalid/documentation-generated-output-stale",
+    "tests/test_documentation_mappings.py",
+    "audits/reports/dashboard.md",
+    "work/active/047-documentation-impact-and-code-documentation-closure/work-item.json",
+    "work/active/047-documentation-impact-and-code-documentation-closure/README.md"
+  ],
+  "environment": {
+    "os": "Windows 10 Pro (10.0.19045)",
+    "python": "3.12.4",
+    "rust": "1.96.0",
+    "branch": "codex/wi047-documentation-freshness",
+    "base_commit": "9a3e51f5669fc2bc4d513d1c64929d3c5636d4ac",
+    "implementation_commit": "102a7fcd36fcb82bb2f3f28133e80863805817c4",
+    "engine": "repository-local repopact-engine.exe"
+  },
+  "no_secrets_confirmation": "No credential, token, password, or private key value appears in this evidence record or the associated changes."
+}

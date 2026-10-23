@@ -1,6 +1,6 @@
 # 047 — Documentation Impact and Code/Documentation Closure
 
-> **Status**: 🚧 Active — core completion gate implemented; mapping/staleness/CLI follow-ups open (see Closeout).
+> **Status**: 🚧 Active — acceptance evidence is recorded; independent governance review remains open.
 > **Owners**: governance-owner (lead); tooling-owner, docs-owner, evidence-owner, and work-coordinator affected.
 > **Depends on**: none.
 > **Decision**: [`0065`](../../../decisions/0065-documentation-closure-is-mandatory-at-work-item-completion.md).
@@ -70,8 +70,16 @@ Decision [`0065`](../../../decisions/0065-documentation-closure-is-mandatory-at-
 - Two new conformance cases (`documentation-impact-missing-on-completed`, `documentation-impact-affected-unknown-evidence`) prove the negative direction on both the Python and canonical-Rust comparators (37/37 conformance cases pass).
 - This work item is itself the first `documentation_impact: "affected"` record, evidenced by `evidence/runs/20260918-047-documentation-closure-implementation.json`.
 
-### What's still open (AC-7, AC-8, AC-10, AC-12, part of AC-14)
+### Open at the 2026-09-18 checkpoint (superseded by the follow-up below)
 
 - Adopter-declared source-to-documentation mappings / structural freshness detection (AC-7) and generated-documentation staleness wired into `doctor` (AC-8, AC-10) are deliberately deferred to a follow-up decision — see decision 0065 section E. Implementing them now, with zero lived experience of what real `documentation_impact` records look like, risked exactly the unfalsifiable generic-analysis claim the decision disclaims.
 - A second, explicitly adopter-neutral validation fixture beyond the conformance corpus (AC-12) is not yet built.
 - `repopact new` does not yet scaffold a `documentation_impact` stub, and there is no dedicated CLI/doctor surfacing of *which* completed items are missing it ahead of the hard rejection (part of AC-14).
+
+### Implementation follow-up (2026-10-22)
+
+The follow-up design is recorded in decision [`0076`](../../../decisions/0076-structural-documentation-freshness-mappings.md). It adds opt-in, adopter-declared source-to-documentation mappings with a versioned schema, a read-only `repopact documentation snapshot` command, template support, structural freshness checks, generated-output staleness detection, and non-destructive doctor diagnostics. Mapping configuration remains optional; the mechanism reports changed inputs and outputs without claiming semantic prose verification.
+
+The ForgeWire-shaped fixture and a separate adopter-neutral fixture exercise mapping behavior. Conformance now covers accepted and stale mappings, generated documentation drift, documentation-impact evidence requirements, and no-impact cases. Rust and Python conformance each pass 43/43; WI050 passes 8/8. The clean repository mapping inspection reports no stale mappings. The generated snapshot records source digest `90ae66ac8b020b02179617abca52c4a81529213e00017858f451b90e204cbe59` and documentation digest `6a7b56a721f7965e9cafedb5f980758d186016f15bb4be426b429c9c0d8b618b`.
+
+The complete Python suite ran 385 tests: 373 passed, 9 failed, and 3 existing tests were skipped. The nine failures reproduce the unchanged Core baseline and are confined to expired governance audit scopes 026/027; the audit dates were not renewed by this implementation. Canonical validation consequently remains partial until those scope records receive their own substantive review. The new criteria are linked to evidence in the work-item manifest, but WI047 remains active for independent governance review and is not closed by the documentation PR sequence.
