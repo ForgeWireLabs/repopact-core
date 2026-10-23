@@ -1,7 +1,7 @@
 {
   "$schema": "../../repopact/schemas/evidence-run.schema.json",
   "id": "20261022-047-documentation-mapping-freshness",
-  "timestamp": "2026-10-23T02:39:23Z",
+  "timestamp": "2026-10-23T03:27:41Z",
   "work_item": "047",
   "result": "partial",
   "provenance": "concrete",
@@ -73,7 +73,8 @@
     "tests/test_documentation_mappings.py",
     "audits/reports/dashboard.md",
     "work/active/047-documentation-impact-and-code-documentation-closure/work-item.json",
-    "work/active/047-documentation-impact-and-code-documentation-closure/README.md"
+    "work/active/047-documentation-impact-and-code-documentation-closure/README.md",
+    "https://github.com/ForgeWireLabs/repopact-core/pull/8"
   ],
   "environment": {
     "os": "Windows 10 Pro (10.0.19045)",
