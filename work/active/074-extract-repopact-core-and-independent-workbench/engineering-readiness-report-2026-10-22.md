@@ -29,6 +29,8 @@ This review uses the existing PRs and authoritative work items. It records parti
 
 On unchanged Core `main` (`9a3e51f`), the exact nine failing validation tests were reproduced. All nine were blocked by expired scopes 026/027; five also saw a stale dashboard (186 committed manifest rows versus 187 authoritative manifests). No runtime source change caused these failures. The revised Core #7 branch re-reviewed both scopes, updated the derived dashboard, passed the exact nine cases, canonical validation, and the full suite (386 run, 383 passed, 0 failed, 3 existing skips). Rust conformance passed 37/37, Python compatibility 37/37, and WI050 8/8. The audit records were advanced to 2026-10-22 only after those reviews and gates; historical completed work items were not edited.
 
+The final Core #7 branch update was pushed to its existing PR as `0f48947449820582bb1e4b0453bc5c0ea1a222b0`; its description now records the corrected test counts, external-link boundary, and merge order. The branch update changes evidence and governance records, not runtime implementation.
+
 The current Core PR branch also built two independent clean exports. Normalized wheel and sdist bytes matched. Wheel SHA-256: `e4ace34784fc2b356420ae1ecb13bfbdf74bcf17bda245421aefa15ebded6efe`. Sdist SHA-256: `5c62f1348f3fc5c8995ca7d405a6bc1df1a78a527a0b906e9caa7487ed496c73`.
 
 ## Platform and admission boundaries
