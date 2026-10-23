@@ -162,3 +162,47 @@ The October 24 research-freshness deadline remains active. The substantive evide
 The Core offline documentation checker checks local paths only; the current run covers 332 Markdown sources and leaves 37 external GitHub URLs unchecked. Separate live requests verified the installation and releases destinations, private security reporting entry points, contribution and documentation pages, cited research references, and Core/Workbench navigation. GitHub private reporting is enabled for both repositories, and submitting an advisory requires a GitHub sign-in. No demonstrated permanent public-link failure required correction. The Workbench `main` 404s for `SECURITY.md` and `CONTRIBUTING.md` are expected to resolve when Workbench #6 merges; the exact paths resolve on that PR head.
 
 RPS-020 remains pending until integrated-branch review satisfies its complete acceptance wording. WI047 remains independently active. Neither item closes when any documentation PR merges.
+
+## Post-dependency integration recheck — 2026-10-23
+
+This is the current integration snapshot; earlier dated observations and immutable evidence remain unchanged. The existing Core #7 branch was refreshed from Core `main` at `4e8e0b18831275c8c0a3f3b747ad30ea097c3020`, which contains the merged Core #8 and Core #6 changes. The refresh is commit `f6f4323e608ed5c3db334757250f62a68d71fcf3`; it preserves the existing PR and adds no duplicate.
+
+| Existing change | Integrated state | Merge record / scope |
+|---|---|---|
+| Core #8 — WI047 mapping implementation | Merged | `52974409b0dbc6e0fe25aec7dfe12ec3b5ae1f0b`; merged by `JeremyShows`. |
+| Core #6 — security policy | Merged | `4e8e0b18831275c8c0a3f3b747ad30ea097c3020`; private reporting form is the repository-specific destination. |
+| Workbench #6 — documentation | Merged | `79f894e778897a5d9c266b9e6dc8dd92ba4dafed`; its security and contribution guides now resolve from `main`. |
+| ForgeWire Labs #3 — portfolio | Merged | `616c0b55f06409dea8d5e37da245da0797c633df`; independent of the Core sequence. |
+| Workbench #7 — Windows PE correction | Merged | `414a4a78091796735a1b97b03fd8c3cf1c105f30`; this scoped fix does not complete RPS-015. |
+| Core #7 — documentation and evidence | Refreshed and locally validated | Existing PR branch includes the new Core base; merge remains a separate operator action. |
+
+The documented dependency order was Core #6, then Workbench #6, then refresh and validate Core #7; the independent portfolio and Workbench reproducibility changes were integrated separately. The final Core #7 merge must use its existing PR and normal repository policy. Remote Actions/check-run and submitted-review records were absent at the time of the PR status check; local results below are not described as hosted checks.
+
+### Integrated Core validation
+
+| Check | Result | Boundary |
+|---|---|---|
+| Canonical governance validation | PASS | Matching repository-built Rust engine; current integrated branch. |
+| Full Python suite | PASS | 392 tests run, 389 passed, 3 skipped, 0 failed. |
+| Locked Rust workspace tests | PASS | All crate and integration test targets passed, including `repopact-validation` 79/79. |
+| Rust formatting | PASS | `cargo fmt --manifest-path rust/Cargo.toml --all -- --check`. |
+| Conformance | PASS | Rust 43/43; Python compatibility 43/43; WI050 8/8. |
+| Offline documentation checker | PASS | 338 Markdown sources and local links; 39 external GitHub URLs remain unchecked by the checker. |
+| Frozen-surface check | PASS | No frozen-surface changes in Core #7 relative to the refreshed base. The mapping schema is already in merged Core #8 and its operator-authorization record remains `evidence/runs/20261022-047-documentation-mapping-freshness.json`. |
+| Generated dashboard and SPEC | PASS | Dashboard regenerated from the integrated records. SPEC generation now writes canonical LF bytes on Windows as well as Unix. |
+| Git whitespace check | PASS | No whitespace errors in the refreshed branch diff. |
+
+The integration review examined both mapped source/documentation pairs before refreshing their snapshots. `generated-spec-reference` still maps `repopact/generate_spec.py` and its exact schema/invariant inputs to generated blocks in `SPEC.md`; regeneration produced the current record catalog and invariant table. The initial check exposed platform-dependent CRLF output from the Windows `repopact spec` command even though Git stores the Markdown as LF. The generator now explicitly writes LF; a command-level regression test covers this. The `documentation-freshness-tooling` source change is only in the separate SPEC-writing command path; the guide's instructions for snapshot review remain accurate. Both mapping snapshots were refreshed only after this review.
+
+Core audit scopes 026 and 027 remain at the substantive review dates `last_reviewed=2026-10-22`, `next_review=2027-01-20`. No dates were advanced during this integration. WI075 remains complete only for the bounded ForgeLink adopter re-review; 16 unrelated ForgeLink audit scopes remain expired.
+
+### Governance acceptance matrix
+
+| Item | Current state | Evidence and boundary |
+|---|---|---|
+| WI047 — documentation impact and code/documentation closure | ACTIVE; AC-1 through AC-14 are recorded satisfied | Core #8 is merged and the integrated implementation passes the full suite and conformance. Independent sign-off remains outstanding, so WI047 is not complete. |
+| WI074 / RPS-020 — documentation | PENDING | The PRs are integrated and the post-integration checks pass, but the full acceptance wording still requires an evidence-based review against the integrated default branches. Do not close it solely because PRs merged. |
+| RPS-015 — reproducibility | PENDING | Workbench #7 proves the scoped Windows MSVC PE correction; independent exports, wheel contents, artifact identity, provenance, and platform normalization remain outside that result. |
+| RPS-011, RPS-012, RPS-016, RPS-018, RPS-019, RPS-022 | PENDING and separately scoped | No native-platform, protected-service, consumer-migration, benchmark-publication, or interruption-recovery acceptance is inferred from these documentation or PE results. |
+
+The October 24 research-freshness deadline remains active. No audit dates were renewed without review; no packages, installers, papers, or releases were published. The live destination checks remain separate from the offline checker: it intentionally does not verify external URLs.
