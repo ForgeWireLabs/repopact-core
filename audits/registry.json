@@ -32,19 +32,19 @@
       "path": "work/completed/026-deterministic-dashboard-validation",
       "owner": "tooling-owner",
       "contract": "work/completed/026-deterministic-dashboard-validation/AGENTS.md",
-      "last_reviewed": "2026-07-18",
-      "next_review": "2026-10-16",
+      "last_reviewed": "2026-10-22",
+      "next_review": "2027-01-20",
       "alignment": "current",
-      "notes": "Completed deterministic derived-dashboard validation and ForgeLink adopter proof."
+      "notes": "Re-reviewed 2026-10-22: deterministic generation, read-only validation, stale rejection/repair, and date-stable output were exercised. Current ForgeLink dashboard behavior was re-verified at 06be2fe with Core 3.0.2; full adopter validation remains partial because 16 unrelated ForgeLink audit scopes are expired."
     },
     {
       "path": "work/completed/027-release-2-2-0-dashboard-integrity",
       "owner": "governance-owner",
       "contract": "work/completed/027-release-2-2-0-dashboard-integrity/AGENTS.md",
-      "last_reviewed": "2026-07-18",
-      "next_review": "2026-10-16",
+      "last_reviewed": "2026-10-22",
+      "next_review": "2027-01-20",
       "alignment": "current",
-      "notes": "Completed RepoPact 2.2.0 release, direct PyPI publication, public verification, and ForgeLink formal-release adoption."
+      "notes": "Re-reviewed 2026-10-22: public v2.2.0 tag resolves to commit 2b3b549/tree a07fada; local tag agrees, and downloaded PyPI wheel/sdist hashes match the original publication evidence. The archived source page remains public but Git transport is unavailable; 2.2.0 proof remains historical and is distinct from 3.1.3."
     }
   ]
 }
