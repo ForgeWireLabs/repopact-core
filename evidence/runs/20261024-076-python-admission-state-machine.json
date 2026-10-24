@@ -1,7 +1,7 @@
 {
   "$schema": "../../repopact/schemas/evidence-run.schema.json",
   "id": "20261024-076-python-admission-state-machine",
-  "timestamp": "2026-10-24 16:44:55",
+  "timestamp": "2026-10-24T16:44:55-05:00",
   "work_item": "076",
   "result": "partial",
   "provenance": "concrete",

@@ -45,6 +45,11 @@ legacy v1 executable may wait for EOF and time out before it can return a
 version mismatch; the client sends no operation before successful v2 admission.
 Keep stable 3.1.3 and its v1 engine together when rolling back.
 
+The strict client checks the installed Python core dependencies against the
+exact lock shipped in the package before engine admission. A mismatch stops
+the operation. Protected admission and signing workflows also check the
+separately locked enforcement dependencies before they write or sign records.
+
 When moving to the strict boundary, install the matching Core package and its
 colocated engine together. For development overrides, use an engine built from
 the same source revision and semantic inputs as the Python package. If a

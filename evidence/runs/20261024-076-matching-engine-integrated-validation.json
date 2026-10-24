@@ -1,0 +1,282 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261024-076-matching-engine-integrated-validation",
+  "timestamp": "2026-10-24T22:21:37Z",
+  "work_item": "076",
+  "result": "passed",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "Build the WI076 Rust engine from the clean PR source at 7ad445e8af5f97d861d7d4a3ef3d0d1191833e19 into the task-owned target directory",
+      "exit_code": 0,
+      "summary": "Built product 3.1.4.dev0, protocol repopact-engine major 2, semantic identity repopact-semantic-v1:sha256:6698dfbb03e39ba96dcea5b76b832813df0de9be9c42418888d0190492cf8e3f, using Rust 1.96.0 for x86_64-pc-windows-msvc release. The process-image executable SHA-256 was ee6b3a21062413c5dad697e9bb0f558d104c594e4e473c463f7c26b59a8aeac."
+    },
+    {
+      "command": "Focused Rust engine and protocol tests for source revision 7ad445e8af5f97d861d7d4a3ef3d0d1191833e19",
+      "exit_code": 0,
+      "summary": "Seven engine tests passed; all other selected Cargo test targets and protocol/doc-test targets exited successfully with zero tests."
+    },
+    {
+      "command": "Focused WI076 Python suites under the exact locked CPython 3.12.4 and 3.13.15 environments",
+      "exit_code": 0,
+      "summary": "55 tests passed under each Python version, covering same-process admission, no-mutation rejection, runtime-lock checks, deterministic semantic input discovery, and package-identity rules."
+    },
+    {
+      "command": "C:\\Projects\\repopact-core-wi076-build\\runtime-venv-312-locked\\Scripts\\python.exe -B -m unittest discover -s tests -v",
+      "exit_code": 0,
+      "summary": "Ran 434 tests in 1496.461 seconds; OK (skipped=3), with zero failures. The tested tree was commit 7ad445e8af5f97d861d7d4a3ef3d0d1191833e19 plus the seven tracked pre-run corrections identified in environment.python_full_suite. Output SHA-256: A91D1B703A63990081E309C953203D0C7DC30C7D19EB1074A117309050220670."
+    },
+    {
+      "command": "python -m repopact.run_conformance with process-image provenance, source revision 565930190fa6684ffb07ce4ad3ef170a42b9153f",
+      "exit_code": 0,
+      "summary": "Canonical conformance 43/43 and WI050 admission corpus 8/8. Exact engine SHA-256, file identity, product, protocol, semantic identity, source build revision, target, and toolchain are recorded under environment.conformance_runs[0]."
+    },
+    {
+      "command": "python -m repopact.run_conformance with process-image provenance, source revision 7ad445e8af5f97d861d7d4a3ef3d0d1191833e19",
+      "exit_code": 0,
+      "summary": "Canonical conformance 43/43 and WI050 admission corpus 8/8. The pre-launch, process-image, and post-run executable SHA-256 values match; provenance status is complete."
+    },
+    {
+      "command": "Run matching-engine validation and dashboard write against a disposable repository",
+      "exit_code": 0,
+      "summary": "Validation returned valid=true with zero diagnostics; dashboard write succeeded. Process-image SHA-256 matched the 7ad445e conformance executable."
+    },
+    {
+      "command": "Reject a same-product-version stale semantic engine and compare the disposable repository snapshot",
+      "exit_code": 0,
+      "summary": "Rejected at handshake before admission or operation dispatch; no mutation was dispatched and the 10-file snapshot was unchanged. The stale executable SHA-256 was dd1be08066649f20817708b4846669956748a31376760c36dcbee17cf3c02a52."
+    },
+    {
+      "command": "Exercise uncertain mutation response handling with a simulated peer",
+      "exit_code": 0,
+      "summary": "The client raised EngineOutcomeUnknownError after one simulated mutation and response loss, then refused to relaunch; the operation was not automatically replayed. This is a protocol simulation, not crash-recovery or rollback evidence."
+    },
+    {
+      "command": "Build actual Maturin sdist and wheel from source revision 7ad445e8af5f97d861d7d4a3ef3d0d1191833e19, then run scripts/verify_engine_package_identity.py against both archives",
+      "exit_code": 0,
+      "summary": "The sdist's 257 semantic inputs and the wheel's identity, manifest, and runtime-lock resources agree with source identity repopact-semantic-v1:sha256:6698dfbb03e39ba96dcea5b76b832813df0de9be9c42418888d0190492cf8e3f. Identity agreement does not establish binary authenticity."
+    },
+    {
+      "command": "Check exact runtime dependencies with pip check in locked CPython 3.12.4 and 3.13.15 environments",
+      "exit_code": 0,
+      "summary": "Both environments reported no broken requirements. No global Python installation was modified."
+    },
+    {
+      "command": "repopact validate (final state after evidence and WI076 lifecycle update)",
+      "exit_code": 0,
+      "summary": "Canonical repository governance validation passed."
+    },
+    {
+      "command": "repopact check-frozen --base origin/main",
+      "exit_code": 0,
+      "summary": "No frozen-surface changes detected."
+    },
+    {
+      "command": "python -B scripts/generate_engine_semantic_identity.py --check",
+      "exit_code": 0,
+      "summary": "The semantic input manifest and generated identity are current."
+    },
+    {
+      "command": "python -B scripts/validate_docs.py",
+      "exit_code": 0,
+      "summary": "Documentation links passed for 340 Markdown sources; 39 external GitHub links remain unchecked."
+    },
+    {
+      "command": "python -B scripts/validate_docs.py after moving WI076 to completed",
+      "exit_code": 1,
+      "summary": "Detected one stale WI074 README relative link to WI076's former active directory. The link was corrected to the completed path and the final documentation check passed."
+    },
+    {
+      "command": "python -B scripts/validate_docs.py after correcting the WI074 cross-reference",
+      "exit_code": 0,
+      "summary": "Documentation links passed for 340 Markdown sources; 39 external GitHub links remain unchecked."
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "summary": "No whitespace errors."
+    }
+  ],
+  "artifacts": [
+    "work/completed/076-engine-semantic-compatibility-identity/work-item.json",
+    "work/completed/076-engine-semantic-compatibility-identity/README.md",
+    "work/active/074-extract-repopact-core-and-independent-workbench/README.md",
+    "docs/guides/packaging-and-engine.md",
+    "build/semantic-input-manifest.json",
+    "repopact/_semantic_identity.json",
+    "scripts/generate_engine_semantic_identity.py",
+    "scripts/verify_engine_package_identity.py",
+    "C:\\Projects\\repopact-core-wi076-build\\canonical-conformance-provenance.json",
+    "C:\\Projects\\repopact-core-wi076-build\\canonical-conformance-7ad445.json",
+    "C:\\Projects\\repopact-core-wi076-build\\scratch\\engine-final-provenance.json",
+    "C:\\Projects\\repopact-core-wi076-build\\scratch\\stale-same-version-no-mutation-final.json",
+    "C:\\Projects\\repopact-core-wi076-build\\python-full-7ad445-py312-final.log",
+    "C:\\Projects\\repopact-core-wi076-build\\packages\\final-7ad445\\repopact-3.1.4.dev0.tar.gz",
+    "C:\\Projects\\repopact-core-wi076-build\\packages\\final-7ad445\\repopact-3.1.4.dev0-py3-none-win_amd64.whl"
+  ],
+  "environment": {
+    "implementation_source_revision": "7ad445e8af5f97d861d7d4a3ef3d0d1191833e19",
+    "implementation_source_tree_was_clean_for_build": true,
+    "product_version": "3.1.4.dev0",
+    "protocol": "repopact-engine",
+    "protocol_major": 2,
+    "semantic_identity": "repopact-semantic-v1:sha256:6698dfbb03e39ba96dcea5b76b832813df0de9be9c42418888d0190492cf8e3f",
+    "semantic_input_count": 257,
+    "build_identity": "repopact-build-v1:sha256:31dfc78011d8a52c71e865c7c93782c95bbfb543129602131d2808e7e03b98b4",
+    "rust_toolchain": "rustc 1.96.0 (ac68faa20 2026-05-25)",
+    "target": "x86_64-pc-windows-msvc",
+    "profile": "release",
+    "executable": {
+      "selected_path": "C:\\Projects\\repopact-core-wi076-build\\runtime-venv-313\\Scripts\\repopact-engine.exe",
+      "process_image_path": "C:\\Projects\\repopact-core-wi076-build\\runtime-venv-313\\Scripts\\repopact-engine.exe",
+      "sha256": "ee6b3a21062413c5dad6979e7bb0f558d104c594e4e473c463f7c26b59a8aeac",
+      "size_bytes": 13663744,
+      "file_identity": {
+        "device": 9251113309582558494,
+        "file_index": 4785074604804434,
+        "mtime_ns": 1792874452371602100
+      },
+      "sha256_before_launch": "ee6b3a21062413c5dad6979e7bb0f558d104c594e4e473c463f7c26b59a8aeac",
+      "sha256_at_process_image": "ee6b3a21062413c5dad6979e7bb0f558d104c594e4e473c463f7c26b59a8aeac",
+      "sha256_after_run": "ee6b3a21062413c5dad6979e7bb0f558d104c594e4e473c463f7c26b59a8aeac"
+    },
+    "conformance_runs": [
+      {
+        "evidence_id": "wi076-ac6-engine-conformance-20261024T201710.901657Z",
+        "source_revision": "565930190fa6684ffb07ce4ad3ef170a42b9153f",
+        "product_version": "3.1.4.dev0",
+        "protocol_major": 2,
+        "semantic_identity": "repopact-semantic-v1:sha256:70fdf142928e3f6a447bea861833610f3cb9b6cf9dff50e004662bd8c7accb23",
+        "build_identity": "repopact-build-v1:sha256:16a6de0f0204823828017580d43d469d5ae4fd0cf33ea67ed273fc33a3028db6",
+        "target": "x86_64-pc-windows-msvc",
+        "rust_toolchain": "rustc 1.96.0 (ac68faa20 2026-05-25)",
+        "selected_path": "C:\\Projects\\repopact-core-wi076-build\\target\\release\\repopact-engine.exe",
+        "process_image_path": "C:\\Projects\\repopact-core-wi076-build\\target\\release\\repopact-engine.exe",
+        "sha256": "58ebe595e4e66a6c083c3fef12e3aab524755b61700f537ab9a10413284ab0fe",
+        "file_identity": {
+          "device": 9251113309582558494,
+          "file_index": 1688849860814598,
+          "mtime_ns": 1792872494523968200,
+          "size_bytes": 13663744
+        },
+        "conformance": "43/43",
+        "wi050_admission": "8/8",
+        "provenance": "complete"
+      },
+      {
+        "evidence_id": "wi076-ac6-engine-conformance-20261024T204128.745064Z",
+        "source_revision": "7ad445e8af5f97d861d7d4a3ef3d0d1191833e19",
+        "product_version": "3.1.4.dev0",
+        "protocol_major": 2,
+        "semantic_identity": "repopact-semantic-v1:sha256:6698dfbb03e39ba96dcea5b76b832813df0de9be9c42418888d0190492cf8e3f",
+        "build_identity": "repopact-build-v1:sha256:31dfc78011d8a52c71e865c7c93782c95bbfb543129602131d2808e7e03b98b4",
+        "target": "x86_64-pc-windows-msvc",
+        "rust_toolchain": "rustc 1.96.0 (ac68faa20 2026-05-25)",
+        "selected_path": "C:\\Projects\\repopact-core-wi076-build\\runtime-venv-313\\Scripts\\repopact-engine.exe",
+        "process_image_path": "C:\\Projects\\repopact-core-wi076-build\\runtime-venv-313\\Scripts\\repopact-engine.exe",
+        "sha256": "ee6b3a21062413c5dad6979e7bb0f558d104c594e4e473c463f7c26b59a8aeac",
+        "file_identity": {
+          "device": 9251113309582558494,
+          "file_index": 4785074604804434,
+          "mtime_ns": 1792874452371602100,
+          "size_bytes": 13663744
+        },
+        "conformance": "43/43",
+        "wi050_admission": "8/8",
+        "provenance": "complete"
+      }
+    ],
+    "python_full_suite": {
+      "python": "CPython 3.12.4",
+      "base_commit": "7ad445e8af5f97d861d7d4a3ef3d0d1191833e19",
+      "tracked_pre_run_worktree_diff_sha256": "46548781fb8f1368cb4ba55fb3a45a195556c960988fab73e585ac2c6f96bbfd",
+      "modified_paths_at_run": [
+        "audits/reports/dashboard.md",
+        "docs/guides/packaging-and-engine.md",
+        "evidence/runs/20261024-076-python-admission-state-machine.json",
+        "evidence/runs/20261024-076-semantic-manifest-generator.json",
+        "governance/documentation-mappings.json",
+        "governance/owners.json",
+        "tests/test_validate_repo.py"
+      ],
+      "total_tests": 434,
+      "skipped": 3,
+      "failures": 0,
+      "errors": 0,
+      "duration_seconds": 1496.461,
+      "output_sha256": "A91D1B703A63990081E309C953203D0C7DC30C7D19EB1074A117309050220670"
+    },
+    "focused_python": {
+      "python_3_12_4": "55/55",
+      "python_3_13_15": "55/55",
+      "runtime_lock_pip_check": "passed for both isolated environments"
+    },
+    "historical_python_3_13_full_suite": {
+      "result": "failed",
+      "total_tests": 434,
+      "failures": 10,
+      "skipped": 3,
+      "classification": "The missing-cryptography case was specific to the base Python environment. Stale release fixtures, documentation snapshots, evidence timestamp syntax, and ownership coverage were corrected before the successful locked Python 3.12 full run.",
+      "log_path": "C:\\Projects\\repopact-core-wi076-build\\python-full-7ad445.log",
+      "log_preserved": true
+    },
+    "rust_tests": "7/7 engine unit tests passed; remaining selected targets exited successfully",
+    "conformance": {
+      "canonical_rust": "43/43",
+      "wi050_admission": "8/8"
+    },
+    "archives": {
+      "sdist": {
+        "path": "C:\\Projects\\repopact-core-wi076-build\\packages\\final-7ad445\\repopact-3.1.4.dev0.tar.gz",
+        "size_bytes": 541576,
+        "sha256": "1B0F8C9EAE71FE4E17DD21B3246EB71CFAC9998145FF936B64589ECA9AABE0C6",
+        "semantic_inputs_verified": 257
+      },
+      "wheel": {
+        "path": "C:\\Projects\\repopact-core-wi076-build\\packages\\final-7ad445\\repopact-3.1.4.dev0-py3-none-win_amd64.whl",
+        "size_bytes": 4193470,
+        "sha256": "84348D27FA0418E683F2466824EA7B95C481BAFB8A952B2DB06B3BB8CB7EE85A",
+        "identity_manifest_runtime_lock_agreement": "passed"
+      },
+      "identity_agreement": "source, sdist, and wheel all use repopact-semantic-v1:sha256:6698dfbb03e39ba96dcea5b76b832813df0de9be9c42418888d0190492cf8e3f",
+      "binary_authenticity": "not established"
+    },
+    "negative_cases": {
+      "same_version_stale_engine": "rejected before admission and mutation; 10-file snapshot unchanged",
+      "legacy_protocol_v1": "rejected before admission or operation dispatch; EOF-framed test timed out during handshake without dispatch",
+      "uncertain_mutation": "simulated side effect occurred once; response loss raised an unknown outcome and prevented retry; no crash rollback claim"
+    },
+    "final_read_only_validation": {
+      "repository_validate": "passed",
+      "frozen_surface": "passed; no frozen-surface changes",
+      "semantic_manifest_check": "passed",
+      "documentation_links": "passed for 340 Markdown sources; 39 external GitHub URLs unchecked",
+      "git_diff_check": "passed"
+    },
+    "storage": {
+      "user_reported_free_after_authorized_cleanup_gib": 30.09,
+      "final_c_drive_free_bytes": 31672033280,
+      "final_c_drive_free_gib_approx": 29.50,
+      "filesystem": "NTFS healthy",
+      "cargo_rustc_maturin_processes_at_final_check": 0,
+      "cleanup_by_this_run": "none",
+      "task_target_and_package_outputs": "retained"
+    },
+    "release_boundary": {
+      "stable_3_1_3_artifacts": "preserved and unchanged",
+      "strict_identity_boundary": "3.1.4.dev0 and later",
+      "global_python_installation": "unchanged",
+      "packages_published": false,
+      "pr_merged": false,
+      "pr_12_state": "open, draft, mergeable; independent implementation review remains separate",
+      "wi076": "completed on the PR branch after AC-2 through AC-6 evidence; PR remains unmerged for independent review",
+      "wi074_rps016": "pending"
+    },
+    "limitations": [
+      "Build and native executable evidence cover Windows x86_64 only; no Linux or macOS build is claimed.",
+      "Semantic identity and recorded SHA-256 establish consistency and identity of the observed bytes, not authenticity against a malicious executable substitution.",
+      "The uncertain-outcome test uses a simulated peer and does not prove real crash recovery, rollback, or native application recovery.",
+      "This PR does not satisfy WI074 RPS-016 release compatibility, installation, upgrade, or rollback acceptance."
+    ]
+  }
+}

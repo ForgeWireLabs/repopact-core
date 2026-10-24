@@ -2,7 +2,7 @@
   "$schema": "../../../repopact/schemas/work-item.schema.json",
   "id": "076",
   "title": "Engine Semantic Compatibility Identity",
-  "status": "active",
+  "status": "completed",
   "owner_scope": "tooling",
   "lead": "tooling-owner",
   "affected_scopes": [
@@ -33,38 +33,42 @@
     {
       "id": "AC-2",
       "text": "Implement the approved semantic identity in the Rust engine and Python client. Each operation must execute only in the same engine process that passed semantic handshake and explicit admission; a process from an earlier handshake cannot authorize a later launch. Until admission succeeds, the engine rejects operations before dispatch. Retained Python workflows that write repository files and depend on canonical Core semantics must establish and hold the admitted session before their first filesystem write. Same-protocol, same-product-version engines with missing or mismatched identity fail closed in ordinary discovery and through REPOPACT_ENGINE; overrides cannot bypass admission.",
-      "state": "pending",
+      "state": "satisfied",
       "evidence": [
-        "20261024-076-python-admission-state-machine"
+        "20261024-076-matching-engine-integrated-validation"
       ]
     },
     {
       "id": "AC-3",
       "text": "Add focused tests proving a stale same-version or legacy engine is rejected before any repository mutation and a matching engine is admitted. Cover ordinary Scripts discovery, a stale executable beside the Python package, explicit REPOPACT_ENGINE, missing/malformed/unsupported/mismatched identity, engine-side pre-admission rejection, executable-path replacement after handshake, retained Python-side canonical-dependent write workflows, and the compatibility boundary. Compare repository snapshots to prove the rejected cases changed no files and prove no operation was resent after an uncertain process exit.",
-      "state": "pending",
+      "state": "satisfied",
       "evidence": [
-        "20261024-076-python-admission-state-machine"
+        "20261024-076-matching-engine-integrated-validation"
       ]
     },
     {
       "id": "AC-4",
       "text": "Verify automatic, reviewed input discovery and deterministic identity generation across the current Python contract and dependency closure, Rust engine dependency/build closure, protocol capabilities, embedded schemas, and conformance corpus. Enforce an exact Python dependency lock or an explicitly bounded supported-version contract at runtime, including affected optional dependencies. Detect added, omitted, removed, or changed inputs without implicit baseline updates; prove checkout, sdist, and wheel identity agreement through Maturin. Do not treat identity as proof of trusted executable bytes.",
-      "state": "pending",
+      "state": "satisfied",
       "evidence": [
-        "20261024-076-semantic-manifest-generator"
+        "20261024-076-matching-engine-integrated-validation"
       ]
     },
     {
       "id": "AC-5",
       "text": "Document the four identity guarantees, mismatch behavior, override rules, and migration path. Explicitly state that a semantic ID detects accidental version skew but does not authenticate a maliciously substituted binary; any trusted-artifact verification remains a separate design and approval.",
-      "state": "pending",
-      "evidence": []
+      "state": "satisfied",
+      "evidence": [
+        "20261024-076-matching-engine-integrated-validation"
+      ]
     },
     {
       "id": "AC-6",
       "text": "Record the exact process-image file identity and executable SHA-256 used for each conformance run, with source commit, product/protocol/semantic identities, toolchain and focused results. Mark provenance incomplete when the actual image cannot be correlated or its pre/post digest changes. Preserve prior historical evidence unchanged.",
-      "state": "pending",
-      "evidence": []
+      "state": "satisfied",
+      "evidence": [
+        "20261024-076-matching-engine-integrated-validation"
+      ]
     },
     {
       "id": "AC-7",
@@ -91,7 +95,8 @@
       "contributor_workflow"
     ],
     "evidence": [
-      "20261024-074-governance-closeout"
+      "20261024-074-governance-closeout",
+      "20261024-076-matching-engine-integrated-validation"
     ]
   },
   "created": "2026-10-24",

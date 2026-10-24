@@ -1,6 +1,6 @@
 # WI076 — Engine Semantic Compatibility Identity
 
-> **Status**: Active — the compatibility defect is governed here; the compatibility fix and complete acceptance evidence remain outstanding.
+> **Status**: Completed on the PR branch with implementation evidence; PR #12 remains open for independent review and has not been merged.
 > **Owner**: tooling-owner (lead); docs-owner and evidence-owner affected.
 > **Related issue**: [Core issue #10](https://github.com/ForgeWireLabs/repopact-core/issues/10).
 > **Related readiness gate**: WI074 / RPS-016. This work can provide one compatibility input, but it cannot satisfy RPS-016 by itself.
@@ -316,3 +316,58 @@ blocked; no build, cleanup, or acceptance transition occurred. See
 [`20261024-076-matching-engine-storage-blocker`](../../../evidence/runs/20261024-076-matching-engine-storage-blocker.json).
 WI076 remains active, AC-2 through AC-6 remain pending, and WI074 RPS-016
 remains pending.
+
+## Implementation increment 7 — matching-engine integration and acceptance evidence (2026-10-24)
+
+After the operator-authorized storage recovery, C: had 30.09 GiB free. The
+matching engine was built from clean PR source revision
+`7ad445e8af5f97d861d7d4a3ef3d0d1191833e19` into the task-owned target. It
+reports product `3.1.4.dev0`, protocol major 2, and semantic identity
+`repopact-semantic-v1:sha256:6698dfbb03e39ba96dcea5b76b832813df0de9be9c42418888d0190492cf8e3f`.
+The exact process image was
+`C:\Projects\repopact-core-wi076-build\runtime-venv-313\Scripts\repopact-engine.exe`,
+SHA-256 `ee6b3a21062413c5dad6979e7bb0f558d104c594e4e473c463f7c26b59a8aeac`;
+the selected path, process-image path, pre-launch hash, process-image hash,
+and post-run hash agree. Rust 1.96.0 built the Windows x86_64 release target.
+
+The final source conformance run passed 43/43 canonical cases and 8/8 WI050
+admission vectors. Its evidence records source revision, product and protocol,
+semantic and build identities, process-image file ID, and exact executable
+digest. A preceding conformance run at source revision
+`565930190fa6684ffb07ce4ad3ef170a42b9153f` also has complete executable
+provenance. Both run records are summarized in
+[`20261024-076-matching-engine-integrated-validation`](../../../evidence/runs/20261024-076-matching-engine-integrated-validation.json).
+
+Focused Rust tests passed 7/7. The WI076 Python suites passed 55/55 under
+locked CPython 3.12.4 and 55/55 under 3.13.15. The complete Python suite passed:
+434 tests run, three skipped, zero failures, in 1496.461 seconds. Its log and
+output digest are retained in the task-owned build directory. An earlier full
+3.13 run remains preserved with 10 failures and three skips; the missing
+`cryptography` case was an environment issue, and stale fixture versions,
+documentation snapshots, evidence timestamp syntax, and ownership coverage
+were corrected before the successful full 3.12 run.
+
+Actual Maturin sdist and wheel archives were built and independently checked
+against the current source manifest. The sdist contains all 257 semantic
+inputs; the wheel includes the identity, manifest, and exact runtime lock. The
+source, sdist, and wheel identities agree. Archive hashes are in the evidence
+record. This agreement does not establish executable authenticity.
+
+Same-version stale-engine rejection occurred at handshake before admission or
+mutation; a ten-file repository snapshot was unchanged. Legacy protocol v1 is
+rejected before operation dispatch. An uncertain mutation response test
+demonstrates no automatic replay using a simulated peer; it does not prove
+crash rollback or recovery. The full suite, canonical repository validation,
+frozen-surface check, semantic manifest check, and offline documentation link
+check passed. The documentation checker leaves 39 external GitHub links
+unchecked.
+
+AC-2 through AC-6 now have implementation and validation evidence recorded in
+the machine-readable item. WI076 is completed on this PR branch after those
+criteria were evidenced; PR #12 remains open and unmerged for independent
+implementation review. RPS-016 remains pending. Stable 3.1.3 remains preserved,
+no global Python installation changed, and no package was published. The final
+read-only storage check found healthy NTFS with 31,672,033,280 bytes free
+(about 29.50 GiB); no Cargo, rustc, or Maturin process was active. No cleanup
+was performed by this run. Linux and macOS, artifact authenticity, and real
+interruption/rollback acceptance remain outside this evidence.
