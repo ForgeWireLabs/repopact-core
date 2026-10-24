@@ -37,4 +37,9 @@ include = [
     { path = "VERSION", format = ["sdist"] },
     { path = "RELEASE_LABEL", format = ["sdist"] },
     { path = "LICENSE", format = ["sdist"] },
+    { path = "requirements-runtime.lock", format = ["sdist"] },
+    { path = "build/semantic-input-policy.json", format = ["sdist"] },
+    { path = "build/semantic-input-manifest.json", format = ["sdist"] },
+    { path = "scripts/generate_engine_semantic_identity.py", format = ["sdist"] },
+    { path = "repopact/_semantic_identity.json", format = ["sdist", "wheel"] },
 ]

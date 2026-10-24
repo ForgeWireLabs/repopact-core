@@ -1,0 +1,42 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261024-076-tooling-owner-architecture-approval",
+  "timestamp": "2026-10-24T16:30:42Z",
+  "work_item": "076",
+  "result": "passed",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "Received explicit operator approval of all four Decision 0077 architectural choices",
+      "exit_code": 0,
+      "summary": "Approved same-process admission before side effects; the complete automatically discovered semantic input closure with a deterministic, non-self-referential manifest, pre-write admission for retained canonical-dependent Python writers, explicit classification of Python-authoritative behavior, and an exact Python runtime dependency lock; stable 3.1.3 preservation with strict enforcement only after 3.1.3 and no REPOPACT_ENGINE bypass; and Maturin source/wheel identity agreement plus executable-image SHA-256 and conformance provenance separate from binary authenticity."
+    },
+    {
+      "command": "Recorded the operator approval as a top-level PR #12 conversation comment",
+      "exit_code": 0,
+      "summary": "GitHub comment 6386671837 records the approved choices. It is an architectural approval, not a GitHub review. The PR author did not self-review; independent implementation review remains separate."
+    }
+  ],
+  "artifacts": [
+    "decisions/0077-engine-semantic-compatibility-identity.md",
+    "work/active/076-engine-semantic-compatibility-identity/work-item.json",
+    "https://github.com/ForgeWireLabs/repopact-core/pull/12#issuecomment-6386671837"
+  ],
+  "environment": {
+    "approval_principal": "github:JeremyShows",
+    "approval_scope": "tooling-owner architectural approval for WI076 / Decision 0077",
+    "approval_choices": {
+      "same_process_admission_before_side_effects": "approved",
+      "complete_discovered_input_closure_and_manifest": "approved",
+      "retained_python_mutation_admission_and_authority_classification": "approved",
+      "python_runtime_dependency_consistency": "approved exact runtime lock",
+      "stable_3_1_3_preserved_strict_boundary_post_3_1_3": "approved",
+      "maturin_sdist_wheel_identity_and_conformance_provenance": "approved",
+      "semantic_identity_is_not_binary_authenticity": "approved"
+    },
+    "decision_0077": "accepted for architecture; implementation evidence remains pending",
+    "wi076": "active; AC-2 through AC-6 pending",
+    "wi074_rps016": "pending",
+    "independent_implementation_review": "separate from tooling-owner architecture approval; no review requested from PR author"
+  }
+}

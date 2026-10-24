@@ -1,7 +1,7 @@
 ---
 id: 0077
 title: Engine semantic compatibility identity
-status: proposed
+status: accepted
 date: 2026-10-24
 supersedes: []
 ---
@@ -25,7 +25,7 @@ executable digest. The 41/43 run used `REPOPACT_ENGINE`; these records show a
 same-product semantic-skew risk, but do not prove identical binaries or a
 default-discovery reproduction.
 
-## Proposed decision
+## Decision
 
 Keep four independent claims in protocol and conformance evidence:
 
@@ -50,7 +50,7 @@ the actual set from the source tree and dependency metadata; it does not trust
 a hand-maintained per-file list as the source of truth.
 
 - **Python contract and packaged data:** every tracked runtime `.py` file under
-  `repopact/` (currently 41), all `repopact/schemas/*.json`, and all packaged
+  `repopact/` (currently 42), all `repopact/schemas/*.json`, and all packaged
   templates. This includes the engine resolver, Python-side request/response
   validation and operation wrappers, the conformance runner and its reference
   oracle. The exact Python runtime dependency closure is represented by a
@@ -104,50 +104,37 @@ source closure must also be reviewed against actual Cargo metadata and Maturin
 package contents during implementation; this Decision records the current
 closure, not a claim that package verification has already run.
 
-### Python runtime dependency consistency — owner choice required
+### Python runtime dependency consistency — approved exact lock
 
-The current mandatory dependency is `jsonschema>=4.20` in both `pyproject.toml`
-and `requirements.txt`; this is a lower bound, not a deterministic runtime
-closure, and no lock/export currently records its transitive packages. The
-optional `cryptography>=43` dependency is used by retained Python-side
-signing/admission workflows. Its behavior must not be silently described as
-covered by the mandatory runtime dependency declaration.
+The current mandatory dependency is jsonschema>=4.20 in pyproject.toml and
+requirements.txt; this is a lower bound, not a deterministic runtime closure.
+Optional cryptography>=43 supports retained Python-side signing/admission
+workflows and is part of the enforcement extra.
 
-Before implementation, the tooling owner must choose and approve one explicit
-consistency boundary for each dependency that can affect the claimed semantic
-surface:
+On 2026-10-24, the tooling owner approved an exact runtime dependency lock.
+requirements-runtime.lock records a universal resolved closure with pinned
+versions and artifact hashes for the mandatory runtime requirements and the
+enforcement extra. It is an input to the semantic manifest and is included in
+the source distribution. The lock establishes selected package inputs, not
+installed-package or executable authenticity.
 
-1. **Enforce an exact closure (recommended):** add a canonical lock/export for
-   the complete runtime dependency closure, including versions and artifact
-   hashes; include it in the semantic-input manifest and sdist; and verify the
-   installed distribution name/version set before any dependent operation is
-   admitted. A mismatch fails before the operation or any dependent repository
-   write. Build/install hashes constrain the selected package inputs; they do
-   not authenticate installed bytes or replace independent executable/package
-   authenticity checks.
-2. **Explicitly bound supported versions:** record the complete supported
-   version ranges for the direct and transitive dependencies, include those
-   bounds in the semantic identity, enforce them against the loaded runtime,
-   and provide focused semantic tests for the declared support boundary. A
-   version floor alone, or a range without runtime enforcement and evidence,
-   is not an accepted bound.
-
-For optional dependencies such as `cryptography`, either apply one of those
-boundaries to the Python-authoritative admission/signing surface or explicitly
-separate that surface from the Rust engine semantic claim and document its own
-compatibility boundary. Do not silently omit an optional package that can
-change retained Python-side behavior.
+Implementation must still verify the installed distribution name/version set
+before each dependent operation is admitted. Canonical Rust-dependent
+operations must fail before operation dispatch or repository writes if the
+mandatory runtime set differs. Python-authoritative enforcement/signing
+operations must verify the locked optional closure when that extra is required.
+That runtime enforcement has not yet been implemented or validated.
 
 ### Deterministic manifest and build behavior
 
-The proposed canonical generator emits a checked-in semantic-input manifest at
-`build/semantic-input-policy.json`,
-`scripts/generate_engine_semantic_identity.py`, and the generated
-`repopact/_semantic_identity.json`. The policy describes governed roots and
-exclusions; the manifest stores the discovered file set and computed ID.
-The source/wheel identity is read from that manifest, while product version
-continues to come from the existing product-version channel.
-
+The canonical generator uses the reviewed policy at
+build/semantic-input-policy.json, the generated discovered-input manifest at
+build/semantic-input-manifest.json, scripts/generate_engine_semantic_identity.py,
+and the generated repopact/_semantic_identity.json. The policy describes
+governed roots and exclusions; the manifest stores the discovered file set and
+computed ID. The source/wheel identity is read from that manifest, while
+product version continues to come from the existing product-version channel.
+The exact Python lock is a semantic input.
 The input list is sorted by normalized repository-relative UTF-8 path, uses
 `/` on every host, rejects paths escaping the repository and names containing
 NUL or newline, and hashes raw file bytes. Governed text inputs use
@@ -160,14 +147,19 @@ big-endian UTF-8 path length, path bytes, and the 32 raw bytes of the file
 SHA-256. The manifest stores readable lowercase hex digests and this computed
 identifier.
 
-The generator source and policy are inputs. The generated manifest and the
+The generator source, policy, Cargo lock, Python runtime lock, and semantic
+projection of pyproject.toml are inputs. The generated manifest and the
 digest embedded in it are outputs and are excluded from the hashed input set,
-so there is no self-reference. A known-answer test fixes the canonical
-encoding. `--check` only recomputes and compares; it never writes. A separate
-explicit `--update` operation may write the manifest, but no build, test,
-wheel, or source-distribution command invokes it. A baseline change therefore
-appears as a reviewed source diff and cannot be silently advanced by CI or a
-local build.
+so there is no self-reference. The implemented generator discovers Python
+sources and package data, the transitive local Cargo dependency closure and
+literal compile-time includes, and the complete conformance tree. Unsupported
+dynamic Rust includes fail closed. Known-answer and membership tests cover the
+canonical encoding and additions/removals. The --check operation only
+recomputes and compares; it never writes. A separate explicit --update
+operation writes the manifest and identity file, but no build, test, wheel, or
+source-distribution command invokes it. A baseline change therefore appears
+as a reviewed source diff and cannot be silently advanced by CI or a local
+build.
 
 Cargo's build check and the Maturin source-build path must both fail on a stale
 manifest and detect an input-set difference. The source distribution includes
@@ -360,30 +352,27 @@ authentication.
   the override reproduced stale behavior and canonical operations must remain
   fail-closed.
 
-## Owner approval gate and status
+## Owner approval and implementation status
 
-This record remains **proposed**. The scoped `tooling-owner` approval
-assignment for WI076 / Decision 0077 is `github:JeremyShows`, recorded in
-`governance/owners.json`. That assignment identifies the approver but is not
-approval. Because this account authored Core PR #12, it must not submit a
-GitHub review approving its own PR. Record the architectural approval as an
-operator-authored PR conversation comment and link that comment from governed
-evidence. Any independent implementation review is separate and must come
-from another authorized collaborator.
+The scoped `tooling-owner` assignment for WI076 / Decision 0077 is
+`github:JeremyShows`, recorded in `governance/owners.json`. On 2026-10-24, the
+operator explicitly approved all four choices below and the exact Python
+runtime dependency lock option. The approval is recorded as a top-level PR #12
+conversation comment, not a GitHub review, because the assigned account authored
+that PR: [architectural approval](https://github.com/ForgeWireLabs/repopact-core/pull/12#issuecomment-6386671837).
+The corresponding governed evidence is
+[`20261024-076-tooling-owner-architecture-approval`](../evidence/runs/20261024-076-tooling-owner-architecture-approval.json).
 
-Before implementation, the tooling owner must explicitly approve these four
-choices:
-
-1. **Admission boundary:** use one same-process handshake, client identity and
+1. **Admission boundary:** one same-process handshake, client identity and
    capability verification, explicit engine admission, and then operation;
    the engine refuses dispatch before admission, and a separate handshake
    process cannot authorize a later launch.
-2. **Input and Python-write boundary:** use the reviewed automatically
-   discovered source/dependency closure and non-self-referential manifest;
-   choose either an enforced exact Python dependency lock or explicitly
-   bounded runtime versions; and require canonical-dependent Python write
-   workflows to establish admission before the first repository write, while
-   explicitly classifying Python-authoritative surfaces.
+2. **Input and Python-write boundary:** automatically discover the complete
+   reviewed source/dependency closure and use a deterministic,
+   non-self-referential manifest with explicit baseline updates. Enforce an
+   exact Python runtime dependency lock. Canonical-dependent Python writers
+   must establish admission before the first repository write, and
+   Python-authoritative surfaces must be explicitly classified.
 3. **Stable compatibility boundary:** preserve the released stable 3.1.3
    Python/engine pair and enforce strict identity/admission only at a distinct
    governed post-3.1.3 boundary, with no override bypass.
@@ -392,11 +381,10 @@ choices:
    executable SHA-256 with source, product, protocol, semantic, and toolchain
    provenance; keep semantic compatibility separate from binary authenticity.
 
-Record explicit approval of all four choices in the PR conversation comment
-and governed evidence flow; a role assignment, successful governance check,
-or prior review is not approval. Until then, WI076 remains active and
-implementation criteria remain pending. WI074 RPS-016 remains independently
-pending.
+This accepts the architecture only. WI076 remains active; AC-2 through AC-6
+remain pending until implementation evidence satisfies them. Independent
+implementation review is separate from this tooling-owner approval and has not
+been requested from the PR author. WI074 RPS-016 remains independently pending.
 
 ## Pre-build gate
 

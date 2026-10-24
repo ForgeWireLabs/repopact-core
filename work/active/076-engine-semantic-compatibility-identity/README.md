@@ -1,6 +1,6 @@
 # WI076 — Engine Semantic Compatibility Identity
 
-> **Status**: Active — the compatibility defect is governed here; implementation and acceptance evidence remain outstanding.
+> **Status**: Active — the compatibility defect is governed here; the compatibility fix and complete acceptance evidence remain outstanding.
 > **Owner**: tooling-owner (lead); docs-owner and evidence-owner affected.
 > **Related issue**: [Core issue #10](https://github.com/ForgeWireLabs/repopact-core/issues/10).
 > **Related readiness gate**: WI074 / RPS-016. This work can provide one compatibility input, but it cannot satisfy RPS-016 by itself.
@@ -35,7 +35,7 @@ The machine-readable criteria are in `work-item.json`. They require an approved 
 
 The source review confirmed that the current client performs a handshake in
 one process and launches another process for each operation. Checking an
-operation response is too late for writes. The proposed correction is a
+operation response is too late for writes. The approved correction is a
 same-process JSON-lines session: handshake, client verification, engine-side
 admission, then operation on that same process. The client sends no mutation
 before checking both the semantic identity and the admission acknowledgement.
@@ -47,25 +47,17 @@ case receives a mutating request.
 Decision 0077 now records the current local Rust dependency closure, Python
 package contract surface, protocol capability declarations, embedded schemas,
 conformance corpus, package/build inputs, deterministic manifest rules,
-Maturin source/wheel checks, and focused no-mutation tests. It remains
-**proposed** pending the tooling owner's explicit approval of the admission
-boundary, input closure, migration boundary, and archive/provenance plan. No
-implementation has started. Stable 3.1.3 remains unchanged, WI076 remains
-active, and WI074 RPS-016 remains pending.
+Maturin source/wheel checks, and focused no-mutation tests. The architecture is
+approved for implementation as recorded below. Stable 3.1.3 remains unchanged,
+WI076 remains active, and WI074 RPS-016 remains pending.
 
-## Implementation clarifications for tooling-owner approval (2026-10-24)
+## Implementation clarifications and pre-approval snapshot (2026-10-24)
 
-The mandatory Python runtime currently declares `jsonschema>=4.20`, with no
-complete transitive lock; optional `cryptography>=43` supports retained
-Python-side signing/admission behavior. Before implementation, the tooling
-owner must choose either an enforced exact runtime dependency closure (with
-installed versions checked before dependent operations) or explicitly bounded
-supported versions (with bounds in the identity, runtime enforcement, and
-semantic evidence). Optional dependencies that affect a Python-authoritative
-surface need the same treatment or a separately documented compatibility
-boundary. Hashes used to lock dependency artifacts do not authenticate the
-installed engine or package.
-
+At the time of this pre-approval snapshot, the mandatory Python runtime declared
+jsonschema>=4.20 without a complete transitive lock. Optional cryptography>=43
+supported retained Python-side signing/admission behavior. The exact-lock
+consistency choice had not yet been approved. Artifact hashes do not
+authenticate the installed engine or package.
 A source audit found repository-writing Python workflows in `adopt_repo.adopt`,
 `doctor.fix`, `init_repo.bootstrap`, `new.new_markdown`, `plan_import.import_plan`,
 `takeover.takeover`, and `verification.record_evidence`. Existing
@@ -81,24 +73,23 @@ protected-service/platform, and release-output paths remain
 explicitly classified against Decision 0042 and their separate compatibility
 contracts; no conclusion of revalidation is implied.
 
-These clarifications are design questions for the tooling owner, not approval
-and not implementation evidence. RepoPact governance now assigns the
+At the time this pre-approval snapshot was recorded, these clarifications were
+design questions rather than approval or implementation evidence. RepoPact governance assigns the
 WI076/Decision 0077 architectural approval role to GitHub account
-`JeremyShows`; that scoped assignment is not approval. Because this account
+`JeremyShows`; the scoped assignment alone was not approval. Because this account
 authored PR #12, it cannot approve its own GitHub review. The four architecture
-choices must instead be explicitly accepted in an operator-authored PR
-conversation comment and linked from governed evidence. Independent GitHub
-implementation review remains separate. Decision 0077 remains **proposed**;
-WI076 remains active; AC-2 through AC-6 remain pending; WI074 RPS-016 remains
-pending.
+choices were to be explicitly accepted in an operator-authored PR conversation
+comment and linked from governed evidence. Independent GitHub implementation
+review remains separate. The later approval record below supersedes the
+pre-approval status stated here. WI076 remains active; AC-2 through AC-6 remain
+pending; WI074 RPS-016 remains pending.
 
 The scoped role assignment and its distinction from approval are recorded in
 [20261024-076-tooling-owner-assignment](../../../evidence/runs/20261024-076-tooling-owner-assignment.json).
 
-AC-1 is satisfied as a recorded source-level architecture comparison, not as
-owner approval or implementation. The added dependency and Python mutation
-clarifications remain approval gates, not completed design approval. AC-2
-through AC-6 remain pending. AC-7 is
+Before owner approval, AC-1 was satisfied as a recorded source-level
+architecture comparison, not implementation evidence. AC-2 through AC-6
+remain pending. AC-7 is
 satisfied by the merged registration linking WI076 to RPS-016 without
 satisfying that gate. AC-8 is satisfied as a pre-build plan. Evidence is
 recorded in [20261024-076-architecture-review](../../../evidence/runs/20261024-076-architecture-review.json),
@@ -109,6 +100,51 @@ The source-level dependency and mutation audit is recorded in
 [20261024-076-python-mutation-dependency-audit](../../../evidence/runs/20261024-076-python-mutation-dependency-audit.json).
 These design and governance results do not claim an implemented compatibility
 fix.
+
+## Tooling-owner architectural approval (2026-10-24)
+
+The operator explicitly approved all four Decision 0077 choices, selecting an
+exact Python runtime dependency lock. Approval was recorded in [PR #12's
+conversation](https://github.com/ForgeWireLabs/repopact-core/pull/12#issuecomment-6386671837)
+and governed evidence
+[`20261024-076-tooling-owner-architecture-approval`](../../../evidence/runs/20261024-076-tooling-owner-architecture-approval.json).
+Decision 0077 is accepted for architecture only. Implementation is authorized
+to proceed in bounded increments; no Rust or Maturin build is authorized below
+the 18 GiB free-space minimum or while unrelated Cargo work is active.
+Independent implementation review remains separate. WI076 is active, AC-2
+through AC-6 are pending, and WI074 RPS-016 remains pending.
+
+## Implementation increment 1 — deterministic semantic manifest (2026-10-24)
+
+Added the approved hash-pinned universal Python runtime lock, deterministic
+input discovery and explicit --check / --update modes, the generated
+manifest and package identity file, Maturin source/wheel inclusion declarations,
+and focused pure-Python tests. At the close of this increment, the manifest contained 253 inputs,
+including 10 local Rust packages in the engine dependency closure and the
+compile-time include files. Its semantic ID is
+repopact-semantic-v1:sha256:404a0dd4b1d90555174f254d3f1332d4051f5972f42478681f4483ec4d245696.
+
+The focused test module passed 8 tests at this increment. The explicit manifest update completed,
+and a subsequent read-only check passed. No Cargo or Maturin build has been run.
+AC-4 remains pending until runtime lock enforcement and source/sdist/wheel
+identity agreement are implemented and verified; AC-2, AC-3, AC-5, and AC-6
+remain pending.
+## Implementation increment 2 — Python admission state model (2026-10-24)
+
+Added a pure Python session admission state model. Its focused tests prove that
+application operations remain blocked until a matching handshake and same
+session admission acknowledgement; missing, stale, or mismatched identities
+and wrong acknowledgements fail closed; legacy identity omission never reaches
+admission; and process exit invalidates the session. The combined manifest and
+state-model test run passed 14 tests. The updated manifest contains 254 inputs;
+its current semantic ID is
+repopact-semantic-v1:sha256:509be0fdde93a0fc1fb2d164194c2c8c6e00b389e1544f94b4378ecd1b4a9376.
+
+This is a pure state model only. It is not yet connected to EngineClient or the
+Rust engine, does not prove subprocess identity, and does not prove repository
+snapshot preservation in retained Python write workflows. AC-2 and AC-3 remain
+pending; AC-4 remains pending for runtime dependency enforcement and archive
+agreement. No Cargo or Maturin build has been run. The dashboard was refreshed from the Python projection; canonical Rust parity remains unverified.
 
 ## Build and storage plan
 

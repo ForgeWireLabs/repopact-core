@@ -1,0 +1,29 @@
+{
+  "format_version": 1,
+  "python": {
+    "root": "repopact",
+    "extensions": [".py"],
+    "resource_roots": ["repopact/schemas", "repopact/templates"],
+    "ignored_directory_names": ["__pycache__"]
+  },
+  "rust": {
+    "workspace_manifest": "rust/Cargo.toml",
+    "seed_package": "repopact-engine",
+    "source_extension": ".rs",
+    "ignored_directory_names": ["target", ".git", "__pycache__"]
+  },
+  "conformance_root": "conformance",
+  "fixed_files": [
+    ".gitattributes",
+    "SPEC.md",
+    "requirements-runtime.lock",
+    "scripts/generate_engine_semantic_identity.py"
+  ],
+  "pyproject_projection": {
+    "runtime_optional_extras": ["enforcement"]
+  },
+  "outputs": {
+    "manifest": "build/semantic-input-manifest.json",
+    "identity": "repopact/_semantic_identity.json"
+  }
+}

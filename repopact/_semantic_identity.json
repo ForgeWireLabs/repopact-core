@@ -1,0 +1,5 @@
+{
+  "format_version": 1,
+  "manifest": "build/semantic-input-manifest.json",
+  "semantic_identity": "repopact-semantic-v1:sha256:509be0fdde93a0fc1fb2d164194c2c8c6e00b389e1544f94b4378ecd1b4a9376"
+}
