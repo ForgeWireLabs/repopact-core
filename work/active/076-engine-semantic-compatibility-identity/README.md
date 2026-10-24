@@ -300,3 +300,19 @@ was performed. These validations remain NOT_RUN or BLOCKED; WI076 remains
 active, AC-2 through AC-6 remain pending, and WI074 RPS-016 remains pending.
 Details are in
 [`20261024-076-transport-version-diagnosis`](../../../evidence/runs/20261024-076-transport-version-diagnosis.json).
+
+## Matching-engine validation gate (2026-10-24)
+
+A clean detached source checkout was established at the requested PR commit
+`565930190fa6684ffb07ce4ad3ef170a42b9153f`; the original working tree's three
+unstaged Rust changes remain untouched. The committed source declares product
+`3.1.4.dev0`, protocol major 2, and semantic identity
+`repopact-semantic-v1:sha256:70fdf142928e3f6a447bea861833610f3cb9b6cf9dff50e004662bd8c7accb23`.
+These are source declarations, not a built-engine identity. At 19:05:16 UTC,
+healthy C: had 16,186,093,568 bytes free, 3,141,259,264 bytes below the approved
+18 GiB minimum. No competing build was active, but no task-owned target/temp
+outputs existed that could be cleaned. Build and integration validation remain
+blocked; no build, cleanup, or acceptance transition occurred. See
+[`20261024-076-matching-engine-storage-blocker`](../../../evidence/runs/20261024-076-matching-engine-storage-blocker.json).
+WI076 remains active, AC-2 through AC-6 remain pending, and WI074 RPS-016
+remains pending.
