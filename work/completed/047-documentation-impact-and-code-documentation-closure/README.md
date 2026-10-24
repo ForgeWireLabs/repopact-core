@@ -1,6 +1,6 @@
 # 047 — Documentation Impact and Code/Documentation Closure
 
-> **Status**: 🚧 Active — acceptance evidence is recorded; independent governance review remains open.
+> **Status**: ✅ Completed — independently accepted against the integrated Core default branch on 2026-10-23.
 > **Owners**: governance-owner (lead); tooling-owner, docs-owner, evidence-owner, and work-coordinator affected.
 > **Depends on**: none.
 > **Decision**: [`0065`](../../../decisions/0065-documentation-closure-is-mandatory-at-work-item-completion.md).
@@ -84,4 +84,30 @@ The ForgeWire-shaped fixture and a separate adopter-neutral fixture exercise map
 
 The complete Python suite ran 385 tests: 373 passed, 9 failed, and 3 existing tests were skipped. The nine failures reproduce the unchanged Core baseline and are confined to expired governance audit scopes 026/027; the audit dates were not renewed by this implementation. Canonical validation consequently remains partial until those scope records receive their own substantive review. The new criteria are linked to evidence in the work-item manifest, but WI047 remains active for independent governance review and is not closed by the documentation PR sequence.
 
-The focused implementation is available as [draft Core PR #8](https://github.com/ForgeWireLabs/repopact-core/pull/8). It is separate from the four documentation PRs and should be refreshed after Core #7's dependency sequence because the branches both update generated and governance records.
+At this 2026-10-22 checkpoint, the focused implementation was in [draft Core PR #8](https://github.com/ForgeWireLabs/repopact-core/pull/8), separate from the four documentation PRs, and still required integration after the dependency sequence. That status was superseded by the merge and acceptance recorded below.
+
+## Independent post-merge acceptance (2026-10-23)
+
+WI047 was independently reviewed against integrated Core main
+`8dac0def8c0e34d892b37d8673d543237928cea1`. All 14 acceptance criteria are
+linked to [`20261023-047-independent-acceptance`](../../../evidence/runs/20261023-047-independent-acceptance.json).
+The review covered the opt-in source-to-documentation mappings, Rust/Python
+conformance, generated-output freshness, non-destructive doctor behavior,
+negative conformance, schema authorization and compatibility, evidence
+provenance, and documentation coverage.
+
+The 2026-10-22 implementation follow-up above is an immutable pre-integration
+checkpoint. Its statement that audit dates were not renewed described that
+checkpoint; Core #7 subsequently changed scopes 026 and 027 to
+`last_reviewed: 2026-10-22` and `next_review: 2027-01-20` after the substantive
+WI075 review. Those dates are not advanced again by this closeout. WI075 remains
+limited to the bounded ForgeLink adopter re-review: 16 unrelated ForgeLink audit
+scopes remain expired, so this acceptance does not claim ForgeLink-wide
+governance is clean.
+
+Core #8 added the frozen `repopact/schemas/documentation-mappings.schema.json`
+through the operator-approved merge at `52974409b0dbc6e0fe25aec7dfe12ec3b5ae1f0b`.
+Optional mapping configuration preserves compatibility for existing
+repositories that do not opt in; schema version 1 and the migration boundary
+are recorded in Decision 0076. Historical evidence and the
+2026-10-22 engineering-readiness report remain unchanged.

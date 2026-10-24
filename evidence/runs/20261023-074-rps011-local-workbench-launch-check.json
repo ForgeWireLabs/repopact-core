@@ -1,0 +1,40 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261023-074-rps011-local-workbench-launch-check",
+  "timestamp": "2026-10-24T00:27:41Z",
+  "work_item": "074",
+  "result": "partial",
+  "provenance": "concrete",
+  "summary": "A locally built Workbench debug executable created a native RepoPact Workbench window, but its embedded view displayed a connection refusal at 127.0.0.1. The current Tauri debug configuration points to http://127.0.0.1:1420 and no development server was running. This attempt does not establish bundled-app or installed-app launch acceptance and does not establish a product regression.",
+  "commands": [
+    {
+      "command": "cargo build --locked --package repopact-desktop",
+      "exit_code": 0,
+      "summary": "Debug executable built from Workbench main 414a4a78091796735a1b97b03fd8c3cf1c105f30."
+    },
+    {
+      "command": "sky.launch_app({app: '<local repopact-desktop.exe>'})",
+      "exit_code": 1,
+      "summary": "The UI request timed out. A subsequent window inventory showed the process running and a window titled RepoPact Workbench; captured window state showed the configured development URL returning connection refused."
+    },
+    {
+      "command": "sky.list_apps(); sky.list_windows(); sky.get_window_state({window: {app: '<local repopact-desktop.exe>', id: 4392482}})",
+      "exit_code": 0,
+      "summary": "The native window was observed. Its content showed 127.0.0.1 refused to connect. A separate Windows firewall dialog for fabric_beacon was visible and was not accepted or changed."
+    }
+  ],
+  "artifacts": [
+    "C:/Projects/repopact-workbench-main-review/target/debug/repopact-desktop.exe",
+    "C:/Projects/repopact-workbench-main-review/src-tauri/tauri.conf.json",
+    "https://github.com/ForgeWireLabs/repopact-workbench/commit/414a4a78091796735a1b97b03fd8c3cf1c105f30"
+  ],
+  "environment": {
+    "os": "Windows 10 Pro (10.0.19045)",
+    "workbench_main": "414a4a78091796735a1b97b03fd8c3cf1c105f30",
+    "tauri_dev_url": "http://127.0.0.1:1420",
+    "before_dev_command": "npm run dev -- --host 127.0.0.1",
+    "authorization": "The operator explicitly authorized one local executable launch.",
+    "launch_scope": "One locally built debug executable only; no installer was installed, no firewall rule was changed, and no release was published.",
+    "acceptance": "RPS-011 remains pending because the attempt did not validate the bundled/installed application and does not replace the outstanding Linux and bounded Android platform evidence."
+  }
+}
