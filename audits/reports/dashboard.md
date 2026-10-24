@@ -2,7 +2,7 @@
 
 > Canonically generated from source records. Do not edit manually.
 > Validation fails when this file differs from `repopact dashboard` output.
-> RepoPact spec version: 3.1.3
+> RepoPact spec version: 3.1.4
 
 ## Health
 
@@ -13,19 +13,19 @@
 | Scope contracts | 5 |
 | Audit registry entries | 5 |
 | Audit findings | 3 |
-| Decision records | 76 |
+| Decision records | 77 |
 | Policy records | 2 |
-| Evidence runs | 201 |
+| Evidence runs | 217 |
 
 ## Work
 
 | Status | Count |
 | --- | ---: |
 | proposed | 3 |
-| active | 9 |
+| active | 8 |
 | blocked | 1 |
 | deferred | 1 |
-| completed | 63 |
+| completed | 64 |
 
 ## Audit freshness
 
@@ -41,5 +41,4 @@ All audit scopes are within their review cadence.
 - 066: RepoPact 3.1.0 Milestone Release and Research Snapshot Reconciliation (active)
 - 067: GitHub Repository Provider, Secure User Authorization, and Remote Repository Import (active)
 - 074: Extract RepoPact Core and Independent Workbench (active)
-- 076: Engine Semantic Compatibility Identity (active)
 - 032: Restore remote cross-platform governance enforcement (blocked)

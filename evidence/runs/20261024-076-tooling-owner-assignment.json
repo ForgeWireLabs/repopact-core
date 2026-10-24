@@ -1,0 +1,37 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261024-076-tooling-owner-assignment",
+  "timestamp": "2026-10-24T16:22:31Z",
+  "work_item": "076",
+  "result": "partial",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "Recorded the operator's explicit WI076 owner-assignment instruction in governance/owners.json and governance/workflow.md",
+      "exit_code": 0,
+      "summary": "GitHub account JeremyShows is assigned as the tooling-owner architectural approver for WI076 / Decision 0077 only. The operator explicitly stated that this assignment is not approval."
+    },
+    {
+      "command": "Inspected Core PR #12 author and review metadata",
+      "exit_code": 0,
+      "summary": "JeremyShows authored PR #12. No review was requested from that account. The operator directed that architectural approval be separate from GitHub review, recorded in an operator-authored PR conversation comment plus governed evidence; independent implementation review remains separate."
+    }
+  ],
+  "artifacts": [
+    "governance/owners.json",
+    "governance/workflow.md",
+    "decisions/0077-engine-semantic-compatibility-identity.md",
+    "work/active/076-engine-semantic-compatibility-identity/README.md",
+    "https://github.com/ForgeWireLabs/repopact-core/pull/12"
+  ],
+  "environment": {
+    "owner_assignment": "github:JeremyShows; work_item=076; decision=0077; scope=architectural approval only",
+    "explicit_architectural_approval": "not received",
+    "github_review": "not requested from the PR author",
+    "decision_0077": "proposed",
+    "wi076": "active",
+    "wi074_rps016": "pending",
+    "implementation": "paused until explicit approval of all four Decision 0077 choices",
+    "independent_implementation_review": "separate; another authorized collaborator has not been identified"
+  }
+}

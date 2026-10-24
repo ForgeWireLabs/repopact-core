@@ -2,7 +2,10 @@ __pycache__/
 *.py[cod]
 .venv/
 .pytest_cache/
-build/
+!build/
+build/*
+!build/semantic-input-policy.json
+!build/semantic-input-manifest.json
 dist/
 release-out/
 installer-out/

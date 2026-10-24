@@ -1,0 +1,54 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261024-076-implementation-increment-5",
+  "timestamp": "2026-10-24T17:39:54Z",
+  "work_item": "076",
+  "result": "partial",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "python -m unittest tests.test_validate_docs",
+      "exit_code": 0,
+      "summary": "All 6 focused Markdown/link-validation unit tests passed."
+    },
+    {
+      "command": "python scripts/validate_docs.py",
+      "exit_code": 0,
+      "summary": "Repository Markdown link validation passed for 340 Markdown source files. The offline checker left 39 external GitHub links unchecked."
+    },
+    {
+      "command": "python -c json.load(open('audits/registry.json'))",
+      "exit_code": 0,
+      "summary": "The documentation audit registry parses as JSON after the review-date update."
+    },
+    {
+      "command": "repopact dashboard",
+      "exit_code": 1,
+      "summary": "Canonical dashboard generation did not complete because the Rust engine handshake timed out after 30 seconds. The dashboard was left untouched; the cause is undetermined."
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "summary": "No whitespace errors were reported after the documentation and evidence edits."
+    }
+  ],
+  "artifacts": [
+    "docs/guides/packaging-and-engine.md",
+    "audits/registry.json",
+    "decisions/0077-engine-semantic-compatibility-identity.md",
+    "work/active/076-engine-semantic-compatibility-identity/README.md",
+    "evidence/runs/20261024-076-implementation-increment-4.json"
+  ],
+  "environment": {
+    "strict_identity_boundary": "3.1.4.dev0",
+    "stable_3_1_3_preserved": true,
+    "external_github_links": "39 unchecked by the offline documentation checker",
+    "canonical_repository_validation": "BLOCKED; Rust engine handshake timed out after 30 seconds in evidence 20261024-076-implementation-increment-4; cause undetermined",
+    "canonical_dashboard_regeneration": "BLOCKED; handshake timed out; generated dashboard left untouched",
+    "acceptance": {
+      "WI076": "active",
+      "AC-2_through_AC-6": "pending",
+      "WI074_RPS-016": "pending"
+    }
+  }
+}

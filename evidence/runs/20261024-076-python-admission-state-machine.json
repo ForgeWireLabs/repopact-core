@@ -1,0 +1,49 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261024-076-python-admission-state-machine",
+  "timestamp": "2026-10-24T16:44:55-05:00",
+  "work_item": "076",
+  "result": "partial",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "python -m unittest tests.test_semantic_identity tests.test_engine_session -v",
+      "exit_code": 0,
+      "summary": "Fourteen focused pure-Python tests passed: eight manifest-discovery/encoding tests and six admission-state tests covering pre-admission dispatch blocks, matching admission, legacy or stale identity rejection, wrong acknowledgements, and process-exit invalidation."
+    },
+    {
+      "command": "python scripts/generate_engine_semantic_identity.py --update",
+      "exit_code": 0,
+      "summary": "Explicitly updated the semantic manifest after adding the process-scoped Python admission state model. The 254-input identity is repopact-semantic-v1:sha256:509be0fdde93a0fc1fb2d164194c2c8c6e00b389e1544f94b4378ecd1b4a9376."
+    },
+    {
+      "command": "python scripts/generate_engine_semantic_identity.py --check",
+      "exit_code": 0,
+      "summary": "The discovered input closure matched the checked-in manifest and generated Python identity file without writing."
+    },
+    {
+      "command": "python -c \"from pathlib import Path; from repopact.generate_dashboard import write_dashboard; write_dashboard(Path.cwd())\"",
+      "exit_code": 0,
+      "summary": "Refreshed the derived dashboard after recording this evidence; the evidence-run count is 210. The Python projection was used because the current engine has no enforced semantic identity; canonical Rust dashboard parity was not asserted."
+    }
+  ],
+  "artifacts": [
+    "repopact/engine_session.py",
+    "tests/test_engine_session.py",
+    "tests/test_semantic_identity.py",
+    "build/semantic-input-manifest.json",
+    "repopact/_semantic_identity.json",
+    "work/active/076-engine-semantic-compatibility-identity/work-item.json"
+  ],
+  "environment": {
+    "implementation_boundary": "pure Python state model only; no EngineClient or Rust engine integration yet",
+    "ac2_status": "pending; no admitted subprocess or retained workflow integration",
+    "ac3_status": "pending; no subprocess negative tests or repository snapshot proof yet",
+    "ac4_status": "pending; runtime lock enforcement and sdist/wheel agreement remain",
+    "wi076": "active",
+    "wi074_rps016": "pending",
+    "rust_or_maturin_build": "not run",
+    "storage_gate": "not remeasured because no Rust or Maturin build was attempted",
+    "dashboard": "refreshed from Python projection; canonical engine parity not verified"
+  }
+}

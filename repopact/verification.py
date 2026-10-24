@@ -728,6 +728,7 @@ def record_evidence(
     *,
     evidence_id: str | None = None,
     refresh_dashboard: bool = True,
+    client=None,
 ) -> str:
     """Persist one immutable verification evidence run and refresh derived state.
 
@@ -735,12 +736,12 @@ def record_evidence(
     refresh failure restores the prior dashboard and removes the new evidence file.
     """
     root = root.resolve()
-    if refresh_dashboard:
-        from .engine_client import EngineClient, EngineError
-        try:
-            EngineClient().check_compatibility("dashboard.write")
-        except EngineError as exc:
-            raise VerificationConfigError(f"canonical Rust engine unavailable: {exc}") from exc
+    from .engine_client import EngineClient, EngineError
+    engine = client or EngineClient()
+    try:
+        engine.check_compatibility("dashboard.write")
+    except EngineError as exc:
+        raise VerificationConfigError(f"canonical Rust engine unavailable: {exc}") from exc
     record = build_evidence(root, report, work_item, evidence_id=evidence_id)
     evidence_dir = root / "evidence" / "runs"
     evidence_dir.mkdir(parents=True, exist_ok=True)
@@ -755,7 +756,7 @@ def record_evidence(
             handle.write("\n")
         if refresh_dashboard:
             from .engine_client import write_dashboard_canonically
-            write_dashboard_canonically(root)
+            write_dashboard_canonically(root, client=engine)
     except Exception as exc:
         path.unlink(missing_ok=True)
         if previous_dashboard is None:

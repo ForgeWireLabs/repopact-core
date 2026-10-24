@@ -36,8 +36,9 @@ from . import verification
 # --- non-destructive primitives --------------------------------------------
 
 class Report:
-    def __init__(self, dry_run: bool) -> None:
+    def __init__(self, dry_run: bool, client=None) -> None:
         self.dry_run = dry_run
+        self.engine_client = client
         self.created: list[str] = []
         self.skipped: list[str] = []
         self.gitignored: list[str] = []  # created records an existing .gitignore would swallow (F-008)
@@ -53,6 +54,14 @@ class Report:
         self.orientation_summary: dict | None = None
         self.graph_error: str | None = None
 
+    def _admit_before_write(self) -> None:
+        if self.dry_run:
+            return
+        if self.engine_client is None:
+            from .engine_client import EngineClient
+            self.engine_client = EngineClient()
+        self.engine_client.check_compatibility("validate", "dashboard.write")
+
     def write(self, path: Path, text: str, root: Path) -> None:
         rel = str(path.relative_to(root)).replace("\\", "/")
         if path.exists():
@@ -60,6 +69,7 @@ class Report:
             return
         self.created.append(rel)
         if not self.dry_run:
+            self._admit_before_write()
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(text, encoding="utf-8")
 
@@ -80,6 +90,7 @@ class Report:
                 continue
             self.created.append(rel)
             if not self.dry_run:
+                self._admit_before_write()
                 dest.parent.mkdir(parents=True, exist_ok=True)
                 dest.write_bytes(item.read_bytes())
 
@@ -199,7 +210,7 @@ def _detect_version(root: Path) -> str:
 
 # --- graph bootstrap (ROG-014, Decision 0051) --------------------------------
 
-def _run_graph_bootstrap(target: Path, rep: Report) -> None:
+def _run_graph_bootstrap(target: Path, rep: Report, client=None) -> None:
     """Explicit, opt-in graph enablement after governance adoption:
     graph.build -> graph.verify -> a bounded graph.orient orientation
     summary. Graph truth comes exclusively from these canonical Rust
@@ -214,8 +225,9 @@ def _run_graph_bootstrap(target: Path, rep: Report) -> None:
         rep.graph_error = f"engine client unavailable: {exc}"
         return
 
-    client = EngineClient()
+    client = client or rep.engine_client or EngineClient()
     try:
+        client.check_compatibility("graph.build", "graph.verify", "graph.orient")
         build_response = client.call("graph.build", root=target)
     except EngineError as exc:
         rep.graph_error = f"graph build failed: {exc}"
@@ -249,14 +261,18 @@ def adopt(
     today: date | None = None,
     dry_run: bool = False,
     graph: bool = False,
+    client=None,
 ) -> Report:
     today = today or date.today()
+    engine = client
     if not dry_run:
         from .engine_client import EngineClient
-        EngineClient().check_compatibility("validate", "dashboard.write")
+        engine = engine or EngineClient()
+        engine.check_compatibility("validate", "dashboard.write")
     next_review = (today + timedelta(days=90)).isoformat()
-    rep = Report(dry_run)
-    target.mkdir(parents=True, exist_ok=True)
+    rep = Report(dry_run, client=engine)
+    if not dry_run:
+        target.mkdir(parents=True, exist_ok=True)
 
     workflows = detect_workflows(target)
     codeowners = parse_codeowners(target)
@@ -417,7 +433,7 @@ def adopt(
     if not dry_run and not dashboard_path.exists():
         rep.write(dashboard_path, "", target)
         from .engine_client import write_dashboard_canonically
-        write_dashboard_canonically(target)
+        write_dashboard_canonically(target, client=engine)
 
     rep.gitignored = gitignored_records(target, rep.created)
 
@@ -432,7 +448,7 @@ def adopt(
     if graph:
         rep.graph_requested = True
         if not dry_run:
-            _run_graph_bootstrap(target, rep)
+            _run_graph_bootstrap(target, rep, client=engine)
 
     return rep
 
@@ -477,15 +493,24 @@ def main() -> int:
     )
     args = parser.parse_args()
     target = args.target.resolve()
-    rep = adopt(target, dry_run=args.dry_run, graph=args.graph)
+    engine = None
+    if not args.dry_run:
+        from .engine_client import EngineClient, EngineError
+        engine = EngineClient()
+        try:
+            engine.check_compatibility("validate", "dashboard.write")
+        except EngineError as exc:
+            print(f"Rust engine compatibility error: {exc}", file=sys.stderr)
+            return 1
+    rep = adopt(target, dry_run=args.dry_run, graph=args.graph, client=engine)
     _print_report(rep)
     if args.dry_run:
         print("\nDry run: nothing written. Re-run without --dry-run to apply.")
         return 0
 
-    from .engine_client import EngineClient, EngineError, render_validation
+    from .engine_client import EngineError, render_validation
     try:
-        validation_rc = render_validation(EngineClient().call("validate", root=target))
+        validation_rc = render_validation(engine.call("validate", root=target))
     except EngineError as exc:
         print(f"Rust engine compatibility error: {exc}", file=sys.stderr)
         return 1

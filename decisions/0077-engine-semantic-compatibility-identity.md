@@ -1,0 +1,484 @@
+---
+id: 0077
+title: Engine semantic compatibility identity
+status: accepted
+date: 2026-10-24
+supersedes: []
+---
+
+# 0077: Engine semantic compatibility identity
+
+## Context
+
+The Python gateway in `repopact/engine_client.py` checks the engine protocol
+name/major and exact product version, but it does not identify the validation
+semantics implemented by the executable. Its current `_handshake()` starts a
+process, and each later `call()` starts another process. The Rust engine reads
+stdin to EOF as one request. A response-only identity check would discover a
+stale engine after that request had already run; for `dashboard.write`,
+`work.create`, graph updates, and other mutating operations, that is too late.
+
+The recorded pre-merge `3.1.3.dev1` executable passed repository validation
+but accepted two mapping conformance cases (41/43). Integrated-source
+conformance was separately recorded at 43/43, but its evidence has no
+executable digest. The 41/43 run used `REPOPACT_ENGINE`; these records show a
+same-product semantic-skew risk, but do not prove identical binaries or a
+default-discovery reproduction.
+
+## Decision
+
+Keep four independent claims in protocol and conformance evidence:
+
+1. **Protocol identity**: request/response wire compatibility (protocol name
+   and major version).
+2. **Product identity**: the claimed package/engine release version.
+3. **Semantic-contract identity**: the versioned validation contract expected
+   by the Python client and implemented by the Rust engine.
+4. **Executable authenticity**: whether exact executable bytes came from an
+   independently trusted source. The semantic identity does not establish
+   this fourth claim.
+
+The semantic identifier format is
+`repopact-semantic-v1:sha256:<lowercase-hex>`. A new format requires an
+explicit versioned migration; unknown formats fail closed at the strict
+enforcement boundary.
+
+### Authoritative input closure
+
+The identity covers the following reviewed input set. The generator discovers
+the actual set from the source tree and dependency metadata; it does not trust
+a hand-maintained per-file list as the source of truth.
+
+- **Python contract and packaged data:** every tracked runtime `.py` file under
+  `repopact/` (currently 43), all `repopact/schemas/*.json`, and all packaged
+  templates. This includes the engine resolver, Python-side request/response
+  validation and operation wrappers, the conformance runner and its reference
+  oracle. The exact Python runtime dependency closure is represented by a
+  hash-pinned lock/export; an unconstrained semantic runtime dependency makes
+  the source/wheel identity check fail rather than being silently omitted.
+- **Rust implementation:** the transitive local Cargo dependency closure of
+  `repopact-engine`, including normal, build, and target-specific dependencies.
+  The current closure is `repopact-engine`, `repopact-analysis`,
+  `repopact-core`, `repopact-graph`, `repopact-mutation`,
+  `repopact-protocol`, `repopact-repository`, `repopact-schema`,
+  `repopact-types`, and `repopact-validation`. Include each closure member's
+  `Cargo.toml`, all Rust source and build scripts, and every file referenced
+  by `include_str!`, `include_bytes!`, or equivalent compile-time inclusion.
+  Include the workspace `rust/Cargo.toml` and `rust/Cargo.lock`, whose locked
+  registry dependencies carry their package checksums.
+- **Protocol declarations:** include `repopact-protocol` DTOs and
+  `capabilities()` declarations, including its advertised operations and
+  `semantic_surfaces`. These declarations are part of the client/engine
+  semantic contract. The wire protocol name and major remain a separate
+  compatibility identity and must change when framing or session lifecycle is
+  incompatible.
+- **Embedded schemas:** include all packaged schema files and verify the
+  compile-time embedded set. The current Rust `repopact-schema` embeds
+  `evidence-run.schema.json`, `documentation-mappings.schema.json`,
+  `frozen-surface.schema.json`, `invariants.schema.json`,
+  `work-item.schema.json`, `adopter-fleet.schema.json`,
+  `verification-profile.schema.json`, and `assurance-mapping.schema.json`.
+- **Conformance contract:** include the complete tracked `conformance/` tree,
+  root `SPEC.md`, and every fixture byte. This includes the manifest, valid and
+  invalid cases, overlays, and their metadata; it prevents a binary from
+  advertising the expected identity while omitting a governed conformance
+  input. Adopter repository records and repository-local schemas are
+  per-operation data, not executable inputs; conformance fixture bytes are
+  covered here, while adopter runs record the repository revision or tree
+  digest separately.
+- **Identity/build rules:** include the reviewed input-policy file, identity
+  generator, engine `build.rs` files, `.gitattributes`, and the semantic
+  projection of `pyproject.toml` (`[build-system]`, runtime dependency
+  declarations, `requires-python`, and `[tool.maturin]` inclusion settings).
+  The hash-pinned Python runtime lock/export is also an input. The current
+  implementation stores it at `repopact/requirements-runtime.lock` and
+  includes it in both the source distribution and wheel. Product-version
+  values (`VERSION`, `RELEASE_LABEL`, and
+  `project.version`) are recorded separately and excluded from the semantic
+  digest; build scripts' logic remains an input.
+
+This is deliberately fail-closed and may change the identifier for a
+behavior-preserving refactor. The generator must compare its discovered path
+set with the stored manifest in both directions. New governed files, removed
+files, missing files, changed contents, an unresolved local dependency, or an
+unlocked or out-of-bound semantic Python dependency make `--check` fail. The
+source closure must also be reviewed against actual Cargo metadata and Maturin
+package contents during implementation; this Decision records the current
+closure, not a claim that package verification has already run.
+
+### Python runtime dependency consistency — approved exact lock
+
+The current mandatory dependency is jsonschema>=4.20 in pyproject.toml and
+requirements.txt; this is a lower bound, not a deterministic runtime closure.
+Optional cryptography>=43 supports retained Python-side signing/admission
+workflows and is part of the enforcement extra.
+
+On 2026-10-24, the tooling owner approved an exact runtime dependency lock.
+`repopact/requirements-runtime.lock` records a universal resolved closure with
+pinned versions and artifact hashes for the mandatory runtime requirements
+and the enforcement extra. It is an input to the semantic manifest and is
+included in both the source distribution and wheel. The lock establishes
+selected package inputs, not installed-package or executable authenticity.
+
+Implementation must still verify the installed distribution name/version set
+before each dependent operation is admitted. Canonical Rust-dependent
+operations must fail before operation dispatch or repository writes if the
+mandatory runtime set differs. Python-authoritative enforcement/signing
+operations must verify the locked optional closure when that extra is required.
+Runtime enforcement is implemented in `repopact/runtime_dependencies.py` and
+is checked before engine admission and classified Python-authoritative writes.
+The installed mandatory runtime matched the lock in focused validation; the
+optional enforcement group did not (`cryptography` 50.0.1 versus 50.0.2,
+`pycparser` 3.0 versus 3.12), so operations requiring that group fail closed
+in this environment. A clean packaged environment and Rust execution remain
+unverified.
+
+### Deterministic manifest and build behavior
+
+The canonical generator uses the reviewed policy at
+`build/semantic-input-policy.json`, the generated source manifest at
+`build/semantic-input-manifest.json`, the package copy at
+`repopact/_semantic-input-manifest.json`,
+`scripts/generate_engine_semantic_identity.py`, and the generated
+`repopact/_semantic_identity.json`. The policy describes governed roots and
+exclusions; the manifest stores the discovered file set and computed ID. The
+source/wheel identity is read from that manifest, while
+product version continues to come from the existing product-version channel.
+The exact Python lock is a semantic input.
+The input list is sorted by normalized repository-relative UTF-8 path, uses
+`/` on every host, rejects paths escaping the repository and names containing
+NUL or newline, and hashes raw file bytes. Governed text inputs use
+`.gitattributes` with LF checkout bytes; the generator does not normalize
+bytes. Absolute paths, timestamps, product-version values, protocol name/major,
+repository worktree metadata, and target outputs are excluded. The identity is
+SHA-256 over the bytes `repopact-engine-semantic-inputs\0v1\0`, an unsigned
+64-bit big-endian entry count, then each sorted entry as an unsigned 32-bit
+big-endian UTF-8 path length, path bytes, and the 32 raw bytes of the file
+SHA-256. The manifest stores readable lowercase hex digests and this computed
+identifier.
+
+The generator source, policy, Cargo lock, Python runtime lock, and semantic
+projection of pyproject.toml are inputs. The generated manifest and the
+digest embedded in it are outputs and are excluded from the hashed input set,
+so there is no self-reference. The implemented generator discovers Python
+sources and package data, the transitive local Cargo dependency closure and
+literal compile-time includes, and the complete conformance tree. Unsupported
+dynamic Rust includes fail closed. Known-answer and membership tests cover the
+canonical encoding and additions/removals. The --check operation only
+recomputes and compares; it never writes. A separate explicit --update
+operation writes the manifest and identity file, but no build, test, wheel, or
+source-distribution command invokes it. A baseline change therefore appears
+as a reviewed source diff and cannot be silently advanced by CI or a local
+build.
+
+Cargo's build check and the Maturin source-build path fail on a stale manifest
+and detect an input-set difference. The source distribution includes the
+generator, policy, package-local lock data, all files needed to rediscover the
+closure, and both manifest copies. The wheel includes the package-local lock,
+dependency-group policy, manifest, and identity beside the Python package and
+engine; these resources remain inside the existing `repopact` import root.
+Synthetic archive tests inspect both archive layouts and reject input or
+identity drift. The archive verifier is wired to the clean release build path,
+but no real Maturin source archive or wheel has been produced and checked yet.
+Maturin include patterns in `pyproject.toml` are part of this package audit.
+No build path updates the manifest implicitly.
+
+The conformance identity inputs are the normative specification, manifest,
+runner/reference implementation, and complete fixture corpus. Test source such
+as `tests/test_engine_client.py` is acceptance evidence rather than a runtime
+identity input; it is still mandatory validation and cannot be used to advance
+the identity baseline.
+
+### Side-effect admission: same process, same image
+
+The selected design is a stateful, line-delimited session owned by one engine
+process. The client may reuse that session for operations in its lifetime, but
+an admission result is bound to that process instance only:
+
+1. Start one engine process and send only a non-mutating protocol-2 `handshake`
+   request. The response reports protocol identity, product identity,
+   semantic identity, and capabilities.
+2. Verify all expected identities and required capabilities in Python. No
+   repository operation has been sent at this point.
+3. Send an explicit `admit` request to that same process, echoing the expected
+   semantic identity. The Rust session compares it with its build-time
+   identity, then returns an admission acknowledgement. Until admitted, the
+   engine refuses every operation before dispatch, including every mutating
+   operation.
+4. Only after verifying that acknowledgement does the client send an
+   operation. The same already-running process that passed both checks
+   executes it. Every response still carries the identities and is checked,
+   but response checking is a consistency check, not the side-effect barrier.
+
+The client must never treat `check_compatibility()` from one process as
+authorization for an operation launched in a later process. A process exit
+requires a fresh handshake and admission before any later operation. If a
+process exits after an operation was sent and its result is unknown, report an
+unknown outcome and do not retry that operation automatically. Replacing the
+executable at its path after process start does not replace the image already
+executing in that process. Serialize requests so only one is in flight on a
+session; a response cannot be matched to the wrong operation.
+
+Legacy behavior fails before mutation. A protocol-1 one-request engine waits
+for stdin EOF; the protocol-2 client keeps the session pipe open while awaiting
+the handshake, so that legacy binary does not respond and the client times out
+before any operation is sent. A protocol-1 implementation that does answer is
+rejected on major version before identity admission. A binary that ignores
+newly added JSON fields is not trusted to reject itself: the client sends no
+mutating request until it has verified the protocol-2 handshake and the
+same-process admission acknowledgement. The engine-side unadmitted state is a
+second guard for new engines. Ordinary Scripts-directory discovery, an
+executable beside the Python package, and `REPOPACT_ENGINE` all use the same
+admission rule; an explicit override selects a path but cannot bypass it.
+
+A separate handshake process followed by a second executable launch is
+rejected as unsafe: the second launch may resolve to different bytes and may
+mutate before the client sees its response. Checking an identity only in an
+operation response is also rejected because that check occurs after side
+effects.
+
+### Retained Python-side mutation workflows — audit clarification
+
+A read-only source audit of the current `repopact/*.py` tree found that the
+repository-writing entry points `adopt_repo.adopt`, `doctor.fix`,
+`init_repo.bootstrap`, `new.new_markdown`, `plan_import.import_plan`,
+`takeover.takeover`, and `verification.record_evidence` perform Python-side
+filesystem writes. Several call `EngineClient.check_compatibility()` before
+writing, but that method currently handshakes in a separate process and does
+not admit the later engine process; `takeover` also performs validation in a
+separate process before Python rewrites or retires files. Those checks are
+ordering hints only and do not satisfy this Decision's admission boundary.
+Their implementation must retain an admitted session before the first
+repository write and reuse that session for any later canonical engine
+operation. The inventory also includes `generate_spec.write_spec`, which
+currently writes `SPEC.md` directly without a compatibility gate; it must be
+classified as a Python-authoritative generator with its own compatibility
+contract or establish the same admission before changing repository content.
+On mismatch, timeout, or failed admission, each canonical-dependent workflow
+must have made no repository changes.
+
+Engine-backed mutations such as `work.create` and graph operations must use
+the operation path of that same admitted process. Low-level Python writers
+such as `adopt_repo.Report.write/json`, `generate_dashboard.write_dashboard`,
+and the canonical-record helper are callable below the CLI layer; their call
+sites must be audited so a direct entry point cannot bypass the workflow's
+pre-write admission requirement. The direct dashboard generator is not a
+substitute for canonical Rust dashboard generation.
+
+Decision 0042 keeps WI050 admission/guard, protected-service, platform-backend,
+cryptographic-approval, and operator-authority semantics Python-authoritative
+and outside the canonical Rust engine protocol. These paths, including the
+CLI admission request/receipt writer, Python admission record/signing writers,
+and platform install/remove paths,
+must be classified explicitly during implementation: either require the
+same compatibility admission before repository writes that depend on the
+canonical engine, or remain a separately governed Python authority with its
+own pre-write checks and compatibility contract. Release/package output
+writers are likewise separate from repository governance mutations. This
+classification is not evidence that those independent paths have been
+revalidated or accepted.
+
+Focused tests must exercise stale or legacy engines against each retained
+canonical-dependent Python mutation entry point and compare the repository
+before and after, proving rejection occurred before the first write. Tests
+must also prove any explicitly separate Python-authoritative path follows its
+declared boundary. The earlier one-shot `check_compatibility()` calls cannot
+be counted as admission evidence.
+
+### Transport protocol major and migration boundary
+
+The stateful line-delimited session is protocol major 2. Major 1 consumed one
+JSON request per process by reading stdin through EOF. Major 2 consumes one
+newline-terminated JSON request at a time and keeps the same process alive
+across handshake, explicit admission, and subsequent operations. The envelope
+fields alone do not make these transports compatible: the client must keep
+stdin open to await each v2 response, while a v1 engine does not respond until
+EOF. This is a breaking framing and lifecycle change, so using major 1 for the
+new session would misstate compatibility. A separate session-contract field is
+not needed for this transition because protocol major already versions the
+transport and lifecycle as one contract.
+
+The strict `3.1.4.dev0` client and matching engine speak protocol 2. They do
+not negotiate, downgrade, or retry using protocol 1. A v2 engine rejects a
+protocol-1 request before dispatch; a legacy v1 engine may wait for EOF and
+produce no handshake response, in which case the v2 client times out and sends
+no operation. If a v1 implementation does return a response, the client
+rejects its major before admission. Stable 3.1.3 artifacts retain protocol 1
+and their existing behavior; rollback restores the complete matching 3.1.3
+Python/engine pair. The semantic identity format remains
+`repopact-semantic-v1`; its digest changes because the protocol declarations
+and client code are governed semantic inputs, not because the hash format
+changed. The read-only timeout diagnosis is recorded in
+`20261024-076-transport-version-diagnosis`; earlier failed-run records remain
+unchanged historical evidence.
+
+### Product migration boundary
+
+Do not change or rebuild the released stable 3.1.3 Python/engine pair under
+its existing identity or protocol major. Introduce strict session admission
+and protocol 2 only in the distinct, governed post-3.1.3 development/product
+identity, and ship the client and engine together in its wheel. Cross-version
+pairings fail closed, but the existing matched stable 3.1.3 installation
+continues to behave as released. There is no `REPOPACT_ENGINE` compatibility
+bypass for canonical operations.
+
+### Packaging, provenance, and limits
+
+For every canonical conformance run, record the source commit, product
+version, protocol name/major, semantic identity format/value, resolved engine
+path, process ID and OS file identity, and executable SHA-256. Bind the hash to
+the actual process image file identity, measure before the first conformance
+operation and after the last response, and mark provenance incomplete if the
+image identity or digest cannot be correlated or changes. Run the canonical
+suite through one admitted `EngineClient` session where practical; otherwise
+record each engine process and its digest. Existing evidence lacking an
+executable digest remains historical and is not rewritten.
+
+The semantic digest detects accidental source/input skew when the engine
+reports it honestly. It is not proof that a malicious executable reports a
+truthful identity, that a binary was built from a claimed revision, or that
+the bytes came from a trusted publisher. Those claims require separate,
+independently trusted artifact signatures/provenance and approval. A source
+identity plus an executable SHA-256 is traceability evidence, not
+authentication.
+
+## Focused acceptance tests required before implementation can be accepted
+
+- Matching identity and capabilities are admitted; an operation runs only
+  after the handshake and admission responses have been checked, in the same
+  PID/process session.
+- A same-protocol, same-product stale engine with a different semantic ID is
+  rejected before any operation request. Snapshot a temporary repository
+  before and after and prove it is byte-for-byte unchanged.
+- Missing, malformed, unsupported-format, or mismatched identities are
+  rejected before operation dispatch. A legacy fake engine that ignores extra
+  JSON fields must record that it received no mutating operation.
+- Cover normal Scripts discovery, explicit `REPOPACT_ENGINE`, and a stale
+  executable physically beside the Python package. All must leave the
+  temporary repository unchanged.
+- Simulate replacing the selected executable path after handshake. Assert the
+  client neither launches a second process nor sends the operation to the new
+  path; only the admitted process instance can receive it. Include an engine
+  exit between admission and dispatch and prove the client does not resend a
+  mutating request automatically.
+- Exercise the engine-side state machine: operations before admission and
+  mismatched admission IDs are rejected before filesystem mutation.
+- Prove deterministic input discovery, exact manifest membership, new and
+  omitted file detection, known-answer hashing, no implicit baseline update,
+  and agreement among checkout, sdist, and wheel.
+- Preserve the released stable 3.1.3 pair and verify the explicit future
+  product-version boundary; do not infer compatibility from protocol version
+  alone.
+- For each conformance run, assert the recorded executable SHA-256 and OS file
+  identity identify the image used, alongside protocol, product, semantic ID,
+  and source revision.
+
+## Alternatives considered
+
+- **Check protocol/product only** — rejected because the observed stale engine
+  matched both while accepting two more conformance violations.
+- **Check semantic ID only in each operation response** — rejected because
+  the operation may have mutated repository state before the response is
+  checked.
+- **Handshake in one process, then relaunch for the operation** — rejected
+  because path replacement between launches is a TOCTOU race.
+- **Manually increment one semantic integer** — rejected as the sole source
+  because it can be forgotten when behavior changes.
+- **Use executable SHA-256 as semantic identity** — rejected because it
+  conflates input compatibility with target-specific artifact bytes.
+- **Allow `REPOPACT_ENGINE` to bypass identity/admission** — rejected because
+  the override reproduced stale behavior and canonical operations must remain
+  fail-closed.
+
+## Owner approval and implementation status
+
+The scoped `tooling-owner` assignment for WI076 / Decision 0077 is
+`github:JeremyShows`, recorded in `governance/owners.json`. On 2026-10-24, the
+operator explicitly approved all four choices below and the exact Python
+runtime dependency lock option. The approval is recorded as a top-level PR #12
+conversation comment, not a GitHub review, because the assigned account authored
+that PR: [architectural approval](https://github.com/ForgeWireLabs/repopact-core/pull/12#issuecomment-6386671837).
+The corresponding governed evidence is
+[`20261024-076-tooling-owner-architecture-approval`](../evidence/runs/20261024-076-tooling-owner-architecture-approval.json).
+
+1. **Admission boundary:** one same-process handshake, client identity and
+   capability verification, explicit engine admission, and then operation;
+   the engine refuses dispatch before admission, and a separate handshake
+   process cannot authorize a later launch.
+2. **Input and Python-write boundary:** automatically discover the complete
+   reviewed source/dependency closure and use a deterministic,
+   non-self-referential manifest with explicit baseline updates. Enforce an
+   exact Python runtime dependency lock. Canonical-dependent Python writers
+   must establish admission before the first repository write, and
+   Python-authoritative surfaces must be explicitly classified.
+3. **Stable compatibility boundary:** preserve the released stable 3.1.3
+   Python/engine pair and enforce strict identity/admission only at a distinct
+   governed post-3.1.3 boundary, with no override bypass.
+4. **Packaging and provenance:** prove Maturin sdist/wheel inclusion and
+   identity agreement, and record the exact process-image file identity and
+   executable SHA-256 with source, product, protocol, semantic, and toolchain
+   provenance; keep semantic compatibility separate from binary authenticity.
+
+This accepts the architecture only. WI076 remains active; AC-2 through AC-6
+remain pending until implementation evidence satisfies them. Independent
+implementation review is separate from this tooling-owner approval and has not
+been requested from the PR author. WI074 RPS-016 remains independently pending.
+
+## Implementation clarifications
+
+The approved semantic identity identifies compatible behavior, not trusted
+publisher bytes. The conformance record therefore keeps the source commit,
+engine-reported semantic identity, product/protocol identities, embedded Rust
+toolchain and target, process-image file ID, and SHA-256 as separate fields. The
+semantic input identity excludes its own generated manifest and package
+identity, and the Git commit is provenance beside that identity rather than an
+input to its own hash. Manifest membership or digest drift fails `--check`;
+only an explicit reviewed `--update` changes the baseline.
+
+The strict product boundary is `3.1.4.dev0`. Stable 3.1.3 and its matching
+engine retain the historical protocol/product behavior. At and after the new
+boundary, a missing, unsupported, stale, or mismatched semantic identity fails
+before any engine operation, including when `REPOPACT_ENGINE` is set. Runtime
+core dependencies must match the exact lock before engine admission. The
+cryptographic enforcement dependency group must also match before signing,
+verification, protected registration, or key-storage operations that use it.
+
+Canonical-dependent Python repository writers retain one admitted engine
+process across their first write and subsequent canonical calls. Python-owned
+admission records, protected registration state, and the generated SPEC block
+are explicitly Python-authoritative: they use deterministic Python logic and
+must pass the exact runtime dependency check before writing; cryptographic
+admission operations also enforce the optional dependency group. SPEC
+generation reads VERSION, packaged schemas, and invariants and does not claim
+that Rust performed the projection. Package-install and platform-service
+outputs remain under their separate release/platform contracts and are not
+evidence of canonical repository mutation compatibility.
+
+The canonical conformance runner uses one admitted process for the suite. It
+records the process image path, file ID, and SHA-256 before launch, at image
+capture, and after the run; a wrapper process, unavailable image query, changed
+file ID/digest, dirty source checkout, or mismatched embedded source revision
+marks provenance incomplete. The Rust build embeds source revision, `rustc -Vv`,
+target, and profile. These checks improve run attribution but do not bind a
+malicious executable to trusted package metadata. Maturin sdist/wheel identity
+agreement now has an archive verifier wired into the existing clean release
+build path; it checks every semantic sdist input, the wheel's identity/manifest/
+runtime files, and agreement with the source manifest. It has not yet been run
+on real Maturin artifacts and remains an acceptance gate.
+
+## Pre-build gate
+
+The 15:48 UTC snapshot found C: healthy NTFS with 16,077,275,136 bytes free
+(14.97 GiB); no `cargo.exe` or `rustc.exe` process was found. A fresh
+17:41:26 UTC read-only check found C: healthy NTFS with 16,221,507,584 bytes
+free (15.11 GiB), and no `cargo`, `rustc`, or `maturin` process. The earlier
+15:22 UTC snapshot had an unrelated `fabric-qualification` Cargo test process
+tree. Current space remains below the recorded conservative minimum of 18 GiB
+(12 GiB target + 2 GiB temporary and wheel output + 4 GiB headroom). Do not
+compile while below that threshold or while unrelated Cargo work is active. If later authorized by capacity,
+recheck both conditions and use only the task-owned
+`C:\Projects\repopact-core-wi076-build\target` and `...\tmp` paths. Do not
+clean Cargo caches, existing targets, the previously denied temporary
+repository, or unrelated ForgeWire trees. Only that task-owned target may be
+considered for cleanup after its evidence is recorded and its build processes
+have exited.

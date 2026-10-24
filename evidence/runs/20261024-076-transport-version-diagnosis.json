@@ -1,0 +1,123 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261024-076-transport-version-diagnosis",
+  "timestamp": "2026-10-24T18:55:47Z",
+  "work_item": "076",
+  "result": "partial",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "Read-only ordinary engine discovery, PE inspection, and SHA-256 capture; executable not launched",
+      "exit_code": 0,
+      "summary": "No REPOPACT_ENGINE override was set. Python 3.12 selected C:\\Program Files\\Python312\\Scripts\\repopact-engine.exe (13,512,192 bytes), SHA-256 b9f4004a486dc17ceb91d8af00e821f94183191e5e0aa98743b360d7b79eab1f. The PE embeds product 3.1.0.dev1 and the legacy one-JSON-object diagnostic, has no version resource, and contains no semantic_identity, source_revision, or rustc_version metadata. Its COFF timestamp is 2026-09-16T02:55:27Z."
+    },
+    {
+      "command": "Compare engine source at 8dac0def8c0e34d892b37d8673d543237928cea1 with the WI076 line-session source at 6ed358647020626e5780916e7fa86fb3b1d534a7; no executable invocation",
+      "exit_code": 0,
+      "summary": "The v1 source reads stdin to EOF as one request. The WI076 engine reads newline-delimited requests and keeps the process alive. The client writes a newline and leaves stdin open while waiting for a response. A legacy v1 process therefore cannot emit its response until the client closes stdin; the client waits 30 seconds first."
+    },
+    {
+      "command": "python -B -m unittest tests.test_engine_session tests.test_engine_client_semantic tests.test_engine_client tests.test_semantic_identity",
+      "exit_code": 0,
+      "summary": "44 focused Python tests passed, including a protocol-1 response rejected before admission or mutation and a simulated EOF-framed engine that times out at handshake without receiving an operation. Existing same-process semantic-admission and no-retry checks also passed."
+    },
+    {
+      "command": "python -B scripts/validate_docs.py",
+      "exit_code": 0,
+      "summary": "Documentation links passed for 340 Markdown files; 39 external GitHub links remain unchecked by the offline checker."
+    },
+    {
+      "command": "Run scripts/generate_engine_semantic_identity.py --update and --check in a temporary HEAD archive with only the intended Python client and protocol source changes overlaid",
+      "exit_code": 0,
+      "summary": "The three semantic identity outputs agreed at repopact-semantic-v1:sha256:70fdf142928e3f6a447bea861833610f3cb9b6cf9dff50e004662bd8c7accb23. The two unrelated unstaged mutation and validation Rust files were taken from HEAD and remain untouched."
+    },
+    {
+      "command": "Read-only C: capacity and competing Cargo/rustc/Maturin process inspection",
+      "exit_code": 0,
+      "summary": "At 2026-10-24T18:50:18Z, C: was healthy NTFS with 16,212,353,024 bytes free (15.10 GiB), below the 18 GiB minimum by about 2.90 GiB. No competing Cargo, rustc, or Maturin process was active. No build or cleanup was performed."
+    }
+  ],
+  "artifacts": [
+    "decisions/0077-engine-semantic-compatibility-identity.md",
+    "docs/guides/packaging-and-engine.md",
+    "repopact/engine_client.py",
+    "rust/crates/repopact-protocol/src/lib.rs",
+    "tests/test_engine_client.py",
+    "tests/test_engine_client_semantic.py",
+    "tests/test_engine_session.py",
+    "work/active/076-engine-semantic-compatibility-identity/README.md",
+    "build/semantic-input-manifest.json",
+    "repopact/_semantic-input-manifest.json",
+    "repopact/_semantic_identity.json",
+    "evidence/runs/20261024-076-implementation-increment-4.json",
+    "evidence/runs/20261024-076-implementation-increment-5.json"
+  ],
+  "environment": {
+    "python": {
+      "executable": "C:\\Program Files\\Python312\\python.exe",
+      "version": "3.12"
+    },
+    "engine_selection": {
+      "override": null,
+      "discovery": "Scripts directory before Python executable parent",
+      "selected_path": "C:\\Program Files\\Python312\\Scripts\\repopact-engine.exe",
+      "size_bytes": 13512192,
+      "sha256": "b9f4004a486dc17ceb91d8af00e821f94183191e5e0aa98743b360d7b79eab1f",
+      "embedded_product_version": "3.1.0.dev1",
+      "expected_product_version": "3.1.4.dev0",
+      "file_version_resource": null,
+      "coff_timestamp_utc": "2026-09-16T02:55:27Z",
+      "source_revision": "unavailable",
+      "rustc_version": "unavailable",
+      "semantic_identity": "not embedded",
+      "protocol_metadata": "legacy v1 markers present; no response was requested from this executable"
+    },
+    "transport_diagnosis": {
+      "finding": "newline request plus open stdin is incompatible with the selected EOF-framed one-request executable",
+      "cause_confidence": "source and static binary markers establish the mechanism; prior timed-out runs do not record an executable digest, so their exact image is not independently correlated",
+      "startup_failure": "not indicated by the recorded timeout path; no new launch was attempted",
+      "stdout_handling": "client drains stdout asynchronously; the legacy source emits only after stdin EOF, so this is not a demonstrated stdout buffering defect",
+      "historical_failed_runs_preserved": [
+        "20261024-076-implementation-increment-4",
+        "20261024-076-implementation-increment-5"
+      ]
+    },
+    "protocol_migration": {
+      "stable_3_1_3": 1,
+      "strict_3_1_4_dev0": 2,
+      "negotiation_or_downgrade": false,
+      "separate_session_contract_field": "not required; major 2 versions the incompatible framing and process lifecycle"
+    },
+    "semantic_identity": "repopact-semantic-v1:sha256:70fdf142928e3f6a447bea861833610f3cb9b6cf9dff50e004662bd8c7accb23",
+    "storage_gate": {
+      "minimum_free_bytes": 19327352832,
+      "free_bytes": 16212353024,
+      "filesystem": "NTFS",
+      "health": "Healthy",
+      "competing_build_processes": 0,
+      "build_peak_budget": "12 GiB target + 2 GiB temporary/wheel output + 4 GiB headroom; 18 GiB minimum",
+      "cargo_build": "NOT_RUN; below minimum",
+      "maturin_build": "NOT_RUN; below minimum",
+      "cleanup_performed": false
+    },
+    "validation": {
+      "focused_python_tests": "PASS: 44",
+      "documentation_link_check": "PASS: 340 Markdown files; 39 external links unchecked",
+      "semantic_manifest_isolated_check": "PASS",
+      "rust_tests": "NOT_RUN; build gate closed",
+      "canonical_rust_conformance": "NOT_RUN; matching branch engine unavailable",
+      "actual_sdist_wheel_contents": "NOT_RUN",
+      "canonical_validation_and_dashboard": "NOT_RUN in this diagnostic; prior failed records preserved"
+    },
+    "acceptance": {
+      "WI076": "active",
+      "AC-2_through_AC-6": "pending",
+      "WI074_RPS-016": "pending"
+    },
+    "preserved_unrelated_working_tree_changes": [
+      "rust/apps/repopact-engine/src/main.rs",
+      "rust/crates/repopact-mutation/src/lib.rs",
+      "rust/crates/repopact-validation/src/lib.rs"
+    ]
+  }
+}

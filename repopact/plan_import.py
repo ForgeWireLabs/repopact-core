@@ -316,12 +316,14 @@ def _rewrite_narrative_links(narrative: str, source_rel: str, wi_rel: str,
 
 
 def import_plan(root: Path, today: date | None = None, dry_run: bool = False,
-                import_issues: bool = False) -> adopt_repo.Report:
+                import_issues: bool = False, *, client=None) -> adopt_repo.Report:
     today = today or date.today()
+    engine = client
     if not dry_run:
         from .engine_client import EngineClient
-        EngineClient().check_compatibility("validate", "dashboard.write")
-    rep = adopt_repo.Report(dry_run)
+        engine = engine or EngineClient()
+        engine.check_compatibility("validate", "dashboard.write")
+    rep = adopt_repo.Report(dry_run, client=engine)
     used_ids, used_slugs = _existing(root)
     # Pass 1: allocate ids and target work dirs for every item up front, so the
     # narrative-link rewrite in pass 2 can resolve cross-item references to their
@@ -366,7 +368,7 @@ def import_plan(root: Path, today: date | None = None, dry_run: bool = False,
     track_import.import_tracking(root, rep, today)
     if not dry_run:
         from .engine_client import write_dashboard_canonically
-        write_dashboard_canonically(root)
+        write_dashboard_canonically(root, client=engine)
     return rep
 
 
@@ -391,14 +393,23 @@ def main() -> int:
     parser.add_argument("--issues", action="store_true", help="Also import GitHub issues (needs gh + a GitHub remote)")
     args = parser.parse_args()
     root = args.target.resolve()
-    rep = import_plan(root, dry_run=args.dry_run, import_issues=args.issues)
+    engine = None
+    if not args.dry_run:
+        from .engine_client import EngineClient, EngineError
+        engine = EngineClient()
+        try:
+            engine.check_compatibility("validate", "dashboard.write")
+        except EngineError as exc:
+            print(f"Rust engine compatibility error: {exc}", file=sys.stderr)
+            return 1
+    rep = import_plan(root, dry_run=args.dry_run, import_issues=args.issues, client=engine)
     _print(rep)
     if args.dry_run:
         print("\nDry run: nothing written.")
         return 0
-    from .engine_client import EngineClient, EngineError, render_validation
+    from .engine_client import EngineError, render_validation
     try:
-        validation_rc = render_validation(EngineClient().call("validate", root=root))
+        validation_rc = render_validation(engine.call("validate", root=root))
     except EngineError as exc:
         print(f"Rust engine compatibility error: {exc}", file=sys.stderr)
         return 1

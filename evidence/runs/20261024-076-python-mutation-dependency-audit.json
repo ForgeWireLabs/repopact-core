@@ -1,0 +1,54 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261024-076-python-mutation-dependency-audit",
+  "timestamp": "2026-10-24T16:06:57Z",
+  "work_item": "076",
+  "result": "partial",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "Read-only source inspection of pyproject.toml, requirements.txt, repopact/AGENTS.md, Decision 0042, and Decision 0077",
+      "exit_code": 0,
+      "summary": "The mandatory runtime dependency is jsonschema>=4.20 without a full lock; optional cryptography>=43 supports Python-side admission/signing. Decision 0042 keeps admission, guard, protected-service, platform-backend, cryptographic-approval, and operator-authority semantics Python-authoritative outside the Rust engine protocol."
+    },
+    {
+      "command": "Read-only search and source review of Python filesystem mutation calls and EngineClient compatibility checks in repopact/*.py",
+      "exit_code": 0,
+      "summary": "Repository-writing entry points include adopt_repo.adopt, doctor.fix, init_repo.bootstrap, new.new_markdown, plan_import.import_plan, takeover.takeover, verification.record_evidence, and generate_spec.write_spec. Existing one-shot check_compatibility calls occur before some writes but use a separate process and do not establish admission for a later process. Takeover separately validates before Python-side rewrites/removal. Low-level writers also exist below CLI entry points. The audit records these as implementation requirements, not as presently enforced admission. Independent Python-authoritative and release/platform writers require an explicit boundary classification."
+    },
+    {
+      "command": "Read-only inspection of Core PR #12 metadata, comments, and review submissions",
+      "exit_code": 0,
+      "summary": "PR #12 remains open and draft at the reviewed head. No submitted reviews or comments exist. Repository governance defines the tooling-owner role but does not map it to a GitHub username or team slug; formal reviewer targeting therefore remains unresolved."
+    }
+  ],
+  "artifacts": [
+    "decisions/0077-engine-semantic-compatibility-identity.md",
+    "work/active/076-engine-semantic-compatibility-identity/README.md",
+    "work/active/076-engine-semantic-compatibility-identity/work-item.json",
+    "pyproject.toml",
+    "requirements.txt",
+    "decisions/0042-canonical-rust-engine-and-versioned-stdio-compatibility.md",
+    "repopact/adopt_repo.py",
+    "repopact/doctor.py",
+    "repopact/init_repo.py",
+    "repopact/new.py",
+    "repopact/plan_import.py",
+    "repopact/takeover.py",
+    "repopact/verification.py",
+    "repopact/generate_spec.py",
+    "repopact/engine_client.py",
+    "https://github.com/ForgeWireLabs/repopact-core/pull/12"
+  ],
+  "environment": {
+    "source_commit_reviewed": "1d400909551d79bac54b8ccf39ef13396c0d908d",
+    "reviewed_at_utc": "2026-10-24T16:06:57Z",
+    "owner_approval": "not received; user review is not treated as tooling-owner approval",
+    "implementation": "not started",
+    "compilation_or_build": "not run",
+    "decision_0077": "proposed",
+    "wi076": "active; AC-2 through AC-6 pending",
+    "wi074_rps016": "pending",
+    "scope": "source-level dependency consistency and retained Python write-path audit; no compatibility behavior changed"
+  }
+}

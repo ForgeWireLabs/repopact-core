@@ -146,7 +146,7 @@ active at **17 satisfied, 7 pending**; RPS-020 is satisfied and RPS-016 remains
 pending.
 
 Core issue [#10](https://github.com/ForgeWireLabs/repopact-core/issues/10) is
-governed by [WI076 — Engine Semantic Compatibility Identity](../076-engine-semantic-compatibility-identity/README.md).
+governed by [WI076 — Engine Semantic Compatibility Identity](../../completed/076-engine-semantic-compatibility-identity/README.md).
 WI076 is supporting work for RPS-016: it addresses deterministic semantic
 compatibility identity and fail-closed behavior for same-version engine skew.
 It does not establish the complete separate-version, compatibility-matrix,

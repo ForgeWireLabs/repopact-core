@@ -301,11 +301,12 @@ def _ratchet_provisional(root: Path) -> list[str]:
     return actions
 
 
-def fix(root: Path, today: date | None = None) -> list[str]:
+def fix(root: Path, today: date | None = None, *, client=None) -> list[str]:
     """Apply safe repairs. Returns a list of actions taken."""
     today = today or date.today()
     from .engine_client import EngineClient
-    EngineClient().check_compatibility("validate", "dashboard.write")
+    engine = client or EngineClient()
+    engine.check_compatibility("validate", "dashboard.write")
     next_review = (today + timedelta(days=90)).isoformat()
     actions: list[str] = []
 
@@ -387,7 +388,7 @@ def fix(root: Path, today: date | None = None) -> list[str]:
     dashboard = root / "audits" / "reports" / "dashboard.md"
     actual = dashboard.read_text(encoding="utf-8") if dashboard.is_file() else None
     from .engine_client import write_dashboard_canonically
-    write_dashboard_canonically(root)
+    write_dashboard_canonically(root, client=engine)
     updated = dashboard.read_text(encoding="utf-8") if dashboard.is_file() else None
     if actual != updated:
         actions.append("regenerated audits/reports/dashboard.md")
@@ -401,16 +402,16 @@ def main() -> int:
     parser.add_argument("--fix", action="store_true", help="Apply safe, non-destructive repairs")
     args = parser.parse_args()
     root = args.root.resolve()
+    from .engine_client import EngineClient, EngineError, render_validation
+    engine = EngineClient()
 
     if args.fix:
-        from .engine_client import EngineClient, EngineError
         try:
-            engine = EngineClient()
-            engine.check_compatibility()
+            engine.check_compatibility("validate", "dashboard.write")
         except EngineError as exc:
             print(f"Rust engine compatibility error: {exc}", file=sys.stderr)
             return 1
-        actions = fix(root)
+        actions = fix(root, client=engine)
         if actions:
             print("repopact doctor applied:")
             for a in actions:
@@ -419,9 +420,8 @@ def main() -> int:
             print("repopact doctor: nothing to fix.")
 
     findings = diagnose(root)
-    from .engine_client import EngineClient, EngineError, render_validation
     try:
-        validation_rc = render_validation(EngineClient().call("validate", root=root))
+        validation_rc = render_validation(engine.call("validate", root=root))
     except EngineError as exc:
         print(f"Rust engine compatibility error: {exc}", file=sys.stderr)
         return 1

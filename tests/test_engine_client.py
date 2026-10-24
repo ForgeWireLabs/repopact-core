@@ -196,7 +196,7 @@ class EngineClientContractTests(unittest.TestCase):
     def test_engine_client_does_not_parse_human_output(self) -> None:
         client = object.__new__(engine_client.EngineClient)
         response = client._decode_response(
-            '{"protocol":"repopact-engine","protocol_version":1,"request_id":"r",'
+            f'{{"protocol":"repopact-engine","protocol_version":{engine_client.PROTOCOL_VERSION},"request_id":"r",'
             + f'"engine_version":"{engine_client.expected_product_version()}","ok":true}}',
             "human stderr is not semantic output",
             "r",

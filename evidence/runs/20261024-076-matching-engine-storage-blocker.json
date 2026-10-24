@@ -1,0 +1,103 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261024-076-matching-engine-storage-blocker",
+  "timestamp": "2026-10-24T19:05:16Z",
+  "work_item": "076",
+  "result": "blocked",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "git worktree add --detach C:\\Projects\\repopact-core-wi076-build\\source 565930190fa6684ffb07ce4ad3ef170a42b9153f; verify HEAD and porcelain status",
+      "exit_code": 0,
+      "summary": "Created an isolated detached checkout at the exact requested PR commit 565930190fa6684ffb07ce4ad3ef170a42b9153f. Its working tree is clean. The original checkout retains three unrelated unstaged Rust changes, which were not included in the source checkout or modified."
+    },
+    {
+      "command": "Read-only Get-Volume/Get-CimInstance capacity and health snapshot plus Get-Process cargo,rustc,maturin",
+      "exit_code": 0,
+      "summary": "At 2026-10-24T19:05:16Z, C: was healthy NTFS with 16,186,093,568 bytes free of 511,532,040,192. The approved minimum is 19,327,352,832 bytes, leaving a 3,141,259,264-byte shortfall. No Cargo, rustc, or Maturin process was active. Two unlettered NTFS volumes had only 18,448,384 and 87,535,616 bytes free; neither is a viable build volume."
+    },
+    {
+      "command": "Inspect only task-owned WI076 target/temp locations and Core target locations",
+      "exit_code": 0,
+      "summary": "The task-owned target and temporary directories, and both Core repository target directories, were absent. No independently authorized disposable output was found. No cleanup was performed; shared Cargo caches, denied repositories, unrelated ForgeWire outputs, and user work were not touched."
+    }
+  ],
+  "artifacts": [
+    "work/active/076-engine-semantic-compatibility-identity/README.md",
+    "decisions/0077-engine-semantic-compatibility-identity.md",
+    "C:/Projects/repopact-core-wi076-build/source"
+  ],
+  "environment": {
+    "source_revision": "565930190fa6684ffb07ce4ad3ef170a42b9153f",
+    "source_checkout": "C:/Projects/repopact-core-wi076-build/source",
+    "source_checkout_clean": true,
+    "original_checkout_preserved_unstaged_changes": [
+      "rust/apps/repopact-engine/src/main.rs",
+      "rust/crates/repopact-mutation/src/lib.rs",
+      "rust/crates/repopact-validation/src/lib.rs"
+    ],
+    "source_declared_identity": {
+      "expected_product_version": "3.1.4.dev0",
+      "protocol": "repopact-engine",
+      "protocol_major": 2,
+      "semantic_identity": "repopact-semantic-v1:sha256:70fdf142928e3f6a447bea861833610f3cb9b6cf9dff50e004662bd8c7accb23"
+    },
+    "matching_engine": {
+      "built": false,
+      "executable_sha256": null,
+      "identity_verification": "BLOCKED: no executable was produced"
+    },
+    "storage": {
+      "volume": "C:",
+      "filesystem": "NTFS",
+      "health": "Healthy",
+      "size_bytes": 511532040192,
+      "free_bytes": 16186093568,
+      "minimum_free_bytes": 19327352832,
+      "shortfall_bytes": 3141259264,
+      "alternative_volumes": [
+        {"drive_letter": null, "free_bytes": 18448384},
+        {"drive_letter": null, "free_bytes": 87535616}
+      ],
+      "competing_build_processes": [],
+      "build_budget_gib": {
+        "target_output": 12,
+        "temporary_and_archive_output": 2,
+        "headroom": 4,
+        "minimum_free_space": 18
+      }
+    },
+    "task_owned_output_locations": {
+      "C:/Projects/repopact-core-wi076-build/target": "absent",
+      "C:/Projects/repopact-core-wi076-build/tmp": "absent",
+      "C:/Projects/repopact-core/target": "absent",
+      "C:/Projects/repopact-core/rust/target": "absent"
+    },
+    "cleanup": {
+      "performed": false,
+      "authorized_disposable_outputs_found": [],
+      "shared_caches_or_unrelated_data_touched": false
+    },
+    "validation": {
+      "matching_rust_build": "BLOCKED: storage below approved minimum",
+      "engine_product_protocol_semantic_identity_and_sha256": "NOT_RUN",
+      "handshake_and_admission_e2e": "NOT_RUN",
+      "validation_and_dashboard_operations": "NOT_RUN",
+      "legacy_engine_no_mutation_and_interrupted_mutation_no_replay": "NOT_RUN against built matching engine",
+      "focused_rust_tests": "NOT_RUN",
+      "canonical_conformance": "NOT_RUN",
+      "actual_maturin_sdist_and_wheel": "NOT_RUN",
+      "isolated_exact_lock_runtime": "NOT_RUN",
+      "broad_suite": "NOT_RUN"
+    },
+    "acceptance": {
+      "WI076": "active",
+      "AC-2": "pending",
+      "AC-3": "pending",
+      "AC-4": "pending",
+      "AC-5": "pending",
+      "AC-6": "pending",
+      "WI074_RPS-016": "pending"
+    }
+  }
+}

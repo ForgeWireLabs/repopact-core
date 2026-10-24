@@ -1,0 +1,30 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261024-076-rps016-link-registration",
+  "timestamp": "2026-10-24T15:19:17Z",
+  "work_item": "076",
+  "result": "passed",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "git show e5581a3aecdb5afceeff30013dcf5044a252c2b7:work/active/074-extract-repopact-core-and-independent-workbench/README.md",
+      "exit_code": 0,
+      "summary": "Verified the merged WI074 README links WI076 to RPS-016 as supporting compatibility evidence and states RPS-016 remains pending."
+    },
+    {
+      "command": "git show e5581a3aecdb5afceeff30013dcf5044a252c2b7:work/active/074-extract-repopact-core-and-independent-workbench/work-item.json",
+      "exit_code": 0,
+      "summary": "Verified RPS-016 remains pending in the integrated Core default branch work item."
+    }
+  ],
+  "artifacts": [
+    "work/active/074-extract-repopact-core-and-independent-workbench/README.md",
+    "work/active/074-extract-repopact-core-and-independent-workbench/work-item.json",
+    "work/active/076-engine-semantic-compatibility-identity/README.md"
+  ],
+  "environment": {
+    "repository_commit": "e5581a3aecdb5afceeff30013dcf5044a252c2b7",
+    "core_pr": "https://github.com/ForgeWireLabs/repopact-core/pull/11",
+    "scope": "WI076 AC-7 governance link only; no implementation or RPS-016 acceptance claimed"
+  }
+}
