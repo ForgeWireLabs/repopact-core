@@ -748,7 +748,7 @@
     },
     {
       "path": "rust/apps/repopact-engine/build.rs",
-      "sha256": "8fec3731d2dba041bbd39e3756453ddc055c524ba9c6f7bd2d65f73af5f138c9"
+      "sha256": "9073e4bb03171f9209611222dfa8eb8e6db5cc39e0f42fa640c98a9f53f97623"
     },
     {
       "path": "rust/apps/repopact-engine/src/bin/repopact.rs",
@@ -1031,5 +1031,5 @@
       "sha256": "748cc06e0f8d1d226ce6cdf8a89f098587c5fa715333b6300749e7d6f02b6130"
     }
   ],
-  "semantic_identity": "repopact-semantic-v1:sha256:1cfcfe8931ae6e4cb2dbbf1774a004396025486e9c3c850f9b2abadd8bb4fdb2"
+  "semantic_identity": "repopact-semantic-v1:sha256:6698dfbb03e39ba96dcea5b76b832813df0de9be9c42418888d0190492cf8e3f"
 }

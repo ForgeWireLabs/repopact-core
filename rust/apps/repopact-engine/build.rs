@@ -81,7 +81,8 @@ fn watch_semantic_input_roots(root: &PathBuf, policy_path: &PathBuf) {
     let workspace_path = root.join(workspace_manifest);
     let workspace_root = workspace_path
         .parent()
-        .expect("Rust workspace manifest must have a parent directory");
+        .expect("Rust workspace manifest must have a parent directory")
+        .to_path_buf();
 
     for path in [
         root.join(python_root),
