@@ -31,6 +31,22 @@ Maturin places the Python package and Rust executables in one wheel, reducing ro
 
 The machine-readable criteria are in `work-item.json`. They require an approved identity design before implementation, focused stale-engine mismatch tests, package wiring and compatibility evidence, explicit limits on authenticity claims, and a recorded executable digest for future conformance runs.
 
+## Architecture review (2026-10-24)
+
+The source review found that `repopact/engine_client.py` checks protocol and
+product version but not semantic identity. It caches handshake capabilities,
+then starts a new engine process for each operation. Therefore an identity
+check must apply to every response, not only to the handshake, to reject an
+engine replaced between calls. Default Scripts-directory discovery and
+`REPOPACT_ENGINE` both use the same client path and should enforce the same
+compatibility rule.
+
+The proposed design is recorded in [Decision 0077](../../../decisions/0077-engine-semantic-compatibility-identity.md).
+It remains **proposed** pending owner review; no implementation has started.
+The proposal keeps the stable 3.1.3 installation pair unchanged and makes the
+strict identity contract effective only with a later product version. WI074
+RPS-016 remains pending.
+
 ## Build and storage plan
 
-No build or full suite is planned for this registration. A fresh C: space check showed approximately 7.3 GiB free while a separate Cargo/Rust compilation was active. Before any build, record a new free-space snapshot, conservative peak-output budget, target and temporary directories, and output retention/cleanup disposition. Reuse existing build outputs where source identity matches; avoid duplicate or concurrent Cargo builds. Do not delete unrelated caches or repositories to make room.
+No build or full suite was run for the registration or this architecture review. The latest read-only storage check found C: healthy with 2.34 GiB free, no alternative volume, no active Cargo/rustc process, and no Core `target` directory. No cleanup was performed; the previously denied temporary repository and unrelated ForgeWire tree remain untouched. A cold engine build is budgeted conservatively at up to 6 GiB of target output plus 1 GiB of temporary/wheel output, with 3 GiB headroom; do not compile until at least 10 GiB is available on the selected volume and a fresh process check confirms no competing build. Reuse one dedicated WI076 target directory across focused runs. If cleanup is later needed, remove only that task-owned target after outputs are recorded and all of its processes have exited; retain Cargo caches and every unrelated target.
