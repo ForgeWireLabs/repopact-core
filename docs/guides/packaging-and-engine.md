@@ -16,8 +16,32 @@ python -m venv .venv
 
 The compatibility client only trusts `repopact-engine` beside the active
 Python environment's scripts directory. `REPOPACT_ENGINE` is an explicit
-development override and is still handshake- and version-checked. It does not
-fall back to a Python validator when the engine is missing or incompatible.
+development override and is still handshake- and version-checked. It selects
+an executable path; it does not bypass compatibility checks or fall back to a
+Python validator when the engine is missing or incompatible.
+
+## Compatibility identity and migration
+
+The engine reports separate protocol, product-version, and semantic-contract
+identities. Conformance evidence also records the exact executable image and
+SHA-256. These claims answer different questions; a semantic identity or file
+digest alone does not prove that executable bytes came from a trusted publisher.
+See [Decision 0077](../../decisions/0077-engine-semantic-compatibility-identity.md)
+for the input closure, versioning, and limits.
+
+At the proposed strict boundary, `3.1.4.dev0`, the client starts one engine,
+checks its identities and required capabilities, admits that same process,
+then sends operations to it. A missing, legacy, stale, malformed, or mismatched
+identity stops an operation before dispatch. Setting `REPOPACT_ENGINE` does
+not bypass this admission. The stable 3.1.3 package continues to use its
+matching engine under the previous compatibility behavior.
+
+When moving to the strict boundary, install the matching Core package and its
+colocated engine together. For development overrides, use an engine built from
+the same source revision and semantic inputs as the Python package. If a
+compatibility error appears, reinstall the matching pair; rollback means
+restoring the complete stable 3.1.3 package/engine pair, not copying an older
+engine into a newer Python environment.
 
 ## Build from source
 

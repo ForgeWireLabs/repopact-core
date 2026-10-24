@@ -236,3 +236,21 @@ verification was run. The last recorded C: measurement remains below the
 18-GiB minimum; no cleanup or build was performed. AC-2 through AC-6 remain
 pending, WI076 remains active, and RPS-016 remains pending. Details are in
 [`20261024-076-implementation-increment-4`](../../../evidence/runs/20261024-076-implementation-increment-4.json).
+
+## Implementation increment 5 — operator compatibility guidance (2026-10-24)
+
+Updated the packaging guide with the distinct protocol, product, semantic, and
+executable-provenance claims; same-process pre-dispatch admission; stale and
+legacy-engine behavior; the non-bypassable `REPOPACT_ENGINE` path override;
+and migration between stable 3.1.3 and the proposed strict boundary. The guide
+links to Decision 0077 for the detailed contract and limits. The docs audit
+registry review date was advanced to 2026-10-24 as required by `docs/AGENTS.md`.
+
+The focused documentation suite passed 6 tests and the repository Markdown
+link checker passed for 340 files; 39 external GitHub links remain unchecked
+by that offline tool. The broader `repopact validate` handshake timeout remains
+unresolved, and the canonical `repopact dashboard` command also timed out at
+the engine handshake. The derived dashboard was left untouched; it must be
+regenerated after canonical engine operation is restored. AC-5 is not marked
+satisfied yet. WI076 remains active and AC-2 through AC-6 remain pending. See
+[`20261024-076-implementation-increment-5`](../../../evidence/runs/20261024-076-implementation-increment-5.json).
