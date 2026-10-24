@@ -1,0 +1,48 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261023-074-rps015-current-windows-build-check",
+  "timestamp": "2026-10-24T00:27:41Z",
+  "work_item": "074",
+  "result": "partial",
+  "provenance": "concrete",
+  "summary": "A successful local Windows release build without the custom-protocol feature produced SHA-256 8B76B2972D3C7AC7436D85BFB3885CF472507FFA9C1D280B01FCAC8087CC8A5A (26,915,328 bytes). It is not comparable to the retained two-clean-build result because that result used --features custom-protocol and produced 26,998,784 bytes. An attempt to rerun the matching feature configuration failed while writing the Rust archive because C: had only about 80 MB free. No nondeterminism conclusion is drawn from these unequal build configurations.",
+  "commands": [
+    {
+      "command": "cargo build --release --locked --package repopact-desktop",
+      "exit_code": 0,
+      "summary": "Built from Workbench main 414a4a78091796735a1b97b03fd8c3cf1c105f30 without the custom-protocol feature. The output was 26,915,328 bytes with SHA-256 8B76B2972D3C7AC7436D85BFB3885CF472507FFA9C1D280B01FCAC8087CC8A5A."
+    },
+    {
+      "command": "cargo build --locked --release --package repopact-desktop --features custom-protocol",
+      "exit_code": 1,
+      "summary": "Could not complete the configuration matching the retained reproducibility proof: Rust failed to write repopact_desktop_lib.lib with Windows error 112 (not enough disk space). The C: volume had 84,643,840 bytes free at the subsequent check."
+    },
+    {
+      "command": "Get-FileHash target/release/repopact-desktop.exe -Algorithm SHA256",
+      "exit_code": 0,
+      "summary": "Captured the pre-failure non-custom-protocol artifact hash and byte count above. This is an unmatched configuration check, not a repeatability pass or failure."
+    }
+  ],
+  "artifacts": [
+    "C:/Projects/repopact-workbench-main-review/target/release/repopact-desktop.exe",
+    "C:/Projects/repopact-workbench-main-review/src-tauri/build.rs",
+    "evidence/WI074-RPS-015-windows-pe-linker-reproducibility-2026-10-23.json",
+    "https://github.com/ForgeWireLabs/repopact-workbench/commit/414a4a78091796735a1b97b03fd8c3cf1c105f30"
+  ],
+  "environment": {
+    "os": "Windows 10 Pro (10.0.19045)",
+    "workbench_main": "414a4a78091796735a1b97b03fd8c3cf1c105f30",
+    "target": "x86_64-pc-windows-msvc",
+    "rustflags": "unset",
+    "target_rustflags": "unset",
+    "matching_retained_clean_builds": {
+      "feature": "custom-protocol",
+      "bytes": 26998784,
+      "sha256": "21211B7050BD12F4403DD6B849E772C5CA0BBFABE108EE8E7A4433874FDF207F",
+      "identical_clean_builds": 2
+    },
+    "prior_root_cause": "MSVC link.exe emitted link-time COFF/debug-directory timestamps and a CodeView GUID before the /Brepro correction. The merged build.rs scopes /Brepro to the Windows MSVC repopact-desktop binary.",
+    "scope_limit": "The retained proof is Windows MSVC executable-only. The fresh non-custom-protocol build is not configuration-matched; no source export, wheel, Linux/macOS build, installer, or cross-platform reproducibility acceptance is established.",
+    "disk_space": "C: had 84,643,840 bytes free when checked after the matching-feature build failed; generated build artifacts were not deleted."
+  }
+}

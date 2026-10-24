@@ -1,0 +1,117 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261023-047-independent-acceptance",
+  "timestamp": "2026-10-24T00:37:54Z",
+  "work_item": "047",
+  "result": "passed",
+  "provenance": "concrete",
+  "summary": "Independent post-merge review of WI047 against Core main 8dac0def8c0e34d892b37d8673d543237928cea1 confirms all 14 acceptance criteria. The current implementation, opt-in compatibility boundary, Rust/Python behavior, read-only freshness detection, negative tests, schema approval, evidence provenance, and documentation links are present. Historical 2026-10-22 evidence is preserved and its pre-merge audit-date statement is explicitly corrected in the current README.",
+  "commands": [
+    {
+      "command": "repopact validate --root .",
+      "exit_code": 0,
+      "summary": "Passed on the exact integrated Core tree; recorded in 20261023-074-postintegration-validation."
+    },
+    {
+      "command": "python -m unittest discover -s tests -v",
+      "exit_code": 0,
+      "summary": "392 tests ran: 389 passed, 3 skipped, 0 failed on Core source tree f6f4323. The subsequent Core #7 head/current main tree added only the dashboard, evidence record, readiness-report, and WI074 JSON changes; no implementation files changed. Recorded in 20261023-074-postintegration-validation. A duplicate rerun was interrupted before completion and is not used as evidence."
+    },
+    {
+      "command": "cargo test --manifest-path rust/Cargo.toml --workspace --locked",
+      "exit_code": 0,
+      "summary": "Locked Rust workspace tests passed, including repopact-validation 79/79, on Core source tree f6f4323; no implementation source changed between that tested tree and current main. Recorded in 20261023-074-postintegration-validation."
+    },
+    {
+      "command": "python -m repopact.run_conformance --legacy-python",
+      "exit_code": 0,
+      "summary": "Rust conformance 43/43, Python compatibility comparator 43/43, and WI050 corpus 8/8 on Core source tree f6f4323; no implementation source changed between that tested tree and current main. Recorded in 20261023-074-postintegration-validation."
+    },
+    {
+      "command": "python scripts/validate_docs.py",
+      "exit_code": 0,
+      "summary": "The Core source-tree check recorded 338 Markdown files and 39 external GitHub URLs unchecked. A fresh post-closeout check passed 338 files and left 35 external GitHub URLs unchecked."
+    },
+    {
+      "command": "repopact check-frozen --base origin/main",
+      "exit_code": 0,
+      "summary": "No additional frozen-surface change exists relative to integrated main; recorded in 20261023-074-postintegration-validation. Core #8's schema addition was separately approved by the operator's merge."
+    },
+    {
+      "command": "python -m unittest tests.test_documentation_mappings -v",
+      "exit_code": 0,
+      "summary": "Fresh focused run passed all 5 mapping tests, including non-destructive doctor behavior, read-only snapshot checks, and source-only drift detection."
+    },
+    {
+      "command": "repopact validate --root . (REPOPACT_ENGINE set to pre-merge Core runtime binary 3.1.3.dev1)",
+      "exit_code": 0,
+      "summary": "Fresh validation passed after WI047 moved to completed and all criteria received independent evidence."
+    },
+    {
+      "command": "python -m repopact.run_conformance --legacy-python (REPOPACT_ENGINE set to C:/Projects/repopact-docs-core-runtime/Scripts/repopact-engine.exe)",
+      "exit_code": 1,
+      "summary": "This rerun used a pre-merge engine binary last written 2026-10-22 16:14 local, before Core #8/#7 merged. It returned Rust 41/43 because two stale-mapping fixtures were accepted; Python compatibility was 43/43 and WI050 was 8/8. This is not counted as current-source conformance. The integrated-source run recorded in 20261023-074-postintegration-validation passed Rust/Python 43/43 and WI050 8/8."
+    }
+  ],
+  "artifacts": [
+    "work/completed/047-documentation-impact-and-code-documentation-closure/work-item.json",
+    "work/completed/047-documentation-impact-and-code-documentation-closure/README.md",
+    "decisions/0065-documentation-closure-is-mandatory-at-work-item-completion.md",
+    "decisions/0076-structural-documentation-freshness-mappings.md",
+    "governance/documentation-mappings.json",
+    "repopact/schemas/documentation-mappings.schema.json",
+    "repopact/documentation_mappings.py",
+    "repopact/validate_repo.py",
+    "rust/crates/repopact-validation/src/lib.rs",
+    "tests/test_documentation_mappings.py",
+    "conformance/fixtures/valid-documentation-mapping-neutral",
+    "conformance/fixtures/invalid/documentation-mapping-forgewire-stale",
+    "conformance/fixtures/invalid/documentation-generated-output-stale",
+    "evidence/runs/20261022-047-documentation-mapping-freshness.json",
+    "evidence/runs/20261023-074-postintegration-validation.json",
+    "https://github.com/ForgeWireLabs/repopact-core/pull/8"
+  ],
+  "environment": {
+    "repository": "ForgeWireLabs/repopact-core",
+    "integrated_main_commit": "8dac0def8c0e34d892b37d8673d543237928cea1",
+    "integrated_tree": "b8adab5f925befa1b42e58ec93fe212246a11d6b",
+    "validation_tree_relation": "Full suite/conformance evidence was captured at f6f4323 (tree 0de70d5f1277592f4b7f22d31d85de91a33c23a5). Diff to final Core #7 head 0d08daca and merge 8dac0def contains only audits/reports/dashboard.md, this evidence file, engineering-readiness-report-2026-10-22.md, and WI074 work-item.json; no implementation files changed.",
+    "merged_dependencies": {
+      "Core #6": "4e8e0b18831275c8c0a3f3b747ad30ea097c3020",
+      "Core #8": "52974409b0dbc6e0fe25aec7dfe12ec3b5ae1f0b",
+      "Core #7": "8dac0def8c0e34d892b37d8673d543237928cea1"
+    },
+    "acceptance_review": [
+      {"criterion": "AC-1", "finding": "Decision 0065 and SPEC rule 17 require explicit documentation impact or justified no-impact before completion; silence is rejected."},
+      {"criterion": "AC-2", "finding": "Documentation closure remains distinct from F-016 parity, WI044 evidence sufficiency, and WI046 admission."},
+      {"criterion": "AC-3", "finding": "Decision 0065 compares work-item, criterion, evidence, and mapping layers and defines source of truth, lifecycle, migration, and compatibility."},
+      {"criterion": "AC-4", "finding": "The mechanism classifies the required documentation surfaces without prescribing adopter paths; adopter-neutral fixture uses a different layout."},
+      {"criterion": "AC-5", "finding": "A no-impact outcome requires a reviewable rationale and does not force meaningless documentation edits."},
+      {"criterion": "AC-6", "finding": "Affected mappings identify source and documentation paths and require evidence linkage; generic docs-updated text is insufficient."},
+      {"criterion": "AC-7", "finding": "Optional owners.json mappings bind source and documentation paths and compare structural digests without claiming prose-semantic proof."},
+      {"criterion": "AC-8", "finding": "Generated outputs are mapped and stale output is detected against source digests; generators are not run silently."},
+      {"criterion": "AC-9", "finding": "Both Rust and Python completion validation reject unresolved documentation impact at the completed transition."},
+      {"criterion": "AC-10", "finding": "Doctor and audit surface stale mappings read-only; the dedicated test verifies governance records remain unchanged."},
+      {"criterion": "AC-11", "finding": "Conformance includes positive, no-impact, missing-resolution, absent-evidence, stale-source, and stale-generated-output cases."},
+      {"criterion": "AC-12", "finding": "ForgeWire-shaped and adopter-neutral fixtures pass; the genericity claim is falsified if a different adopter layout cannot opt in, or if source-only/output-only/paired drift is misclassified."},
+      {"criterion": "AC-13", "finding": "Decision 0076 fixes schema version 1 and optional configuration before implementation; repositories without the optional mapping remain valid and historical completed work is not retroactively rewritten."},
+      {"criterion": "AC-14", "finding": "Schema, Rust/Python validation, CLI, templates, SPEC, workflow, doctor/audit, reporting, fixtures, conformance, and regression tests are present and covered by current-main validation."}
+    ],
+    "rust_python_semantics": "Both implementations passed the same 43-case conformance corpus and the WI050 compatibility corpus passed 8/8.",
+    "mapping_snapshots": {
+      "documentation-freshness-tooling": {"source_sha256": "96d875d92d7cecb68d50772e955bf502713c4f5972897b4168cdd2c0ce746fa0", "documentation_sha256": "6a7b56a721f7965e9cafedb5f980758d186016f15bb4be426b429c9c0d8b618b"},
+      "generated-spec-reference": {"source_sha256": "4afb47e5e20690b4b50c4ea11430a5181fbff95bc45eed637515b2f303a5f755", "documentation_sha256": "eb9f55441ab866f107b39bc822fa26696b1cc03f7e0f89f2e08d46d9fd4d8c8e"}
+    },
+    "frozen_schema_authorization": {
+      "path": "repopact/schemas/documentation-mappings.schema.json",
+      "core_pr": 8,
+      "merge_commit": "52974409b0dbc6e0fe25aec7dfe12ec3b5ae1f0b",
+      "merged_by": "JeremyShows",
+      "authorization_basis": "Operator-authored merge of the frozen-schema change; no broader frozen-surface waiver is claimed."
+    },
+    "audit_scope_026_027": {"last_reviewed": "2026-10-22", "next_review": "2027-01-20", "changed_in": "Core #7", "renew_again": false},
+    "wi075_boundary": "Completed bounded ForgeLink adopter re-review of scopes 026/027 only. Sixteen unrelated ForgeLink audit scopes remain expired; ForgeLink-wide governance is not claimed clean.",
+    "historical_evidence_policy": "The 2026-10-22 evidence and engineering-readiness report are immutable historical snapshots. Their pre-merge statement that audit dates had not been renewed is explicitly superseded for current-state reporting by this dated closeout note; no historical record was altered.",
+    "fresh_record_validation": {"documentation_mapping_tests": "5/5 passed", "canonical_validation": "returned exit 0 with a pre-merge 3.1.3.dev1 engine; its source-current status is not trusted because the same binary failed two newly merged Rust conformance fixtures", "SPEC_freshness": "byte-current", "frozen_surface": "no new changes against origin/main", "git_diff_check": "passed", "matching_engine_rebuild": "blocked by only 84,643,840 bytes free on C: after the Workbench feature-matched release build ran out of disk space"}
+  }
+}

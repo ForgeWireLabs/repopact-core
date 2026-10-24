@@ -1,0 +1,123 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261023-074-rps020-documentation-acceptance",
+  "timestamp": "2026-10-24T00:37:54Z",
+  "work_item": "074",
+  "result": "passed",
+  "provenance": "concrete",
+  "summary": "RPS-020's complete documentation criterion is satisfied on the integrated Core and Workbench default branches. Installation, architecture, contributor, CLI/API, configuration, platform, security, release, migration, support, examples, and derived views were reviewed; representative Core onboarding and current source/build checks passed. No package, installer, or release was published.",
+  "commands": [
+    {
+      "command": "python -m unittest discover -s tests -v",
+      "exit_code": 0,
+      "summary": "392 tests ran: 389 passed, 3 skipped, 0 failed on Core source tree f6f4323. The final #7/current main tree adds only dashboard, evidence, readiness-report and WI074 JSON changes; no implementation code changed. See 20261023-074-postintegration-validation."
+    },
+    {
+      "command": "python -m repopact.run_conformance --legacy-python",
+      "exit_code": 0,
+      "summary": "Rust 43/43, Python compatibility 43/43, WI050 8/8 on Core source tree f6f4323; no implementation code changed between that tested tree and current main. See 20261023-074-postintegration-validation."
+    },
+    {
+      "command": "python scripts/validate_docs.py",
+      "exit_code": 0,
+      "summary": "Pre-closeout evidence records 338 Markdown files and 39 external GitHub URLs unchecked. A fresh post-closeout run passed 338 Markdown files and left 35 external GitHub URLs unchecked."
+    },
+    {
+      "command": "repopact dashboard --root .",
+      "exit_code": 0,
+      "summary": "Dashboard regenerated from authoritative records after the WI047 and RPS-020 state changes; canonical validation passed."
+    },
+    {
+      "command": "repopact spec --root .",
+      "exit_code": 0,
+      "summary": "SPEC regenerated and passed a fresh byte-current check after the work-item transitions."
+    },
+    {
+      "command": "repopact init --target <disposable-path>; repopact validate --root <disposable-path>; repopact dashboard --root <disposable-path>; repopact validate --root <disposable-path>",
+      "exit_code": 0,
+      "summary": "Representative first-run initialization and derived dashboard validation passed in a disposable adopter directory; the exploratory maintainer-only SPEC call was corrected and is not counted as an onboarding failure."
+    },
+    {
+      "command": "npm ci; npm run typecheck; npm test -- --run; npm run build; npm run types:check; cargo test --workspace --all-targets --locked",
+      "exit_code": 0,
+      "summary": "Current Workbench main passed locked dependency installation, TypeScript, 38 frontend tests, production frontend build, generated-type check, and Rust workspace tests; see current checkout and prior post-merge validation output."
+    },
+    {
+      "command": "gh api repos/ForgeWireLabs/repopact-core/private-vulnerability-reporting; gh api repos/ForgeWireLabs/repopact-workbench/private-vulnerability-reporting",
+      "exit_code": 0,
+      "summary": "Both repository endpoints returned enabled=true on 2026-10-23."
+    }
+  ],
+  "artifacts": [
+    "README.md",
+    "SECURITY.md",
+    "CONTRIBUTING.md",
+    "docs/README.md",
+    "docs/adopt-repopact.md",
+    "docs/cli-reference.md",
+    "docs/guides/packaging-and-engine.md",
+    "docs/guides/define-your-governance.md",
+    "docs/guides/local-ci-cd.md",
+    "docs/troubleshooting.md",
+    "SPEC.md",
+    "audits/reports/dashboard.md",
+    "work/active/074-extract-repopact-core-and-independent-workbench/documentation-coverage-matrix.md",
+    "C:/Projects/repopact-workbench-main-review/README.md",
+    "C:/Projects/repopact-workbench-main-review/CONTRIBUTING.md",
+    "C:/Projects/repopact-workbench-main-review/SECURITY.md",
+    "C:/Projects/repopact-workbench-main-review/docs/README.md",
+    "C:/Projects/repopact-workbench-main-review/docs/user-guide.md",
+    "C:/Projects/repopact-workbench-main-review/docs/troubleshooting.md",
+    "C:/Projects/repopact-workbench-main-review/docs/guides/github-app-setup.md",
+    "C:/Projects/repopact-workbench-main-review/docs/guides/github-snapshot-import.md",
+    "https://github.com/ForgeWireLabs/repopact-core/pull/6",
+    "https://github.com/ForgeWireLabs/repopact-core/pull/7",
+    "https://github.com/ForgeWireLabs/repopact-core/pull/8",
+    "https://github.com/ForgeWireLabs/repopact-workbench/pull/6",
+    "https://github.com/ForgeWireLabs/repopact-workbench/pull/7",
+    "https://github.com/ForgeWireLabs/ForgeWireLabs/pull/3",
+    "evidence/runs/20261023-074-readiness-integration-reproducibility.json"
+  ],
+  "environment": {
+    "default_branches": {
+      "ForgeWireLabs/repopact-core": "8dac0def8c0e34d892b37d8673d543237928cea1",
+      "ForgeWireLabs/repopact-workbench": "414a4a78091796735a1b97b03fd8c3cf1c105f30",
+      "ForgeWireLabs/ForgeWireLabs": "616c0b55f06409dea8d5e37da245da0797c633df"
+    },
+    "merged_prs": [
+      {"repo": "ForgeWireLabs/repopact-core", "pr": 6, "state": "MERGED", "head": "2125b97ad1cdf9d3b45aacac6bd2c1aec43a9b62", "merge": "4e8e0b18831275c8c0a3f3b747ad30ea097c3020"},
+      {"repo": "ForgeWireLabs/repopact-core", "pr": 8, "state": "MERGED", "head": "627efe25ed4195ee83fb394485b9407e2aa6c955", "merge": "52974409b0dbc6e0fe25aec7dfe12ec3b5ae1f0b"},
+      {"repo": "ForgeWireLabs/repopact-core", "pr": 7, "state": "MERGED", "head": "0d08daca38131f7c9bc96f790a29f6c40a793bf4", "merge": "8dac0def8c0e34d892b37d8673d543237928cea1"},
+      {"repo": "ForgeWireLabs/repopact-workbench", "pr": 6, "state": "MERGED", "head": "74462c67021a2ec28a6b46b3e7240d2545113a82", "merge": "79f894e778897a5d9c266b9e6dc8dd92ba4dafed"},
+      {"repo": "ForgeWireLabs/repopact-workbench", "pr": 7, "state": "MERGED", "head": "54ce42876729470df3bc90b5971b730c89671d28", "merge": "414a4a78091796735a1b97b03fd8c3cf1c105f30"},
+      {"repo": "ForgeWireLabs/ForgeWireLabs", "pr": 3, "state": "MERGED", "head": "314a9f86712afe77a5fbb3d7e212d016a2f0a8c3", "merge": "616c0b55f06409dea8d5e37da245da0797c633df"}
+    ],
+    "review_order": "Core #6 was already in base before Core #8; Core #8's frozen-schema addition was operator-approved and merged before Core #7. Core #6 therefore precedes #7 as required. Workbench #6 preceded Workbench #7. ForgeWire Labs #3 is separate. All four documentation PR dependencies are now integrated; none remains open.",
+    "documentation_review": {
+      "installation": "Core stable 3.1.3 installation and packaging guidance is present. Workbench is documented as a source-build preview; no public installer or GitHub release is claimed.",
+      "architecture": "Core owns canonical semantics; Workbench consumes the pinned Core crates. Rust/Python compatibility is covered by 43/43 conformance cases.",
+      "contributor": "Core and Workbench each have repository-specific CONTRIBUTING guidance.",
+      "api_cli": "Core CLI reference covers the stable command interface. Workbench documents typed application operations; no public REST API is implied.",
+      "configuration": "Core governance/profile configuration and Workbench integration setup are documented.",
+      "platform": "Windows x64 and the recorded Android API 35 x86_64 scenarios are bounded to actual evidence; Linux WSL2 is headless only; macOS/iOS and Linux graphical/bare-metal acceptance are not claimed.",
+      "security": "Both GitHub private vulnerability-reporting settings are enabled. Core and Workbench security policies identify their trust and support boundaries.",
+      "release": "Core stable package identity is 3.1.3. Workbench source-build preview documentation explicitly avoids installer/release claims.",
+      "migration": "Core adoption guidance includes dry-run; Workbench directs existing-repository governance to Core and describes explicit Android export behavior. No automatic consumer migration is claimed.",
+      "support": "Both repositories provide issue/support guidance and separate vulnerability reporting; no unsupported LTS or platform promise is added."
+    },
+    "offline_link_checks": {
+      "core": {"markdown_files": 338, "local_links": "passed", "external_github_urls_unchecked_current": 35, "external_github_urls_unchecked_in_precloseout_run": 39},
+      "workbench": {"markdown_files": 14, "local_destinations": 40, "missing_local_destinations": 0, "external_or_anchor_only_unchecked": 33},
+      "external_verification": "Important public destinations were checked separately in the initiative's dated live-link evidence. Offline checker output is not treated as external-link proof."
+    },
+    "derived_views": "SPEC and dashboard were regenerated after the work-item state changes; canonical validation passed. SPEC was byte-current and dashboard reflects the completed WI047 and satisfied RPS-020 states.",
+    "fresh_closeout_validation": {"documentation_mapping_tests": "5/5 passed", "canonical_validation": "returned exit 0 with a pre-merge 3.1.3.dev1 engine; source-current status is not trusted because the conformance attempt with that binary failed two Rust mapping fixtures", "SPEC_freshness": "byte-current", "frozen_surface": "no new changes against origin/main", "git_diff_check": "passed", "matching_engine_rebuild": "blocked by 84,643,840 bytes free on C:"},
+    "live_link_evidence": "20261023-074-readiness-integration-reproducibility checked installation/PyPI and release destinations, private reporting, contributing, documentation, cited research records, and Core/Workbench navigation using targeted public requests. It found no demonstrated permanent destination failure. The offline checker remains limited to local links.",
+    "wi047": "Independently accepted and completed in the same closeout; see 20261023-047-independent-acceptance.",
+    "wi075": "Completed only for the bounded ForgeLink adopter re-review of scopes 026/027; 16 unrelated ForgeLink audit scopes remain expired, so no broad-clean claim is made.",
+    "audit_scopes_026_027": {"last_reviewed": "2026-10-22", "next_review": "2027-01-20", "renew_again": false},
+    "remaining_wi074_gates": {"RPS-011": "pending", "RPS-012": "pending", "RPS-015": "pending", "RPS-016": "pending", "RPS-018": "pending", "RPS-019": "pending", "RPS-022": "pending"},
+    "research_freshness_deadline": "2026-10-24 remains active; this RPS-020 decision does not close that separate deadline.",
+    "publication": "No packages, installers, research papers, or releases were published."
+  }
+}

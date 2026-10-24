@@ -1,0 +1,54 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261023-074-rps015-clean-windows-repeatability-followup",
+  "timestamp": "2026-10-24T00:56:59Z",
+  "work_item": "074",
+  "result": "partial",
+  "provenance": "concrete",
+  "summary": "Two fresh, sequential clean release builds of the merged Workbench main executable, using --locked --package repopact-desktop --features custom-protocol from the same checkout and target path, were byte-identical. Both were 26,998,784 bytes with SHA-256 87D4181549D24390D9CEF7C0CAA24E3A5FA4C84D98E6F6F95D03B68EC87FD58F. This reconfirms Windows MSVC executable repeatability in this environment. RPS-015 remains pending because the result does not establish independent clean source-export identity, wheel contents, cross-platform artifact reproducibility, or the full native-binary provenance and normalization boundary.",
+  "commands": [
+    {
+      "summary": "Fresh build 1 from an empty Cargo target at Workbench main 414a4a78091796735a1b97b03fd8c3cf1c105f30; output size 26,998,784 bytes and SHA-256 87D4181549D24390D9CEF7C0CAA24E3A5FA4C84D98E6F6F95D03B68EC87FD58F.",
+      "exit_code": 0,
+      "command": "cargo build --locked --release --package repopact-desktop --features custom-protocol"
+    },
+    {
+      "summary": "Between builds removed 4,628 files and 2.1 GiB from this Workbench checkout target.",
+      "exit_code": 0,
+      "command": "cargo clean"
+    },
+    {
+      "summary": "Fresh build 2, same source, feature set, environment, and target path; output size and SHA-256 exactly match build 1; complete binary byte comparison returned identical=True.",
+      "exit_code": 0,
+      "command": "cargo build --locked --release --package repopact-desktop --features custom-protocol"
+    },
+    {
+      "summary": "After comparison removed 4,628 files and 2.1 GiB; Workbench target directory is absent and git status is clean.",
+      "exit_code": 0,
+      "command": "cargo clean"
+    }
+  ],
+  "artifacts": [
+    "C:/Projects/repopact-workbench-main-review/src-tauri/build.rs",
+    "evidence/WI074-RPS-015-windows-pe-linker-reproducibility-2026-10-23.json",
+    "https://github.com/ForgeWireLabs/repopact-workbench/commit/414a4a78091796735a1b97b03fd8c3cf1c105f30"
+  ],
+  "environment": {
+    "rustflags": "unset",
+    "scope_limit": "Windows MSVC executable only; both builds used the same checkout, toolchain, and source tree. No independent source-export comparison, wheel-content comparison, cross-platform reproducibility, installer identity, or consumer artifact identity is established.",
+    "cleanup": "cargo clean removed generated Cargo target output after both builds; target absent; git worktree clean.",
+    "target_rustflags": "unset",
+    "rustc": "rustc 1.96.0 (ac68faa20 2026-05-25), LLVM 22.1.2",
+    "output_bytes": 26998784,
+    "output_sha256": "87D4181549D24390D9CEF7C0CAA24E3A5FA4C84D98E6F6F95D03B68EC87FD58F",
+    "active_toolchain": "stable-x86_64-pc-windows-msvc",
+    "identical_clean_builds": 2,
+    "workbench_main": "414a4a78091796735a1b97b03fd8c3cf1c105f30",
+    "comparison": "complete executable bytes compared equal",
+    "cargo": "cargo 1.96.0 (30a34c682 2026-05-25)",
+    "os": "Windows 10 Pro (10.0.19045)",
+    "target": "x86_64-pc-windows-msvc",
+    "feature": "custom-protocol",
+    "prior_root_cause": "Pre-fix MSVC link.exe outputs differed in COFF/debug-directory timestamps and CodeView GUID. Merged src-tauri/build.rs applies /Brepro only to the Windows MSVC repopact-desktop binary."
+  }
+}

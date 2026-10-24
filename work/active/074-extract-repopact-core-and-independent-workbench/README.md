@@ -85,12 +85,45 @@ change the Workbench Core pin, alter PyPI, or begin unrelated acceptance work.
 ## Current acceptance state and next slice
 
 The canonical 24-criterion matrix is in [work-item.json](work-item.json). Its
-current state is **16 satisfied, 8 pending**. RPS-001, RPS-002 and RPS-017 were
+current state is **17 satisfied, 7 pending**. RPS-001, RPS-002 and RPS-017 were
 closed with source-preservation, complete path/hash reconciliation and
-governance-continuity evidence. Core packaging, CLI identity, conformance and
+governance-continuity evidence. RPS-020 documentation acceptance is now
+supported by post-merge evidence. Core packaging, CLI identity, conformance and
 the Workbench contract gates are also satisfied. S2-S5 publication does not
 imply full Android feature acceptance, complete cross-platform native
 acceptance, release readiness, downstream migration, or rollback proof.
+
+## Post-merge acceptance update (2026-10-23)
+
+Core #6, #7 and #8; Workbench #6 and #7; and ForgeWire Labs #3 are merged. Core
+#6 preceded #7. Core #8's documentation-mappings schema addition was approved
+through the operator's merge; the integrated Core main is
+`8dac0def8c0e34d892b37d8673d543237928cea1`. Workbench main is
+`414a4a78091796735a1b97b03fd8c3cf1c105f30` and ForgeWire Labs main is
+`616c0b55f06409dea8d5e37da245da0797c633df`.
+
+The current matrix has **17 satisfied, 7 pending** criteria. RPS-020 is
+satisfied by the post-merge Core/Workbench documentation review, onboarding
+exercise, local-documentation checks, current derived views, and linked dated
+evidence. WI047 is independently accepted and moved to `work/completed/` with
+all 14 criteria linked to its post-merge evidence. WI075 remains limited to the
+bounded ForgeLink adopter re-review: scopes 026 and 027 were substantively
+reviewed on 2026-10-22 with next review 2027-01-20, while 16 unrelated ForgeLink
+scopes remain expired. The October 24 research-freshness deadline remains
+active.
+
+RPS-011, RPS-012, RPS-015, RPS-016, RPS-018, RPS-019 and RPS-022 remain pending.
+The local debug Workbench window did not load its configured development URL;
+the wider native-platform, protected-service, independent artifact identity,
+clean installation, consumer authorization, and backup/rollback proof remains
+open. Two fresh, sequential clean `custom-protocol` release builds of Workbench main
+`414a4a78091796735a1b97b03fd8c3cf1c105f30` on Windows MSVC produced
+byte-identical 26,998,784-byte executables (SHA-256
+`87D4181549D24390D9CEF7C0CAA24E3A5FA4C84D98E6F6F95D03B68EC87FD58F`). Cargo
+outputs were cleaned after each build. This reconfirms same-checkout Windows
+executable repeatability only; RPS-015 remains pending for independent source
+exports, wheel contents, complete artifact provenance and cross-platform
+normalization. No package, installer, research paper or release was published.
 
 RPS-012 remains pending. The 2026-10-08 local revalidation passed the Windows
 admission/guard test group (51/51), the semantic/pre-action platform harness,

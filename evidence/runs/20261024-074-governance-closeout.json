@@ -1,0 +1,99 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261024-074-governance-closeout",
+  "timestamp": "2026-10-24T14:10:58Z",
+  "work_item": "074",
+  "result": "passed",
+  "provenance": "concrete",
+  "summary": "Focused post-acceptance closeout checks passed: current-source canonical validation, all five documentation-mapping regression tests, the documentation-link checker, frozen-surface validation, and dashboard generation. WI047 remains independently accepted at 14/14 and RPS-020 is satisfied at 17/7. The full Python suite was not rerun in this closeout; the prior exact-source passing result remains separately recorded, and the later interrupted duplicate is not treated as a completed test run.",
+  "commands": [
+    {
+      "command": "python -m unittest tests.test_documentation_mappings -v",
+      "exit_code": 0,
+      "summary": "All 5 focused tests passed, covering read-only snapshots, source drift detection, pair review, non-destructive doctor findings, and the canonical snapshot operation."
+    },
+    {
+      "command": "repopact validate --root . (REPOPACT_ENGINE=C:/Projects/repopact-docs-core-runtime/Scripts/repopact-engine.exe; SHA-256 482ED5D336A677DAF3DC496C6E0F218E854D81C414B102C4E821503CA7E1E122)",
+      "exit_code": 0,
+      "summary": "Canonical governance validation passed using the executable whose SHA-256 is recorded in this closeout. Its handshake reports protocol 1 and engine_version 3.1.3.dev1, matching the package identity. The referenced post-integration manifest records 43/43 conformance but no executable digest, so equality between that conformance executable and this closeout executable cannot be confirmed."
+    },
+    {
+      "command": "repopact check-frozen --base origin/main",
+      "exit_code": 0,
+      "summary": "No frozen-surface changes detected; origin/main resolves to integrated Core commit 8dac0def8c0e34d892b37d8673d543237928cea1."
+    },
+    {
+      "command": "repopact dashboard --root .",
+      "exit_code": 0,
+      "summary": "Regenerated audits/reports/dashboard.md from authoritative records; the final canonical validation passed afterward."
+    },
+    {
+      "command": "python scripts/validate_docs.py",
+      "exit_code": 0,
+      "summary": "338 Markdown files and local links passed; 35 external GitHub links remain intentionally unchecked by the offline checker."
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "summary": "No whitespace errors. Git reported only that the working-copy CRLF in WI074 work-item.json will normalize to LF when staged."
+    }
+  ],
+  "artifacts": [
+    "work/completed/047-documentation-impact-and-code-documentation-closure/work-item.json",
+    "evidence/runs/20261023-047-independent-acceptance.json",
+    "evidence/runs/20261023-074-postintegration-validation.json",
+    "evidence/runs/20261023-074-rps020-documentation-acceptance.json",
+    "evidence/runs/20261023-074-rps015-clean-windows-repeatability-followup.json",
+    "work/active/074-extract-repopact-core-and-independent-workbench/work-item.json"
+  ],
+  "environment": {
+    "repository": "ForgeWireLabs/repopact-core",
+    "integrated_core_main_commit": "8dac0def8c0e34d892b37d8673d543237928cea1",
+    "core_worktree_branch": "codex/final-post-merge-acceptance-20261023",
+    "core_engine_sha256": "482ED5D336A677DAF3DC496C6E0F218E854D81C414B102C4E821503CA7E1E122",
+    "integrated_workbench_main_commit": "414a4a78091796735a1b97b03fd8c3cf1c105f30",
+    "wi047": {
+      "status": "completed",
+      "satisfied_criteria": "14/14",
+      "independent_acceptance_evidence": "20261023-047-independent-acceptance"
+    },
+    "wi074": {
+      "status": "active",
+      "satisfied_criteria": "17/24",
+      "pending_criteria": [
+        "RPS-011",
+        "RPS-012",
+        "RPS-015",
+        "RPS-016",
+        "RPS-018",
+        "RPS-019",
+        "RPS-022"
+      ],
+      "rps_020": "satisfied"
+    },
+    "full_python_suite_this_closeout": {
+      "status": "NOT_RUN",
+      "reason": "The integrated implementation source is unchanged from the exact source tree with a separately recorded passing suite; this closeout ran focused mapping tests only. The later duplicate full-suite attempt was interrupted, emitted no completion summary, and is not counted as proof that it completed.",
+      "reused_evidence": "20261023-074-postintegration-validation"
+    },
+    "source_tree_comparison": "No changes to repopact/, rust/, tests/, conformance/, scripts/, pyproject.toml, or Cargo.toml exist between tested source commit f6f4323e608ed5c3db334757250f62a68d71fcf3 and integrated main. Current changes are governance, evidence, documentation coverage, and generated dashboard records.",
+    "limitations": [
+      "RPS-015 remains pending: the Windows /Brepro repeatability result does not prove independent source-export identity, wheel contents, or cross-platform reproducibility.",
+      "RPS-011, RPS-012, RPS-016, RPS-018, RPS-019, and RPS-022 remain independently pending.",
+      "The October 24 research-freshness deadline remains active and requires its separate substantive evidence review.",
+      "No packages, installers, research papers, or releases were published."
+    ],
+    "engine_identity_review": {
+      "closeout_engine_sha256": "482ED5D336A677DAF3DC496C6E0F218E854D81C414B102C4E821503CA7E1E122",
+      "closeout_handshake": {
+        "protocol": "repopact-engine",
+        "protocol_version": 1,
+        "engine_version": "3.1.3.dev1"
+      },
+      "postintegration_conformance_engine_sha256": "not recorded in 20261023-074-postintegration-validation",
+      "finding": "The client enforces protocol major and exact product version but does not enforce semantic build identity. Existing WI047 evidence records an explicitly selected pre-merge engine with the same 3.1.3.dev1 identity that returned validation success while failing two mapping conformance cases (41/43). Maturin co-installs Python and Rust executables in one wheel and normal lookup is beside the Python environment, which reduces accidental mismatch; a same-version stale or mixed executable found there is still accepted.",
+      "separate_defect": "https://github.com/ForgeWireLabs/repopact-core/issues/10",
+      "wi047_boundary": "No source-current acceptance gap is demonstrated: the integrated-source 43/43 run remains separately recorded, and its source implementation is unchanged in the closeout. WI047 stays completed; semantic build-identity enforcement is tracked separately."
+    }
+  }
+}
