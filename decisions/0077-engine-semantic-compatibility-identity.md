@@ -10,134 +10,293 @@ supersedes: []
 
 ## Context
 
-The Python client in `repopact/engine_client.py` verifies the engine protocol
-name/major and exact product version. It does not currently verify the
-validation semantics advertised by the engine. The pre-merge 3.1.3.dev1
-executable passed repository validation but accepted two mapping conformance
-cases (41/43); the integrated-source run passed 43/43 but did not record its
-executable digest. These runs demonstrate a same-version semantic-skew risk,
-but do not prove the binaries were identical or establish a default-discovery
-reproduction.
+The Python gateway in `repopact/engine_client.py` checks the engine protocol
+name/major and exact product version, but it does not identify the validation
+semantics implemented by the executable. Its current `_handshake()` starts a
+process, and each later `call()` starts another process. The Rust engine reads
+stdin to EOF as one request. A response-only identity check would discover a
+stale engine after that request had already run; for `dashboard.write`,
+`work.create`, graph updates, and other mutating operations, that is too late.
 
-The client caches handshake capabilities and starts a separate process for
-each operation. A handshake-only identity check would leave later calls
-unchecked if the executable at the selected path changed. The ordinary Scripts
-directory lookup and `REPOPACT_ENGINE` explicit path converge on the same
-`EngineClient`; an override currently changes selection, not the protocol or
-product-version checks.
+The recorded pre-merge `3.1.3.dev1` executable passed repository validation
+but accepted two mapping conformance cases (41/43). Integrated-source
+conformance was separately recorded at 43/43, but its evidence has no
+executable digest. The 41/43 run used `REPOPACT_ENGINE`; these records show a
+same-product semantic-skew risk, but do not prove identical binaries or a
+default-discovery reproduction.
 
 ## Proposed decision
 
-1. Define a semantic-contract identity independently from the protocol name and
-   version, product version, executable digest, and source revision. Use the
-   format `repopact-semantic-v1:sha256:<lowercase-hex>`.
-2. Generate the digest from a versioned, checked-in input manifest. For the
-   current engine, the Rust source closure is `repopact-engine` plus its local
-   semantic crates `repopact-analysis`, `repopact-core`, `repopact-graph`,
-   `repopact-mutation`, `repopact-repository`, `repopact-schema`,
-   `repopact-types`, and `repopact-validation`. The manifest also covers the
-   built-in schemas embedded by `repopact-schema`, the conformance manifest and
-   fixtures, and the relevant Cargo manifests and lockfile. The protocol DTO
-   crate is excluded because transport compatibility has its own protocol
-   identity. Exclude timestamps, absolute paths, product version, protocol
-   version, and target-specific build outputs. Repository-local schemas remain
-   validation inputs supplied by each repository, not part of the engine
-   binary identity.
-3. Compute the ID using this byte sequence: the UTF-8 domain prefix
-   `repopact-engine-semantic-inputs\0v1\0`, then for each input sorted by its
-   normalized repository-relative UTF-8 path, append the path, NUL, lowercase
-   hexadecimal SHA-256 of the raw file bytes, and LF. Paths use `/` on every
-   host and may not escape the repository. A `.gitattributes` rule must keep
-   hashed text inputs at LF so Windows and Unix builds hash the same source
-   bytes; do not normalize file contents in the identity tool itself. A
-   generator updates the manifest; the Rust build script verifies that its
-   listed input hashes match the source tree and embeds the manifest's ID.
-   Python reads the same packaged manifest. The current Maturin configuration
-   explicitly includes selected files in sdist and wheel; implementation must
-   add the identity manifest to both and include every source input needed to
-   validate it from an sdist. Maturin supports explicit sdist/wheel includes
-   ([configuration guide](https://www.maturin.rs/config.html)).
-   A stale manifest fails a source build instead of silently producing an
-   engine/client pair with different identities.
-4. Put the semantic identity in every engine response. The client validates
-   protocol, product version, and semantic identity on every response. A
-   missing, malformed, unsupported-format, or mismatched identity fails closed
-   before the operation result is used. `REPOPACT_ENGINE` selects a path only;
-   it never bypasses compatibility checks. No incompatible-engine escape hatch
-   is available to canonical operations.
-5. Preserve the released stable 3.1.3 Python/engine pair unchanged. Strict
-   semantic-identity enforcement is introduced for a later product version;
-   do not publish a rebuilt artifact under the stable 3.1.3 identity. Existing
-   stable 3.1.3 users keep their current matched pair, while a newer client
-   rejects an older engine through the existing exact product-version check or
-   the missing-identity check. Unknown identity formats fail closed; migrating
-   the identity format requires an explicit versioned transition.
-6. For each new conformance run, record the exact source revision, executable
-   SHA-256, product version, protocol name/major, semantic identity format and
-   value, and focused validation result in the evidence run's `environment`.
-   Historical evidence stays immutable. This semantic fingerprint detects
-   accidental input-set skew; it does not prove semantic equivalence or
-   authenticate executable bytes. Trusted-artifact verification remains a
-   separate design.
+Keep four independent claims in protocol and conformance evidence:
 
-The input list must be checked against the engine's actual local dependency
-closure and package contents before implementation is approved. Any hash over
-source and conformance inputs is conservative: a behavior-preserving refactor
-of an included file changes the identity and may reject an otherwise compatible
-engine. That is an intentional fail-closed trade-off for this first version.
+1. **Protocol identity**: request/response wire compatibility (protocol name
+   and major version).
+2. **Product identity**: the claimed package/engine release version.
+3. **Semantic-contract identity**: the versioned validation contract expected
+   by the Python client and implemented by the Rust engine.
+4. **Executable authenticity**: whether exact executable bytes came from an
+   independently trusted source. The semantic identity does not establish
+   this fourth claim.
 
-## Required implementation evidence
+The semantic identifier format is
+`repopact-semantic-v1:sha256:<lowercase-hex>`. A new format requires an
+explicit versioned migration; unknown formats fail closed at the strict
+enforcement boundary.
 
-- Matching engine identity is accepted.
-- A stale engine with the same protocol and product version but a different
-  semantic identity is rejected through ordinary Scripts-directory discovery
-  and through `REPOPACT_ENGINE`.
-- Missing, malformed, unsupported-format, and mismatched identities are
-  rejected; validation also covers a stale engine placed beside the Python
-  package and a path replacement between handshake and operation calls.
-- The source tree, source distribution, and wheel expose the same identity for
-  identical semantic inputs.
-- A conformance run records executable SHA-256 immediately before and after the
-  run and is not accepted as provenance-complete if the digest changes.
-- Stable 3.1.3 remains unchanged, and the release boundary for strict
-  enforcement is explicit.
-- New conformance evidence records executable and source provenance without
-  presenting the semantic identity as binary authenticity.
+### Authoritative input closure
+
+The identity covers the following reviewed input set. The generator discovers
+the actual set from the source tree and dependency metadata; it does not trust
+a hand-maintained per-file list as the source of truth.
+
+- **Python contract and packaged data:** every tracked runtime `.py` file under
+  `repopact/` (currently 41), all `repopact/schemas/*.json`, and all packaged
+  templates. This includes the engine resolver, Python-side request/response
+  validation and operation wrappers, the conformance runner and its reference
+  oracle. The exact Python runtime dependency closure is represented by a
+  hash-pinned lock/export; an unconstrained semantic runtime dependency makes
+  the source/wheel identity check fail rather than being silently omitted.
+- **Rust implementation:** the transitive local Cargo dependency closure of
+  `repopact-engine`, including normal, build, and target-specific dependencies.
+  The current closure is `repopact-engine`, `repopact-analysis`,
+  `repopact-core`, `repopact-graph`, `repopact-mutation`,
+  `repopact-protocol`, `repopact-repository`, `repopact-schema`,
+  `repopact-types`, and `repopact-validation`. Include each closure member's
+  `Cargo.toml`, all Rust source and build scripts, and every file referenced
+  by `include_str!`, `include_bytes!`, or equivalent compile-time inclusion.
+  Include the workspace `rust/Cargo.toml` and `rust/Cargo.lock`, whose locked
+  registry dependencies carry their package checksums.
+- **Protocol declarations:** include `repopact-protocol` DTOs and
+  `capabilities()` declarations, including its advertised operations and
+  `semantic_surfaces`. These declarations are part of the client/engine
+  semantic contract even though the wire protocol name and major remain a
+  separate identity.
+- **Embedded schemas:** include all packaged schema files and verify the
+  compile-time embedded set. The current Rust `repopact-schema` embeds
+  `evidence-run.schema.json`, `documentation-mappings.schema.json`,
+  `frozen-surface.schema.json`, `invariants.schema.json`,
+  `work-item.schema.json`, `adopter-fleet.schema.json`,
+  `verification-profile.schema.json`, and `assurance-mapping.schema.json`.
+- **Conformance contract:** include the complete tracked `conformance/` tree,
+  root `SPEC.md`, and every fixture byte. This includes the manifest, valid and
+  invalid cases, overlays, and their metadata; it prevents a binary from
+  advertising the expected identity while omitting a governed conformance
+  input.
+- **Identity/build rules:** include the reviewed input-policy file, identity
+  generator, engine `build.rs` files, `.gitattributes`, and the semantic
+  projection of `pyproject.toml` (`[build-system]`, runtime dependency
+  declarations, `requires-python`, and `[tool.maturin]` inclusion settings).
+  The hash-pinned Python runtime lock/export is also an input. That lock does
+  not currently exist and must be added before package identity can be
+  accepted. Product-version values (`VERSION`, `RELEASE_LABEL`, and
+  `project.version`) are recorded separately and excluded from the semantic
+  digest; build scripts' logic remains an input.
+
+This is deliberately fail-closed and may change the identifier for a
+behavior-preserving refactor. The generator must compare its discovered path
+set with the stored manifest in both directions. New governed files, removed
+files, missing files, changed contents, an unresolved local dependency, or an
+unlocked semantic Python dependency make `--check` fail. The source closure
+must also be reviewed against actual Cargo metadata and Maturin package
+contents during implementation; this Decision records the current closure,
+not a claim that package verification has already run.
+
+### Deterministic manifest and build behavior
+
+The proposed canonical generator emits a checked-in semantic-input manifest at
+`build/semantic-input-policy.json`,
+`scripts/generate_engine_semantic_identity.py`, and the generated
+`repopact/_semantic_identity.json`. The policy describes governed roots and
+exclusions; the manifest stores the discovered file set and computed ID.
+The source/wheel identity is read from that manifest, while product version
+continues to come from the existing product-version channel.
+
+The input list is sorted by normalized repository-relative UTF-8 path, uses
+`/` on
+every host, rejects paths escaping the repository and names containing NUL or
+newline, and hashes raw file bytes. Governed text inputs use `.gitattributes`
+with LF checkout bytes; the generator does not normalize bytes. The identity
+is SHA-256 over the bytes `repopact-engine-semantic-inputs\0v1\0`, an unsigned
+64-bit big-endian entry count, then each sorted entry as an unsigned 32-bit
+big-endian UTF-8 path length, path bytes, and the 32 raw bytes of the file
+SHA-256. The manifest stores readable lowercase hex digests and this computed
+identifier.
+
+The generator source and policy are inputs. The generated manifest and the
+digest embedded in it are outputs and are excluded from the hashed input set,
+so there is no self-reference. A known-answer test fixes the canonical
+encoding. `--check` only recomputes and compares; it never writes. A separate
+explicit `--update` operation may write the manifest, but no build, test,
+wheel, or source-distribution command invokes it. A baseline change therefore
+appears as a reviewed source diff and cannot be silently advanced by CI or a
+local build.
+
+Cargo's build check and the Maturin source-build path must both fail on a stale
+manifest and detect an input-set difference. The source distribution includes
+the generator, policy, lock data, all files needed to rediscover the closure,
+and the identity manifest. The wheel includes the same identity manifest with
+the Python package and engine. Tests inspect both archives and prove that a
+source build and wheel expose the same identity for the same inputs. Maturin
+include patterns in `pyproject.toml` are part of this package audit. No build
+path updates the manifest implicitly.
+
+The conformance identity inputs are the normative specification, manifest,
+runner/reference implementation, and complete fixture corpus. Test source such
+as `tests/test_engine_client.py` is acceptance evidence rather than a runtime
+identity input; it is still mandatory validation and cannot be used to advance
+the identity baseline.
+
+### Side-effect admission: same process, same image
+
+The selected design is a stateful, line-delimited session owned by one engine
+process. The client may reuse that session for operations in its lifetime, but
+an admission result is bound to that process instance only:
+
+1. Start one engine process and send only a non-mutating `handshake` request.
+   The response reports protocol identity, product identity, semantic
+   identity, and capabilities.
+2. Verify all expected identities and required capabilities in Python. No
+   repository operation has been sent at this point.
+3. Send an explicit `admit` request to that same process, echoing the expected
+   semantic identity. The Rust session compares it with its build-time
+   identity, then returns an admission acknowledgement. Until admitted, the
+   engine refuses every operation before dispatch, including every mutating
+   operation.
+4. Only after verifying that acknowledgement does the client send an
+   operation. The same already-running process that passed both checks
+   executes it. Every response still carries the identities and is checked,
+   but response checking is a consistency check, not the side-effect barrier.
+
+The client must never treat `check_compatibility()` from one process as
+authorization for an operation launched in a later process. A process exit
+requires a fresh handshake and admission before any later operation. If a
+process exits after an operation was sent and its result is unknown, report an
+unknown outcome and do not retry that operation automatically. Replacing the
+executable at its path after process start does not replace the image already
+executing in that process.
+
+Legacy behavior fails before mutation. The current one-request engine waits
+for stdin EOF; the new client keeps the session pipe open while awaiting the
+handshake, so a legacy binary times out and is terminated before any operation
+is sent. A legacy binary that does answer a handshake but omits the semantic
+identity is rejected before `admit`. A binary that ignores newly added JSON
+fields is not trusted to reject itself: the client sends no mutating request
+until it has verified the handshake and the same-process admission
+acknowledgement. The engine-side unadmitted state is a second guard for new
+engines. Ordinary Scripts-directory discovery, an executable beside the
+Python package, and `REPOPACT_ENGINE` all use the same admission rule; an
+explicit override selects a path but cannot bypass it.
+
+A separate handshake process followed by a second executable launch is
+rejected as unsafe: the second launch may resolve to different bytes and may
+mutate before the client sees its response. Checking an identity only in an
+operation response is also rejected because that check occurs after side
+effects.
+
+### Migration and compatibility boundary
+
+Do not change or rebuild the released stable 3.1.3 Python/engine pair under
+its existing identity. Introduce strict session admission only in a distinct,
+governed post-3.1.3 development/product identity and ship the client and
+engine together in its wheel. A new strict client paired with a legacy engine
+times out or rejects the missing identity before sending an operation. A
+future strict engine rejects a legacy one-shot operation before dispatch;
+cross-version pairings may fail closed, but the existing matched stable 3.1.3
+installation continues to behave as released. There is no `REPOPACT_ENGINE`
+compatibility bypass for canonical operations.
+
+### Packaging, provenance, and limits
+
+For every canonical conformance run, record the source commit, product
+version, protocol name/major, semantic identity format/value, resolved engine
+path, process ID and OS file identity, and executable SHA-256. Bind the hash to
+the actual process image file identity, measure before the first conformance
+operation and after the last response, and mark provenance incomplete if the
+image identity or digest cannot be correlated or changes. Run the canonical
+suite through one admitted `EngineClient` session where practical; otherwise
+record each engine process and its digest. Existing evidence lacking an
+executable digest remains historical and is not rewritten.
+
+The semantic digest detects accidental source/input skew when the engine
+reports it honestly. It is not proof that a malicious executable reports a
+truthful identity, that a binary was built from a claimed revision, or that
+the bytes came from a trusted publisher. Those claims require separate,
+independently trusted artifact signatures/provenance and approval. A source
+identity plus an executable SHA-256 is traceability evidence, not
+authentication.
+
+## Focused acceptance tests required before implementation can be accepted
+
+- Matching identity and capabilities are admitted; an operation runs only
+  after the handshake and admission responses have been checked, in the same
+  PID/process session.
+- A same-protocol, same-product stale engine with a different semantic ID is
+  rejected before any operation request. Snapshot a temporary repository
+  before and after and prove it is byte-for-byte unchanged.
+- Missing, malformed, unsupported-format, or mismatched identities are
+  rejected before operation dispatch. A legacy fake engine that ignores extra
+  JSON fields must record that it received no mutating operation.
+- Cover normal Scripts discovery, explicit `REPOPACT_ENGINE`, and a stale
+  executable physically beside the Python package. All must leave the
+  temporary repository unchanged.
+- Simulate replacing the selected executable path after handshake. Assert the
+  client neither launches a second process nor sends the operation to the new
+  path; only the admitted process instance can receive it. Include an engine
+  exit between admission and dispatch and prove the client does not resend a
+  mutating request automatically.
+- Exercise the engine-side state machine: operations before admission and
+  mismatched admission IDs are rejected before filesystem mutation.
+- Prove deterministic input discovery, exact manifest membership, new and
+  omitted file detection, known-answer hashing, no implicit baseline update,
+  and agreement among checkout, sdist, and wheel.
+- Preserve the released stable 3.1.3 pair and verify the explicit future
+  product-version boundary; do not infer compatibility from protocol version
+  alone.
+- For each conformance run, assert the recorded executable SHA-256 and OS file
+  identity identify the image used, alongside protocol, product, semantic ID,
+  and source revision.
 
 ## Alternatives considered
 
-- **Protocol and product version only** — rejected because both matched in the
-  observed stale-engine run while behavior differed.
-- **One manually incremented semantic integer** — rejected as the sole input
-  because it can be forgotten when semantics change under an unchanged product
-  version.
-- **Executable SHA-256 as the semantic identity** — rejected because it varies
-  by target/build and conflates semantic compatibility with artifact identity;
-  record it separately.
-- **Allow `REPOPACT_ENGINE` to bypass the check** — rejected because the
-  existing explicit override reproduced stale behavior and canonical
-  operations must remain fail-closed.
+- **Check protocol/product only** — rejected because the observed stale engine
+  matched both while accepting two more conformance violations.
+- **Check semantic ID only in each operation response** — rejected because
+  the operation may have mutated repository state before the response is
+  checked.
+- **Handshake in one process, then relaunch for the operation** — rejected
+  because path replacement between launches is a TOCTOU race.
+- **Manually increment one semantic integer** — rejected as the sole source
+  because it can be forgotten when behavior changes.
+- **Use executable SHA-256 as semantic identity** — rejected because it
+  conflates input compatibility with target-specific artifact bytes.
+- **Allow `REPOPACT_ENGINE` to bypass identity/admission** — rejected because
+  the override reproduced stale behavior and canonical operations must remain
+  fail-closed.
 
-## Consequences and pre-build gate
+## Owner approval gate and status
 
-No implementation or compilation was performed during this review. The latest
-read-only snapshot at 15:22 UTC found only C: (healthy NTFS), with
-2,242,760,704 bytes free (2.09 GiB). One unrelated `fabric-qualification`
-Cargo test was active (`cargo test --workspace --locked --features
-fabric-hub/test-harness`, represented by its parent and child Cargo processes).
-No Core target exists, and `CARGO_TARGET_DIR` is unset. For a cold
-engine/workspace test build, use a conservative planning ceiling of 12 GiB for
-target output, 2 GiB for temporary/wheel output, and 4 GiB of headroom; require
-at least 18 GiB free and recheck competing processes before any compilation.
-If that capacity is not available or another build is active, do not compile.
-The selected task-owned paths are `C:\Projects\repopact-core-wi076-build\target`
-for `CARGO_TARGET_DIR` and `C:\Projects\repopact-core-wi076-build\tmp` for
-`TMP`/`TEMP`; create them only after the capacity gate passes and reuse the
-target across focused runs. Do not clean Cargo caches, existing targets, the
-previously denied temporary repository, or unrelated ForgeWire trees. Only the
-task-owned WI076 target can be considered for cleanup after outputs are
-recorded and all associated build processes have exited.
+This record remains **proposed**. Before implementation, the tooling owner
+must explicitly approve (1) the same-process handshake/admission sequence and
+engine-side pre-dispatch gate, (2) the complete input closure and Python
+dependency-lock requirement, (3) the strict post-3.1.3 migration boundary,
+and (4) the Maturin archive and process-image provenance plan. Record that
+approval in the governed decision/evidence flow; a successful governance check
+or this review is not owner approval. Until then, WI076 remains active and
+implementation criteria remain pending. WI074 RPS-016 remains independently
+pending.
 
-WI074 RPS-016 remains pending after WI076 completes until its separate release,
-compatibility matrix, offline installation, upgrade, and rollback criteria are
-independently proven.
+## Pre-build gate
+
+The latest read-only snapshot at 15:48 UTC found C: healthy NTFS with
+16,077,275,136 bytes free (14.97 GiB); no `cargo.exe` or `rustc.exe` process
+was found. The earlier 15:22 UTC snapshot had an unrelated
+`fabric-qualification` Cargo test process tree. The recorded conservative
+minimum is 18 GiB free (12 GiB target + 2 GiB temporary and wheel output + 4
+GiB headroom). Do not compile while below that threshold or while unrelated
+Cargo work is active. If later authorized by capacity,
+recheck both conditions and use only the task-owned
+`C:\Projects\repopact-core-wi076-build\target` and `...\tmp` paths. Do not
+clean Cargo caches, existing targets, the previously denied temporary
+repository, or unrelated ForgeWire trees. Only that task-owned target may be
+considered for cleanup after its evidence is recorded and its build processes
+have exited.

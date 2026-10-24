@@ -33,35 +33,39 @@ The machine-readable criteria are in `work-item.json`. They require an approved 
 
 ## Architecture review (2026-10-24)
 
-The source review found that `repopact/engine_client.py` checks protocol and
-product version but not semantic identity. It caches handshake capabilities,
-then starts a new engine process for each operation. Therefore an identity
-check must apply to every response, not only to the handshake, to reject an
-engine replaced between calls. Default Scripts-directory discovery and
-`REPOPACT_ENGINE` both use the same client path and should enforce the same
-compatibility rule.
+The source review confirmed that the current client performs a handshake in
+one process and launches another process for each operation. Checking an
+operation response is too late for writes. The proposed correction is a
+same-process JSON-lines session: handshake, client verification, engine-side
+admission, then operation on that same process. The client sends no mutation
+before checking both the semantic identity and the admission acknowledgement.
+A separate handshake process followed by another executable launch is not
+considered safe. Legacy one-request engines either time out before answering
+while the session pipe remains open or return no semantic identity; neither
+case receives a mutating request.
 
-The proposed design is recorded in [Decision 0077](../../../decisions/0077-engine-semantic-compatibility-identity.md).
-It remains **proposed** pending owner review; no implementation has started.
-The proposal keeps the stable 3.1.3 installation pair unchanged and makes the
-strict identity contract effective only with a later product version. WI074
-RPS-016 remains pending.
+Decision 0077 now records the current local Rust dependency closure, Python
+package contract surface, protocol capability declarations, embedded schemas,
+conformance corpus, package/build inputs, deterministic manifest rules,
+Maturin source/wheel checks, and focused no-mutation tests. It remains
+**proposed** pending the tooling owner's explicit approval of the admission
+boundary, input closure, migration boundary, and archive/provenance plan. No
+implementation has started. Stable 3.1.3 remains unchanged, WI076 remains
+active, and WI074 RPS-016 remains pending.
 
-AC-1 is satisfied as the source-level design comparison and record, with
-Decision 0077 still **proposed** pending owner approval before implementation.
-AC-7 is satisfied by the merged registration: WI074 names WI076 as supporting
-RPS-016 evidence and explicitly keeps RPS-016 pending. AC-8 is satisfied as
-the pre-build budget and cleanup plan. Evidence is recorded in
-[20261024-076-architecture-review](../../../evidence/runs/20261024-076-architecture-review.json),
+AC-1 is satisfied as a recorded source-level architecture comparison, not as
+owner approval or implementation. AC-2 through AC-6 remain pending. AC-7 is
+satisfied by the merged registration linking WI076 to RPS-016 without
+satisfying that gate. AC-8 is satisfied as a pre-build plan. Evidence is
+recorded in [20261024-076-architecture-review](../../../evidence/runs/20261024-076-architecture-review.json),
+[20261024-076-admission-architecture-review](../../../evidence/runs/20261024-076-admission-architecture-review.json),
 [20261024-076-rps016-link-registration](../../../evidence/runs/20261024-076-rps016-link-registration.json),
 and [20261024-076-prebuild-storage-budget](../../../evidence/runs/20261024-076-prebuild-storage-budget.json).
-The other five criteria remain pending; these design and governance results
-are not an implementation or compatibility fix.
+These design and governance results do not claim an implemented compatibility
+fix.
 
 ## Build and storage plan
 
-No build or full suite was run for the registration or this architecture review. The latest read-only snapshot at 15:22 UTC found only C: (healthy NTFS), with 2,242,760,704 bytes free (2.09 GiB). One unrelated `fabric-qualification` Cargo test was active (`cargo test --workspace --locked --features fabric-hub/test-harness`, represented by its parent and child Cargo processes). No Core target exists, and `CARGO_TARGET_DIR` is unset. The denied temporary repository and unrelated ForgeWire tree remain untouched; no cleanup was performed.
+No build or full suite was run for the registration or this architecture review. The 15:22 UTC snapshot found 2,242,760,704 bytes free and an unrelated `fabric-qualification` Cargo test process tree. A fresh 15:48 UTC read-only snapshot found C: healthy NTFS with 16,077,275,136 bytes free (14.97 GiB); the process query found no Cargo or rustc build process. Current free space is still below the recorded 18 GiB minimum, so compilation remains blocked by storage. No cleanup was performed. The denied temporary repository and unrelated ForgeWire tree remain untouched.
 
-For a cold engine/workspace test build, reserve a conservative planning ceiling of 12 GiB for target output, 2 GiB for temporary/wheel output, and 4 GiB of headroom; require at least 18 GiB free and a fresh process check with no competing build. The selected task-owned paths are `C:\Projects\repopact-core-wi076-build\target` for `CARGO_TARGET_DIR` and `C:\Projects\repopact-core-wi076-build\tmp` for `TMP`/`TEMP`; the build root does not exist yet. Do not compile with current capacity or while the unrelated Cargo test is active. If capacity is recovered, reuse that target across focused runs. If cleanup is later needed, remove only that task-owned target after outputs are recorded and all of its processes have exited; retain Cargo caches and every unrelated target.
-
-AC-7 and AC-8 are satisfied with linked evidence. The other six criteria remain pending; neither criterion claims an implementation or compatibility fix.
+For a cold engine/workspace test build, reserve a conservative planning ceiling of 12 GiB for target output, 2 GiB for temporary/wheel output, and 4 GiB of headroom; require at least 18 GiB free and a fresh process check with no competing build. The selected task-owned paths are `C:\Projects\repopact-core-wi076-build\target` for `CARGO_TARGET_DIR` and `C:\Projects\repopact-core-wi076-build\tmp` for `TMP`/`TEMP`; the build root does not exist yet. Do not compile below that capacity or while unrelated Cargo work is active. If capacity recovers, reuse that target across focused runs. If cleanup is later needed, remove only that task-owned target after outputs are recorded and all of its processes have exited; retain Cargo caches and every unrelated target.
