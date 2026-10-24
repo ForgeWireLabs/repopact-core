@@ -121,15 +121,20 @@ engine. That is an intentional fail-closed trade-off for this first version.
 ## Consequences and pre-build gate
 
 No implementation or compilation was performed during this review. At the
-latest read-only snapshot, C: was healthy with 2.34 GiB free; no alternate
-volume, active Cargo/rustc process, or Core `target` directory was present. A
-cold engine build is budgeted at up to 6 GiB of target output plus 1 GiB of
-temporary/wheel output, with 3 GiB headroom; require at least 10 GiB available
-and recheck competing processes before any compilation. Reuse one dedicated
-WI076 target directory. Do not clean Cargo caches, existing targets, the
-previously denied temporary repository, or unrelated ForgeWire trees. Only a
-task-owned WI076 target can be considered for cleanup after its outputs are
-recorded and all associated build processes have exited.
+latest read-only snapshot, C: was healthy with 2,343,563,264 bytes free
+(2.18 GiB); no alternate volume, active Cargo/rustc process, or Core target
+directory was present. For a cold engine/workspace test build, use a
+conservative planning ceiling of 12 GiB for target output, 2 GiB for
+temporary/wheel output, and 4 GiB of headroom; require at least 18 GiB free and
+recheck competing processes before any compilation. If that capacity is not
+available, do not compile. If recovered, isolate `CARGO_TARGET_DIR` at
+`C:\Projects\repopact-core-wi076-build\target` and `TMP`/`TEMP` at
+`C:\Projects\repopact-core-wi076-build\tmp`, creating those directories only
+after the capacity gate passes. Reuse that task-owned target across focused
+runs. Do not clean Cargo caches, existing targets, the previously denied
+temporary repository, or unrelated ForgeWire trees. Only the task-owned WI076
+target can be considered for cleanup after outputs are recorded and all
+associated build processes have exited.
 
 WI074 RPS-016 remains pending after WI076 completes until its separate release,
 compatibility matrix, offline installation, upgrade, and rollback criteria are
