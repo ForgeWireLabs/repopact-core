@@ -138,3 +138,23 @@ Workbench contract gates are complete. RPS-012 still needs criterion-specific
 production-service evidence or a separately approved scope disposition before
 the remaining Workbench platform, release, rollback and consumer gates can
 close. Proving Ground and ForgeWire remain separate consumer decisions.
+
+## Engine semantic identity follow-up (2026-10-24)
+
+Core PR #9 merged at `91462edb4e4e4a0a1d5447708032dcb529d94db4`. WI074 remains
+active at **17 satisfied, 7 pending**; RPS-020 is satisfied and RPS-016 remains
+pending.
+
+Core issue [#10](https://github.com/ForgeWireLabs/repopact-core/issues/10) is
+governed by [WI076 — Engine Semantic Compatibility Identity](../076-engine-semantic-compatibility-identity/README.md).
+WI076 is supporting work for RPS-016: it addresses deterministic semantic
+compatibility identity and fail-closed behavior for same-version engine skew.
+It does not establish the complete separate-version, compatibility-matrix,
+offline installation, upgrade, and rollback evidence required by RPS-016. The
+semantic ID will remain distinct from protocol/product versions and from trusted
+binary authenticity; WI074/RPS-016 will not be marked satisfied when WI076 closes
+without the remaining RPS-016 evidence.
+
+The finding and bounded compatibility result are recorded in
+[the WI047 acceptance evidence](../../../evidence/runs/20261023-047-independent-acceptance.json)
+and [the October 24 governance closeout](../../../evidence/runs/20261024-074-governance-closeout.json).

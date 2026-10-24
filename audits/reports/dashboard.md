@@ -22,7 +22,7 @@
 | Status | Count |
 | --- | ---: |
 | proposed | 3 |
-| active | 8 |
+| active | 9 |
 | blocked | 1 |
 | deferred | 1 |
 | completed | 63 |
@@ -41,4 +41,5 @@ All audit scopes are within their review cadence.
 - 066: RepoPact 3.1.0 Milestone Release and Research Snapshot Reconciliation (active)
 - 067: GitHub Repository Provider, Secure User Authorization, and Remote Repository Import (active)
 - 074: Extract RepoPact Core and Independent Workbench (active)
+- 076: Engine Semantic Compatibility Identity (active)
 - 032: Restore remote cross-platform governance enforcement (blocked)
