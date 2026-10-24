@@ -8,6 +8,11 @@
   },
   "rust": {
     "workspace_manifest": "rust/Cargo.toml",
+    "workspace_manifest_projection_exclude_fields": [
+      "members",
+      "exclude",
+      "default-members"
+    ],
     "seed_package": "repopact-engine",
     "source_extension": ".rs",
     "ignored_directory_names": ["target", ".git", "__pycache__"]

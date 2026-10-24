@@ -18,7 +18,7 @@ class RuntimeDependencyError(RuntimeError):
 _REQUIREMENT = re.compile(
     r"^([A-Za-z0-9_.-]+)==([^\s;\\]+)(?:\s*;\s*(.*?))?\s*\\?$"
 )
-_MARKER_ATOM = re.compile(r"^\s*([A-Za-z_]+)\s*(==|!=)\s*'([^']*)'\s*$")
+_MARKER_ATOM = re.compile(r"^\s*([A-Za-z_]+)\s*(==|!=|<=|>=|<|>)\s*'([^']*)'\s*$")
 
 
 def _normalize_name(name: str) -> str:
@@ -31,6 +31,8 @@ def _marker_applies(marker: str | None) -> bool:
     variables = {
         "platform_python_implementation": platform.python_implementation(),
         "implementation_name": sys.implementation.name,
+        "python_version": f"{sys.version_info[0]}.{sys.version_info[1]}",
+        "python_full_version": ".".join(str(part) for part in sys.version_info[:3]),
     }
     for atom in marker.split(" and "):
         match = _MARKER_ATOM.fullmatch(atom)
@@ -38,7 +40,25 @@ def _marker_applies(marker: str | None) -> bool:
             raise RuntimeDependencyError(f"unsupported runtime-lock marker: {marker!r}")
         variable, operator, expected = match.groups()
         actual = variables[variable]
-        if (actual == expected) != (operator == "=="):
+        if variable in {"python_version", "python_full_version"}:
+            try:
+                actual_version = tuple(int(part) for part in actual.split("."))
+                expected_version = tuple(int(part) for part in expected.split("."))
+            except ValueError as exc:
+                raise RuntimeDependencyError(f"unsupported runtime-lock marker: {marker!r}") from exc
+            comparison = {
+                "==": actual_version == expected_version,
+                "!=": actual_version != expected_version,
+                "<": actual_version < expected_version,
+                "<=": actual_version <= expected_version,
+                ">": actual_version > expected_version,
+                ">=": actual_version >= expected_version,
+            }[operator]
+        elif operator in {"==", "!="}:
+            comparison = (actual == expected) if operator == "==" else (actual != expected)
+        else:
+            raise RuntimeDependencyError(f"unsupported runtime-lock marker: {marker!r}")
+        if not comparison:
             return False
     return True
 

@@ -8,7 +8,11 @@
     },
     {
       "path": "@projection/pyproject-semantic-build-config.json",
-      "sha256": "a2c0f54f4102a83cde139a42c964ee6d3e78f73cddf069c4a540fd820d9d9f24"
+      "sha256": "19e6a74cf8c516cc578faca815b811b798a14e7724ef61f86d16eb5ceb8f308d"
+    },
+    {
+      "path": "@projection/rust-workspace-manifest.json",
+      "sha256": "c18d8125f45eafc185d4d3f6ff8c7ba6f7a22e37c3fec956641f1f07187c3760"
     },
     {
       "path": "SPEC.md",
@@ -16,7 +20,7 @@
     },
     {
       "path": "build/semantic-input-policy.json",
-      "sha256": "fa24ef06fc493c3658fb75e850dd0cae11552562fbdfc8968d07f19a6c3ab31e"
+      "sha256": "a670ecb837355ea28a83bade8ed01d5f951d9d8bbc8c13b8fac1316c264b93f2"
     },
     {
       "path": "conformance/README.md",
@@ -572,7 +576,7 @@
     },
     {
       "path": "repopact/requirements-runtime.lock",
-      "sha256": "c6c263ea8c572cf3dcf59d82244f79e43e5939c6160532d9616bb0bb7074de3e"
+      "sha256": "0afc7ed861e5103e89db780107506a0dbd2ba6023b451c807e13f7bd176fe14b"
     },
     {
       "path": "repopact/run_admission_platform_conformance.py",
@@ -584,11 +588,11 @@
     },
     {
       "path": "repopact/runtime-dependency-groups.json",
-      "sha256": "f4683a68c8fa6c11d5c55997ebee2c9f3bf1dcfd0f3f283b4c50b1095f8e791f"
+      "sha256": "2a10b8297b12bae27bf15bb4e11e455bc4c48f8143776019729e6838ecc953a4"
     },
     {
       "path": "repopact/runtime_dependencies.py",
-      "sha256": "33efdded7de3aa78a6bf0e9528aa30480f661cafbe3123a0b6274f867a086e95"
+      "sha256": "32029f874f75c98dc1a8414c5b66a4d94b1440d8d85b15baf032855e5e2d4ece"
     },
     {
       "path": "repopact/schemas/adapter-capabilities.schema.json",
@@ -739,16 +743,12 @@
       "sha256": "ba0ad98f6cb4d939dfa2338b86ccec438c91ec2b6dc6a5edb4f3ffd5fcb19cea"
     },
     {
-      "path": "rust/Cargo.toml",
-      "sha256": "f51b76720c7dcc4fdb6d6b63673748801ae62c3d3fb383db9d02bc78fe59aa29"
-    },
-    {
       "path": "rust/apps/repopact-engine/Cargo.toml",
       "sha256": "593cd6a6f027d0e9f1e82be70f05743a6d872bf48607f00d75c1c7a73e02f9db"
     },
     {
       "path": "rust/apps/repopact-engine/build.rs",
-      "sha256": "807d2a4f267ec918e32df8a714e381d07ea35072348efbb158836b4ae5b22bab"
+      "sha256": "8fec3731d2dba041bbd39e3756453ddc055c524ba9c6f7bd2d65f73af5f138c9"
     },
     {
       "path": "rust/apps/repopact-engine/src/bin/repopact.rs",
@@ -756,7 +756,7 @@
     },
     {
       "path": "rust/apps/repopact-engine/src/main.rs",
-      "sha256": "9d6e7019d3d7bfd6cf75b7681cb315e8c352e2a48fce94a467bfa57764c380bf"
+      "sha256": "18f98d58fbed7bfef1bbb5e995ca1c8765a94852153c597cf5d8cc08dd9abc29"
     },
     {
       "path": "rust/apps/repopact-engine/src/query_ops.rs",
@@ -1024,12 +1024,12 @@
     },
     {
       "path": "scripts/generate_engine_semantic_identity.py",
-      "sha256": "22462084d0a718602d706704d3de214a605db0720a15cb852941da1c2985d5e5"
+      "sha256": "5b50c1934b3907b75054631ce616fcd1080ce2a93d7ba8712c73239d123ddd4d"
     },
     {
       "path": "scripts/verify_engine_package_identity.py",
-      "sha256": "4136babadee6afc82f8d6176f5f246e2ad340843cd002e98710d36e1d5d4e5c9"
+      "sha256": "748cc06e0f8d1d226ce6cdf8a89f098587c5fa715333b6300749e7d6f02b6130"
     }
   ],
-  "semantic_identity": "repopact-semantic-v1:sha256:70fdf142928e3f6a447bea861833610f3cb9b6cf9dff50e004662bd8c7accb23"
+  "semantic_identity": "repopact-semantic-v1:sha256:1cfcfe8931ae6e4cb2dbbf1774a004396025486e9c3c850f9b2abadd8bb4fdb2"
 }

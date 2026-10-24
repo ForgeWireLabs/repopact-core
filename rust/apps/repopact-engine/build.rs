@@ -18,6 +18,7 @@ fn main() {
     println!("cargo:rerun-if-changed={}", inputs_manifest_path.display());
     println!("cargo:rerun-if-changed={}", policy_path.display());
     println!("cargo:rerun-if-changed={}", generator_path.display());
+    watch_semantic_input_roots(&root, &policy_path);
 
     check_semantic_manifest(&root, &inputs_manifest_path, &identity_path);
 
@@ -61,6 +62,37 @@ fn main() {
     println!("cargo:rustc-env=REPOPACT_ENGINE_RUSTC_VERSION={rustc_version}");
     println!("cargo:rustc-env=REPOPACT_ENGINE_TARGET={target}");
     println!("cargo:rustc-env=REPOPACT_ENGINE_PROFILE={profile}");
+}
+
+fn watch_semantic_input_roots(root: &PathBuf, policy_path: &PathBuf) {
+    let policy: serde_json::Value = serde_json::from_slice(
+        &fs::read(policy_path).expect("semantic input policy must be present"),
+    )
+    .expect("semantic input policy must be valid JSON");
+    let python_root = policy["python"]["root"]
+        .as_str()
+        .expect("semantic input policy must name the Python source root");
+    let conformance_root = policy["conformance_root"]
+        .as_str()
+        .expect("semantic input policy must name the conformance root");
+    let workspace_manifest = policy["rust"]["workspace_manifest"]
+        .as_str()
+        .expect("semantic input policy must name the Rust workspace manifest");
+    let workspace_path = root.join(workspace_manifest);
+    let workspace_root = workspace_path
+        .parent()
+        .expect("Rust workspace manifest must have a parent directory");
+
+    for path in [
+        root.join(python_root),
+        root.join(conformance_root),
+        workspace_path,
+        root.join("pyproject.toml"),
+        workspace_root.join("crates"),
+        workspace_root.join("apps"),
+    ] {
+        println!("cargo:rerun-if-changed={}", path.display());
+    }
 }
 
 fn valid_revision(value: &str) -> bool {
@@ -127,8 +159,17 @@ fn check_semantic_manifest(root: &PathBuf, manifest_path: &PathBuf, identity_pat
     if let Some(inputs) = manifest["inputs"].as_array() {
         for entry in inputs {
             if let Some(path) = entry["path"].as_str() {
-                if !path.starts_with('@') {
-                    println!("cargo:rerun-if-changed={}", root.join(path).display());
+                match path {
+                    "@projection/pyproject-semantic-build-config.json" => {
+                        println!("cargo:rerun-if-changed={}", root.join("pyproject.toml").display());
+                    }
+                    "@projection/rust-workspace-manifest.json" => {
+                        println!("cargo:rerun-if-changed={}", root.join("rust/Cargo.toml").display());
+                    }
+                    projection if projection.starts_with('@') => {
+                        panic!("unsupported semantic input projection: {projection}");
+                    }
+                    _ => println!("cargo:rerun-if-changed={}", root.join(path).display()),
                 }
             }
         }

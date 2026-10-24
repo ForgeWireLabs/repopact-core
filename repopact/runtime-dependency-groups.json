@@ -7,7 +7,8 @@
       "jsonschema",
       "jsonschema-specifications",
       "referencing",
-      "rpds-py"
+      "rpds-py",
+      "typing-extensions"
     ],
     "enforcement": [
       "cffi",

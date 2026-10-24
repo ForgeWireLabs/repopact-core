@@ -15,7 +15,11 @@ SCRIPTS = ROOT / "scripts"
 if str(SCRIPTS) not in sys.path:
     sys.path.insert(0, str(SCRIPTS))
 
-from generate_engine_semantic_identity import _pyproject_projection, semantic_identity  # noqa: E402
+from generate_engine_semantic_identity import (  # noqa: E402
+    _pyproject_projection,
+    semantic_identity,
+    workspace_manifest_projection,
+)
 from verify_engine_package_identity import ArchiveIdentityError, verify_sdist, verify_wheel  # noqa: E402
 
 
@@ -40,12 +44,23 @@ include = [\"build/semantic-input-manifest.json\"]
         self.policy = {
             "format_version": 1,
             "pyproject_projection": {"runtime_optional_extras": ["enforcement"]},
+            "rust": {
+                "workspace_manifest_projection_exclude_fields": [
+                    "members",
+                    "exclude",
+                    "default-members",
+                ]
+            },
         }
         projection_root = self.root / "projection"
         projection_root.mkdir()
         (projection_root / "pyproject.toml").write_bytes(self.pyproject)
         projection = _pyproject_projection(
             projection_root, self.policy["pyproject_projection"]
+        )
+        workspace_manifest = (
+            '[workspace]\nresolver = "2"\nmembers = ["seed", "unused"]\n'
+            '[workspace.dependencies]\nserde = "1"\n'
         )
         self.files = {
             "pyproject.toml": self.pyproject,
@@ -54,18 +69,29 @@ include = [\"build/semantic-input-manifest.json\"]
             "repopact/runtime-dependency-groups.json": b'{"format_version":1}\n',
             "scripts/generate_engine_semantic_identity.py": b"# generator\n",
             "scripts/verify_engine_package_identity.py": b"# verifier\n",
+            "rust/Cargo.toml": workspace_manifest.encode(),
             "rust/Cargo.lock": b"# locked\n",
             "conformance/manifest.json": b'{"cases":[]}\n',
         }
         inputs = [
             {"path": name, "sha256": hashlib.sha256(content).hexdigest()}
             for name, content in self.files.items()
-            if name != "pyproject.toml"
+            if name not in {"pyproject.toml", "rust/Cargo.toml"}
         ]
         inputs.append(
             {
                 "path": "@projection/pyproject-semantic-build-config.json",
                 "sha256": hashlib.sha256(projection).hexdigest(),
+            }
+        )
+        workspace_projection = workspace_manifest_projection(
+            workspace_manifest,
+            self.policy["rust"]["workspace_manifest_projection_exclude_fields"],
+        )
+        inputs.append(
+            {
+                "path": "@projection/rust-workspace-manifest.json",
+                "sha256": hashlib.sha256(workspace_projection).hexdigest(),
             }
         )
         self.identity = semantic_identity(inputs)
@@ -119,6 +145,14 @@ include = [\"build/semantic-input-manifest.json\"]
         self.files.pop("sample.txt")
         with self.assertRaisesRegex(ArchiveIdentityError, "omitted semantic input sample.txt"):
             verify_sdist(self._sdist(), self.identity)
+
+    def test_sdist_accepts_maturin_workspace_membership_pruning(self) -> None:
+        self.files["rust/Cargo.toml"] = (
+            '[workspace]\nresolver = "2"\nmembers = ["seed"]\n'
+            '[workspace.dependencies]\nserde = "1"\n'
+        ).encode()
+        report = verify_sdist(self._sdist(), self.identity)
+        self.assertEqual(self.identity, report["semantic_identity"])
 
     def test_wheel_requires_agreeing_identity_manifest_and_runtime_lock(self) -> None:
         report = verify_wheel(self._wheel(), self.identity)

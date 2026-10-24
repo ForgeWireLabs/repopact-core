@@ -119,6 +119,32 @@ def _workspace_packages(root: Path, workspace_manifest: str) -> tuple[Path, dict
     return workspace_root, members, workspace_data
 
 
+def workspace_manifest_projection(manifest_text: str, excluded_fields: list[str]) -> bytes:
+    """Canonicalize build-relevant workspace settings, excluding package membership lists.
+
+    Maturin/Cargo prunes unrelated workspace members and reformats this file in an
+    sdist. The engine's actual dependency closure is discovered from the selected
+    seed package; membership lists only determine which packages are available to
+    that traversal, so they are represented by the discovered closure instead.
+    """
+    workspace_data = tomllib.loads(manifest_text)
+    workspace = workspace_data.get("workspace")
+    if not isinstance(workspace, dict):
+        raise ManifestError("Cargo workspace manifest has no [workspace] table")
+    allowed_exclusions = {"members", "exclude", "default-members"}
+    if not isinstance(excluded_fields, list) or not all(
+        isinstance(field, str) for field in excluded_fields
+    ):
+        raise ManifestError("unsupported Cargo workspace manifest projection exclusions")
+    excluded = set(excluded_fields)
+    if not excluded <= allowed_exclusions:
+        raise ManifestError("unsupported Cargo workspace manifest projection exclusions")
+    projection = {
+        "workspace": {key: value for key, value in workspace.items() if key not in excluded}
+    }
+    return _json_bytes(projection)
+
+
 def _dependency_tables(manifest: dict[str, Any]) -> list[dict[str, Any]]:
     tables: list[dict[str, Any]] = []
     for section in ("dependencies", "build-dependencies"):
@@ -280,7 +306,14 @@ def discover_inputs(root: Path) -> list[dict[str, str]]:
     rust_config = policy["rust"]
     workspace_manifest, _ = _safe_path(root, root / rust_config["workspace_manifest"])
     rust_closure = _rust_closure(root, rust_config, entries)
-    _add_file(root, workspace_manifest, entries)
+    workspace_projection_path = "@projection/rust-workspace-manifest.json"
+    entries[workspace_projection_path] = (
+        None,
+        workspace_manifest_projection(
+            workspace_manifest.read_text(encoding="utf-8"),
+            rust_config.get("workspace_manifest_projection_exclude_fields", []),
+        ),
+    )
     lockfile = workspace_manifest.parent / "Cargo.lock"
     _add_file(root, lockfile, entries)
 

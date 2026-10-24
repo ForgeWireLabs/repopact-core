@@ -12,7 +12,7 @@ description = "RepoPact Core: repository-native governance, evidence-gated work,
 readme = "README.md"
 requires-python = ">=3.11"
 license = "Apache-2.0"
-dependencies = ["jsonschema>=4.20"]
+dependencies = ["jsonschema>=4.20", "typing-extensions>=4.4.0; python_version < '3.13'"]
 
 [project.optional-dependencies]
 enforcement = ["cryptography>=43"]
@@ -36,7 +36,7 @@ include = [
     { path = "repopact/templates/*", format = ["sdist", "wheel"] },
     { path = ".gitattributes", format = ["sdist"] },
     { path = "SPEC.md", format = ["sdist"] },
-    { path = "conformance/**", format = ["sdist"] },
+    { path = "conformance/**/*", format = ["sdist"] },
     { path = "rust/**", format = ["sdist"] },
     { path = "VERSION", format = ["sdist"] },
     { path = "RELEASE_LABEL", format = ["sdist"] },

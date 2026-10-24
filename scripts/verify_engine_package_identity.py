@@ -12,7 +12,13 @@ import zipfile
 from pathlib import Path, PurePosixPath
 from typing import Any
 
-from generate_engine_semantic_identity import ManifestError, _pyproject_projection, check, semantic_identity
+from generate_engine_semantic_identity import (
+    ManifestError,
+    _pyproject_projection,
+    check,
+    semantic_identity,
+    workspace_manifest_projection,
+)
 
 
 class ArchiveIdentityError(RuntimeError):
@@ -110,6 +116,14 @@ def verify_sdist(path: Path, expected_identity: str) -> dict[str, Any]:
             relative = entry["path"]
             if relative == "@projection/pyproject-semantic-build-config.json":
                 content = projection
+            elif relative == "@projection/rust-workspace-manifest.json":
+                rust_config = policy.get("rust")
+                if not isinstance(rust_config, dict):
+                    raise ArchiveIdentityError("sdist policy omitted Rust semantic inputs")
+                content = workspace_manifest_projection(
+                    read("rust/Cargo.toml").decode("utf-8"),
+                    rust_config.get("workspace_manifest_projection_exclude_fields", []),
+                )
             else:
                 relative = _safe_manifest_path(relative)
                 content = read(relative)

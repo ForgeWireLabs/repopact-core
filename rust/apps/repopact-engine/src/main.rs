@@ -749,6 +749,9 @@ mod tests {
         let request_id = request.request_id.clone();
         let mut session = EngineSession::default();
         let response = handle(request, &mut session);
+        let mut emitted = Vec::new();
+        emit(&mut emitted, response).unwrap();
+        let response: EngineResponse = serde_json::from_slice(&emitted).unwrap();
         assert!(response.ok);
         assert_eq!(response.request_id, request_id);
         assert_eq!(response.engine_version, ENGINE_VERSION);

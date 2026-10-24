@@ -24,6 +24,11 @@ POLICY = {
     },
     "rust": {
         "workspace_manifest": "rust/Cargo.toml",
+        "workspace_manifest_projection_exclude_fields": [
+            "members",
+            "exclude",
+            "default-members",
+        ],
         "seed_package": "repopact-engine",
         "source_extension": ".rs",
         "ignored_directory_names": ["target", ".git", "__pycache__"],
@@ -154,6 +159,8 @@ version = "0.1.0"
         self.assertIn("rust/crates/helper/src/lib.rs", paths)
         self.assertIn("rust/crates/helper/fixtures/input.json", paths)
         self.assertNotIn("rust/crates/unused/src/lib.rs", paths)
+        self.assertNotIn("rust/Cargo.toml", paths)
+        self.assertIn("@projection/rust-workspace-manifest.json", paths)
         self.assertIn("conformance/fixtures/valid/case.json", paths)
         self.assertNotIn("build/semantic-input-manifest.json", paths)
         self.assertNotIn("repopact/_semantic-input-manifest.json", paths)
@@ -187,6 +194,28 @@ version = "0.1.0"
             encoding="utf-8",
         )
         self.assertNotEqual(before, identity.render_outputs(self.root))
+
+    def test_workspace_projection_ignores_membership_but_tracks_build_settings(self) -> None:
+        before = identity.render_outputs(self.root)
+        workspace = self.root / "rust/Cargo.toml"
+        original = workspace.read_text(encoding="utf-8")
+        workspace.write_text(
+            original.replace(
+                'members = ["apps/repopact-engine", "crates/helper", "crates/unused"]',
+                'members = [\n    "crates/unused",\n    "crates/helper",\n    "apps/repopact-engine",\n]',
+            ),
+            encoding="utf-8",
+        )
+        self.assertEqual(before, identity.render_outputs(self.root))
+        workspace.write_text(
+            workspace.read_text(encoding="utf-8").replace('resolver = "2"', 'resolver = "1"'),
+            encoding="utf-8",
+        )
+        self.assertNotEqual(before, identity.render_outputs(self.root))
+        with self.assertRaisesRegex(identity.ManifestError, "projection exclusions"):
+            identity.workspace_manifest_projection(
+                workspace.read_text(encoding="utf-8"), ["dependencies"]
+            )
 
     def test_check_detects_drift_without_rewriting_outputs(self) -> None:
         identity.update(self.root)

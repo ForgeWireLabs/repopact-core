@@ -7,6 +7,7 @@ from importlib.metadata import PackageNotFoundError
 from pathlib import Path
 from unittest import mock
 
+from repopact import runtime_dependencies
 from repopact.runtime_dependencies import RuntimeDependencyError, verify_runtime_dependencies
 
 
@@ -88,6 +89,45 @@ class RuntimeDependencyLockTests(unittest.TestCase):
             ):
                 with self.assertRaisesRegex(RuntimeDependencyError, "attrs: missing"):
                     verify_runtime_dependencies(root=root)
+
+    def test_python_full_version_lock_marker_is_enforced_only_below_313(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            self.write_fixture(root)
+            groups_path = root / "repopact" / "runtime-dependency-groups.json"
+            groups = json.loads(groups_path.read_text(encoding="utf-8"))
+            groups["groups"]["core"].append("typing-extensions")
+            groups_path.write_text(json.dumps(groups), encoding="utf-8")
+            lock = root / "repopact" / "requirements-runtime.lock"
+            lock.write_text(
+                lock.read_text(encoding="utf-8")
+                + "typing-extensions==4.16.0 ; python_full_version < '3.13' \\\n"
+                + "    --hash=sha256:abc\n",
+                encoding="utf-8",
+            )
+
+            with mock.patch.object(runtime_dependencies.sys, "version_info", (3, 12, 4)):
+                with mock.patch(
+                    "repopact.runtime_dependencies.importlib.metadata.version",
+                    side_effect=lambda name: {
+                        "attrs": "26.1.0",
+                        "jsonschema": "4.26.0",
+                        "typing-extensions": "4.16.0",
+                    }[name],
+                ):
+                    installed = verify_runtime_dependencies(root=root)
+            self.assertEqual(installed["typing-extensions"], "4.16.0")
+
+            with mock.patch.object(runtime_dependencies.sys, "version_info", (3, 13, 0)):
+                with mock.patch(
+                    "repopact.runtime_dependencies.importlib.metadata.version",
+                    side_effect=lambda name: {
+                        "attrs": "26.1.0",
+                        "jsonschema": "4.26.0",
+                    }[name],
+                ):
+                    installed = verify_runtime_dependencies(root=root)
+            self.assertNotIn("typing-extensions", installed)
 
 
 if __name__ == "__main__":
