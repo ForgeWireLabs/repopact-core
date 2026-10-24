@@ -7,7 +7,7 @@ name = "repopact"
 # Maturin's bin backend requires a concrete PEP 440 project version. Keep this
 # synchronized with VERSION/RELEASE_LABEL; the engine handshake and release
 # verifier fail closed if the two release identities drift.
-version = "3.1.3.dev1"
+version = "3.1.4.dev0"
 description = "RepoPact Core: repository-native governance, evidence-gated work, and canonical validation."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -34,12 +34,19 @@ targets = [
 include = [
     { path = "repopact/schemas/*.json", format = ["sdist", "wheel"] },
     { path = "repopact/templates/*", format = ["sdist", "wheel"] },
+    { path = ".gitattributes", format = ["sdist"] },
+    { path = "SPEC.md", format = ["sdist"] },
+    { path = "conformance/**", format = ["sdist"] },
+    { path = "rust/**", format = ["sdist"] },
     { path = "VERSION", format = ["sdist"] },
     { path = "RELEASE_LABEL", format = ["sdist"] },
     { path = "LICENSE", format = ["sdist"] },
-    { path = "requirements-runtime.lock", format = ["sdist"] },
+    { path = "repopact/requirements-runtime.lock", format = ["sdist", "wheel"] },
+    { path = "repopact/runtime-dependency-groups.json", format = ["sdist", "wheel"] },
     { path = "build/semantic-input-policy.json", format = ["sdist"] },
     { path = "build/semantic-input-manifest.json", format = ["sdist"] },
     { path = "scripts/generate_engine_semantic_identity.py", format = ["sdist"] },
+    { path = "scripts/verify_engine_package_identity.py", format = ["sdist"] },
+    { path = "repopact/_semantic-input-manifest.json", format = ["sdist", "wheel"] },
     { path = "repopact/_semantic_identity.json", format = ["sdist", "wheel"] },
 ]

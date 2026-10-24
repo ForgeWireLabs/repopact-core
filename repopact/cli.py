@@ -20,26 +20,28 @@ import jsonschema
 from .repo_model import STATUSES
 
 
-def _rust_validate(root: Path) -> int:
+def _rust_validate(root: Path, client=None) -> int:
     from .engine_client import EngineError, EngineClient, render_validation
 
     try:
-        return render_validation(EngineClient().call("validate", root=root))
+        engine = client or EngineClient()
+        return render_validation(engine.call("validate", root=root))
     except EngineError as exc:
         print(f"Rust engine compatibility error: {exc}", file=sys.stderr)
         return 1
 
 
-def _require_engine_compatibility() -> bool:
-    """Fail before retained Python workflows write if canonical Core is absent."""
+def _require_engine_compatibility():
+    """Return the admitted client retained by a Python-side write workflow."""
     from .engine_client import EngineClient, EngineError
 
     try:
-        EngineClient().check_compatibility("validate", "dashboard.write")
-        return True
+        client = EngineClient()
+        client.check_compatibility("validate", "dashboard.write")
+        return client
     except EngineError as exc:
         print(f"Rust engine compatibility error: {exc}", file=sys.stderr)
-        return False
+        return None
 
 
 def _rust_mutation(root: Path, operation: str, params: dict[str, Any], label: str) -> int:
@@ -91,6 +93,10 @@ def _operator_signer(admission: Any, key_file: Path | None, root: Path):
 
 def _write_canonical_record(root: Path, directory: str, name: str, payload: bytes) -> Path:
     """Write an admission record without following a repository symlink."""
+    from .engine_client import semantic_identity_required
+    if semantic_identity_required():
+        from .runtime_dependencies import verify_runtime_dependencies
+        verify_runtime_dependencies()
     target = root / directory / name
     current = root
     for component in Path(directory).parts:
@@ -284,14 +290,15 @@ def main(argv: list[str] | None = None) -> int:
         if args.admission and args.key_file is None:
             print("init --admission requires an external --key-file and interactive operator presence", file=sys.stderr)
             return 1
-        if not _require_engine_compatibility():
+        engine = _require_engine_compatibility()
+        if engine is None:
             return 1
-        init_repo.bootstrap(target)
+        init_repo.bootstrap(target, client=engine)
         if args.admission:
             from . import admission
             try: admission.setup_admission(target, signer=_operator_signer(admission, args.key_file, target))
             except Exception as exc: print(f"Admission setup failed: {exc}", file=sys.stderr); return 1
-        result = _rust_validate(target)
+        result = _rust_validate(target, client=engine)
         if result:
             print("\nBootstrap produced an invalid repository.")
             return result
@@ -304,9 +311,12 @@ def main(argv: list[str] | None = None) -> int:
         if args.admission and args.key_file is None:
             print("adopt --admission requires an external --key-file and interactive operator presence", file=sys.stderr)
             return 1
-        if not args.dry_run and not _require_engine_compatibility():
-            return 1
-        rep = adopt_repo.adopt(target, dry_run=args.dry_run)
+        engine = None
+        if not args.dry_run:
+            engine = _require_engine_compatibility()
+            if engine is None:
+                return 1
+        rep = adopt_repo.adopt(target, dry_run=args.dry_run, client=engine)
         adopt_repo._print_report(rep)
         if args.dry_run:
             print("\nDry run: nothing written. Re-run without --dry-run to apply.")
@@ -315,7 +325,7 @@ def main(argv: list[str] | None = None) -> int:
             from . import admission
             try: admission.setup_admission(target, signer=_operator_signer(admission, args.key_file, target))
             except Exception as exc: print(f"Admission setup failed: {exc}", file=sys.stderr); return 1
-        result = _rust_validate(target)
+        result = _rust_validate(target, client=engine)
         if result:
             print("\nAdoption produced validation error(s) to resolve.")
             return result
@@ -515,13 +525,15 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "doctor":
         from . import doctor
+        engine = None
         if args.fix:
-            if not _require_engine_compatibility():
+            engine = _require_engine_compatibility()
+            if engine is None:
                 return 1
-            for a in (doctor.fix(root) or ["nothing to fix"]):
+            for a in (doctor.fix(root, client=engine) or ["nothing to fix"]):
                 print(f"  ~ {a}")
         findings = doctor.diagnose(root)
-        validation_status = _rust_validate(root)
+        validation_status = _rust_validate(root, client=engine)
         errs = [f for f in findings if f.severity == "error"]
         warns = [f for f in findings if f.severity == "warn"]
         for f in errs + warns:
@@ -541,14 +553,17 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "import-plan":
         from . import plan_import
-        if not args.dry_run and not _require_engine_compatibility():
-            return 1
-        rep = plan_import.import_plan(root, dry_run=args.dry_run, import_issues=args.issues)
+        engine = None
+        if not args.dry_run:
+            engine = _require_engine_compatibility()
+            if engine is None:
+                return 1
+        rep = plan_import.import_plan(root, dry_run=args.dry_run, import_issues=args.issues, client=engine)
         plan_import._print(rep)
         if args.dry_run:
             print("\nDry run: nothing written.")
             return 0
-        validation_status = _rust_validate(root)
+        validation_status = _rust_validate(root, client=engine)
         print("\nwork/ ledger imported; repository validates." if not validation_status
               else "\nImport produced validation error(s).")
         return validation_status
@@ -568,6 +583,7 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "spec":
         from . import generate_spec
+        from .engine_client import EngineError
         spec = root / "SPEC.md"
         if not spec.is_file():
             print(
@@ -578,7 +594,11 @@ def main(argv: list[str] | None = None) -> int:
                 file=sys.stderr,
             )
             return 1
-        generate_spec.write_spec(root)
+        try:
+            generate_spec.write_spec(root)
+        except EngineError as exc:
+            print(f"Rust engine compatibility error: {exc}", file=sys.stderr)
+            return 1
         print("Generated SPEC.md derived blocks")
         return 0
 
@@ -600,10 +620,11 @@ def main(argv: list[str] | None = None) -> int:
             )
         else:
             from . import new
-            if not _require_engine_compatibility():
+            engine = _require_engine_compatibility()
+            if engine is None:
                 return 1
-            path = new.new_markdown(args.kind, args.title, date.today(), root)
-            validation_rc = _rust_validate(root)
+            path = new.new_markdown(args.kind, args.title, date.today(), root, client=engine)
+            validation_rc = _rust_validate(root, client=engine)
             if validation_rc:
                 return validation_rc
         print(f"Created {path.relative_to(root)}")

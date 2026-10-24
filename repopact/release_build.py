@@ -316,6 +316,7 @@ def _build_once(root: Path, revision: str, destination: Path) -> dict[str, Any]:
     env = os.environ.copy()
     env["SOURCE_DATE_EPOCH"] = epoch
     env["PYTHONHASHSEED"] = "0"
+    env["REPOPACT_SOURCE_REVISION"] = revision
     # Each independent build below exports to its own fresh temporary
     # directory (see `_export`), so without normalization cargo/rustc would
     # embed that ephemeral, build-to-build-varying absolute path into
@@ -368,11 +369,30 @@ def _build_once(root: Path, revision: str, destination: Path) -> dict[str, Any]:
         )
     _normalize_wheel(wheels[0], int(epoch))
     _normalize_sdist(sdists[0], int(epoch))
+    identity_report = _run(
+        [
+            sys.executable,
+            str(source / "scripts" / "verify_engine_package_identity.py"),
+            "--root",
+            str(source),
+            "--sdist",
+            str(sdists[0]),
+            "--wheel",
+            str(wheels[0]),
+        ],
+        cwd=source,
+        env=env,
+    )
+    try:
+        identity_agreement = json.loads(identity_report)
+    except json.JSONDecodeError as exc:
+        raise ReleaseBuildError(f"package identity verifier returned invalid JSON: {exc}") from exc
     return {
         "version": version,
         "artifact_version": artifact_version,
         "wheel": inspect_wheel(wheels[0], artifact_version),
         "sdist": inspect_sdist(sdists[0], artifact_version),
+        "identity_agreement": identity_agreement,
         "wheel_path": wheels[0],
         "sdist_path": sdists[0],
     }
@@ -400,6 +420,8 @@ def build_release(root: Path, outdir: Path, revision: str = "HEAD") -> dict[str,
                     f"{kind} is not reproducible: "
                     f"{first[kind]['sha256']} != {second[kind]['sha256']}"
                 )
+        if first["identity_agreement"] != second["identity_agreement"]:
+            raise ReleaseBuildError("source/sdist/wheel semantic identity agreement differs between builds")
         wheel_target = outdir / first["wheel"]["path"]
         sdist_target = outdir / first["sdist"]["path"]
         shutil.copy2(first["wheel_path"], wheel_target)
@@ -409,6 +431,7 @@ def build_release(root: Path, outdir: Path, revision: str = "HEAD") -> dict[str,
         "version": first["version"],
         "artifact_version": first["artifact_version"],
         "reproducible": True,
+        "identity_agreement": first["identity_agreement"],
         "wheel": first["wheel"],
         "sdist": first["sdist"],
     }

@@ -32,12 +32,15 @@ POLICY = {
     "fixed_files": [
         ".gitattributes",
         "SPEC.md",
-        "requirements-runtime.lock",
+        "repopact/requirements-runtime.lock",
+        "repopact/runtime-dependency-groups.json",
         "scripts/generate_engine_semantic_identity.py",
+        "scripts/verify_engine_package_identity.py",
     ],
     "pyproject_projection": {"runtime_optional_extras": ["enforcement"]},
     "outputs": {
         "manifest": "build/semantic-input-manifest.json",
+        "package_manifest": "repopact/_semantic-input-manifest.json",
         "identity": "repopact/_semantic_identity.json",
     },
 }
@@ -50,8 +53,10 @@ class SemanticIdentityManifestTests(unittest.TestCase):
         self._write("build/semantic-input-policy.json", json.dumps(POLICY, indent=2) + "\n")
         self._write(".gitattributes", "*.py text eol=lf\n")
         self._write("SPEC.md", "protocol and semantic contract\n")
-        self._write("requirements-runtime.lock", "jsonschema==4.26.0 --hash=sha256:abc\n")
+        self._write("repopact/requirements-runtime.lock", "jsonschema==4.26.0 --hash=sha256:abc\n")
+        self._write("repopact/runtime-dependency-groups.json", '{"format_version":1}\n')
         self._write("scripts/generate_engine_semantic_identity.py", "# generator source\n")
+        self._write("scripts/verify_engine_package_identity.py", "# verifier source\n")
         self._write(
             "pyproject.toml",
             """[build-system]
@@ -151,6 +156,7 @@ version = "0.1.0"
         self.assertNotIn("rust/crates/unused/src/lib.rs", paths)
         self.assertIn("conformance/fixtures/valid/case.json", paths)
         self.assertNotIn("build/semantic-input-manifest.json", paths)
+        self.assertNotIn("repopact/_semantic-input-manifest.json", paths)
         self.assertNotIn("repopact/_semantic_identity.json", paths)
 
     def test_new_and_removed_governed_files_change_membership(self) -> None:

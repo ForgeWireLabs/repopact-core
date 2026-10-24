@@ -16,14 +16,17 @@
   "fixed_files": [
     ".gitattributes",
     "SPEC.md",
-    "requirements-runtime.lock",
-    "scripts/generate_engine_semantic_identity.py"
+    "repopact/requirements-runtime.lock",
+    "repopact/runtime-dependency-groups.json",
+    "scripts/generate_engine_semantic_identity.py",
+    "scripts/verify_engine_package_identity.py"
   ],
   "pyproject_projection": {
     "runtime_optional_extras": ["enforcement"]
   },
   "outputs": {
     "manifest": "build/semantic-input-manifest.json",
+    "package_manifest": "repopact/_semantic-input-manifest.json",
     "identity": "repopact/_semantic_identity.json"
   }
 }

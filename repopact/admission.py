@@ -110,6 +110,22 @@ class SignerError(RuntimeError):
     pass
 
 
+def _require_python_contract_runtime(*, enforcement: bool = False) -> None:
+    from .engine_client import semantic_identity_required
+    if not semantic_identity_required():
+        return
+    from .runtime_dependencies import RuntimeDependencyError, verify_runtime_dependencies
+    try:
+        verify_runtime_dependencies(enforcement=enforcement)
+    except RuntimeDependencyError as exc:
+        group = "enforcement" if enforcement else "core"
+        raise SignerError(f"Python {group} dependency lock mismatch: {exc}") from exc
+
+
+def _require_enforcement_runtime() -> None:
+    _require_python_contract_runtime(enforcement=True)
+
+
 class UserPresence:
     """Small host/UI-neutral user-presence seam used by approval front ends."""
     def confirm(self, prompt: str) -> bool:
@@ -130,12 +146,14 @@ class Ed25519Signer:
 
     @classmethod
     def generate(cls, key_id: str = "operator-key", operator_id: str = "operator") -> "Ed25519Signer":
+        _require_enforcement_runtime()
         if Ed25519PrivateKey is None:
             raise SignerError("cryptography is required for Ed25519 signing")
         return cls(Ed25519PrivateKey.generate(), key_id, operator_id)
 
     @property
     def public_key_bytes(self) -> bytes:
+        _require_enforcement_runtime()
         return self.private_key.public_key().public_bytes(serialization.Encoding.Raw, serialization.PublicFormat.Raw)
 
     @property
@@ -143,9 +161,11 @@ class Ed25519Signer:
         return base64.b64encode(self.public_key_bytes).decode("ascii")
 
     def sign(self, value: Any) -> str:
+        _require_enforcement_runtime()
         return base64.b64encode(self.private_key.sign(canonical_json(value))).decode("ascii")
 
     def save(self, path: Path, passphrase: str) -> None:
+        _require_enforcement_runtime()
         if AESGCM is None or PBKDF2HMAC is None:
             raise SignerError("cryptography is required for encrypted key storage")
         salt, nonce = os.urandom(16), os.urandom(12)
@@ -163,6 +183,7 @@ class Ed25519Signer:
 
     @classmethod
     def load(cls, path: Path, passphrase: str) -> "Ed25519Signer":
+        _require_enforcement_runtime()
         if AESGCM is None or PBKDF2HMAC is None:
             raise SignerError("cryptography is required for encrypted key storage")
         rec = json.loads(path.read_bytes())
@@ -174,6 +195,7 @@ class Ed25519Signer:
 
 
 def verify_signature(public_key: str, signature: str, value: Any) -> bool:
+    _require_enforcement_runtime()
     if Ed25519PublicKey is None: return False
     try:
         Ed25519PublicKey.from_public_bytes(base64.b64decode(public_key)).verify(base64.b64decode(signature), canonical_json(value))
@@ -309,6 +331,7 @@ def frozen_surface_digest(root: Path) -> str:
 def setup_admission(root: Path, protected_dir: Path | None = None, signer: Ed25519Signer | None = None,
                     *, registry_key: str = "root") -> dict[str, Any]:
     """Explicit opt-in setup. Existing protected registration is never replaced."""
+    _require_python_contract_runtime(enforcement=True)
     root = root.resolve(); policy_path, authority_path, registration_path = _public_paths(root)
     base = protected_dir or (Path.home() / ".repopact" / "registrations")
     # Testing/reference installations historically use a root digest.  A
@@ -386,6 +409,7 @@ def _known_worktree(root: Path, common_dir: str) -> bool:
 
 
 def _save_protected_state(path: Path, state: dict[str, Any]) -> None:
+    _require_python_contract_runtime()
     key = path.with_name("registration.key").read_bytes()
     state.pop("state_mac", None)
     state["state_mac"] = hmac.new(key, canonical_json(state), hashlib.sha256).hexdigest()
@@ -649,6 +673,7 @@ def _match_path(path: str, pattern: str) -> bool:
 
 
 def make_request(root: Path, work_item: str, session_id: str, principal: str = "agent", profile: str = "bounded", scopes: Iterable[str] = (), paths: Iterable[str] = (), capabilities: Mapping[str, bool] | None = None, approval_class: str = "activate", mode: str = "normal", expires_at: datetime | None = None, protected_dir: Path | None = None) -> dict[str, Any]:
+    _require_python_contract_runtime()
     policy = admission_policy(root)
     if policy is None or policy.get("enabled") is False:
         raise RuntimeError("protected admission is not required; enable an adopter-owned admission policy before creating a lease request")

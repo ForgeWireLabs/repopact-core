@@ -50,7 +50,7 @@ the actual set from the source tree and dependency metadata; it does not trust
 a hand-maintained per-file list as the source of truth.
 
 - **Python contract and packaged data:** every tracked runtime `.py` file under
-  `repopact/` (currently 42), all `repopact/schemas/*.json`, and all packaged
+  `repopact/` (currently 43), all `repopact/schemas/*.json`, and all packaged
   templates. This includes the engine resolver, Python-side request/response
   validation and operation wrappers, the conformance runner and its reference
   oracle. The exact Python runtime dependency closure is represented by a
@@ -89,9 +89,10 @@ a hand-maintained per-file list as the source of truth.
   generator, engine `build.rs` files, `.gitattributes`, and the semantic
   projection of `pyproject.toml` (`[build-system]`, runtime dependency
   declarations, `requires-python`, and `[tool.maturin]` inclusion settings).
-  The hash-pinned Python runtime lock/export is also an input. That lock does
-  not currently exist and must be added before package identity can be
-  accepted. Product-version values (`VERSION`, `RELEASE_LABEL`, and
+  The hash-pinned Python runtime lock/export is also an input. The current
+  implementation stores it at `repopact/requirements-runtime.lock` and
+  includes it in both the source distribution and wheel. Product-version
+  values (`VERSION`, `RELEASE_LABEL`, and
   `project.version`) are recorded separately and excluded from the semantic
   digest; build scripts' logic remains an input.
 
@@ -112,27 +113,35 @@ Optional cryptography>=43 supports retained Python-side signing/admission
 workflows and is part of the enforcement extra.
 
 On 2026-10-24, the tooling owner approved an exact runtime dependency lock.
-requirements-runtime.lock records a universal resolved closure with pinned
-versions and artifact hashes for the mandatory runtime requirements and the
-enforcement extra. It is an input to the semantic manifest and is included in
-the source distribution. The lock establishes selected package inputs, not
-installed-package or executable authenticity.
+`repopact/requirements-runtime.lock` records a universal resolved closure with
+pinned versions and artifact hashes for the mandatory runtime requirements
+and the enforcement extra. It is an input to the semantic manifest and is
+included in both the source distribution and wheel. The lock establishes
+selected package inputs, not installed-package or executable authenticity.
 
 Implementation must still verify the installed distribution name/version set
 before each dependent operation is admitted. Canonical Rust-dependent
 operations must fail before operation dispatch or repository writes if the
 mandatory runtime set differs. Python-authoritative enforcement/signing
 operations must verify the locked optional closure when that extra is required.
-That runtime enforcement has not yet been implemented or validated.
+Runtime enforcement is implemented in `repopact/runtime_dependencies.py` and
+is checked before engine admission and classified Python-authoritative writes.
+The installed mandatory runtime matched the lock in focused validation; the
+optional enforcement group did not (`cryptography` 50.0.1 versus 50.0.2,
+`pycparser` 3.0 versus 3.12), so operations requiring that group fail closed
+in this environment. A clean packaged environment and Rust execution remain
+unverified.
 
 ### Deterministic manifest and build behavior
 
 The canonical generator uses the reviewed policy at
-build/semantic-input-policy.json, the generated discovered-input manifest at
-build/semantic-input-manifest.json, scripts/generate_engine_semantic_identity.py,
-and the generated repopact/_semantic_identity.json. The policy describes
-governed roots and exclusions; the manifest stores the discovered file set and
-computed ID. The source/wheel identity is read from that manifest, while
+`build/semantic-input-policy.json`, the generated source manifest at
+`build/semantic-input-manifest.json`, the package copy at
+`repopact/_semantic-input-manifest.json`,
+`scripts/generate_engine_semantic_identity.py`, and the generated
+`repopact/_semantic_identity.json`. The policy describes governed roots and
+exclusions; the manifest stores the discovered file set and computed ID. The
+source/wheel identity is read from that manifest, while
 product version continues to come from the existing product-version channel.
 The exact Python lock is a semantic input.
 The input list is sorted by normalized repository-relative UTF-8 path, uses
@@ -161,14 +170,17 @@ source-distribution command invokes it. A baseline change therefore appears
 as a reviewed source diff and cannot be silently advanced by CI or a local
 build.
 
-Cargo's build check and the Maturin source-build path must both fail on a stale
-manifest and detect an input-set difference. The source distribution includes
-the generator, policy, lock data, all files needed to rediscover the closure,
-and the identity manifest. The wheel includes the same identity manifest with
-the Python package and engine. Tests inspect both archives and prove that a
-source build and wheel expose the same identity for the same inputs. Maturin
-include patterns in `pyproject.toml` are part of this package audit. No build
-path updates the manifest implicitly.
+Cargo's build check and the Maturin source-build path fail on a stale manifest
+and detect an input-set difference. The source distribution includes the
+generator, policy, package-local lock data, all files needed to rediscover the
+closure, and both manifest copies. The wheel includes the package-local lock,
+dependency-group policy, manifest, and identity beside the Python package and
+engine; these resources remain inside the existing `repopact` import root.
+Synthetic archive tests inspect both archive layouts and reject input or
+identity drift. The archive verifier is wired to the clean release build path,
+but no real Maturin source archive or wheel has been produced and checked yet.
+Maturin include patterns in `pyproject.toml` are part of this package audit.
+No build path updates the manifest implicitly.
 
 The conformance identity inputs are the normative specification, manifest,
 runner/reference implementation, and complete fixture corpus. Test source such
@@ -385,6 +397,48 @@ This accepts the architecture only. WI076 remains active; AC-2 through AC-6
 remain pending until implementation evidence satisfies them. Independent
 implementation review is separate from this tooling-owner approval and has not
 been requested from the PR author. WI074 RPS-016 remains independently pending.
+
+## Implementation clarifications
+
+The approved semantic identity identifies compatible behavior, not trusted
+publisher bytes. The conformance record therefore keeps the source commit,
+engine-reported semantic identity, product/protocol identities, embedded Rust
+toolchain and target, process-image file ID, and SHA-256 as separate fields. The
+semantic input identity excludes its own generated manifest and package
+identity, and the Git commit is provenance beside that identity rather than an
+input to its own hash. Manifest membership or digest drift fails `--check`;
+only an explicit reviewed `--update` changes the baseline.
+
+The strict product boundary is `3.1.4.dev0`. Stable 3.1.3 and its matching
+engine retain the historical protocol/product behavior. At and after the new
+boundary, a missing, unsupported, stale, or mismatched semantic identity fails
+before any engine operation, including when `REPOPACT_ENGINE` is set. Runtime
+core dependencies must match the exact lock before engine admission. The
+cryptographic enforcement dependency group must also match before signing,
+verification, protected registration, or key-storage operations that use it.
+
+Canonical-dependent Python repository writers retain one admitted engine
+process across their first write and subsequent canonical calls. Python-owned
+admission records, protected registration state, and the generated SPEC block
+are explicitly Python-authoritative: they use deterministic Python logic and
+must pass the exact runtime dependency check before writing; cryptographic
+admission operations also enforce the optional dependency group. SPEC
+generation reads VERSION, packaged schemas, and invariants and does not claim
+that Rust performed the projection. Package-install and platform-service
+outputs remain under their separate release/platform contracts and are not
+evidence of canonical repository mutation compatibility.
+
+The canonical conformance runner uses one admitted process for the suite. It
+records the process image path, file ID, and SHA-256 before launch, at image
+capture, and after the run; a wrapper process, unavailable image query, changed
+file ID/digest, dirty source checkout, or mismatched embedded source revision
+marks provenance incomplete. The Rust build embeds source revision, `rustc -Vv`,
+target, and profile. These checks improve run attribution but do not bind a
+malicious executable to trusted package metadata. Maturin sdist/wheel identity
+agreement now has an archive verifier wired into the existing clean release
+build path; it checks every semantic sdist input, the wheel's identity/manifest/
+runtime files, and agreement with the source manifest. It has not yet been run
+on real Maturin artifacts and remains an acceptance gate.
 
 ## Pre-build gate
 

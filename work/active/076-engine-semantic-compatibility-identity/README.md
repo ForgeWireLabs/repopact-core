@@ -151,3 +151,88 @@ agreement. No Cargo or Maturin build has been run. The dashboard was refreshed f
 No build or full suite was run for the registration or this architecture review. The 15:22 UTC snapshot found 2,242,760,704 bytes free and an unrelated `fabric-qualification` Cargo test process tree. A fresh 15:48 UTC read-only snapshot found C: healthy NTFS with 16,077,275,136 bytes free (14.97 GiB); the process query found no Cargo or rustc build process. Current free space is still below the recorded 18 GiB minimum, so compilation remains blocked by storage. No cleanup was performed. The denied temporary repository and unrelated ForgeWire tree remain untouched.
 
 For a cold engine/workspace test build, reserve a conservative planning ceiling of 12 GiB for target output, 2 GiB for temporary/wheel output, and 4 GiB of headroom; require at least 18 GiB free and a fresh process check with no competing build. The selected task-owned paths are `C:\Projects\repopact-core-wi076-build\target` for `CARGO_TARGET_DIR` and `C:\Projects\repopact-core-wi076-build\tmp` for `TMP`/`TEMP`; the build root does not exist yet. Do not compile below that capacity or while unrelated Cargo work is active. If capacity recovers, reuse that target across focused runs. If cleanup is later needed, remove only that task-owned target after outputs are recorded and all of its processes have exited; retain Cargo caches and every unrelated target.
+
+## Implementation increment 3 — admitted engine, Python writer audit, and run provenance (2026-10-24)
+
+The strict enforcement boundary is now `3.1.4.dev0`, authorized for this
+existing PR #12. `VERSION`, `RELEASE_LABEL`, `pyproject.toml`, the conformance
+suite version, and the generated SPEC version block agree; stable 3.1.3 remains
+below the strict boundary. Runtime core packages match the exact lock in this
+environment. The optional cryptographic group does not: `cryptography` is
+50.0.1 (locked 50.0.2) and `pycparser` is 3.0 (locked 3.12), so strict
+cryptographic admission/key workflows fail closed here until a matching
+environment is provided.
+
+The Python client and Rust engine now implement the same-process handshake,
+identity check, explicit admission, and operation sequence. Focused negative
+tests cover same-version stale and legacy engines, malformed/unsupported IDs,
+Scripts discovery, an executable beside the package, explicit
+`REPOPACT_ENGINE`, pre-admission rejection, path replacement, process exit,
+uncertain outcomes without retry, and repository snapshots around retained
+canonical-dependent writers. The source audit classifies SPEC generation and
+admission/protected-state writes as Python-authoritative; they check the exact
+Python dependency lock before writing, while cryptographic operations require
+the enforcement group too. SPEC rendering reads VERSION, schemas, and
+invariants, and does not claim a Rust validation pass.
+
+The canonical conformance runner now keeps one admitted engine process for all
+cases and writes a standard evidence-run record with source revision, product,
+protocol, semantic identity, embedded Rust toolchain/target/profile, process
+image file ID, and pre/image/post executable SHA-256. The runner marks
+provenance incomplete for wrappers, unavailable image queries, file identity or
+digest changes, dirty source, or a source revision mismatch. A semantic ID and
+file digest still do not authenticate a binary against a trusted publisher.
+The existing clean-release pipeline now checks every sdist semantic input and
+the wheel's identity, manifest, and runtime lock against source before reporting
+archive agreement. Synthetic archive tests exercise both acceptance and drift
+rejection; no Maturin archive has yet been built.
+
+Focused validation passed: 39 Python tests across engine admission, runtime
+dependencies, semantic-manifest generation, archive identity, and package
+shape; explicit Python syntax checks; Rust formatting checks; and
+`git diff --check`. The combined
+`test_conformance` invocation was stopped before completion after confirming it
+starts the full published fixture subprocess suite; no result is claimed for
+that broader suite. No Rust/Maturin build, canonical Rust conformance run, or
+actual archive identity check has run. The storage gate remains the recorded
+18-GiB-minimum plus a fresh no-competing-Cargo-process check. AC-2 and AC-3 have
+focused source/test evidence but remain pending integrated Rust execution; AC-4
+remains pending actual sdist/wheel agreement; AC-5 and AC-6 remain pending final
+conformance and documentation evidence. WI076 remains active and RPS-016
+remains pending.
+
+The focused results and exact-lock environment findings are recorded in
+[`20261024-076-implementation-increment-3`](../../../evidence/runs/20261024-076-implementation-increment-3.json).
+
+## Implementation increment 4 — package-local runtime and identity resources (2026-10-24)
+
+Moved the runtime lock and dependency-group policy under `repopact/` and
+declared them with the semantic manifest and identity for both sdist and wheel
+inclusion. This keeps the wheel resources inside the existing `repopact`
+import root. The source archive also includes the build manifest, policy,
+generator, and archive verifier. The archive verifier now requires these
+package-local resources and checks the source archive's full semantic input
+closure and the wheel's identity/manifest/runtime lock. The prior increment
+evidence remains an immutable record of its earlier layout.
+
+The manifest was recomputed for the intended PR tree with 257 discovered
+inputs and identity
+`repopact-semantic-v1:sha256:637927d4fed3e96f0c0411a4aef52004e6634210c63eb96b7c8c3434321aeadd`.
+The two unrelated unstaged Rust edits in `repopact-mutation` and
+`repopact-validation` were deliberately represented by their current `HEAD`
+blob contents; those edits remain untouched and unstaged. The three generated
+identity outputs matched that recomputation. A normal worktree `--check` is
+not claimed because those preserved files differ from the PR tree.
+
+Focused validation passed 43 tests across the state model, engine admission,
+runtime lock, semantic manifest, synthetic archive verification, and release
+package shape. Python syntax, the installed core runtime lock, Rust formatting,
+the frozen-surface check, version alignment, and `git diff --check` also passed.
+The broader `repopact validate` command did not complete: the Rust engine
+handshake timed out after 30 seconds. The cause is undetermined, and this run
+is not treated as a validation pass.
+No Cargo or Maturin build, canonical Rust conformance run, or actual sdist/wheel
+verification was run. The last recorded C: measurement remains below the
+18-GiB minimum; no cleanup or build was performed. AC-2 through AC-6 remain
+pending, WI076 remains active, and RPS-016 remains pending. Details are in
+[`20261024-076-implementation-increment-4`](../../../evidence/runs/20261024-076-implementation-increment-4.json).

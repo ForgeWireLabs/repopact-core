@@ -94,7 +94,14 @@ def render(text: str, root: Path = ROOT) -> str:
 
 
 def write_spec(root: Path = ROOT) -> None:
-    """Write generated SPEC blocks with repository-canonical LF newlines."""
+    """Write the Python-authoritative schema/invariant projection with LF newlines."""
+    from .engine_client import EngineProtocolError, semantic_identity_required
+    if semantic_identity_required():
+        from .runtime_dependencies import RuntimeDependencyError, verify_runtime_dependencies
+        try:
+            verify_runtime_dependencies()
+        except RuntimeDependencyError as exc:
+            raise EngineProtocolError(f"Python runtime dependency lock mismatch: {exc}") from exc
     spec = root / "SPEC.md"
     rendered = render(spec.read_text(encoding="utf-8"), root)
     with spec.open("w", encoding="utf-8", newline="\n") as stream:

@@ -298,7 +298,11 @@ def discover_inputs(root: Path) -> list[dict[str, str]]:
     if len(paths) != len(set(paths)):
         raise ManifestError("duplicate normalized paths in semantic input set")
     output_paths = policy["outputs"]
-    excluded_outputs = {output_paths["manifest"], output_paths["identity"]}
+    excluded_outputs = {
+        output_paths["manifest"],
+        output_paths["package_manifest"],
+        output_paths["identity"],
+    }
     if excluded_outputs.intersection(paths):
         raise ManifestError("generated identity outputs cannot be semantic input files")
     return [
@@ -337,7 +341,7 @@ def semantic_identity(inputs: list[dict[str, str]]) -> str:
     return IDENTITY_FORMAT + digest.hexdigest()
 
 
-def render_outputs(root: Path) -> tuple[bytes, bytes]:
+def render_outputs(root: Path) -> tuple[bytes, bytes, bytes]:
     inputs = discover_inputs(root)
     identity = semantic_identity(inputs)
     manifest = {
@@ -349,17 +353,19 @@ def render_outputs(root: Path) -> tuple[bytes, bytes]:
     identity_document = {
         "format_version": 1,
         "semantic_identity": identity,
-        "manifest": "build/semantic-input-manifest.json",
+        "manifest": "repopact/_semantic-input-manifest.json",
     }
-    return _pretty_json(manifest), _pretty_json(identity_document)
+    manifest_bytes = _pretty_json(manifest)
+    return manifest_bytes, manifest_bytes, _pretty_json(identity_document)
 
 
 def check(root: Path) -> None:
     policy = json.loads((root / POLICY_PATH).read_text(encoding="utf-8"))
-    expected_manifest, expected_identity = render_outputs(root)
+    expected_manifest, expected_package_manifest, expected_identity = render_outputs(root)
     outputs = policy["outputs"]
     for relative, expected in (
         (outputs["manifest"], expected_manifest),
+        (outputs["package_manifest"], expected_package_manifest),
         (outputs["identity"], expected_identity),
     ):
         path = root / relative
@@ -374,9 +380,10 @@ def check(root: Path) -> None:
 
 def update(root: Path) -> str:
     policy = json.loads((root / POLICY_PATH).read_text(encoding="utf-8"))
-    manifest, identity = render_outputs(root)
+    manifest, package_manifest, identity = render_outputs(root)
     for relative, content in (
         (policy["outputs"]["manifest"], manifest),
+        (policy["outputs"]["package_manifest"], package_manifest),
         (policy["outputs"]["identity"], identity),
     ):
         path = root / relative
