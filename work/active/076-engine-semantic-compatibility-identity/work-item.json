@@ -59,8 +59,10 @@
     {
       "id": "AC-7",
       "text": "Link this work to WI074/RPS-016 as supporting Core/Workbench compatibility evidence. Do not change RPS-016 to satisfied; its full acceptance remains independently pending after this work completes.",
-      "state": "pending",
-      "evidence": []
+      "state": "satisfied",
+      "evidence": [
+        "20261024-076-rps016-link-registration"
+      ]
     },
     {
       "id": "AC-8",

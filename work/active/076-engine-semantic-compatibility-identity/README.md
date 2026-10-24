@@ -47,6 +47,12 @@ The proposal keeps the stable 3.1.3 installation pair unchanged and makes the
 strict identity contract effective only with a later product version. WI074
 RPS-016 remains pending.
 
+AC-7 is satisfied by the merged registration: WI074 names WI076 as supporting
+RPS-016 evidence and explicitly keeps RPS-016 pending. The independent check is
+recorded in [20261024-076-rps016-link-registration](../../../evidence/runs/20261024-076-rps016-link-registration.json).
+The other seven criteria remain pending; this governance linkage is not an
+implementation or compatibility fix.
+
 ## Build and storage plan
 
 No build or full suite was run for the registration or this architecture review. The latest read-only storage check found C: healthy with 2.34 GiB free, no alternative volume, no active Cargo/rustc process, and no Core `target` directory. No cleanup was performed; the previously denied temporary repository and unrelated ForgeWire tree remain untouched. A cold engine build is budgeted conservatively at up to 6 GiB of target output plus 1 GiB of temporary/wheel output, with 3 GiB headroom; do not compile until at least 10 GiB is available on the selected volume and a fresh process check confirms no competing build. Reuse one dedicated WI076 target directory across focused runs. If cleanup is later needed, remove only that task-owned target after outputs are recorded and all of its processes have exited; retain Cargo caches and every unrelated target.
