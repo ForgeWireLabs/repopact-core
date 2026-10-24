@@ -120,21 +120,23 @@ engine. That is an intentional fail-closed trade-off for this first version.
 
 ## Consequences and pre-build gate
 
-No implementation or compilation was performed during this review. At the
-latest read-only snapshot, C: was healthy with 2,343,563,264 bytes free
-(2.18 GiB); no alternate volume, active Cargo/rustc process, or Core target
-directory was present. For a cold engine/workspace test build, use a
-conservative planning ceiling of 12 GiB for target output, 2 GiB for
-temporary/wheel output, and 4 GiB of headroom; require at least 18 GiB free and
-recheck competing processes before any compilation. If that capacity is not
-available, do not compile. If recovered, isolate `CARGO_TARGET_DIR` at
-`C:\Projects\repopact-core-wi076-build\target` and `TMP`/`TEMP` at
-`C:\Projects\repopact-core-wi076-build\tmp`, creating those directories only
-after the capacity gate passes. Reuse that task-owned target across focused
-runs. Do not clean Cargo caches, existing targets, the previously denied
-temporary repository, or unrelated ForgeWire trees. Only the task-owned WI076
-target can be considered for cleanup after outputs are recorded and all
-associated build processes have exited.
+No implementation or compilation was performed during this review. The latest
+read-only snapshot at 15:22 UTC found only C: (healthy NTFS), with
+2,242,760,704 bytes free (2.09 GiB). One unrelated `fabric-qualification`
+Cargo test was active (`cargo test --workspace --locked --features
+fabric-hub/test-harness`, represented by its parent and child Cargo processes).
+No Core target exists, and `CARGO_TARGET_DIR` is unset. For a cold
+engine/workspace test build, use a conservative planning ceiling of 12 GiB for
+target output, 2 GiB for temporary/wheel output, and 4 GiB of headroom; require
+at least 18 GiB free and recheck competing processes before any compilation.
+If that capacity is not available or another build is active, do not compile.
+The selected task-owned paths are `C:\Projects\repopact-core-wi076-build\target`
+for `CARGO_TARGET_DIR` and `C:\Projects\repopact-core-wi076-build\tmp` for
+`TMP`/`TEMP`; create them only after the capacity gate passes and reuse the
+target across focused runs. Do not clean Cargo caches, existing targets, the
+previously denied temporary repository, or unrelated ForgeWire trees. Only the
+task-owned WI076 target can be considered for cleanup after outputs are
+recorded and all associated build processes have exited.
 
 WI074 RPS-016 remains pending after WI076 completes until its separate release,
 compatibility matrix, offline installation, upgrade, and rollback criteria are

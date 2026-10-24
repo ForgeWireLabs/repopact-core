@@ -67,8 +67,10 @@
     {
       "id": "AC-8",
       "text": "Before any build, record a fresh disk-space budget, expected peak temporary output, selected target/temp paths, and whether generated outputs will be retained or cleaned. Prefer focused tests and reuse; do not run concurrent or duplicate Cargo builds for unchanged sources.",
-      "state": "pending",
-      "evidence": []
+      "state": "satisfied",
+      "evidence": [
+        "20261024-076-prebuild-storage-budget"
+      ]
     }
   ],
   "documentation_impact": {
