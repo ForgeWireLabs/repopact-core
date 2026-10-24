@@ -20,9 +20,12 @@ def fake_engine_source(
     events: Path,
     mutation: Path,
     identity: str | None = SEMANTIC_ID,
+    protocol_version: int = engine_client.PROTOCOL_VERSION,
+    read_until_eof: bool = False,
     exit_after_operation: bool = False,
 ) -> str:
     """Return a line-oriented stand-in used to test process/session boundaries."""
+    line_source = "sys.stdin.read().splitlines()" if read_until_eof else "sys.stdin"
     return f"""
 import json
 import os
@@ -32,14 +35,14 @@ from pathlib import Path
 events = Path({str(events)!r})
 mutation = Path({str(mutation)!r})
 identity = {identity!r}
-for line in sys.stdin:
+for line in {line_source}:
     request = json.loads(line)
     operation = request["operation"]
     with events.open("a", encoding="utf-8") as stream:
         stream.write(json.dumps({{"pid": os.getpid(), "operation": operation}}) + "\\n")
     response = {{
         "protocol": "repopact-engine",
-        "protocol_version": 1,
+        "protocol_version": {protocol_version!r},
         "request_id": request["request_id"],
         "engine_version": {engine_client.expected_product_version()!r},
         "ok": True,
@@ -78,7 +81,10 @@ class EngineClientSemanticAdmissionTests(unittest.TestCase):
         directory: Path,
         *,
         identity: str | None = SEMANTIC_ID,
+        protocol_version: int = engine_client.PROTOCOL_VERSION,
+        read_until_eof: bool = False,
         exit_after_operation: bool = False,
+        timeout: float = 3,
     ) -> tuple[engine_client.EngineClient, Path, Path]:
         events = directory / "events.jsonl"
         mutation = directory / "mutation.txt"
@@ -88,11 +94,13 @@ class EngineClientSemanticAdmissionTests(unittest.TestCase):
                 events=events,
                 mutation=mutation,
                 identity=identity,
+                protocol_version=protocol_version,
+                read_until_eof=read_until_eof,
                 exit_after_operation=exit_after_operation,
             ),
             encoding="utf-8",
         )
-        client = engine_client.EngineClient(engine=script, timeout=3)
+        client = engine_client.EngineClient(engine=script, timeout=timeout)
         client._strict = True
         client._expected_semantic_identity = SEMANTIC_ID
         client._spawn_command = lambda: [sys.executable, "-u", str(script)]
@@ -126,6 +134,30 @@ class EngineClientSemanticAdmissionTests(unittest.TestCase):
             )
             with self.assertRaisesRegex(engine_client.EngineProtocolError, "semantic identity"):
                 client.call("validate")
+            self.assertEqual(["handshake"], [event["operation"] for event in self.events(events)])
+            self.assertFalse(mutation.exists())
+
+    def test_protocol_v1_engine_is_rejected_before_admission_or_mutation(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            client, events, mutation = self.make_client(
+                Path(temporary), protocol_version=1
+            )
+            with self.assertRaisesRegex(
+                engine_client.EngineProtocolError, "protocol major mismatch"
+            ):
+                client.call("dashboard.write")
+            self.assertEqual(["handshake"], [event["operation"] for event in self.events(events)])
+            self.assertFalse(mutation.exists())
+
+    def test_eof_framed_legacy_engine_times_out_without_operation_dispatch(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            client, events, mutation = self.make_client(
+                Path(temporary), protocol_version=1, read_until_eof=True, timeout=0.5
+            )
+            with self.assertRaisesRegex(
+                engine_client.EngineProtocolError, "timed out after 0.5s during handshake"
+            ):
+                client.call("dashboard.write")
             self.assertEqual(["handshake"], [event["operation"] for event in self.events(events)])
             self.assertFalse(mutation.exists())
 
@@ -266,7 +298,7 @@ class EngineClientSemanticAdmissionTests(unittest.TestCase):
                 self.assertEqual(64, len(executable["sha256_at_process_image"]))
                 self.assertEqual(executable["sha256_at_process_image"], executable["sha256_after_run"])
                 self.assertEqual(SEMANTIC_ID, evidence["engine"]["semantic_identity"])
-                self.assertEqual(1, evidence["engine"]["protocol_version"])
+                self.assertEqual(2, evidence["engine"]["protocol_version"])
                 self.assertEqual(
                     "0123456789abcdef0123456789abcdef01234567",
                     evidence["engine"]["build_info"]["source_revision"],
@@ -388,7 +420,7 @@ class EngineClientSemanticAdmissionTests(unittest.TestCase):
                 "incomplete_reasons": ["test image not correlated"],
                 "engine": {
                     "protocol": "repopact-engine",
-                    "protocol_version": 1,
+                    "protocol_version": 2,
                     "product_version": "3.1.4.dev0",
                     "semantic_identity": SEMANTIC_ID,
                     "build_info": {"source_revision": revision},

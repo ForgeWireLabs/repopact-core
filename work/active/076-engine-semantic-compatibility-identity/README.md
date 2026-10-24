@@ -263,3 +263,40 @@ Cargo, rustc, or Maturin process was active. No build or cleanup was performed.
 The task-owned target/temp plan remains unchanged; check capacity and competing
 processes again before any build. Evidence is in
 [`20261024-076-prebuild-gate-recheck-1741`](../../../evidence/runs/20261024-076-prebuild-gate-recheck-1741.json).
+
+## Implementation increment 6 — transport diagnosis and protocol v2 (2026-10-24)
+
+Read-only inspection resolved the handshake timeout mechanism. Ordinary
+discovery selected the global Python 3.12 Scripts executable with no
+`REPOPACT_ENGINE` override. Its SHA-256 is
+`b9f4004a486dc17ceb91d8af00e821f94183191e5e0aa98743b360d7b79eab1f`; static
+PE strings identify product `3.1.0.dev1` and the legacy one-request diagnostic.
+The image has no source revision, Rust toolchain, or semantic identity metadata.
+The old source reads stdin through EOF; the WI076 client writes a newline and
+keeps stdin open while awaiting the handshake, so this executable cannot reply
+until after the client timeout. Earlier failed-run records remain unchanged;
+they did not capture an executable digest, so the exact historical process
+image is not independently correlated.
+
+After manifest regeneration, a separate uncommitted edit was observed in
+`rust/apps/repopact-engine/src/main.rs`. It remains untouched and unstaged;
+the regenerated manifest uses the committed file for this PR, just as it does
+for the earlier unrelated Rust edits.
+
+The session transport is now protocol major 2. Major 1 remains the stable
+3.1.3 one-request/EOF protocol; major 2 is newline-framed and keeps one process
+alive through handshake, admission, and operations. The client does not
+negotiate or downgrade. Focused tests prove a responding protocol-1 engine is
+rejected before admission or mutation and an EOF-framed engine times out at the
+handshake without receiving an operation. The semantic identity was regenerated
+to `repopact-semantic-v1:sha256:70fdf142928e3f6a447bea861833610f3cb9b6cf9dff50e004662bd8c7accb23`.
+
+The focused Python tests passed (44), the offline documentation checker passed
+(340 Markdown files; 39 external links unchecked), and the isolated manifest
+check passed. At 18:50:18 UTC, C: was healthy NTFS with 15.10 GiB free, 2.90
+GiB below the 18 GiB build minimum; no competing Cargo/rustc/Maturin process
+was active. No Rust build, conformance run, actual sdist/wheel check, or cleanup
+was performed. These validations remain NOT_RUN or BLOCKED; WI076 remains
+active, AC-2 through AC-6 remain pending, and WI074 RPS-016 remains pending.
+Details are in
+[`20261024-076-transport-version-diagnosis`](../../../evidence/runs/20261024-076-transport-version-diagnosis.json).

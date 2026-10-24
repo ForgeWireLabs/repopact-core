@@ -1,4 +1,4 @@
-//! Versioned transport DTOs for the line-oriented RepoPact engine protocol.
+//! Versioned transport DTOs for the stateful, line-oriented RepoPact engine protocol.
 //!
 //! This crate intentionally contains no repository or governance semantics. It
 //! is shared by the machine engine and protocol-focused tests so that Python
@@ -8,7 +8,9 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 pub const PROTOCOL: &str = "repopact-engine";
-pub const PROTOCOL_VERSION: u32 = 1;
+/// Major 2 adds newline-framed requests and a persistent, admitted process session.
+/// Major 1 used one JSON request per process, read until stdin EOF.
+pub const PROTOCOL_VERSION: u32 = 2;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct EngineRequest {

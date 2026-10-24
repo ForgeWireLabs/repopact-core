@@ -69,8 +69,9 @@ a hand-maintained per-file list as the source of truth.
 - **Protocol declarations:** include `repopact-protocol` DTOs and
   `capabilities()` declarations, including its advertised operations and
   `semantic_surfaces`. These declarations are part of the client/engine
-  semantic contract even though the wire protocol name and major remain a
-  separate identity.
+  semantic contract. The wire protocol name and major remain a separate
+  compatibility identity and must change when framing or session lifecycle is
+  incompatible.
 - **Embedded schemas:** include all packaged schema files and verify the
   compile-time embedded set. The current Rust `repopact-schema` embeds
   `evidence-run.schema.json`, `documentation-mappings.schema.json`,
@@ -194,9 +195,9 @@ The selected design is a stateful, line-delimited session owned by one engine
 process. The client may reuse that session for operations in its lifetime, but
 an admission result is bound to that process instance only:
 
-1. Start one engine process and send only a non-mutating `handshake` request.
-   The response reports protocol identity, product identity, semantic
-   identity, and capabilities.
+1. Start one engine process and send only a non-mutating protocol-2 `handshake`
+   request. The response reports protocol identity, product identity,
+   semantic identity, and capabilities.
 2. Verify all expected identities and required capabilities in Python. No
    repository operation has been sent at this point.
 3. Send an explicit `admit` request to that same process, echoing the expected
@@ -218,17 +219,17 @@ executable at its path after process start does not replace the image already
 executing in that process. Serialize requests so only one is in flight on a
 session; a response cannot be matched to the wrong operation.
 
-Legacy behavior fails before mutation. The current one-request engine waits
-for stdin EOF; the new client keeps the session pipe open while awaiting the
-handshake, so a legacy binary times out and is terminated before any operation
-is sent. A legacy binary that does answer a handshake but omits the semantic
-identity is rejected before `admit`. A binary that ignores newly added JSON
-fields is not trusted to reject itself: the client sends no mutating request
-until it has verified the handshake and the same-process admission
-acknowledgement. The engine-side unadmitted state is a second guard for new
-engines. Ordinary Scripts-directory discovery, an executable beside the
-Python package, and `REPOPACT_ENGINE` all use the same admission rule; an
-explicit override selects a path but cannot bypass it.
+Legacy behavior fails before mutation. A protocol-1 one-request engine waits
+for stdin EOF; the protocol-2 client keeps the session pipe open while awaiting
+the handshake, so that legacy binary does not respond and the client times out
+before any operation is sent. A protocol-1 implementation that does answer is
+rejected on major version before identity admission. A binary that ignores
+newly added JSON fields is not trusted to reject itself: the client sends no
+mutating request until it has verified the protocol-2 handshake and the
+same-process admission acknowledgement. The engine-side unadmitted state is a
+second guard for new engines. Ordinary Scripts-directory discovery, an
+executable beside the Python package, and `REPOPACT_ENGINE` all use the same
+admission rule; an explicit override selects a path but cannot bypass it.
 
 A separate handshake process followed by a second executable launch is
 rejected as unsafe: the second launch may resolve to different bytes and may
@@ -284,17 +285,42 @@ must also prove any explicitly separate Python-authoritative path follows its
 declared boundary. The earlier one-shot `check_compatibility()` calls cannot
 be counted as admission evidence.
 
-### Migration and compatibility boundary
+### Transport protocol major and migration boundary
+
+The stateful line-delimited session is protocol major 2. Major 1 consumed one
+JSON request per process by reading stdin through EOF. Major 2 consumes one
+newline-terminated JSON request at a time and keeps the same process alive
+across handshake, explicit admission, and subsequent operations. The envelope
+fields alone do not make these transports compatible: the client must keep
+stdin open to await each v2 response, while a v1 engine does not respond until
+EOF. This is a breaking framing and lifecycle change, so using major 1 for the
+new session would misstate compatibility. A separate session-contract field is
+not needed for this transition because protocol major already versions the
+transport and lifecycle as one contract.
+
+The strict `3.1.4.dev0` client and matching engine speak protocol 2. They do
+not negotiate, downgrade, or retry using protocol 1. A v2 engine rejects a
+protocol-1 request before dispatch; a legacy v1 engine may wait for EOF and
+produce no handshake response, in which case the v2 client times out and sends
+no operation. If a v1 implementation does return a response, the client
+rejects its major before admission. Stable 3.1.3 artifacts retain protocol 1
+and their existing behavior; rollback restores the complete matching 3.1.3
+Python/engine pair. The semantic identity format remains
+`repopact-semantic-v1`; its digest changes because the protocol declarations
+and client code are governed semantic inputs, not because the hash format
+changed. The read-only timeout diagnosis is recorded in
+`20261024-076-transport-version-diagnosis`; earlier failed-run records remain
+unchanged historical evidence.
+
+### Product migration boundary
 
 Do not change or rebuild the released stable 3.1.3 Python/engine pair under
-its existing identity. Introduce strict session admission only in a distinct,
-governed post-3.1.3 development/product identity and ship the client and
-engine together in its wheel. A new strict client paired with a legacy engine
-times out or rejects the missing identity before sending an operation. A
-future strict engine rejects a legacy one-shot operation before dispatch;
-cross-version pairings may fail closed, but the existing matched stable 3.1.3
-installation continues to behave as released. There is no `REPOPACT_ENGINE`
-compatibility bypass for canonical operations.
+its existing identity or protocol major. Introduce strict session admission
+and protocol 2 only in the distinct, governed post-3.1.3 development/product
+identity, and ship the client and engine together in its wheel. Cross-version
+pairings fail closed, but the existing matched stable 3.1.3 installation
+continues to behave as released. There is no `REPOPACT_ENGINE` compatibility
+bypass for canonical operations.
 
 ### Packaging, provenance, and limits
 

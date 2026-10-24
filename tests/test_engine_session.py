@@ -2,11 +2,11 @@ from __future__ import annotations
 
 import unittest
 
+from repopact.engine_client import PROTOCOL_VERSION
 from repopact.engine_session import AdmissionError, Phase, SessionAdmissionState
 
 
 PROTOCOL = "repopact-engine"
-PROTOCOL_VERSION = 1
 PRODUCT_VERSION = "3.1.4.dev0"
 SEMANTIC_ID = "repopact-semantic-v1:sha256:" + "a" * 64
 

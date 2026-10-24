@@ -36,6 +36,15 @@ identity stops an operation before dispatch. Setting `REPOPACT_ENGINE` does
 not bypass this admission. The stable 3.1.3 package continues to use its
 matching engine under the previous compatibility behavior.
 
+This session contract uses engine protocol major 2. Major 1 used one JSON
+request per process and read stdin through EOF; major 2 uses newline-framed
+requests in one persistent process for handshake, admission, and operations.
+The framing and process-lifecycle change is incompatible even though both
+versions use JSON objects, so the client does not negotiate or downgrade. A
+legacy v1 executable may wait for EOF and time out before it can return a
+version mismatch; the client sends no operation before successful v2 admission.
+Keep stable 3.1.3 and its v1 engine together when rolling back.
+
 When moving to the strict boundary, install the matching Core package and its
 colocated engine together. For development overrides, use an engine built from
 the same source revision and semantic inputs as the Python package. If a
