@@ -1,0 +1,35 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261024-076-prebuild-gate-recheck-1741",
+  "timestamp": "2026-10-24T17:41:26Z",
+  "work_item": "076",
+  "result": "blocked",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "PowerShell read-only Get-Volume -DriveLetter C and Get-Process cargo,rustc,maturin",
+      "exit_code": 0,
+      "summary": "C: is healthy NTFS with 16,221,507,584 bytes free (15.11 GiB). No Cargo, rustc, or Maturin process was active. The required minimum is 19,327,352,832 bytes (18 GiB), so compilation remains blocked."
+    }
+  ],
+  "artifacts": [
+    "decisions/0077-engine-semantic-compatibility-identity.md",
+    "work/active/076-engine-semantic-compatibility-identity/README.md"
+  ],
+  "environment": {
+    "free_bytes": 16221507584,
+    "minimum_free_bytes": 19327352832,
+    "filesystem": "NTFS",
+    "health": "Healthy",
+    "competing_build_processes": [],
+    "build_performed": false,
+    "cleanup_performed": false,
+    "target_path": "C:\\Projects\\repopact-core-wi076-build\\target",
+    "temporary_path": "C:\\Projects\\repopact-core-wi076-build\\tmp",
+    "acceptance": {
+      "WI076": "active",
+      "AC-2_through_AC-6": "pending",
+      "WI074_RPS-016": "pending"
+    }
+  }
+}

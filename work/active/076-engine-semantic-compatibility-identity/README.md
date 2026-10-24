@@ -254,3 +254,12 @@ the engine handshake. The derived dashboard was left untouched; it must be
 regenerated after canonical engine operation is restored. AC-5 is not marked
 satisfied yet. WI076 remains active and AC-2 through AC-6 remain pending. See
 [`20261024-076-implementation-increment-5`](../../../evidence/runs/20261024-076-implementation-increment-5.json).
+
+## Pre-build gate recheck (2026-10-24)
+
+A fresh read-only check at 17:41:26 UTC found C: healthy NTFS with
+16,221,507,584 bytes free (15.11 GiB), still below the required 18 GiB. No
+Cargo, rustc, or Maturin process was active. No build or cleanup was performed.
+The task-owned target/temp plan remains unchanged; check capacity and competing
+processes again before any build. Evidence is in
+[`20261024-076-prebuild-gate-recheck-1741`](../../../evidence/runs/20261024-076-prebuild-gate-recheck-1741.json).

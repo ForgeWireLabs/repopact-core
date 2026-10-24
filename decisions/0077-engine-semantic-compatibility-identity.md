@@ -442,13 +442,14 @@ on real Maturin artifacts and remains an acceptance gate.
 
 ## Pre-build gate
 
-The latest read-only snapshot at 15:48 UTC found C: healthy NTFS with
-16,077,275,136 bytes free (14.97 GiB); no `cargo.exe` or `rustc.exe` process
-was found. The earlier 15:22 UTC snapshot had an unrelated
-`fabric-qualification` Cargo test process tree. The recorded conservative
-minimum is 18 GiB free (12 GiB target + 2 GiB temporary and wheel output + 4
-GiB headroom). Do not compile while below that threshold or while unrelated
-Cargo work is active. If later authorized by capacity,
+The 15:48 UTC snapshot found C: healthy NTFS with 16,077,275,136 bytes free
+(14.97 GiB); no `cargo.exe` or `rustc.exe` process was found. A fresh
+17:41:26 UTC read-only check found C: healthy NTFS with 16,221,507,584 bytes
+free (15.11 GiB), and no `cargo`, `rustc`, or `maturin` process. The earlier
+15:22 UTC snapshot had an unrelated `fabric-qualification` Cargo test process
+tree. Current space remains below the recorded conservative minimum of 18 GiB
+(12 GiB target + 2 GiB temporary and wheel output + 4 GiB headroom). Do not
+compile while below that threshold or while unrelated Cargo work is active. If later authorized by capacity,
 recheck both conditions and use only the task-owned
 `C:\Projects\repopact-core-wi076-build\target` and `...\tmp` paths. Do not
 clean Cargo caches, existing targets, the previously denied temporary
