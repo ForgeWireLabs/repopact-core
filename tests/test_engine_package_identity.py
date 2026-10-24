@@ -67,6 +67,9 @@ include = [\"build/semantic-input-manifest.json\"]
             "sample.txt": b"semantic input\n",
             "repopact/requirements-runtime.lock": b"jsonschema==4.26.0\n",
             "repopact/runtime-dependency-groups.json": b'{"format_version":1}\n',
+            "repopact/sample.py": b"VALUE = 1\n",
+            "repopact/schemas/sample.json": b'{"type":"object"}\n',
+            "repopact/templates/sample.json": b'{"format_version":1}\n',
             "scripts/generate_engine_semantic_identity.py": b"# generator\n",
             "scripts/verify_engine_package_identity.py": b"# verifier\n",
             "rust/Cargo.toml": workspace_manifest.encode(),
@@ -124,17 +127,39 @@ include = [\"build/semantic-input-manifest.json\"]
                 archive.addfile(member, BytesIO(data))
         return path
 
-    def _wheel(self, name: str = "repopact-3.1.4.dev0-py3-none-win_amd64.whl") -> Path:
+    def _wheel(
+        self,
+        name: str = "repopact-3.1.4.dev0-py3-none-win_amd64.whl",
+        *,
+        omit: set[str] | None = None,
+    ) -> Path:
         path = self.root / name
+        omitted = omit or set()
         with zipfile.ZipFile(path, "w") as archive:
-            for relative in (
-                "repopact/_semantic_identity.json",
-                "repopact/_semantic-input-manifest.json",
-                "repopact/requirements-runtime.lock",
-                "repopact/runtime-dependency-groups.json",
-            ):
-                archive.writestr(relative, self.files[relative])
+            for relative, data in self.files.items():
+                if relative.startswith("repopact/") and relative not in omitted:
+                    archive.writestr(relative, data)
+            archive.writestr(
+                "repopact-3.1.4.dev0.dist-info/METADATA",
+                b"Metadata-Version: 2.1\nName: repopact\nVersion: 3.1.4.dev0\n\n",
+            )
+            if "repopact-engine.exe" not in omitted:
+                archive.writestr(
+                    "repopact-3.1.4.dev0.data/scripts/repopact-engine.exe",
+                    b"MZ synthetic test engine",
+                )
         return path
+
+    def _synthetic_probe(self, response: dict[str, object] | None = None):
+        value = response or {
+            "ok": True,
+            "protocol": "repopact-engine",
+            "protocol_version": 2,
+            "request_id": "wheel-identity-check",
+            "engine_version": "3.1.4.dev0",
+            "semantic_identity": self.identity,
+        }
+        return lambda _member, _data: value
 
     def test_sdist_checks_every_semantic_input_and_identity(self) -> None:
         report = verify_sdist(self._sdist(), self.identity)
@@ -155,15 +180,70 @@ include = [\"build/semantic-input-manifest.json\"]
         self.assertEqual(self.identity, report["semantic_identity"])
 
     def test_wheel_requires_agreeing_identity_manifest_and_runtime_lock(self) -> None:
-        report = verify_wheel(self._wheel(), self.identity)
+        report = verify_wheel(
+            self._wheel(), self.identity, engine_probe=self._synthetic_probe()
+        )
         self.assertEqual(self.identity, report["semantic_identity"])
+        self.assertEqual(5, report["semantic_package_files_verified"])
+        self.assertTrue(report["engine_identity_verified"])
+
+    def test_wheel_rejects_missing_manifest_listed_package_file(self) -> None:
+        with self.assertRaisesRegex(ArchiveIdentityError, "omitted semantic package input repopact/sample.py"):
+            verify_wheel(
+                self._wheel(omit={"repopact/sample.py"}),
+                self.identity,
+                engine_probe=self._synthetic_probe(),
+            )
+
+    def test_wheel_rejects_changed_manifest_listed_package_file(self) -> None:
+        original = self.files["repopact/schemas/sample.json"]
+        self.files["repopact/schemas/sample.json"] = b'{"type":"array"}\n'
+        try:
+            with self.assertRaisesRegex(ArchiveIdentityError, "digest mismatch: repopact/schemas/sample.json"):
+                verify_wheel(
+                    self._wheel(), self.identity, engine_probe=self._synthetic_probe()
+                )
+        finally:
+            self.files["repopact/schemas/sample.json"] = original
+
+    def test_wheel_requires_expected_maturin_engine_executable(self) -> None:
+        with self.assertRaisesRegex(ArchiveIdentityError, "scripts/repopact-engine executable"):
+            verify_wheel(
+                self._wheel(omit={"repopact-engine.exe"}),
+                self.identity,
+                engine_probe=self._synthetic_probe(),
+            )
+
+    def test_wheel_rejects_incompatible_packaged_engine_identity(self) -> None:
+        stale = {
+            "ok": True,
+            "protocol": "repopact-engine",
+            "protocol_version": 2,
+            "request_id": "wheel-identity-check",
+            "engine_version": "3.1.4.dev0",
+            "semantic_identity": "repopact-semantic-v1:sha256:" + "b" * 64,
+        }
+        with self.assertRaisesRegex(ArchiveIdentityError, "engine semantic identity differs"):
+            verify_wheel(self._wheel(), self.identity, engine_probe=self._synthetic_probe(stale))
+
+    def test_wheel_rejects_incompatible_packaged_engine_protocol(self) -> None:
+        legacy = {
+            "ok": True,
+            "protocol": "repopact-engine",
+            "protocol_version": 1,
+            "request_id": "wheel-identity-check",
+            "engine_version": "3.1.4.dev0",
+            "semantic_identity": self.identity,
+        }
+        with self.assertRaisesRegex(ArchiveIdentityError, "incompatible protocol identity"):
+            verify_wheel(self._wheel(), self.identity, engine_probe=self._synthetic_probe(legacy))
 
     def test_wheel_rejects_identity_drift(self) -> None:
         original = self.files["repopact/_semantic_identity.json"]
         document = dict(self.identity_document, semantic_identity="repopact-semantic-v1:sha256:" + "0" * 64)
         self.files["repopact/_semantic_identity.json"] = json.dumps(document).encode()
         with self.assertRaisesRegex(ArchiveIdentityError, "wheel identity differs"):
-            verify_wheel(self._wheel(), self.identity)
+            verify_wheel(self._wheel(), self.identity, engine_probe=self._synthetic_probe())
         self.files["repopact/_semantic_identity.json"] = original
 
 

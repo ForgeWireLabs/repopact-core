@@ -3,8 +3,12 @@
 from __future__ import annotations
 
 import argparse
+import email
+import os
 import hashlib
 import json
+import re
+import subprocess
 import sys
 import tarfile
 import tempfile
@@ -145,7 +149,82 @@ def verify_sdist(path: Path, expected_identity: str) -> dict[str, Any]:
     return {"path": path.name, "semantic_identity": expected_identity, "inputs_verified": len(inputs)}
 
 
-def verify_wheel(path: Path, expected_identity: str) -> dict[str, Any]:
+def _probe_packaged_engine(
+    member_name: str,
+    executable: bytes,
+) -> dict[str, Any]:
+    """Run only the non-mutating protocol handshake from an isolated temp dir."""
+    basename = PurePosixPath(member_name).name
+    if basename not in {"repopact-engine", "repopact-engine.exe"}:
+        raise ArchiveIdentityError(f"unexpected packaged engine filename: {member_name}")
+    with tempfile.TemporaryDirectory(prefix="repopact-wheel-engine-") as temporary:
+        executable_path = Path(temporary) / basename
+        executable_path.write_bytes(executable)
+        request = {
+            "protocol": "repopact-engine",
+            "protocol_version": 2,
+            "request_id": "wheel-identity-check",
+            "operation": "handshake",
+            "root": None,
+            "params": {},
+        }
+        environment = os.environ.copy()
+        environment.pop("REPOPACT_ENGINE", None)
+        try:
+            result = subprocess.run(
+                [str(executable_path)],
+                input=json.dumps(request, sort_keys=True, separators=(",", ":")) + "\n",
+                text=True,
+                encoding="utf-8",
+                errors="strict",
+                capture_output=True,
+                timeout=5.0,
+                cwd=temporary,
+                env=environment,
+                shell=False,
+                check=False,
+            )
+        except (OSError, subprocess.TimeoutExpired) as exc:
+            raise ArchiveIdentityError(f"packaged engine handshake could not complete: {exc}") from exc
+        if result.returncode != 0:
+            detail = result.stderr.strip()[-1000:]
+            raise ArchiveIdentityError(
+                "packaged engine handshake exited unsuccessfully"
+                + (f": {detail}" if detail else "")
+            )
+        lines = [line for line in result.stdout.splitlines() if line.strip()]
+        if len(lines) != 1:
+            raise ArchiveIdentityError("packaged engine handshake did not return exactly one JSON line")
+        try:
+            response = json.loads(lines[0])
+        except json.JSONDecodeError as exc:
+            raise ArchiveIdentityError(f"packaged engine returned invalid handshake JSON: {exc.msg}") from exc
+        if not isinstance(response, dict):
+            raise ArchiveIdentityError("packaged engine handshake response must be a JSON object")
+        return response
+
+
+def _validate_packaged_handshake(
+    response: dict[str, Any], *, expected_identity: str, expected_product: str
+) -> None:
+    if response.get("ok") is not True:
+        raise ArchiveIdentityError("packaged engine handshake was not successful")
+    if response.get("protocol") != "repopact-engine" or response.get("protocol_version") != 2:
+        raise ArchiveIdentityError("packaged engine has an incompatible protocol identity")
+    if response.get("engine_version") != expected_product:
+        raise ArchiveIdentityError("packaged engine product identity differs from wheel metadata")
+    if response.get("semantic_identity") != expected_identity:
+        raise ArchiveIdentityError("packaged engine semantic identity differs from wheel identity")
+    if response.get("request_id") != "wheel-identity-check":
+        raise ArchiveIdentityError("packaged engine handshake did not match the verifier request")
+
+
+def verify_wheel(
+    path: Path,
+    expected_identity: str,
+    *,
+    engine_probe: Any = _probe_packaged_engine,
+) -> dict[str, Any]:
     with zipfile.ZipFile(path) as archive:
         listed = archive.namelist()
         if len(set(listed)) != len(listed):
@@ -170,7 +249,73 @@ def verify_wheel(path: Path, expected_identity: str) -> dict[str, Any]:
             raise ArchiveIdentityError("wheel manifest differs from the source identity")
         if identity.get("manifest") != "repopact/_semantic-input-manifest.json":
             raise ArchiveIdentityError("wheel identity points to an unexpected manifest path")
-    return {"path": path.name, "semantic_identity": expected_identity}
+        inputs = manifest.get("inputs")
+        if not isinstance(inputs, list):
+            raise ArchiveIdentityError("wheel semantic manifest omitted its input list")
+        try:
+            if semantic_identity(inputs) != expected_identity:
+                raise ArchiveIdentityError("wheel manifest inputs do not produce its semantic identity")
+        except (KeyError, TypeError, ManifestError) as exc:
+            raise ArchiveIdentityError(f"wheel manifest inputs are malformed: {exc}") from exc
+
+        package_inputs: dict[str, str] = {}
+        for entry in inputs:
+            if not isinstance(entry, dict) or not isinstance(entry.get("path"), str):
+                raise ArchiveIdentityError("wheel semantic manifest contains a malformed input entry")
+            relative = _safe_manifest_path(entry["path"])
+            digest = entry.get("sha256")
+            if not isinstance(digest, str) or not re.fullmatch(r"[0-9a-f]{64}", digest):
+                raise ArchiveIdentityError(f"wheel semantic input has an invalid digest: {relative}")
+            if relative.startswith("repopact/"):
+                if relative in package_inputs:
+                    raise ArchiveIdentityError(f"wheel semantic manifest repeats input {relative}")
+                package_inputs[relative] = digest
+        for relative, expected_digest in sorted(package_inputs.items()):
+            if relative not in names:
+                raise ArchiveIdentityError(f"wheel omitted semantic package input {relative}")
+            actual_digest = hashlib.sha256(archive.read(relative)).hexdigest()
+            if actual_digest != expected_digest:
+                raise ArchiveIdentityError(f"wheel semantic input digest mismatch: {relative}")
+
+        metadata_paths = sorted(
+            name for name in names if name.endswith(".dist-info/METADATA")
+        )
+        if len(metadata_paths) != 1:
+            raise ArchiveIdentityError("wheel must contain exactly one dist-info/METADATA file")
+        metadata = email.message_from_bytes(archive.read(metadata_paths[0]))
+        product_version = metadata.get("Version")
+        if not product_version:
+            raise ArchiveIdentityError("wheel metadata omitted its product version")
+        engine_paths = sorted(
+            name
+            for name in names
+            if len(PurePosixPath(name).parts) == 3
+            and PurePosixPath(name).parts[0].endswith(".data")
+            and PurePosixPath(name).parts[1] == "scripts"
+            and PurePosixPath(name).name in {"repopact-engine", "repopact-engine.exe"}
+        )
+        if len(engine_paths) != 1:
+            raise ArchiveIdentityError(
+                "wheel must contain exactly one Maturin scripts/repopact-engine executable"
+            )
+        packaged_engine = archive.read(engine_paths[0])
+        engine_response = engine_probe(engine_paths[0], packaged_engine)
+        if not isinstance(engine_response, dict):
+            raise ArchiveIdentityError("packaged engine probe returned a malformed response")
+        _validate_packaged_handshake(
+            engine_response,
+            expected_identity=expected_identity,
+            expected_product=product_version,
+        )
+    return {
+        "path": path.name,
+        "semantic_identity": expected_identity,
+        "semantic_package_files_verified": len(package_inputs),
+        "engine_member": engine_paths[0],
+        "engine_sha256": hashlib.sha256(packaged_engine).hexdigest(),
+        "engine_build_info": engine_response.get("build_info"),
+        "engine_identity_verified": True,
+    }
 
 
 def verify_archives(root: Path, sdist: Path, wheel: Path) -> dict[str, Any]:

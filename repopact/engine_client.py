@@ -272,24 +272,81 @@ class EngineClient:
             if self._session is not None:
                 self._session.close()
             process = self._process
-            if process is None:
-                return
-            if process.stdin is not None:
-                try:
-                    process.stdin.close()
-                except OSError:
-                    pass
             try:
-                process.wait(timeout=min(self.timeout, 2.0))
-            except subprocess.TimeoutExpired:
+                self._stop_owned_process(process, force=False)
+            except BaseException as close_error:
+                try:
+                    self._stop_owned_process(process, force=True)
+                except BaseException as cleanup_error:
+                    if hasattr(close_error, "add_note"):
+                        close_error.add_note(f"forced engine cleanup also failed: {cleanup_error}")
+                raise
+
+    @staticmethod
+    def _stop_owned_process(process: subprocess.Popen[str] | None, *, force: bool) -> None:
+        """Stop and reap the one process owned by this client with bounded waits."""
+        if process is None:
+            return
+        failure: BaseException | None = None
+        if process.poll() is None and not force and process.stdin is not None:
+            try:
+                process.stdin.close()
+            except (OSError, ValueError):
+                pass
+        if process.poll() is None and force:
+            try:
                 process.kill()
-                process.wait()
-            for stream in (process.stdout, process.stderr):
-                if stream is not None:
-                    try:
-                        stream.close()
-                    except OSError:
-                        pass
+            except OSError as exc:
+                failure = exc
+        if process.poll() is None:
+            try:
+                process.wait(timeout=2.0)
+            except subprocess.TimeoutExpired:
+                try:
+                    process.kill()
+                except OSError as exc:
+                    failure = failure or exc
+                try:
+                    process.wait(timeout=2.0)
+                except subprocess.TimeoutExpired as exc:
+                    failure = failure or exc
+        for stream in (process.stdin, process.stdout, process.stderr):
+            if stream is not None:
+                try:
+                    stream.close()
+                except (OSError, ValueError):
+                    pass
+        if failure is not None:
+            raise EngineProtocolError(
+                f"unable to stop and reap the owned Rust engine process: {failure}"
+            ) from failure
+
+    def _poison_and_stop_session(self, cause: BaseException) -> None:
+        """Poison admission before force-stopping the client-owned process."""
+        if self._session is not None:
+            self._session.process_exited()
+        self._closed = True
+        try:
+            self._stop_owned_process(self._process, force=True)
+        except BaseException as cleanup_error:
+            if hasattr(cause, "add_note"):
+                cause.add_note(f"engine cleanup also failed: {cleanup_error}")
+
+    @staticmethod
+    def _mark_interrupted_outcome(exc: BaseException, operation: str) -> None:
+        """Preserve process-control exceptions while exposing uncertain outcomes."""
+        try:
+            setattr(exc, "operation", operation)
+            setattr(exc, "outcome_unknown", operation not in {"handshake", "admit"})
+        except BaseException:
+            pass
+        if hasattr(exc, "add_note"):
+            if operation in {"handshake", "admit"}:
+                exc.add_note("engine session was invalidated before any application operation")
+            else:
+                exc.add_note(
+                    f"{operation} may have executed; outcome is unknown and the engine session was terminated"
+                )
 
     def provenance(self) -> dict[str, Any]:
         """Describe the actual client-owned process and the bytes at its image path.
@@ -445,10 +502,12 @@ class EngineClient:
 
     def _ensure_admitted(self) -> None:
         if self._closed:
-            raise EngineProtocolError("engine client is closed")
+            raise EngineProtocolError("engine client is closed; refusing to relaunch or replay work")
         if self._session is not None:
             if self._process is None or self._process.poll() is not None:
-                self._session.process_exited()
+                self._poison_and_stop_session(
+                    _EngineRequestNotSentError("Rust engine process exited before request dispatch")
+                )
                 raise EngineProtocolError(
                     "admitted Rust engine process exited; refusing to relaunch a different executable"
                 )
@@ -559,35 +618,51 @@ class EngineClient:
             raise _EngineRequestNotSentError("Rust engine process exited before request dispatch")
         assert process.stdin is not None
         encoded = json.dumps(request, sort_keys=True, separators=(",", ":")) + "\n"
+        dispatch_attempted = False
         try:
+            # From the first call into write(), a short write or asynchronous
+            # interruption may still have delivered a complete request.
+            dispatch_attempted = True
             process.stdin.write(encoded)
             process.stdin.flush()
-            line = self._stdout_lines.get(timeout=self.timeout)
-        except queue.Empty as exc:
-            raise EngineProtocolError(
-                f"Rust engine timed out after {self.timeout:g}s during {request['operation']}"
-            ) from exc
-        except (BrokenPipeError, OSError) as exc:
-            raise EngineProtocolError(f"Rust engine transport failed: {exc}") from exc
-        if line is None:
-            detail = "\n".join(self._stderr_lines[-8:])
-            raise EngineProtocolError(
-                "Rust engine exited without a JSON response"
-                + (f": {detail}" if detail else "")
+            try:
+                line = self._stdout_lines.get(timeout=self.timeout)
+            except queue.Empty as exc:
+                raise EngineProtocolError(
+                    f"Rust engine timed out after {self.timeout:g}s during {request['operation']}"
+                ) from exc
+            if line is None:
+                detail = "\n".join(self._stderr_lines[-8:])
+                raise EngineProtocolError(
+                    "Rust engine exited without a JSON response"
+                    + (f": {detail}" if detail else "")
+                )
+            try:
+                response = json.loads(line)
+            except json.JSONDecodeError as exc:
+                raise EngineProtocolError(f"Rust engine returned malformed JSON: {exc.msg}") from exc
+            if not isinstance(response, dict):
+                raise EngineProtocolError("Rust engine response must be a JSON object")
+            self._verify_response(
+                response,
+                request["operation"],
+                request["request_id"],
+                semantic_identity=self._expected_semantic_identity,
             )
-        try:
-            response = json.loads(line)
-        except json.JSONDecodeError as exc:
-            raise EngineProtocolError(f"Rust engine returned malformed JSON: {exc.msg}") from exc
-        if not isinstance(response, dict):
-            raise EngineProtocolError("Rust engine response must be a JSON object")
-        self._verify_response(
-            response,
-            request["operation"],
-            request["request_id"],
-            semantic_identity=self._expected_semantic_identity,
-        )
-        return response
+            return response
+        except BaseException as exc:
+            if not dispatch_attempted:
+                raise
+            self._poison_and_stop_session(exc)
+            operation = request["operation"]
+            if isinstance(exc, (KeyboardInterrupt, SystemExit, GeneratorExit)):
+                self._mark_interrupted_outcome(exc, operation)
+                raise
+            if operation in {"handshake", "admit"}:
+                raise
+            raise EngineOutcomeUnknownError(
+                f"Rust engine outcome is unknown after dispatching {operation}: {exc}"
+            ) from exc
 
     def _call_admitted(
         self, operation: str, *, root: Path | None, params: dict[str, Any] | None
@@ -603,14 +678,9 @@ class EngineClient:
             try:
                 response = self._session_exchange(request)
             except _EngineRequestNotSentError as exc:
-                self._session.process_exited()
+                self._poison_and_stop_session(exc)
                 raise EngineProtocolError(
                     "admitted Rust engine exited before operation dispatch; refusing to relaunch"
-                ) from exc
-            except EngineError as exc:
-                self._session.process_exited()
-                raise EngineOutcomeUnknownError(
-                    f"Rust engine outcome is unknown after dispatching {operation}: {exc}"
                 ) from exc
             if not response.get("ok", False):
                 error = response.get("error") or {}

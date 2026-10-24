@@ -4,6 +4,7 @@ import json
 import os
 import sys
 import tempfile
+import time
 import unittest
 from pathlib import Path
 from unittest import mock
@@ -23,6 +24,7 @@ def fake_engine_source(
     protocol_version: int = engine_client.PROTOCOL_VERSION,
     read_until_eof: bool = False,
     exit_after_operation: bool = False,
+    operation_delay_seconds: float = 0,
 ) -> str:
     """Return a line-oriented stand-in used to test process/session boundaries."""
     line_source = "sys.stdin.read().splitlines()" if read_until_eof else "sys.stdin"
@@ -30,6 +32,7 @@ def fake_engine_source(
 import json
 import os
 import sys
+import time
 from pathlib import Path
 
 events = Path({str(events)!r})
@@ -68,6 +71,8 @@ for line in {line_source}:
         }}
     else:
         mutation.write_text(operation, encoding="utf-8")
+        if {operation_delay_seconds!r}:
+            time.sleep({operation_delay_seconds!r})
         response["result"] = {{"accepted": True}}
         if {exit_after_operation!r}:
             sys.exit(0)
@@ -84,6 +89,7 @@ class EngineClientSemanticAdmissionTests(unittest.TestCase):
         protocol_version: int = engine_client.PROTOCOL_VERSION,
         read_until_eof: bool = False,
         exit_after_operation: bool = False,
+        operation_delay_seconds: float = 0,
         timeout: float = 3,
     ) -> tuple[engine_client.EngineClient, Path, Path]:
         events = directory / "events.jsonl"
@@ -97,6 +103,7 @@ class EngineClientSemanticAdmissionTests(unittest.TestCase):
                 protocol_version=protocol_version,
                 read_until_eof=read_until_eof,
                 exit_after_operation=exit_after_operation,
+                operation_delay_seconds=operation_delay_seconds,
             ),
             encoding="utf-8",
         )
@@ -158,7 +165,9 @@ class EngineClientSemanticAdmissionTests(unittest.TestCase):
                 engine_client.EngineProtocolError, "timed out after 0.5s during handshake"
             ):
                 client.call("dashboard.write")
-            self.assertEqual(["handshake"], [event["operation"] for event in self.events(events)])
+            self.assertEqual([], self.events(events))
+            self.assertIsNotNone(client._process)
+            self.assertIsNotNone(client._process.poll())
             self.assertFalse(mutation.exists())
 
     def test_missing_identity_legacy_engine_is_rejected_before_mutation(self):
@@ -265,6 +274,99 @@ class EngineClientSemanticAdmissionTests(unittest.TestCase):
             self.assertTrue(mutation.exists())
             with self.assertRaisesRegex(engine_client.EngineProtocolError, "refusing to relaunch"):
                 client.call("dashboard.write")
+            self.assertEqual(1, operations.count("dashboard.write"))
+
+    def test_timeout_terminates_live_engine_and_prevents_same_client_reuse(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            client, events, mutation = self.make_client(
+                Path(temporary), operation_delay_seconds=3, timeout=0.25
+            )
+            with self.assertRaises(engine_client.EngineOutcomeUnknownError):
+                client.call("dashboard.write")
+            self.assertTrue(mutation.exists())
+            self.assertIsNotNone(client._process)
+            self.assertIsNotNone(client._process.poll())
+            with self.assertRaisesRegex(engine_client.EngineProtocolError, "closed"):
+                client.call("dashboard.write")
+            operations = [event["operation"] for event in self.events(events)]
+            self.assertEqual(1, operations.count("dashboard.write"))
+
+    def test_keyboard_interrupt_while_waiting_preserves_cancellation_and_poisons_session(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            client, events, mutation = self.make_client(
+                Path(temporary), operation_delay_seconds=3, timeout=5
+            )
+            original_get = client._stdout_lines.get
+            get_calls = 0
+
+            def interrupt_on_operation_response(*, timeout=None):
+                nonlocal get_calls
+                get_calls += 1
+                if get_calls == 3:
+                    deadline = time.monotonic() + 2
+                    while not any(
+                        event["operation"] == "dashboard.write" for event in self.events(events)
+                    ):
+                        if time.monotonic() >= deadline:
+                            self.fail("fake peer did not receive the operation before interruption")
+                        time.sleep(0.01)
+                    raise KeyboardInterrupt()
+                return original_get(timeout=timeout)
+
+            client._stdout_lines.get = interrupt_on_operation_response
+            with self.assertRaises(KeyboardInterrupt) as caught:
+                client.call("dashboard.write")
+            self.assertTrue(caught.exception.outcome_unknown)
+            self.assertEqual("dashboard.write", caught.exception.operation)
+            self.assertTrue(mutation.exists())
+            self.assertIsNotNone(client._process)
+            self.assertIsNotNone(client._process.poll())
+            with self.assertRaisesRegex(engine_client.EngineProtocolError, "closed"):
+                client.call("dashboard.write")
+            operations = [event["operation"] for event in self.events(events)]
+            self.assertEqual(1, operations.count("dashboard.write"))
+
+    def test_partial_transport_failure_after_full_write_is_unknown_and_never_replayed(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            client, events, mutation = self.make_client(
+                Path(temporary), operation_delay_seconds=3, timeout=5
+            )
+            client.check_compatibility("dashboard.write")
+            process = client._process
+            self.assertIsNotNone(process)
+            original_stdin = process.stdin
+            self.assertIsNotNone(original_stdin)
+
+            class WriteThenFail:
+                writes = 0
+
+                def write(self, value):
+                    self.writes += 1
+                    written = original_stdin.write(value)
+                    original_stdin.flush()
+                    if self.writes == 1:
+                        deadline = time.monotonic() + 2
+                        while not mutation.exists():
+                            if time.monotonic() >= deadline:
+                                raise AssertionError("fake peer did not apply the delivered operation")
+                            time.sleep(0.01)
+                        raise OSError("simulated transport loss after complete request delivery")
+                    return written
+
+                def flush(self):
+                    return original_stdin.flush()
+
+                def close(self):
+                    return original_stdin.close()
+
+            process.stdin = WriteThenFail()
+            with self.assertRaises(engine_client.EngineOutcomeUnknownError):
+                client.call("dashboard.write")
+            self.assertTrue(mutation.exists())
+            self.assertIsNotNone(process.poll())
+            with self.assertRaisesRegex(engine_client.EngineProtocolError, "closed"):
+                client.call("dashboard.write")
+            operations = [event["operation"] for event in self.events(events)]
             self.assertEqual(1, operations.count("dashboard.write"))
 
     def test_engine_exit_after_admission_before_dispatch_does_not_relaunch(self):

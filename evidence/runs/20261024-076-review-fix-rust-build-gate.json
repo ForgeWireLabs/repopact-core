@@ -1,0 +1,39 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261024-076-review-fix-rust-build-gate",
+  "timestamp": "2026-10-24T23:33:10Z",
+  "work_item": "076",
+  "result": "passed",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "Read-only PowerShell C: health, free-space, competing-build-process, and task-owned target-size check before release engine build",
+      "exit_code": 0,
+      "summary": "C: was healthy NTFS with 30,410,555,392 bytes free (28.32 GiB). No cargo, rustc, or Maturin process was active. The task-owned target held 1,826,799,134 bytes (1.701 GiB)."
+    }
+  ],
+  "artifacts": [
+    "work/completed/076-engine-semantic-compatibility-identity/README.md",
+    "C:\\Projects\\repopact-core-wi076-build\\target"
+  ],
+  "environment": {
+    "snapshot_time_utc": "2026-10-24T23:33:10Z",
+    "volume": "C:",
+    "filesystem": "NTFS",
+    "health": "Healthy",
+    "free_bytes": 30410555392,
+    "free_gib": 28.32,
+    "alternative_mounted_drive_letters": [],
+    "competing_build_processes": [],
+    "target_directory": "C:/Projects/repopact-core-wi076-build/target",
+    "target_bytes_before_build": 1826799134,
+    "target_gib_before_build": 1.701,
+    "target_output_budget_gib": 12,
+    "package_and_temporary_output_budget_gib": 2,
+    "reserved_headroom_gib": 4,
+    "required_prebuild_free_gib": 18,
+    "available_over_prebuild_minimum_gib": 10.32,
+    "estimated_free_after_max_budgeted_output_gib": 14.32,
+    "output_disposition": "Reuse the task-owned target and place new sdist, wheel, logs, and temporary build output under C:/Projects/repopact-core-wi076-build/review-fixes. Retain outputs for evidence and review. Do not clean targets, caches, or other directories; stop further builds if C: approaches the 18-GiB prebuild threshold."
+  }
+}

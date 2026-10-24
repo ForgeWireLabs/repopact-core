@@ -36,6 +36,14 @@ identity stops an operation before dispatch. Setting `REPOPACT_ENGINE` does
 not bypass this admission. The stable 3.1.3 package continues to use its
 matching engine under the previous compatibility behavior.
 
+Once an operation request write is attempted, a timeout, interruption,
+transport failure, malformed response, or mismatched response poisons the
+session. The client terminates and reaps its owned process and does not retry
+or replay the request. The operation may already have taken effect, so callers
+must treat the result as unknown and inspect repository state before deciding
+what to do next. A keyboard interrupt remains a cancellation signal and carries
+the uncertain-outcome detail; it is not converted into a success or retried.
+
 This session contract uses engine protocol major 2. Major 1 used one JSON
 request per process and read stdin through EOF; major 2 uses newline-framed
 requests in one persistent process for handshake, admission, and operations.
@@ -76,6 +84,12 @@ python -m pip install dist\repopact-*.tar.gz
 Cargo dependencies must be available in the local cache or fetched from the
 network. Source builds are not compiler-free; the resulting wheel can be
 installed without Rust.
+
+Archive verification checks every manifest-listed `repopact/` semantic input
+inside the wheel and runs the packaged engine's bounded, non-mutating protocol
+handshake from an isolated temporary directory. This confirms agreement among
+the Python package, wheel metadata, and packaged engine. It does not establish
+that the executable came from an independently trusted publisher.
 
 ## Roll back an executable
 

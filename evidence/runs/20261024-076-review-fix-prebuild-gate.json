@@ -1,0 +1,44 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261024-076-review-fix-prebuild-gate",
+  "timestamp": "2026-10-24T23:18:11Z",
+  "work_item": "076",
+  "result": "passed",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "Read-only PowerShell volume and competing-process inspection before the WI076 review-fix build",
+      "exit_code": 0,
+      "summary": "C: was healthy NTFS with 31,644,614,656 bytes free (29.47 GiB). No cargo, rustc, or Maturin process was active. No other mounted drive letter was available."
+    },
+    {
+      "command": "Read-only size inspection of the task-owned Cargo target",
+      "exit_code": 0,
+      "summary": "C:\\Projects\\repopact-core-wi076-build\\target contained 1,327 files totaling 534,178,197 bytes (0.497 GiB)."
+    }
+  ],
+  "artifacts": [
+    "work/completed/076-engine-semantic-compatibility-identity/README.md",
+    "C:\\Projects\\repopact-core-wi076-build\\target"
+  ],
+  "environment": {
+    "snapshot_time_utc": "2026-10-24T23:18:11Z",
+    "volume": "C:",
+    "filesystem": "NTFS",
+    "health": "Healthy",
+    "free_bytes": 31644614656,
+    "free_gib": 29.47,
+    "alternative_mounted_drive_letters": [],
+    "competing_build_processes": [],
+    "target_directory": "C:/Projects/repopact-core-wi076-build/target",
+    "target_bytes_before_build": 534178197,
+    "target_gib_before_build": 0.497,
+    "target_output_budget_gib": 12,
+    "package_and_temporary_output_budget_gib": 2,
+    "reserved_headroom_gib": 4,
+    "required_prebuild_free_gib": 18,
+    "available_over_prebuild_minimum_gib": 11.47,
+    "estimated_free_after_max_budgeted_output_gib": 15.47,
+    "output_disposition": "Reuse the task-owned target and place new sdist, wheel, logs, and temporary build output under C:/Projects/repopact-core-wi076-build/review-fixes. Retain outputs for evidence and review. Do not clean targets, caches, or other directories; stop further builds if C: approaches the 18-GiB prebuild threshold."
+  }
+}

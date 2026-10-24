@@ -77,10 +77,10 @@
       "documentation_paths": [
         "docs/guides/packaging-and-engine.md"
       ],
-      "description": "The installation and packaging guide explains semantic identity, same-process admission, exact runtime dependency checks, migration, and the limits of executable provenance.",
+      "description": "The installation and packaging guide explains semantic identity, same-process admission, exact runtime dependency checks, migration, no-replay handling for uncertain outcomes, wheel payload and packaged-engine verification, and the limits of executable provenance.",
       "snapshot": {
-        "source_digest": "e8a5c3306b5ebf62c1613130d1dbec4047265a452d79babfef4a5bd0c18c266f",
-        "documentation_digest": "77a55c7fd9ac3e0f1a10e6fd09a533af9610b0a3c284014297f7cbb05676b65e"
+        "source_digest": "b66caaf4820c208b0fda2f0182846c77c4ced8bab6cbae75591c3f8ec7a54393",
+        "documentation_digest": "68889f07af105bf7eb46f85d1b76d6f07cd88628574e4c87d1da028dffb1e6c3"
       }
     }
   ]
