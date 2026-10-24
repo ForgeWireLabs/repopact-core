@@ -99,10 +99,44 @@ This is deliberately fail-closed and may change the identifier for a
 behavior-preserving refactor. The generator must compare its discovered path
 set with the stored manifest in both directions. New governed files, removed
 files, missing files, changed contents, an unresolved local dependency, or an
-unlocked semantic Python dependency make `--check` fail. The source closure
-must also be reviewed against actual Cargo metadata and Maturin package
-contents during implementation; this Decision records the current closure,
-not a claim that package verification has already run.
+unlocked or out-of-bound semantic Python dependency make `--check` fail. The
+source closure must also be reviewed against actual Cargo metadata and Maturin
+package contents during implementation; this Decision records the current
+closure, not a claim that package verification has already run.
+
+### Python runtime dependency consistency — owner choice required
+
+The current mandatory dependency is `jsonschema>=4.20` in both `pyproject.toml`
+and `requirements.txt`; this is a lower bound, not a deterministic runtime
+closure, and no lock/export currently records its transitive packages. The
+optional `cryptography>=43` dependency is used by retained Python-side
+signing/admission workflows. Its behavior must not be silently described as
+covered by the mandatory runtime dependency declaration.
+
+Before implementation, the tooling owner must choose and approve one explicit
+consistency boundary for each dependency that can affect the claimed semantic
+surface:
+
+1. **Enforce an exact closure (recommended):** add a canonical lock/export for
+   the complete runtime dependency closure, including versions and artifact
+   hashes; include it in the semantic-input manifest and sdist; and verify the
+   installed distribution name/version set before any dependent operation is
+   admitted. A mismatch fails before the operation or any dependent repository
+   write. Build/install hashes constrain the selected package inputs; they do
+   not authenticate installed bytes or replace independent executable/package
+   authenticity checks.
+2. **Explicitly bound supported versions:** record the complete supported
+   version ranges for the direct and transitive dependencies, include those
+   bounds in the semantic identity, enforce them against the loaded runtime,
+   and provide focused semantic tests for the declared support boundary. A
+   version floor alone, or a range without runtime enforcement and evidence,
+   is not an accepted bound.
+
+For optional dependencies such as `cryptography`, either apply one of those
+boundaries to the Python-authoritative admission/signing surface or explicitly
+separate that surface from the Rust engine semantic claim and document its own
+compatibility boundary. Do not silently omit an optional package that can
+change retained Python-side behavior.
 
 ### Deterministic manifest and build behavior
 
@@ -198,6 +232,54 @@ mutate before the client sees its response. Checking an identity only in an
 operation response is also rejected because that check occurs after side
 effects.
 
+### Retained Python-side mutation workflows — audit clarification
+
+A read-only source audit of the current `repopact/*.py` tree found that the
+repository-writing entry points `adopt_repo.adopt`, `doctor.fix`,
+`init_repo.bootstrap`, `new.new_markdown`, `plan_import.import_plan`,
+`takeover.takeover`, and `verification.record_evidence` perform Python-side
+filesystem writes. Several call `EngineClient.check_compatibility()` before
+writing, but that method currently handshakes in a separate process and does
+not admit the later engine process; `takeover` also performs validation in a
+separate process before Python rewrites or retires files. Those checks are
+ordering hints only and do not satisfy this Decision's admission boundary.
+Their implementation must retain an admitted session before the first
+repository write and reuse that session for any later canonical engine
+operation. The inventory also includes `generate_spec.write_spec`, which
+currently writes `SPEC.md` directly without a compatibility gate; it must be
+classified as a Python-authoritative generator with its own compatibility
+contract or establish the same admission before changing repository content.
+On mismatch, timeout, or failed admission, each canonical-dependent workflow
+must have made no repository changes.
+
+Engine-backed mutations such as `work.create` and graph operations must use
+the operation path of that same admitted process. Low-level Python writers
+such as `adopt_repo.Report.write/json`, `generate_dashboard.write_dashboard`,
+and the canonical-record helper are callable below the CLI layer; their call
+sites must be audited so a direct entry point cannot bypass the workflow's
+pre-write admission requirement. The direct dashboard generator is not a
+substitute for canonical Rust dashboard generation.
+
+Decision 0042 keeps WI050 admission/guard, protected-service, platform-backend,
+cryptographic-approval, and operator-authority semantics Python-authoritative
+and outside the canonical Rust engine protocol. These paths, including the
+CLI admission request/receipt writer, Python admission record/signing writers,
+and platform install/remove paths,
+must be classified explicitly during implementation: either require the
+same compatibility admission before repository writes that depend on the
+canonical engine, or remain a separately governed Python authority with its
+own pre-write checks and compatibility contract. Release/package output
+writers are likewise separate from repository governance mutations. This
+classification is not evidence that those independent paths have been
+revalidated or accepted.
+
+Focused tests must exercise stale or legacy engines against each retained
+canonical-dependent Python mutation entry point and compare the repository
+before and after, proving rejection occurred before the first write. Tests
+must also prove any explicitly separate Python-authoritative path follows its
+declared boundary. The earlier one-shot `check_compatibility()` calls cannot
+be counted as admission evidence.
+
 ### Migration and compatibility boundary
 
 Do not change or rebuild the released stable 3.1.3 Python/engine pair under
@@ -282,13 +364,14 @@ authentication.
 
 This record remains **proposed**. Before implementation, the tooling owner
 must explicitly approve (1) the same-process handshake/admission sequence and
-engine-side pre-dispatch gate, (2) the complete input closure and Python
-dependency-lock requirement, (3) the strict post-3.1.3 migration boundary,
-and (4) the Maturin archive and process-image provenance plan. Record that
-approval in the governed decision/evidence flow; a successful governance check
-or this review is not owner approval. Until then, WI076 remains active and
-implementation criteria remain pending. WI074 RPS-016 remains independently
-pending.
+engine-side pre-dispatch gate; (2) the complete input closure and the selected
+exact-lock or explicitly-bounded Python dependency rule; (3) the retained
+Python-side mutation classification and required pre-write session behavior;
+(4) the strict post-3.1.3 migration boundary; and (5) the Maturin archive and
+process-image provenance plan. Record that approval in the governed
+decision/evidence flow; a successful governance check or this review is not
+owner approval. Until then, WI076 remains active and implementation criteria
+remain pending. WI074 RPS-016 remains independently pending.
 
 ## Pre-build gate
 

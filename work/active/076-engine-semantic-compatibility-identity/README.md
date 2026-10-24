@@ -53,14 +53,52 @@ boundary, input closure, migration boundary, and archive/provenance plan. No
 implementation has started. Stable 3.1.3 remains unchanged, WI076 remains
 active, and WI074 RPS-016 remains pending.
 
+## Implementation clarifications for tooling-owner approval (2026-10-24)
+
+The mandatory Python runtime currently declares `jsonschema>=4.20`, with no
+complete transitive lock; optional `cryptography>=43` supports retained
+Python-side signing/admission behavior. Before implementation, the tooling
+owner must choose either an enforced exact runtime dependency closure (with
+installed versions checked before dependent operations) or explicitly bounded
+supported versions (with bounds in the identity, runtime enforcement, and
+semantic evidence). Optional dependencies that affect a Python-authoritative
+surface need the same treatment or a separately documented compatibility
+boundary. Hashes used to lock dependency artifacts do not authenticate the
+installed engine or package.
+
+A source audit found repository-writing Python workflows in `adopt_repo.adopt`,
+`doctor.fix`, `init_repo.bootstrap`, `new.new_markdown`, `plan_import.import_plan`,
+`takeover.takeover`, and `verification.record_evidence`. Existing
+`check_compatibility()` calls are separate-process preflights and cannot
+authorize later Python writes. Each canonical-dependent workflow must hold a
+same-process admitted engine session before its first repository write and
+reuse it for later canonical operations. `generate_spec.write_spec` is an
+additional direct repository writer without an existing compatibility gate;
+its role in the semantic boundary needs an explicit owner classification.
+The call sites of low-level writers must also be checked so they cannot
+bypass that entry boundary. Python-owned admission/signing,
+protected-service/platform, and release-output paths remain
+explicitly classified against Decision 0042 and their separate compatibility
+contracts; no conclusion of revalidation is implied.
+
+These clarifications are design questions for the tooling owner, not approval
+and not implementation evidence. Decision 0077 remains **proposed**; WI076
+remains active; AC-2 through AC-6 remain pending; WI074 RPS-016 remains
+pending. A formal owner approval must identify the approved dependency rule
+and Python mutation boundary before implementation starts.
+
 AC-1 is satisfied as a recorded source-level architecture comparison, not as
-owner approval or implementation. AC-2 through AC-6 remain pending. AC-7 is
+owner approval or implementation. The added dependency and Python mutation
+clarifications remain approval gates, not completed design approval. AC-2
+through AC-6 remain pending. AC-7 is
 satisfied by the merged registration linking WI076 to RPS-016 without
 satisfying that gate. AC-8 is satisfied as a pre-build plan. Evidence is
 recorded in [20261024-076-architecture-review](../../../evidence/runs/20261024-076-architecture-review.json),
 [20261024-076-admission-architecture-review](../../../evidence/runs/20261024-076-admission-architecture-review.json),
 [20261024-076-rps016-link-registration](../../../evidence/runs/20261024-076-rps016-link-registration.json),
 and [20261024-076-prebuild-storage-budget](../../../evidence/runs/20261024-076-prebuild-storage-budget.json).
+The source-level dependency and mutation audit is recorded in
+[20261024-076-python-mutation-dependency-audit](../../../evidence/runs/20261024-076-python-mutation-dependency-audit.json).
 These design and governance results do not claim an implemented compatibility
 fix.
 
