@@ -81,7 +81,10 @@ a hand-maintained per-file list as the source of truth.
   root `SPEC.md`, and every fixture byte. This includes the manifest, valid and
   invalid cases, overlays, and their metadata; it prevents a binary from
   advertising the expected identity while omitting a governed conformance
-  input.
+  input. Adopter repository records and repository-local schemas are
+  per-operation data, not executable inputs; conformance fixture bytes are
+  covered here, while adopter runs record the repository revision or tree
+  digest separately.
 - **Identity/build rules:** include the reviewed input-policy file, identity
   generator, engine `build.rs` files, `.gitattributes`, and the semantic
   projection of `pyproject.toml` (`[build-system]`, runtime dependency
@@ -112,11 +115,12 @@ The source/wheel identity is read from that manifest, while product version
 continues to come from the existing product-version channel.
 
 The input list is sorted by normalized repository-relative UTF-8 path, uses
-`/` on
-every host, rejects paths escaping the repository and names containing NUL or
-newline, and hashes raw file bytes. Governed text inputs use `.gitattributes`
-with LF checkout bytes; the generator does not normalize bytes. The identity
-is SHA-256 over the bytes `repopact-engine-semantic-inputs\0v1\0`, an unsigned
+`/` on every host, rejects paths escaping the repository and names containing
+NUL or newline, and hashes raw file bytes. Governed text inputs use
+`.gitattributes` with LF checkout bytes; the generator does not normalize
+bytes. Absolute paths, timestamps, product-version values, protocol name/major,
+repository worktree metadata, and target outputs are excluded. The identity is
+SHA-256 over the bytes `repopact-engine-semantic-inputs\0v1\0`, an unsigned
 64-bit big-endian entry count, then each sorted entry as an unsigned 32-bit
 big-endian UTF-8 path length, path bytes, and the 32 raw bytes of the file
 SHA-256. The manifest stores readable lowercase hex digests and this computed
@@ -173,7 +177,8 @@ requires a fresh handshake and admission before any later operation. If a
 process exits after an operation was sent and its result is unknown, report an
 unknown outcome and do not retry that operation automatically. Replacing the
 executable at its path after process start does not replace the image already
-executing in that process.
+executing in that process. Serialize requests so only one is in flight on a
+session; a response cannot be matched to the wrong operation.
 
 Legacy behavior fails before mutation. The current one-request engine waits
 for stdin EOF; the new client keeps the session pipe open while awaiting the
