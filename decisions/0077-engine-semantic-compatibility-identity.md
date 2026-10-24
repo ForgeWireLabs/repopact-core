@@ -362,16 +362,41 @@ authentication.
 
 ## Owner approval gate and status
 
-This record remains **proposed**. Before implementation, the tooling owner
-must explicitly approve (1) the same-process handshake/admission sequence and
-engine-side pre-dispatch gate; (2) the complete input closure and the selected
-exact-lock or explicitly-bounded Python dependency rule; (3) the retained
-Python-side mutation classification and required pre-write session behavior;
-(4) the strict post-3.1.3 migration boundary; and (5) the Maturin archive and
-process-image provenance plan. Record that approval in the governed
-decision/evidence flow; a successful governance check or this review is not
-owner approval. Until then, WI076 remains active and implementation criteria
-remain pending. WI074 RPS-016 remains independently pending.
+This record remains **proposed**. The scoped `tooling-owner` approval
+assignment for WI076 / Decision 0077 is `github:JeremyShows`, recorded in
+`governance/owners.json`. That assignment identifies the approver but is not
+approval. Because this account authored Core PR #12, it must not submit a
+GitHub review approving its own PR. Record the architectural approval as an
+operator-authored PR conversation comment and link that comment from governed
+evidence. Any independent implementation review is separate and must come
+from another authorized collaborator.
+
+Before implementation, the tooling owner must explicitly approve these four
+choices:
+
+1. **Admission boundary:** use one same-process handshake, client identity and
+   capability verification, explicit engine admission, and then operation;
+   the engine refuses dispatch before admission, and a separate handshake
+   process cannot authorize a later launch.
+2. **Input and Python-write boundary:** use the reviewed automatically
+   discovered source/dependency closure and non-self-referential manifest;
+   choose either an enforced exact Python dependency lock or explicitly
+   bounded runtime versions; and require canonical-dependent Python write
+   workflows to establish admission before the first repository write, while
+   explicitly classifying Python-authoritative surfaces.
+3. **Stable compatibility boundary:** preserve the released stable 3.1.3
+   Python/engine pair and enforce strict identity/admission only at a distinct
+   governed post-3.1.3 boundary, with no override bypass.
+4. **Packaging and provenance:** prove Maturin sdist/wheel inclusion and
+   identity agreement, and record the exact process-image file identity and
+   executable SHA-256 with source, product, protocol, semantic, and toolchain
+   provenance; keep semantic compatibility separate from binary authenticity.
+
+Record explicit approval of all four choices in the PR conversation comment
+and governed evidence flow; a role assignment, successful governance check,
+or prior review is not approval. Until then, WI076 remains active and
+implementation criteria remain pending. WI074 RPS-016 remains independently
+pending.
 
 ## Pre-build gate
 

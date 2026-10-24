@@ -27,7 +27,15 @@
     {
       "id": "tooling-owner",
       "description": "Owns the Python and Rust RepoPact implementations, validators, generators, conformance corpus, templates, tests, packaging, and CI automation.",
-      "scopes": ["tooling"]
+      "scopes": ["tooling"],
+      "approval_assignments": [
+        {
+          "principal": "github:JeremyShows",
+          "work_item": "076",
+          "decision": "0077",
+          "scope": "architectural approval only"
+        }
+      ]
     },
     {
       "id": "docs-owner",

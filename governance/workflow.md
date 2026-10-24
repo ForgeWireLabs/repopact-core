@@ -22,6 +22,15 @@ One scope leads; additional scopes are reviewers or separately sequenced changes
 Roles and their scopes are declared in [`owners.json`](owners.json). Keep each
 change inside one role's scope (the non-overlap principle).
 
+For a work-item-specific design approval, a role may record a scoped
+`approval_assignments` entry with its principal, work item, decision, and
+approval scope. This binds the approver for that decision only; it does not
+approve the decision. Record the actual approval as a traceable operator-authored
+PR conversation comment and link that comment from a governed evidence run.
+GitHub pull-request review approval is a separate action: a PR author cannot
+approve their own review, and repository ownership or a scoped assignment is
+not a substitute for the explicit architectural approval.
+
 ## 3. Lock decisions
 
 Material decisions belong in the work-item README with rationale and rejected

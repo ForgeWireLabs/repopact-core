@@ -82,10 +82,18 @@ explicitly classified against Decision 0042 and their separate compatibility
 contracts; no conclusion of revalidation is implied.
 
 These clarifications are design questions for the tooling owner, not approval
-and not implementation evidence. Decision 0077 remains **proposed**; WI076
-remains active; AC-2 through AC-6 remain pending; WI074 RPS-016 remains
-pending. A formal owner approval must identify the approved dependency rule
-and Python mutation boundary before implementation starts.
+and not implementation evidence. RepoPact governance now assigns the
+WI076/Decision 0077 architectural approval role to GitHub account
+`JeremyShows`; that scoped assignment is not approval. Because this account
+authored PR #12, it cannot approve its own GitHub review. The four architecture
+choices must instead be explicitly accepted in an operator-authored PR
+conversation comment and linked from governed evidence. Independent GitHub
+implementation review remains separate. Decision 0077 remains **proposed**;
+WI076 remains active; AC-2 through AC-6 remain pending; WI074 RPS-016 remains
+pending.
+
+The scoped role assignment and its distinction from approval are recorded in
+[20261024-076-tooling-owner-assignment](../../../evidence/runs/20261024-076-tooling-owner-assignment.json).
 
 AC-1 is satisfied as a recorded source-level architecture comparison, not as
 owner approval or implementation. The added dependency and Python mutation
