@@ -47,11 +47,16 @@ The proposal keeps the stable 3.1.3 installation pair unchanged and makes the
 strict identity contract effective only with a later product version. WI074
 RPS-016 remains pending.
 
+AC-1 is satisfied as the source-level design comparison and record, with
+Decision 0077 still **proposed** pending owner approval before implementation.
 AC-7 is satisfied by the merged registration: WI074 names WI076 as supporting
-RPS-016 evidence and explicitly keeps RPS-016 pending. The independent check is
-recorded in [20261024-076-rps016-link-registration](../../../evidence/runs/20261024-076-rps016-link-registration.json).
-The other seven criteria remain pending; this governance linkage is not an
-implementation or compatibility fix.
+RPS-016 evidence and explicitly keeps RPS-016 pending. AC-8 is satisfied as
+the pre-build budget and cleanup plan. Evidence is recorded in
+[20261024-076-architecture-review](../../../evidence/runs/20261024-076-architecture-review.json),
+[20261024-076-rps016-link-registration](../../../evidence/runs/20261024-076-rps016-link-registration.json),
+and [20261024-076-prebuild-storage-budget](../../../evidence/runs/20261024-076-prebuild-storage-budget.json).
+The other five criteria remain pending; these design and governance results
+are not an implementation or compatibility fix.
 
 ## Build and storage plan
 
