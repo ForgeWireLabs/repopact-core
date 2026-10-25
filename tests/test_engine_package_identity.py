@@ -165,6 +165,7 @@ class SyntheticPackageArchiveTests(unittest.TestCase):
         self.root.mkdir()
         self._make_source_tree()
         metadata_path = self.root / "target" / "cargo-metadata.json"
+        self.metadata_path = metadata_path
         metadata_path.parent.mkdir(parents=True)
         engine_manifest = self.root / "rust" / "apps" / "repopact-engine" / "Cargo.toml"
         protocol_manifest = self.root / "rust" / "crates" / "repopact-protocol" / "Cargo.toml"
@@ -518,6 +519,42 @@ include = [
                 self._write_sdist(changed, self.root / "changed.tar.gz"),
                 self.source,
             )
+
+    def test_sdist_accepts_maturin_pruned_workspace_manifest_projection(self) -> None:
+        workspace_manifest = self.root / "rust" / "Cargo.toml"
+        original = workspace_manifest.read_text(encoding="utf-8")
+        original_members = 'members = ["apps/repopact-engine", "crates/repopact-protocol"]'
+        expanded_members = (
+            'members = ["apps/repopact-engine", "crates/repopact-protocol", '
+            '"crates/repopact-unused"]'
+        )
+        self.assertIn(original_members, original)
+        workspace_manifest.write_text(
+            original.replace(original_members, expanded_members), encoding="utf-8"
+        )
+        expanded_source = workspace_manifest.read_text(encoding="utf-8")
+        unused = self.root / "rust" / "crates" / "repopact-unused"
+        unused.mkdir(parents=True)
+        (unused / "Cargo.toml").write_text(
+            '[package]\nname = "repopact-unused"\nversion = "0.1.0"\nedition = "2024"\n',
+            encoding="utf-8",
+        )
+        self.source = _source_package(self.root, self.metadata_path, SOURCE_REVISION)
+
+        projected_manifest = expanded_source.replace(
+            expanded_members, original_members
+        ).encode("utf-8")
+        entries = [
+            (
+                name,
+                projected_manifest if name.endswith("/rust/Cargo.toml") else data,
+                kind,
+                link,
+            )
+            for name, data, kind, link in self._sdist_entries()
+        ]
+        report = verify_sdist(self._write_sdist(entries), self.source)
+        self.assertGreater(report["semantic_inputs_verified"], 0)
 
     def test_wheel_accepts_complete_closed_inventory_and_record(self) -> None:
         self._write_wheel()

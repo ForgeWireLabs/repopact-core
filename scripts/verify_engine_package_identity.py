@@ -819,7 +819,12 @@ def verify_sdist(path: Path, source: PackageSource) -> dict[str, Any]:
                 )
             for relative, expected_bytes in source.source_files.items():
                 member = members[relative]
-                if member.size != len(expected_bytes):
+                if relative == "rust/Cargo.toml":
+                    if member.size > max(65_536, len(expected_bytes) * 2):
+                        raise ArchiveIdentityError(
+                            "sdist Cargo workspace manifest exceeds its deterministic projection bound"
+                        )
+                elif member.size != len(expected_bytes):
                     raise ArchiveIdentityError(f"sdist source file size mismatch: {relative}")
                 stream = archive.extractfile(member)
                 if stream is None:

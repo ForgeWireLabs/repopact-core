@@ -419,3 +419,6 @@
   protocol, semantic identity, and source revision are anchored to the
   controlled source/build context. This proves local build-output agreement;
   it is not a publisher signature or an executable sandbox.
+- Maturin builds the wheel from a pruned sdist workspace. The release workflow
+  now passes `--locked`, preventing Cargo from pruning unrelated lock entries
+  and invalidating the governed semantic-input manifest during compilation.
