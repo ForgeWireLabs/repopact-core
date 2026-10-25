@@ -230,7 +230,7 @@ class SyntheticPackageArchiveTests(unittest.TestCase):
         top = {
             ".gitattributes": b"* text=auto\n",
             "LICENSE": b"Apache License 2.0 test fixture\n",
-            "README.md": b"# Test RepoPact\n\nA source-anchored package test.\n",
+            "README.md": "# Test RepoPact\n\nA source–anchored package test.\n".encode("utf-8"),
             "RELEASE_LABEL": b"3.1.4-dev.0\n",
             "SPEC.md": b"# Specification\n",
             "VERSION": b"3.1.4\n",

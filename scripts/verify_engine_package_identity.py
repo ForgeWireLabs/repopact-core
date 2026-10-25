@@ -701,11 +701,16 @@ def _validate_metadata(raw: bytes, source: PackageSource, description: str) -> N
     readme = source.source_files.get(readme_name)
     if readme is None:
         raise ArchiveIdentityError("trusted source readme is not part of the package specification")
-    payload = message.get_payload()
-    if not isinstance(payload, str):
+    payload_bytes = message.get_payload(decode=True)
+    if not isinstance(payload_bytes, bytes):
         raise ArchiveIdentityError(f"{description} readme description is malformed")
+    try:
+        payload = payload_bytes.decode("utf-8")
+        expected_readme = readme.decode("utf-8")
+    except UnicodeDecodeError as exc:
+        raise ArchiveIdentityError(f"{description} README metadata is not valid UTF-8") from exc
     canonical = lambda value: value.replace("\r\n", "\n").replace("\r", "\n").rstrip("\n")
-    if canonical(payload) != canonical(readme.decode("utf-8")):
+    if canonical(payload) != canonical(expected_readme):
         raise ArchiveIdentityError(f"{description} description differs from trusted README.md")
 
 

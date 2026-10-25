@@ -1028,8 +1028,8 @@
     },
     {
       "path": "scripts/verify_engine_package_identity.py",
-      "sha256": "e9abc0b6d32743e14871ea2bcd305e58b15bd26030c1f598010e47c63c52cc50"
+      "sha256": "568ee233f91fcfc6afad4dfdb4fd6cbadd2761f0b795d91a089030c3b0b0bbb3"
     }
   ],
-  "semantic_identity": "repopact-semantic-v1:sha256:fe48866e9f29ae86f5ad1be4061d579987c8dced9f9a46b3bac671ff49346eb2"
+  "semantic_identity": "repopact-semantic-v1:sha256:d0808bbb2be859fdbe401247ad33e63408b066ecea43062e3367299874cfe5f2"
 }
