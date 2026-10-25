@@ -408,3 +408,14 @@
   authority drift, and service-loss/detached-descendant termination. AC-16 is
   satisfied for the Linux reference path;
   AC-18 remains pending for independent native Windows and macOS proofs.
+## 2026-10-24 closed Maturin archive verification
+
+- The release build now checks complete sdist and wheel membership against
+  committed source, explicit Maturin packaging rules, and the reachable Cargo
+  release dependency closure. Unsafe paths, archive links, installation hooks,
+  unlisted metadata, and unexpected executables fail closed.
+- The package verifier hashes both wheel executables against the local Cargo
+  release outputs before running the bounded identity handshake. Version,
+  protocol, semantic identity, and source revision are anchored to the
+  controlled source/build context. This proves local build-output agreement;
+  it is not a publisher signature or an executable sandbox.

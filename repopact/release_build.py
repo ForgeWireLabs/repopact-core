@@ -334,7 +334,7 @@ def _build_once(root: Path, revision: str, destination: Path) -> dict[str, Any]:
         env["RUSTFLAGS"] = f"-C debuginfo=0 -C link-arg=/DEBUG:NONE -C link-arg=/Brepro {remap}"
     else:
         env["RUSTFLAGS"] = f"-C debuginfo=0 {remap}"
-    _run(
+    cargo_metadata = _run(
         [
             "cargo",
             "metadata",
@@ -347,6 +347,17 @@ def _build_once(root: Path, revision: str, destination: Path) -> dict[str, Any]:
         cwd=source,
         env=env,
         timeout=30,
+    )
+    cargo_metadata_path = destination / "cargo-metadata.json"
+    try:
+        cargo_metadata_value = json.loads(cargo_metadata)
+    except json.JSONDecodeError as exc:
+        raise ReleaseBuildError(f"cargo metadata returned invalid JSON: {exc}") from exc
+    if not isinstance(cargo_metadata_value, dict):
+        raise ReleaseBuildError("cargo metadata did not return an object")
+    cargo_metadata_path.write_text(
+        json.dumps(cargo_metadata_value, sort_keys=True, separators=(",", ":")) + "\n",
+        encoding="utf-8",
     )
     _run(
         [
@@ -379,6 +390,10 @@ def _build_once(root: Path, revision: str, destination: Path) -> dict[str, Any]:
             str(sdists[0]),
             "--wheel",
             str(wheels[0]),
+            "--cargo-metadata",
+            str(cargo_metadata_path),
+            "--source-revision",
+            revision,
         ],
         cwd=source,
         env=env,

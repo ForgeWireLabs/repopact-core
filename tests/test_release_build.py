@@ -4,11 +4,13 @@ import gzip
 import hashlib
 import io
 import json
+import sys
 import tarfile
 import tempfile
 import unittest
 import zipfile
 from pathlib import Path
+from unittest.mock import patch
 
 from repopact import release_build
 from repopact.package_version import semver_label_to_pep440
@@ -67,6 +69,76 @@ class ReleaseBuildTests(unittest.TestCase):
             destination = Path(temporary) / "first" / "source"
             release_build._export(ROOT, "HEAD", destination)
             self.assertTrue((destination / "VERSION").is_file())
+
+    def test_build_passes_cargo_metadata_and_exact_revision_to_archive_verifier(self) -> None:
+        revision = "a" * 40
+        with tempfile.TemporaryDirectory() as temporary:
+            temporary_root = Path(temporary)
+            destination = temporary_root / "build"
+            exported_source = destination / "source"
+            target_directory = temporary_root / "cargo-target"
+
+            def export(_root: Path, _revision: str, source: Path) -> None:
+                source.mkdir(parents=True)
+                (source / "rust").mkdir()
+                (source / "scripts").mkdir()
+                (source / "scripts" / "verify_engine_package_identity.py").write_text(
+                    "# trusted verifier path\n", encoding="utf-8"
+                )
+                (source / "VERSION").write_text("3.1.4\n", encoding="utf-8")
+                (source / "RELEASE_LABEL").write_text("3.1.4-dev.0\n", encoding="utf-8")
+
+            cargo_metadata = {
+                "workspace_root": str(exported_source / "rust"),
+                "target_directory": str(target_directory),
+                "packages": [],
+                "resolve": {"nodes": []},
+            }
+            calls: list[tuple[list[str], Path, dict[str, str] | None]] = []
+
+            def run(
+                command: list[str],
+                *,
+                cwd: Path,
+                env: dict[str, str] | None = None,
+                timeout: float | None = None,
+            ) -> str:
+                del timeout
+                calls.append((command, cwd, env))
+                if command[:2] == ["git", "show"]:
+                    return "1782259200"
+                if command and command[0] == "cargo":
+                    return json.dumps(cargo_metadata)
+                if len(command) >= 3 and command[1:3] == ["-m", "maturin"]:
+                    output = Path(command[-1])
+                    (output / "repopact-3.1.4.dev0-py3-none-win_amd64.whl").write_bytes(b"wheel")
+                    (output / "repopact-3.1.4.dev0.tar.gz").write_bytes(b"sdist")
+                    return ""
+                if command and command[0] == sys.executable and command[1].endswith(
+                    "verify_engine_package_identity.py"
+                ):
+                    self.assertIn("--cargo-metadata", command)
+                    metadata_path = Path(command[command.index("--cargo-metadata") + 1])
+                    self.assertEqual(cargo_metadata, json.loads(metadata_path.read_text(encoding="utf-8")))
+                    self.assertEqual(revision, command[command.index("--source-revision") + 1])
+                    return json.dumps({"source_wheel_sdist_metadata_agreement": True})
+                self.fail(f"unexpected release-build command: {command}")
+
+            with (
+                patch.object(release_build, "_export", side_effect=export),
+                patch.object(release_build, "_run", side_effect=run),
+                patch.object(release_build, "_normalize_wheel"),
+                patch.object(release_build, "_normalize_sdist"),
+                patch.object(release_build, "inspect_wheel", return_value={"sha256": "wheel"}),
+                patch.object(release_build, "inspect_sdist", return_value={"sha256": "sdist"}),
+            ):
+                report = release_build._build_once(ROOT, revision, destination)
+
+            self.assertTrue(report["identity_agreement"]["source_wheel_sdist_metadata_agreement"])
+            self.assertEqual(4, len(calls))
+            maturin_env = next(env for command, _cwd, env in calls if len(command) >= 3 and command[1:3] == ["-m", "maturin"])
+            self.assertIsNotNone(maturin_env)
+            self.assertEqual(revision, maturin_env["REPOPACT_SOURCE_REVISION"])
 
     def test_sdist_normalization_removes_archive_timestamp_drift(self) -> None:
         def make_sdist(path: Path, timestamp: int) -> None:

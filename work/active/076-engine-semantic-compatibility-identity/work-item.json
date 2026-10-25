@@ -2,7 +2,7 @@
   "$schema": "../../../repopact/schemas/work-item.schema.json",
   "id": "076",
   "title": "Engine Semantic Compatibility Identity",
-  "status": "completed",
+  "status": "active",
   "owner_scope": "tooling",
   "lead": "tooling-owner",
   "affected_scopes": [
@@ -53,7 +53,7 @@
     {
       "id": "AC-4",
       "text": "Verify automatic, reviewed input discovery and deterministic identity generation across the current Python contract and dependency closure, Rust engine dependency/build closure, protocol capabilities, embedded schemas, and conformance corpus. Enforce an exact Python dependency lock or an explicitly bounded supported-version contract at runtime, including affected optional dependencies. Detect added, omitted, removed, or changed inputs without implicit baseline updates; prove checkout, sdist, and wheel identity agreement through Maturin. Do not treat identity as proof of trusted executable bytes.",
-      "state": "satisfied",
+      "state": "pending",
       "evidence": [
         "20261024-076-matching-engine-integrated-validation",
         "20261024-076-independent-review-findings",

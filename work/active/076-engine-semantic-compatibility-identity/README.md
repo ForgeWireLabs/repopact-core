@@ -442,3 +442,14 @@ evidence. Core PR #12 remains open and draft for another independent technical
 review; no package or release was published. WI074 RPS-016 remains pending.
 This Windows x64 evidence does not establish Linux or macOS behavior, binary
 authenticity, real interruption rollback, or the broader release/install gate.
+
+## 2026-10-24 archive-closure review reopening
+
+The independent PR #12 review found that AC-4's prior Maturin evidence checked
+selected package files but did not prove closed-world authorization of every
+sdist and wheel member or establish the packaged executable digest before its
+handshake. WI076 is reopened through the repository lifecycle by moving this
+record to `work/active/`; AC-4 is pending while the verifier, release-build
+workflow, real-archive regression cases, and superseding evidence are
+corrected. Earlier evidence and acceptance history remain unchanged. RPS-016
+remains independently pending.

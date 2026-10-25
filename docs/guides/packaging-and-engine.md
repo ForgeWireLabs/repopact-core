@@ -85,11 +85,24 @@ Cargo dependencies must be available in the local cache or fetched from the
 network. Source builds are not compiler-free; the resulting wheel can be
 installed without Rust.
 
-Archive verification checks every manifest-listed `repopact/` semantic input
-inside the wheel and runs the packaged engine's bounded, non-mutating protocol
-handshake from an isolated temporary directory. This confirms agreement among
-the Python package, wheel metadata, and packaged engine. It does not establish
-that the executable came from an independently trusted publisher.
+The release build verifies the complete sdist and wheel inventories against
+the committed source, the explicit Maturin include policy, and the resolved
+Cargo build dependency closure. It rejects unlisted files, unsafe or
+ambiguous paths, links, installation hooks, unexpected executables, and
+unexpected wheel metadata. Every accepted file is checked against source or
+the deterministic packaging rule; wheel `RECORD` is checked for complete
+membership and per-file hashes.
+
+Before the verifier launches the packaged engine for its bounded, non-mutating
+protocol handshake, it hashes both wheel executables and compares them with
+the corresponding local Cargo release outputs from the same controlled
+Maturin build. Product version is derived from the trusted source `VERSION`,
+`RELEASE_LABEL`, and `pyproject.toml`; sdist and wheel metadata, protocol
+major, semantic identity, and the engine's embedded source revision must
+agree. The verifier is for locally built artifacts in a trusted build
+environment. These checks establish closed packaging and build-output
+agreement, not an external signature, publisher authenticity, or a sandbox
+for arbitrary downloaded executables.
 
 ## Roll back an executable
 
