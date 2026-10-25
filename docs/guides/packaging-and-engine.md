@@ -76,13 +76,15 @@ python -m pip install "maturin>=1.15,<2"
 # Verify the locked workspace before Maturin's source-export build. Keep the
 # Cargo lockfile fixed while Maturin builds the wheel from the pruned sdist.
 cargo metadata --format-version 1 --locked --manifest-path rust/Cargo.toml
-python -m maturin build --sdist --locked --out dist
+python -m maturin build --sdist --release --locked --out dist
 python -m pip install dist\repopact-*.tar.gz
 ```
 
 Cargo dependencies must be available in the local cache or fetched from the
-network. Source builds are not compiler-free; the resulting wheel can be
-installed without Rust.
+network. `--release --locked` builds optimized binaries without allowing Cargo
+to rewrite the lockfile while Maturin builds the wheel from its pruned sdist.
+Source builds are not compiler-free; the resulting wheel can be installed
+without Rust.
 
 The release build verifies the complete sdist and wheel inventories against
 the committed source, the explicit Maturin include policy, and the resolved

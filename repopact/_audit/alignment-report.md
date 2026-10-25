@@ -420,5 +420,6 @@
   controlled source/build context. This proves local build-output agreement;
   it is not a publisher signature or an executable sandbox.
 - Maturin builds the wheel from a pruned sdist workspace. The release workflow
-  now passes `--locked`, preventing Cargo from pruning unrelated lock entries
-  and invalidating the governed semantic-input manifest during compilation.
+  now passes `--release --locked`, preventing Cargo from pruning unrelated
+  lock entries and ensuring the wheel embeds the same release-profile
+  executables whose digests the verifier anchors before its handshake.

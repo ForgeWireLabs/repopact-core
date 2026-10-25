@@ -111,6 +111,7 @@ class ReleaseBuildTests(unittest.TestCase):
                     return json.dumps(cargo_metadata)
                 if len(command) >= 3 and command[1:3] == ["-m", "maturin"]:
                     self.assertIn("--locked", command)
+                    self.assertIn("--release", command)
                     output = Path(command[-1])
                     (output / "repopact-3.1.4.dev0-py3-none-win_amd64.whl").write_bytes(b"wheel")
                     (output / "repopact-3.1.4.dev0.tar.gz").write_bytes(b"sdist")
