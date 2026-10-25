@@ -1,6 +1,6 @@
 # WI076 — Engine Semantic Compatibility Identity
 
-> **Status**: Completed on the PR branch with implementation evidence; PR #12 remains open for independent review and has not been merged.
+> **Status**: Completed on 2026-10-25 after corrective validation. The earlier closeout and review-reopening entries below remain historical; PR #12 stays draft and unmerged pending repeated independent review.
 > **Owner**: tooling-owner (lead); docs-owner and evidence-owner affected.
 > **Related issue**: [Core issue #10](https://github.com/ForgeWireLabs/repopact-core/issues/10).
 > **Related readiness gate**: WI074 / RPS-016. This work can provide one compatibility input, but it cannot satisfy RPS-016 by itself.
@@ -326,7 +326,7 @@ reports product `3.1.4.dev0`, protocol major 2, and semantic identity
 `repopact-semantic-v1:sha256:6698dfbb03e39ba96dcea5b76b832813df0de9be9c42418888d0190492cf8e3f`.
 The exact process image was
 `C:\Projects\repopact-core-wi076-build\runtime-venv-313\Scripts\repopact-engine.exe`,
-SHA-256 `ee6b3a21062413c5dad6979e7bb0f558d104c594e4e473c463f7c26b59a8aeac`;
+SHA-256 `ee6b3a21062413c5dad6977e9bb0f558d104c594e4e473c463f7c26b59a8aeac`;
 the selected path, process-image path, pre-launch hash, process-image hash,
 and post-run hash agree. Rust 1.96.0 built the Windows x86_64 release target.
 
@@ -371,3 +371,74 @@ read-only storage check found healthy NTFS with 31,672,033,280 bytes free
 (about 29.50 GiB); no Cargo, rustc, or Maturin process was active. No cleanup
 was performed by this run. Linux and macOS, artifact authenticity, and real
 interruption/rollback acceptance remain outside this evidence.
+
+## Independent review corrections (2026-10-24)
+
+WI076 was reopened through the typed lifecycle transition after the independent
+review identified three findings. The prior acceptance record remains
+unchanged and historical; the findings and provenance comparison are recorded
+in [`20261024-076-independent-review-findings`](../../../evidence/runs/20261024-076-independent-review-findings.json).
+
+- **AC-2 and AC-3** return to pending until the corrected client is shown to
+  terminate its process after an interrupted or uncertain dispatch and prevent
+  reuse or replay.
+- **AC-4** returns to pending until the actual Maturin wheel proves every
+  manifest-listed package file and runs the packaged engine handshake.
+- **AC-6** returns to pending until the final executable provenance is
+  re-recorded and the prior hash errors are corrected through a superseding
+  evidence record. The original integrated record and raw conformance files
+  remain unchanged.
+
+The measured 7ad445 executable, wheel payload, and standalone conformance
+record agree on SHA-256
+`ee6b3a21062413c5dad6977e9bb0f558d104c594e4e473c463f7c26b59a8aeac`. The
+historical paragraph above now uses that measured value. The immutable
+integrated evidence still contains six incorrect hash strings: a 63-character
+summary value and five incorrect executable-field values. Their paths and
+exact corrections are recorded in the superseding review evidence. The first
+conformance digest remains unchanged.
+
+The canonical lifecycle transition initially failed because candidate
+validation omitted the two governed semantic-manifest files in the root
+`build/` directory. The mutation snapshot now copies those two small source
+records while still excluding build outputs; its focused Rust tests pass. No
+other `build/` contents are copied. Decision 0077 remains accepted without
+change, stable 3.1.3 remains preserved, and WI074 RPS-016 remains pending.
+
+## Corrective validation and lifecycle closure (2026-10-25)
+
+The three independent review findings are resolved in
+[`20261024-076-review-corrections-validation`](../../../evidence/runs/20261024-076-review-corrections-validation.json).
+AC-2 and AC-3 now have cancellation, timeout, partial-transport, reuse,
+pre-admission, stale-engine, override, path-replacement, and retained-writer
+coverage. Unknown mutation outcomes are not replayed, and process termination
+is not claimed to roll back already committed changes. AC-4 is supported by
+actual Maturin archives: all 257 sdist inputs and 71 wheel package inputs were
+verified, and the packaged engine passed a bounded protocol-v2 identity
+handshake. AC-6 uses the source-built 43/43 conformance record with executable
+SHA-256 `ac014640200584b068a8bdabdfd20b2dadf46cce3b5b54e8ec3f43c0e3e1af58`;
+the packaged sdist engine has a separate digest and reports no embedded Git
+revision.
+
+The final locked CPython 3.12 suite passed 442 tests, with three skipped and no
+failures. A prior attempt had five stale-dashboard failures after an evidence
+record was restored; the dashboard was regenerated, all five affected cases
+passed in isolation, and the full suite then passed. Both logs and digests are
+preserved in the corrective evidence. The supplemental legacy-comparator run
+passed its vectors but remains provenance-incomplete because it used the
+sdist-built engine without Git source metadata while the checkout was dirty;
+the separately recorded clean source-built conformance run is the acceptance
+proof.
+
+Direct remeasurement found the earlier 7ad445 executable and its wheel payload
+both hash to
+`ee6b3a21062413c5dad6977e9bb0f558d104c594e4e473c463f7c26b59a8aeac`. The
+immutable integrated evidence retains its six incorrect hash strings; the
+correct values and exact affected fields are recorded in the superseding
+evidence. Its first conformance digest remains unchanged.
+
+WI076 is completed on this PR branch after all eight criteria were linked to
+evidence. Core PR #12 remains open and draft for another independent technical
+review; no package or release was published. WI074 RPS-016 remains pending.
+This Windows x64 evidence does not establish Linux or macOS behavior, binary
+authenticity, real interruption rollback, or the broader release/install gate.

@@ -1,0 +1,63 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261024-076-independent-review-findings",
+  "timestamp": "2026-10-24T23:36:29Z",
+  "work_item": "076",
+  "result": "partial",
+  "provenance": "concrete",
+  "supersedes": "20261024-076-matching-engine-integrated-validation",
+  "commands": [
+    {
+      "command": "Independent source review of PR #12 cancellation handling and wheel identity verification",
+      "exit_code": 1,
+      "summary": "The client could retain an admitted session after KeyboardInterrupt and did not terminate a live child after timeout. Wheel verification accepted metadata-only synthetic archives without checking manifest-listed package payloads or running the packaged engine. AC-2, AC-3, and AC-4 are reopened pending correction and integrated proof."
+    },
+    {
+      "command": "Read-only SHA-256 remeasurement of the prior integrated executable and actual wheel payload",
+      "exit_code": 0,
+      "summary": "The executable at C:\\Projects\\repopact-core-wi076-build\\runtime-venv-313\\Scripts\\repopact-engine.exe and repopact-engine.exe extracted from the 7ad445 Maturin wheel both hash to ee6b3a21062413c5dad6977e9bb0f558d104c594e4e473c463f7c26b59a8aeac. This matches the standalone canonical-conformance-7ad445.json record."
+    },
+    {
+      "command": "Compare integrated evidence and summary hash strings against the measured executable and standalone conformance record",
+      "exit_code": 1,
+      "summary": "The integrated evidence has one incorrect value at /commands/0/summary (ee6b3a21062413c5dad697e9bb0f558d104c594e4e473c463f7c26b59a8aeac; one 7 omitted) and five incorrect values: /environment/executable/sha256, /environment/executable/sha256_before_launch, /environment/executable/sha256_at_process_image, /environment/executable/sha256_after_run, and /environment/conformance_runs/1/sha256 (each ee6b3a21062413c5dad6979e7bb0f558d104c594e4e473c463f7c26b59a8aeac). The WI076 README's historical summary repeats the latter incorrect value once. The original integration record and raw conformance artifacts remain unchanged; this record and the final review evidence provide the traceable correction. The first conformance run digest 58ebe595e4e66a6c083c3fef12e3aab524755b61700f537ab9a10413284ab0fe remains unchanged and independently correct."
+    },
+    {
+      "command": "First canonical apply-transition attempt to reopen WI076",
+      "exit_code": 1,
+      "summary": "No files changed. Candidate validation omitted build/semantic-input-manifest.json because the mutation snapshot excluded the entire build directory, so the documented source mapping could not be validated."
+    },
+    {
+      "command": "Focused Rust tests after correcting the candidate-copy boundary",
+      "exit_code": 0,
+      "summary": "repopact-engine passed 7 tests; repopact-mutation passed 18 tests, including the new proof that candidate copies retain only semantic-input-manifest.json and semantic-input-policy.json from the root build directory; provider-boundary tests passed 3/3 and verification post-validation passed 1/1."
+    },
+    {
+      "command": "Canonical documentation mapping snapshot after reviewing the changed source/documentation pair",
+      "exit_code": 0,
+      "summary": "The Rust engine returned source_digest b66caaf4820c208b0fda2f0182846c77c4ced8bab6cbae75591c3f8ec7a54393 and documentation_digest 68889f07af105bf7eb46f85d1b76d6f07cd88628574e4c87d1da028dffb1e6c3, matching the reviewed mapping baseline."
+    },
+    {
+      "command": "Canonical lifecycle transition reopening WI076 to active after the candidate-copy correction",
+      "exit_code": 0,
+      "summary": "The typed transition moved the complete WI076 directory from work/completed to work/active and regenerated the dashboard. Historical content and prior evidence files were preserved. AC-2, AC-3, AC-4, and AC-6 are now pending this corrective validation."
+    }
+  ],
+  "artifacts": [
+    "work/active/076-engine-semantic-compatibility-identity/work-item.json",
+    "work/active/076-engine-semantic-compatibility-identity/README.md",
+    "evidence/runs/20261024-076-matching-engine-integrated-validation.json",
+    "C:\\Projects\\repopact-core-wi076-build\\canonical-conformance-7ad445.json",
+    "C:\\Projects\\repopact-core-wi076-build\\runtime-venv-313\\Scripts\\repopact-engine.exe",
+    "C:\\Projects\\repopact-core-wi076-build\\packages\\final-7ad445\\repopact-3.1.4.dev0-py3-none-win_amd64.whl"
+  ],
+  "environment": {
+    "actual_prior_executable_sha256": "ee6b3a21062413c5dad6977e9bb0f558d104c594e4e473c463f7c26b59a8aeac",
+    "actual_prior_wheel_engine_sha256": "ee6b3a21062413c5dad6977e9bb0f558d104c594e4e473c463f7c26b59a8aeac",
+    "standalone_7ad445_conformance_sha256": "ee6b3a21062413c5dad6977e9bb0f558d104c594e4e473c463f7c26b59a8aeac",
+    "first_conformance_sha256_preserved": "58ebe595e4e66a6c083c3fef12e3aab524755b61700f537ab9a10413284ab0fe",
+    "prior_full_python_3_13_result": "historical failure: 10 failures, 3 skipped; preserved and not reclassified",
+    "reopened_acceptance_criteria": ["AC-2", "AC-3", "AC-4", "AC-6"],
+    "remaining": "Focused integration, full locked CPython 3.12 regression, actual sdist/wheel checks, provenance correction evidence, and final repository validation remain to be completed. Stable 3.1.3 and its artifacts are unchanged; semantic consistency does not establish executable authenticity; RPS-016 remains pending."
+  }
+}
