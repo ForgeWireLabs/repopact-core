@@ -1,0 +1,143 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261025-076-archive-closure-validation",
+  "timestamp": "2026-10-25T03:02:07Z",
+  "work_item": "076",
+  "result": "passed",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "python -m maturin build --sdist --release --locked --out <task-owned dist>; CARGO_TARGET_DIR and REPOPACT_SOURCE_REVISION bound to the task-owned target and commit 9ff35b0ef0a2dc41e931e0127cbd8134b92510e3",
+      "exit_code": 0,
+      "summary": "Maturin 1.15.0 built the sdist and wheel using Cargo 1.96.0 / rustc 1.96.0 in the release profile with the lockfile enforced. Both archives were built from source revision 9ff35b0ef0a2dc41e931e0127cbd8134b92510e3."
+    },
+    {
+      "command": "python scripts/verify_engine_package_identity.py --root . --sdist <actual Maturin sdist> --wheel <actual Maturin wheel> --cargo-metadata <task-owned cargo-metadata.json> --source-revision 9ff35b0ef0a2dc41e931e0127cbd8134b92510e3",
+      "exit_code": 0,
+      "summary": "The actual archives passed closed-world path, type, membership, content, RECORD, dependency-closure, version, protocol, semantic-identity, source-revision, and trusted-local-build-output checks. A bounded non-mutating protocol-v2 identity handshake succeeded against the archive executable after its digest matched the local Cargo release output."
+    },
+    {
+      "command": "python -m unittest tests.test_engine_package_identity.ActualMaturinArchiveRegressionTests.test_real_maturin_archives_pass_and_attack_copies_fail_closed -v",
+      "exit_code": 0,
+      "summary": "The copied real archives passed. Attack copies with unexpected, missing, modified, unsafe-path, colliding, duplicate, link, executable, source-version, or executable-digest changes were rejected; a marker confirmed modified executable bytes were rejected before handshake/probe."
+    },
+    {
+      "command": "python -m unittest tests.test_engine_package_identity tests.test_release_build tests.test_engine_client_semantic tests.test_engine_session -v",
+      "exit_code": 0,
+      "summary": "43 focused tests passed with no skips, including the actual Maturin archive regression, release-build wiring, same-process semantic admission, stale-engine rejection, and no-replay behavior."
+    },
+    {
+      "command": "python scripts/generate_engine_semantic_identity.py --check",
+      "exit_code": 0,
+      "summary": "The generated semantic input manifest and identity are current; no baseline was advanced."
+    },
+    {
+      "command": "python -m repopact.cli check-frozen --base e5581a3aecdb5afceeff30013dcf5044a252c2b7",
+      "exit_code": 0,
+      "summary": "No frozen-surface changes detected."
+    },
+    {
+      "command": "python -m repopact.cli dashboard",
+      "exit_code": 0,
+      "summary": "Regenerated audits/reports/dashboard.md after recording WI076 completion. The process-local engine was the verified release executable with SHA-256 133372b7f030b73f1f2289c8a128c5462e7e5aa39d8bdd40652108850a38854c."
+    },
+    {
+      "command": "python -m repopact.cli validate",
+      "exit_code": 0,
+      "summary": "Canonical repository governance validation passed after the WI076 lifecycle transition and dashboard regeneration, using the matching task-owned release engine."
+    },
+    {
+      "command": "python scripts/validate_docs.py --root . --repo ForgeWireLabs/repopact-workbench=C:\\Projects\\repopact-workbench-main-review",
+      "exit_code": 0,
+      "summary": "The offline documentation checker passed for 340 Markdown files. It checked the supplied local Workbench checkout and left 37 external GitHub URLs unchecked by design."
+    }
+  ],
+  "artifacts": [
+    "evidence/WI076-archive-closure-20261024/archive-verification.json",
+    "evidence/WI076-archive-closure-20261024/maturin-build.log",
+    "evidence/WI076-archive-closure-20261024/actual-archive-attack-tests.log",
+    "evidence/WI076-archive-closure-20261024/focused-validation-final.log",
+    "evidence/runs/20261024-076-review-corrections-validation.json",
+    "evidence/runs/20261024-076-review-fix-rust-build-gate.json",
+    "governance/documentation-mappings.json",
+    "audits/reports/dashboard.md",
+    "work/completed/076-engine-semantic-compatibility-identity/README.md",
+    "work/completed/076-engine-semantic-compatibility-identity/work-item.json",
+    "build/semantic-input-manifest.json",
+    "repopact/_semantic-input-manifest.json",
+    "repopact/_semantic_identity.json",
+    "scripts/verify_engine_package_identity.py",
+    "repopact/release_build.py",
+    "tests/test_engine_package_identity.py",
+    "tests/test_release_build.py",
+    "docs/guides/packaging-and-engine.md"
+  ],
+  "environment": {
+    "source_revision": "9ff35b0ef0a2dc41e931e0127cbd8134b92510e3",
+    "source_checkout": "C:/Projects/repopact-core-pr12-independent-review",
+    "product_version": "3.1.4.dev0",
+    "protocol_major": 2,
+    "semantic_identity": "repopact-semantic-v1:sha256:d0808bbb2be859fdbe401247ad33e63408b066ecea43062e3367299874cfe5f2",
+    "build": {
+      "profile": "release",
+      "python": "3.12.4",
+      "maturin": "1.15.0",
+      "cargo": "1.96.0 (30a34c682 2026-05-25)",
+      "rustc": "1.96.0 (ac68faa20 2026-05-25)",
+      "target": "x86_64-pc-windows-msvc",
+      "cargo_target_directory": "C:/Projects/repopact-core-wi076-build/target",
+      "lock_enforced": true,
+      "outputs_retained": true
+    },
+    "archives": {
+      "sdist": {
+        "local_path": "C:/Projects/repopact-core-wi076-build/archive-closure-review-9ff35b0/dist/repopact-3.1.4.dev0.tar.gz",
+        "sha256": "b0fd2c8d7e9cea2a64f441549ee43eb3dfed0ee33aa7459864fc78786a7926d0",
+        "member_count": 273,
+        "all_members_listed_and_verified": true
+      },
+      "wheel": {
+        "local_path": "C:/Projects/repopact-core-wi076-build/archive-closure-review-9ff35b0/dist/repopact-3.1.4.dev0-py3-none-win_amd64.whl",
+        "sha256": "fc79184eb1a46a1ad82e159bda59718221567830a165ae273a357b31b6431490",
+        "member_count": 84,
+        "all_members_listed_and_verified": true,
+        "source_wheel_sdist_metadata_agreement": true
+      }
+    },
+    "executables": {
+      "repopact-engine.exe": {
+        "sha256": "133372b7f030b73f1f2289c8a128c5462e7e5aa39d8bdd40652108850a38854c",
+        "size": 13666816,
+        "local_build_output": "C:/Projects/repopact-core-wi076-build/target/release/repopact-engine.exe",
+        "wheel_member": "repopact-3.1.4.dev0.data/scripts/repopact-engine.exe"
+      },
+      "repopact.exe": {
+        "sha256": "4ecc7e0150bf08c4e7b936fb29773455516535f56d58452626a39c06b1f2750e",
+        "size": 233984,
+        "local_build_output": "C:/Projects/repopact-core-wi076-build/target/release/repopact.exe"
+      }
+    },
+    "previous_attempt_findings": [
+      "Maturin's source-distribution build rewrote Cargo.lock without --locked; the package build now uses --locked, and the locked build preserves the reviewed lockfile.",
+      "Maturin's default build placed executables in target/debug while the verifier correctly trusted target/release; release_build.py now requests --release and verifies against release outputs.",
+      "The Maturin PKG-INFO description parser decoded UTF-8 via an ASCII-compatible email policy; it now decodes the declared UTF-8 payload directly."
+    ],
+    "preserved_previous_attempt_directories": [
+      "C:/Projects/repopact-core-wi076-build/archive-closure-review-f3c76ff",
+      "C:/Projects/repopact-core-wi076-build/archive-closure-review-96ca589",
+      "C:/Projects/repopact-core-wi076-build/archive-closure-review-37466a1"
+    ],
+    "documentation_validation": {
+      "markdown_files": 340,
+      "external_github_links_unchecked": 37,
+      "workbench_checkout": "C:/Projects/repopact-workbench-main-review"
+    },
+    "provenance_boundary": "The verifier pins the packaged executable bytes to the local Cargo release outputs and records source/product/protocol/semantic identity. It does not establish publisher authenticity, trusted provenance against a malicious build host, or sandbox the executable.",
+    "scope_limits": [
+      "Windows x64 only; Linux and macOS archive/build behavior is not established.",
+      "No package was published or globally installed.",
+      "The full Python suite was not rerun on this final source revision; prior full-suite evidence applies only to its recorded earlier source. Historical Python 3.13 failures remain preserved.",
+      "WI074 RPS-016 remains independently pending."
+    ]
+  }
+}

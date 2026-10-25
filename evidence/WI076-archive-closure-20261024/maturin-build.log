@@ -1,0 +1,80 @@
+📦 Including license file `LICENSE`
+🍹 Building a mixed python/rust project
+🔗 Found bin bindings
+📡 Using build options bindings from pyproject.toml
+🎯 Found 2 Cargo targets in `Cargo.toml`: repopact, repopact-engine
+From `cargo package --list --allow-dirty --manifest-path C:\Projects\repopact-core-pr12-independent-review\rust\crates\repopact-protocol\Cargo.toml`:
+warning: manifest has no description, license, license-file, documentation, homepage or repository
+  |
+  = note: see https://doc.rust-lang.org/cargo/reference/manifest.html#package-metadata for more info
+From `cargo package --list --allow-dirty --manifest-path C:\Projects\repopact-core-pr12-independent-review\rust\crates\repopact-types\Cargo.toml`:
+warning: manifest has no description, license, license-file, documentation, homepage or repository
+  |
+  = note: see https://doc.rust-lang.org/cargo/reference/manifest.html#package-metadata for more info
+From `cargo package --list --allow-dirty --manifest-path C:\Projects\repopact-core-pr12-independent-review\rust\crates\repopact-validation\Cargo.toml`:
+warning: manifest has no description, license, license-file, documentation, homepage or repository
+  |
+  = note: see https://doc.rust-lang.org/cargo/reference/manifest.html#package-metadata for more info
+From `cargo package --list --allow-dirty --manifest-path C:\Projects\repopact-core-pr12-independent-review\rust\crates\repopact-schema\Cargo.toml`:
+warning: manifest has no description, license, license-file, documentation, homepage or repository
+  |
+  = note: see https://doc.rust-lang.org/cargo/reference/manifest.html#package-metadata for more info
+From `cargo package --list --allow-dirty --manifest-path C:\Projects\repopact-core-pr12-independent-review\rust\crates\repopact-mutation\Cargo.toml`:
+warning: manifest has no description, license, license-file, documentation, homepage or repository
+  |
+  = note: see https://doc.rust-lang.org/cargo/reference/manifest.html#package-metadata for more info
+From `cargo package --list --allow-dirty --manifest-path C:\Projects\repopact-core-pr12-independent-review\rust\crates\repopact-analysis\Cargo.toml`:
+warning: manifest has no description, license, license-file, documentation, homepage or repository
+  |
+  = note: see https://doc.rust-lang.org/cargo/reference/manifest.html#package-metadata for more info
+From `cargo package --list --allow-dirty --manifest-path C:\Projects\repopact-core-pr12-independent-review\rust\crates\repopact-graph\Cargo.toml`:
+warning: manifest has no description, license, license-file, documentation, homepage or repository
+  |
+  = note: see https://doc.rust-lang.org/cargo/reference/manifest.html#package-metadata for more info
+From `cargo package --list --allow-dirty --manifest-path C:\Projects\repopact-core-pr12-independent-review\rust\crates\repopact-core\Cargo.toml`:
+warning: manifest has no description, license, license-file, documentation, homepage or repository
+  |
+  = note: see https://doc.rust-lang.org/cargo/reference/manifest.html#package-metadata for more info
+From `cargo package --list --allow-dirty --manifest-path C:\Projects\repopact-core-pr12-independent-review\rust\crates\repopact-repository\Cargo.toml`:
+warning: manifest has no description, license, license-file, documentation, homepage or repository
+  |
+  = note: see https://doc.rust-lang.org/cargo/reference/manifest.html#package-metadata for more info
+From `cargo package --list --allow-dirty --manifest-path C:\Projects\repopact-core-pr12-independent-review\rust\apps\repopact-engine\Cargo.toml`:
+warning: manifest has no description, license, license-file, documentation, homepage or repository
+  |
+  = note: see https://doc.rust-lang.org/cargo/reference/manifest.html#package-metadata for more info
+📦 Including files matching "repopact/schemas/*.json"
+📦 Including files matching "repopact/templates/*"
+📦 Including files matching ".gitattributes"
+📦 Including files matching "SPEC.md"
+📦 Including files matching "conformance/**/*"
+📦 Including files matching "rust/**"
+📦 Including files matching "VERSION"
+📦 Including files matching "RELEASE_LABEL"
+📦 Including files matching "LICENSE"
+📦 Including files matching "repopact/requirements-runtime.lock"
+📦 Including files matching "repopact/runtime-dependency-groups.json"
+📦 Including files matching "build/semantic-input-policy.json"
+📦 Including files matching "build/semantic-input-manifest.json"
+📦 Including files matching "scripts/generate_engine_semantic_identity.py"
+📦 Including files matching "scripts/verify_engine_package_identity.py"
+📦 Including files matching "repopact/_semantic-input-manifest.json"
+📦 Including files matching "repopact/_semantic_identity.json"
+📦 Built source distribution to C:\Projects\repopact-core-wi076-build\archive-closure-review-9ff35b0\dist\repopact-3.1.4.dev0.tar.gz
+📦 Building wheels from source distribution at C:\Users\jerem\AppData\Local\Temp\.tmphLqHfB\repopact-3.1.4.dev0\rust/apps/repopact-engine
+📦 Including license file `LICENSE`
+🍹 Building a mixed python/rust project
+🔗 Found bin bindings
+📡 Using build options bindings from pyproject.toml
+🎯 Found 2 Cargo targets in `Cargo.toml`: repopact, repopact-engine
+   Compiling repopact-engine v0.1.0 (C:\Users\jerem\AppData\Local\Temp\.tmphLqHfB\repopact-3.1.4.dev0\rust\apps\repopact-engine)
+    Finished `release` profile [optimized] target(s) in 1.78s
+   Compiling repopact-engine v0.1.0 (C:\Users\jerem\AppData\Local\Temp\.tmphLqHfB\repopact-3.1.4.dev0\rust\apps\repopact-engine)
+    Finished `release` profile [optimized] target(s) in 5.91s
+📦 Including files matching "repopact/schemas/*.json"
+📦 Including files matching "repopact/templates/*"
+📦 Including files matching "repopact/requirements-runtime.lock"
+📦 Including files matching "repopact/runtime-dependency-groups.json"
+📦 Including files matching "repopact/_semantic-input-manifest.json"
+📦 Including files matching "repopact/_semantic_identity.json"
+📦 Built wheel to C:\Projects\repopact-core-wi076-build\archive-closure-review-9ff35b0\dist\repopact-3.1.4.dev0-py3-none-win_amd64.whl

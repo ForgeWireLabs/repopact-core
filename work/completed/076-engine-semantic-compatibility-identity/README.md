@@ -1,6 +1,6 @@
 # WI076 — Engine Semantic Compatibility Identity
 
-> **Status**: Completed on 2026-10-25 after corrective validation. The earlier closeout and review-reopening entries below remain historical; PR #12 stays draft and unmerged pending repeated independent review.
+> **Status**: Completed on 2026-10-25 after final archive-closure verification. Earlier closeout and reopening entries below remain historical; PR #12 stays draft and unmerged pending independent review.
 > **Owner**: tooling-owner (lead); docs-owner and evidence-owner affected.
 > **Related issue**: [Core issue #10](https://github.com/ForgeWireLabs/repopact-core/issues/10).
 > **Related readiness gate**: WI074 / RPS-016. This work can provide one compatibility input, but it cannot satisfy RPS-016 by itself.
@@ -453,3 +453,53 @@ record to `work/active/`; AC-4 is pending while the verifier, release-build
 workflow, real-archive regression cases, and superseding evidence are
 corrected. Earlier evidence and acceptance history remain unchanged. RPS-016
 remains independently pending.
+
+## Final archive closure and executable trust boundary (2026-10-25)
+
+The closed-world verifier, release workflow, real-archive attacks, and source
+version checks now pass against the actual Maturin 1.15.0 archives built from
+source revision `9ff35b0ef0a2dc41e931e0127cbd8134b92510e3`. The build used
+`--release --locked`, Cargo/rustc 1.96.0, and the task-owned target. Product
+`3.1.4.dev0`, protocol major `2`, and semantic identity
+`repopact-semantic-v1:sha256:d0808bbb2be859fdbe401247ad33e63408b066ecea43062e3367299874cfe5f2`
+agree across the source, sdist, and wheel.
+
+The complete sdist inventory contains 273 authorized members; its SHA-256 is
+`b0fd2c8d7e9cea2a64f441549ee43eb3dfed0ee33aa7459864fc78786a7926d0`. The
+complete wheel inventory contains 84 authorized members; its SHA-256 is
+`fc79184eb1a46a1ad82e159bda59718221567830a165ae273a357b31b6431490`. This
+supersedes the earlier 257/71 figures, which counted semantic and package
+inputs rather than every archive member. The exact member inventories and raw
+build/test logs are preserved under
+[`evidence/WI076-archive-closure-20261024`](../../../evidence/WI076-archive-closure-20261024/)
+and summarized in
+[`20261025-076-archive-closure-validation`](../../../evidence/runs/20261025-076-archive-closure-validation.json).
+
+The wheel's engine member matched the local Cargo release output before its
+bounded identity handshake: `repopact-engine.exe` SHA-256
+`133372b7f030b73f1f2289c8a128c5462e7e5aa39d8bdd40652108850a38854c`; the
+launcher digest is `4ecc7e0150bf08c4e7b936fb29773455516535f56d58452626a39c06b1f2750e`.
+This establishes observed-byte agreement with the controlled local build. It
+does not authenticate the publisher or a malicious build host, and it does not
+sandbox the executable.
+
+The successive failed checks were diagnosed and preserved: an unlocked sdist
+build rewrote `Cargo.lock`, Maturin's default profile supplied debug binaries
+instead of the release outputs, and the email metadata parser mishandled its
+declared UTF-8 payload. The workflow now locks Cargo, builds release binaries,
+and decodes the metadata as UTF-8. The successful focused package, release-build,
+semantic-admission, and session suites passed 43/43 with no skips, including
+copied-real-archive rejection before executable probing. The semantic manifest
+and frozen-surface checks pass. Final canonical validation and offline
+documentation-link validation are recorded in the superseding evidence.
+
+AC-4 is satisfied by the generated closure and actual archive evidence. WI076
+is completed on this branch. The full Python suite was not rerun on source
+revision `9ff35b0`; earlier full-suite results apply only to their recorded
+source revisions, and the historical Python 3.13 failures remain preserved.
+Stable 3.1.3 is unchanged, no package was published or globally installed,
+and WI074 RPS-016 remains independently pending. After this transition the
+canonical RepoPact validator passed, the dashboard was regenerated, the
+semantic identity check passed, the frozen-surface check found no changes, and
+the offline documentation checker passed for 340 Markdown files with 37
+external GitHub URLs unchecked by design.
