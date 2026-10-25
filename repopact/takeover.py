@@ -300,13 +300,14 @@ def rewrite_inbound_references(root: Path, retired: set[str], dry_run: bool, rep
     report["refs_unresolved"] = unresolved
 
 
-def takeover(root: Path, delete: bool = False, dry_run: bool = False) -> dict:
+def takeover(root: Path, delete: bool = False, dry_run: bool = False, *, client=None) -> dict:
     report: dict = {"validated": True, "retired": [], "skipped": [], "review": [],
                     "actions": [], "decisions": [], "downgraded": [], "blocked": []}
 
     try:
-        EngineClient().check_compatibility("validate", "dashboard.write")
-        validation = validate_repository(root)
+        engine = client or EngineClient()
+        engine.check_compatibility("validate", "dashboard.write")
+        validation = validate_repository(root, client=engine)
     except EngineError as exc:
         report["validated"] = False
         report["problems"] = [f"canonical Rust validation unavailable: {exc}"]
@@ -376,8 +377,8 @@ def takeover(root: Path, delete: bool = False, dry_run: bool = False) -> dict:
 
     if not dry_run and report["retired"]:
         try:
-            write_dashboard_canonically(root)
-            report["post_validate_ok"] = validate_repository(root)["valid"]
+            write_dashboard_canonically(root, client=engine)
+            report["post_validate_ok"] = validate_repository(root, client=engine)["valid"]
         except EngineError as exc:
             report["post_validate_ok"] = False
             report["post_validate_error"] = f"canonical Rust engine failed after retirement: {exc}"

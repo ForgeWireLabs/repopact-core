@@ -1,0 +1,33 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261024-076-architecture-review",
+  "timestamp": "2026-10-24T15:23:53Z",
+  "work_item": "076",
+  "result": "passed",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "Read-only source review of repopact/engine_client.py, rust/apps/repopact-engine/src/main.rs, rust/apps/repopact-engine/build.rs, rust/crates/repopact-protocol/src/lib.rs, pyproject.toml, tests/test_engine_client.py, conformance/manifest.json, and linked WI047/WI074 evidence",
+      "exit_code": 0,
+      "summary": "Confirmed protocol/product-only checks, ordinary and explicit engine discovery behavior, per-operation process launches, current Cargo and Maturin wiring, and the recorded 41/43 versus 43/43 conformance evidence boundary. Compared a source-derived versioned semantic-input digest with manual revision and executable-digest alternatives; recorded migration, mismatch, build/wheel, evidence, and authenticity boundaries in proposed Decision 0077. No implementation or build was performed."
+    }
+  ],
+  "artifacts": [
+    "decisions/0077-engine-semantic-compatibility-identity.md",
+    "repopact/engine_client.py",
+    "rust/apps/repopact-engine/src/main.rs",
+    "rust/apps/repopact-engine/build.rs",
+    "rust/crates/repopact-protocol/src/lib.rs",
+    "pyproject.toml",
+    "tests/test_engine_client.py",
+    "conformance/manifest.json",
+    "evidence/runs/20261023-047-independent-acceptance.json",
+    "evidence/runs/20261024-074-governance-closeout.json"
+  ],
+  "environment": {
+    "repository_commit_reviewed": "e5581a3aecdb5afceeff30013dcf5044a252c2b7",
+    "decision_status": "proposed; owner review needed before implementation",
+    "semantic_implementation": "not started",
+    "product_release": "not published"
+  }
+}

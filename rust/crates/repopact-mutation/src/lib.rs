@@ -784,6 +784,10 @@ fn civil_from_days(days_since_epoch: i64) -> (i64, i64, i64) {
 }
 
 fn copy_tree(source: &Path, destination: &Path) -> Result<(), String> {
+    copy_tree_inner(source, destination, true)
+}
+
+fn copy_tree_inner(source: &Path, destination: &Path, repository_root: bool) -> Result<(), String> {
     fs::create_dir_all(destination).map_err(|error| error.to_string())?;
     let mut entries = fs::read_dir(source)
         .map_err(|error| error.to_string())?
@@ -792,6 +796,14 @@ fn copy_tree(source: &Path, destination: &Path) -> Result<(), String> {
     entries.sort_by(|left, right| path_string(&left.path()).cmp(&path_string(&right.path())));
     for entry in entries {
         let name = entry.file_name().to_string_lossy().to_string();
+        let from = entry.path();
+        let kind = entry.file_type().map_err(|error| error.to_string())?;
+        if name == "build" {
+            if repository_root && kind.is_dir() {
+                copy_governed_build_inputs(&from, destination)?;
+            }
+            continue;
+        }
         if matches!(
             name.as_str(),
             ".git"
@@ -800,24 +812,37 @@ fn copy_tree(source: &Path, destination: &Path) -> Result<(), String> {
                 | ".venv"
                 | ".pytest_cache"
                 | "node_modules"
-                | "build"
                 | "dist"
                 | "worktrees"
                 | "fixtures"
         ) {
             continue;
         }
-        let from = entry.path();
         let to = destination.join(&name);
-        let kind = entry.file_type().map_err(|error| error.to_string())?;
         if kind.is_symlink() {
             continue;
         }
         if kind.is_dir() {
-            copy_tree(&from, &to)?;
+            copy_tree_inner(&from, &to, false)?;
         } else if kind.is_file() {
             fs::copy(&from, &to).map_err(|error| error.to_string())?;
         }
+    }
+    Ok(())
+}
+
+fn copy_governed_build_inputs(build_source: &Path, destination: &Path) -> Result<(), String> {
+    for name in ["semantic-input-manifest.json", "semantic-input-policy.json"] {
+        let source = build_source.join(name);
+        match fs::symlink_metadata(&source) {
+            Ok(metadata) if metadata.file_type().is_file() => {}
+            Ok(_) => continue,
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => continue,
+            Err(error) => return Err(error.to_string()),
+        }
+        let target_dir = destination.join("build");
+        fs::create_dir_all(&target_dir).map_err(|error| error.to_string())?;
+        fs::copy(&source, target_dir.join(name)).map_err(|error| error.to_string())?;
     }
     Ok(())
 }
@@ -1343,6 +1368,38 @@ mod tests {
     use std::sync::atomic::{AtomicU64, Ordering};
 
     static TEST_ROOT_COUNTER: AtomicU64 = AtomicU64::new(0);
+
+    #[test]
+    fn candidate_copy_includes_only_governed_semantic_build_inputs() {
+        let root = std::env::temp_dir().join(format!(
+            "repopact-build-input-copy-{}-{}",
+            std::process::id(),
+            TEST_ROOT_COUNTER.fetch_add(1, Ordering::Relaxed)
+        ));
+        let destination = root.join("candidate");
+        let source = root.join("source");
+        let build = source.join("build");
+        let _ = fs::remove_dir_all(&root);
+        fs::create_dir_all(build.join("target")).unwrap();
+        fs::write(build.join("semantic-input-manifest.json"), "manifest\n").unwrap();
+        fs::write(build.join("semantic-input-policy.json"), "policy\n").unwrap();
+        fs::write(build.join("unrelated-cache.bin"), "large output\n").unwrap();
+        fs::write(build.join("target/artifact.bin"), "cargo output\n").unwrap();
+
+        copy_tree(&source, &destination).unwrap();
+
+        assert_eq!(
+            fs::read_to_string(destination.join("build/semantic-input-manifest.json")).unwrap(),
+            "manifest\n"
+        );
+        assert_eq!(
+            fs::read_to_string(destination.join("build/semantic-input-policy.json")).unwrap(),
+            "policy\n"
+        );
+        assert!(!destination.join("build/unrelated-cache.bin").exists());
+        assert!(!destination.join("build/target").exists());
+        fs::remove_dir_all(root).unwrap();
+    }
 
     fn fixture() -> (PathBuf, RepositorySnapshot) {
         let root = std::env::temp_dir().join(format!(

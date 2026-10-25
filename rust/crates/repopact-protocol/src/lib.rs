@@ -1,4 +1,4 @@
-//! Versioned transport DTOs for the one-request RepoPact engine protocol.
+//! Versioned transport DTOs for the stateful, line-oriented RepoPact engine protocol.
 //!
 //! This crate intentionally contains no repository or governance semantics. It
 //! is shared by the machine engine and protocol-focused tests so that Python
@@ -8,7 +8,9 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 pub const PROTOCOL: &str = "repopact-engine";
-pub const PROTOCOL_VERSION: u32 = 1;
+/// Major 2 adds newline-framed requests and a persistent, admitted process session.
+/// Major 1 used one JSON request per process, read until stdin EOF.
+pub const PROTOCOL_VERSION: u32 = 2;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct EngineRequest {
@@ -28,6 +30,8 @@ pub struct EngineResponse {
     pub protocol_version: u32,
     pub request_id: String,
     pub engine_version: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub semantic_identity: Option<String>,
     pub ok: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub result: Option<Value>,
@@ -37,6 +41,18 @@ pub struct EngineResponse {
     pub error: Option<ProtocolError>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub capabilities: Option<Capabilities>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub build_info: Option<EngineBuildInfo>,
+}
+
+/// Build provenance reported by the executable that handled the request.
+/// These fields identify build inputs; they do not authenticate executable bytes.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct EngineBuildInfo {
+    pub source_revision: String,
+    pub rustc_version: String,
+    pub target: String,
+    pub profile: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -79,11 +95,13 @@ impl EngineResponse {
             protocol_version: PROTOCOL_VERSION,
             request_id: request_id.into(),
             engine_version: engine_version.into(),
+            semantic_identity: None,
             ok: true,
             result: Some(result),
             diagnostics: Vec::new(),
             error: None,
             capabilities: None,
+            build_info: None,
         }
     }
 
@@ -98,6 +116,7 @@ impl EngineResponse {
             protocol_version: PROTOCOL_VERSION,
             request_id: request_id.into(),
             engine_version: engine_version.into(),
+            semantic_identity: None,
             ok: false,
             result: None,
             diagnostics: Vec::new(),
@@ -106,6 +125,7 @@ impl EngineResponse {
                 message: message.into(),
             }),
             capabilities: None,
+            build_info: None,
         }
     }
 }
@@ -114,6 +134,7 @@ pub fn capabilities() -> Capabilities {
     Capabilities {
         operations: vec![
             "handshake".to_owned(),
+            "admit".to_owned(),
             "capabilities".to_owned(),
             "validate".to_owned(),
             "dashboard.write".to_owned(),

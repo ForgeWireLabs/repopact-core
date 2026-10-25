@@ -1,0 +1,121 @@
+{
+  "$schema": "../../../repopact/schemas/work-item.schema.json",
+  "id": "076",
+  "title": "Engine Semantic Compatibility Identity",
+  "status": "completed",
+  "owner_scope": "tooling",
+  "lead": "tooling-owner",
+  "affected_scopes": [
+    "tooling",
+    "governance",
+    "docs",
+    "evidence",
+    "work"
+  ],
+  "depends_on": [],
+  "provenance": "concrete",
+  "preflight": {
+    "created_before_work_started": true,
+    "created_at": "2026-10-24T14:46:23Z",
+    "note": "Registered before implementation or build for the engine identity defect. The initial finding review used existing source and evidence only; no implementation build or full test run was started."
+  },
+  "acceptance_criteria": [
+    {
+      "id": "AC-1",
+      "text": "Compare and record a deterministic semantic-contract identity design before implementation. Distinguish transport protocol compatibility, product release identity, semantic validation compatibility, and executable authenticity; define the same-process side-effect admission boundary, exact authoritative input closure, versioning, migration behavior, and limits. Keep Decision 0077 proposed until the tooling owner approves these design choices.",
+      "state": "satisfied",
+      "evidence": [
+        "20261024-076-architecture-review",
+        "20261024-076-admission-architecture-review",
+        "20261024-076-tooling-owner-architecture-approval"
+      ]
+    },
+    {
+      "id": "AC-2",
+      "text": "Implement the approved semantic identity in the Rust engine and Python client. Each operation must execute only in the same engine process that passed semantic handshake and explicit admission; a process from an earlier handshake cannot authorize a later launch. Until admission succeeds, the engine rejects operations before dispatch. Retained Python workflows that write repository files and depend on canonical Core semantics must establish and hold the admitted session before their first filesystem write. Same-protocol, same-product-version engines with missing or mismatched identity fail closed in ordinary discovery and through REPOPACT_ENGINE; overrides cannot bypass admission.",
+      "state": "satisfied",
+      "evidence": [
+        "20261024-076-matching-engine-integrated-validation",
+        "20261024-076-independent-review-findings",
+        "20261024-076-review-corrections-validation"
+      ]
+    },
+    {
+      "id": "AC-3",
+      "text": "Add focused tests proving a stale same-version or legacy engine is rejected before any repository mutation and a matching engine is admitted. Cover ordinary Scripts discovery, a stale executable beside the Python package, explicit REPOPACT_ENGINE, missing/malformed/unsupported/mismatched identity, engine-side pre-admission rejection, executable-path replacement after handshake, retained Python-side canonical-dependent write workflows, and the compatibility boundary. Compare repository snapshots to prove the rejected cases changed no files and prove no operation was resent after an uncertain process exit.",
+      "state": "satisfied",
+      "evidence": [
+        "20261024-076-matching-engine-integrated-validation",
+        "20261024-076-independent-review-findings",
+        "20261024-076-review-corrections-validation"
+      ]
+    },
+    {
+      "id": "AC-4",
+      "text": "Verify automatic, reviewed input discovery and deterministic identity generation across the current Python contract and dependency closure, Rust engine dependency/build closure, protocol capabilities, embedded schemas, and conformance corpus. Enforce an exact Python dependency lock or an explicitly bounded supported-version contract at runtime, including affected optional dependencies. Detect added, omitted, removed, or changed inputs without implicit baseline updates; prove checkout, sdist, and wheel identity agreement through Maturin. Do not treat identity as proof of trusted executable bytes.",
+      "state": "satisfied",
+      "evidence": [
+        "20261024-076-matching-engine-integrated-validation",
+        "20261024-076-independent-review-findings",
+        "20261024-076-review-corrections-validation",
+        "20261025-076-archive-closure-validation"
+      ]
+    },
+    {
+      "id": "AC-5",
+      "text": "Document the four identity guarantees, mismatch behavior, override rules, and migration path. Explicitly state that a semantic ID detects accidental version skew but does not authenticate a maliciously substituted binary; any trusted-artifact verification remains a separate design and approval.",
+      "state": "satisfied",
+      "evidence": [
+        "20261024-076-matching-engine-integrated-validation",
+        "20261024-076-review-corrections-validation",
+        "20261025-076-archive-closure-validation"
+      ]
+    },
+    {
+      "id": "AC-6",
+      "text": "Record the exact process-image file identity and executable SHA-256 used for each conformance run, with source commit, product/protocol/semantic identities, toolchain and focused results. Mark provenance incomplete when the actual image cannot be correlated or its pre/post digest changes. Preserve prior historical evidence unchanged.",
+      "state": "satisfied",
+      "evidence": [
+        "20261024-076-matching-engine-integrated-validation",
+        "20261024-076-independent-review-findings",
+        "20261024-076-review-corrections-validation",
+        "20261025-076-archive-closure-validation"
+      ]
+    },
+    {
+      "id": "AC-7",
+      "text": "Link this work to WI074/RPS-016 as supporting Core/Workbench compatibility evidence. Do not change RPS-016 to satisfied; its full acceptance remains independently pending after this work completes.",
+      "state": "satisfied",
+      "evidence": [
+        "20261024-076-rps016-link-registration",
+        "20261024-076-review-corrections-validation"
+      ]
+    },
+    {
+      "id": "AC-8",
+      "text": "Before any build, record a fresh disk-space budget, expected peak temporary output, selected target/temp paths, and whether generated outputs will be retained or cleaned. Prefer focused tests and reuse; do not run concurrent or duplicate Cargo builds for unchanged sources.",
+      "state": "satisfied",
+      "evidence": [
+        "20261024-076-prebuild-storage-budget",
+        "20261024-076-review-fix-prebuild-gate",
+        "20261024-076-review-fix-rust-build-gate"
+      ]
+    }
+  ],
+  "documentation_impact": {
+    "state": "affected",
+    "surfaces": [
+      "architecture",
+      "api_cli",
+      "contributor_workflow"
+    ],
+    "evidence": [
+      "20261024-074-governance-closeout",
+      "20261024-076-matching-engine-integrated-validation",
+        "20261024-076-review-corrections-validation",
+        "20261025-076-archive-closure-validation"
+    ]
+  },
+  "created": "2026-10-24",
+  "updated": "2026-10-25"
+}

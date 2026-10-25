@@ -1,5 +1,5 @@
 use std::fs;
-use std::io::{self, Read};
+use std::io::{self, BufRead, Write};
 use std::path::PathBuf;
 use std::process::ExitCode;
 
@@ -9,7 +9,8 @@ use repopact_mutation::{
     CreateWorkItem, EditWorkItem, MutationRequest, MutationResult, WorkItemEdits,
 };
 use repopact_protocol::{
-    capabilities, EngineRequest, EngineResponse, ProtocolDiagnostic, PROTOCOL, PROTOCOL_VERSION,
+    capabilities, EngineBuildInfo, EngineRequest, EngineResponse, ProtocolDiagnostic, PROTOCOL,
+    PROTOCOL_VERSION,
 };
 use repopact_types::{AcceptanceCriterion, Diagnostic, Severity, WorkItem};
 use serde::Deserialize;
@@ -18,6 +19,22 @@ use serde_json::{json, Value};
 mod query_ops;
 
 pub(crate) const ENGINE_VERSION: &str = env!("REPOPACT_ENGINE_VERSION");
+const ENGINE_SEMANTIC_IDENTITY: &str = env!("REPOPACT_ENGINE_SEMANTIC_IDENTITY");
+
+fn engine_build_info() -> EngineBuildInfo {
+    EngineBuildInfo {
+        source_revision: env!("REPOPACT_ENGINE_SOURCE_REVISION").to_owned(),
+        rustc_version: env!("REPOPACT_ENGINE_RUSTC_VERSION").to_owned(),
+        target: env!("REPOPACT_ENGINE_TARGET").to_owned(),
+        profile: env!("REPOPACT_ENGINE_PROFILE").to_owned(),
+    }
+}
+
+#[derive(Default)]
+struct EngineSession {
+    handshaken: bool,
+    admitted: bool,
+}
 
 #[derive(Debug, Deserialize)]
 struct CreateParams {
@@ -43,47 +60,50 @@ fn default_active() -> String {
 }
 
 fn main() -> ExitCode {
-    let mut input = String::new();
-    if let Err(error) = io::stdin().read_to_string(&mut input) {
-        return emit(EngineResponse::failure(
-            "",
-            ENGINE_VERSION,
-            "protocol.stdin",
-            format!("unable to read request: {error}"),
-        ));
-    }
-    let request = match serde_json::from_str::<EngineRequest>(&input) {
-        Ok(request) => request,
-        Err(error) => {
-            return emit(EngineResponse::failure(
+    let stdin = io::stdin();
+    let mut session = EngineSession::default();
+    let mut stdout = io::stdout().lock();
+    for line in stdin.lock().lines() {
+        let response = match line {
+            Ok(input) => match serde_json::from_str::<EngineRequest>(&input) {
+                Ok(request) => handle(request, &mut session),
+                Err(error) => EngineResponse::failure(
+                    "",
+                    ENGINE_VERSION,
+                    "protocol.malformed-request",
+                    format!("request must be one JSON object per line: {error}"),
+                ),
+            },
+            Err(error) => EngineResponse::failure(
                 "",
                 ENGINE_VERSION,
-                "protocol.malformed-request",
-                format!("request must be one JSON object: {error}"),
-            ));
+                "protocol.stdin",
+                format!("unable to read request: {error}"),
+            ),
+        };
+        if emit(&mut stdout, response).is_err() {
+            return ExitCode::FAILURE;
         }
-    };
-    emit(handle(request))
+    }
+    ExitCode::SUCCESS
 }
 
-fn emit(response: EngineResponse) -> ExitCode {
+fn emit(stdout: &mut impl Write, mut response: EngineResponse) -> io::Result<()> {
+    response.semantic_identity = Some(ENGINE_SEMANTIC_IDENTITY.to_owned());
+    response.build_info = Some(engine_build_info());
     match serde_json::to_string(&response) {
         Ok(encoded) => {
-            println!("{encoded}");
-            if response.ok {
-                ExitCode::SUCCESS
-            } else {
-                ExitCode::from(1)
-            }
+            writeln!(stdout, "{encoded}")?;
+            stdout.flush()
         }
         Err(error) => {
             eprintln!("unable to encode engine response: {error}");
-            ExitCode::from(1)
+            Err(io::Error::other(error))
         }
     }
 }
 
-fn handle(request: EngineRequest) -> EngineResponse {
+fn handle(request: EngineRequest, session: &mut EngineSession) -> EngineResponse {
     if request.protocol != PROTOCOL {
         return EngineResponse::failure(
             request.request_id,
@@ -106,8 +126,25 @@ fn handle(request: EngineRequest) -> EngineResponse {
             ),
         );
     }
-    match request.operation.as_str() {
-        "handshake" | "capabilities" => handshake(&request),
+    let operation = request.operation.clone();
+    match operation.as_str() {
+        "handshake" | "capabilities" => {
+            session.handshaken = true;
+            handshake(&request)
+        }
+        "admit" => admit(&request, session),
+        operation if !session.admitted => EngineResponse::failure(
+            request.request_id.clone(),
+            ENGINE_VERSION,
+            "engine.not-admitted",
+            format!("operation '{operation}' was refused before semantic admission"),
+        ),
+        operation => dispatch(request, operation),
+    }
+}
+
+fn dispatch(request: EngineRequest, operation: &str) -> EngineResponse {
+    match operation {
         "validate" => validate(&request),
         "dashboard.write" => dashboard_write(&request),
         "work.create" | "work.propose" => create_work(&request),
@@ -140,6 +177,41 @@ fn handle(request: EngineRequest) -> EngineResponse {
             format!("unsupported engine operation '{operation}'"),
         ),
     }
+}
+
+fn admit(request: &EngineRequest, session: &mut EngineSession) -> EngineResponse {
+    if !session.handshaken {
+        return EngineResponse::failure(
+            request.request_id.clone(),
+            ENGINE_VERSION,
+            "engine.admission-order",
+            "semantic admission requires a successful handshake in this process",
+        );
+    }
+    let requested_identity = request
+        .params
+        .get("semantic_identity")
+        .and_then(Value::as_str);
+    if requested_identity != Some(ENGINE_SEMANTIC_IDENTITY) {
+        session.admitted = false;
+        return EngineResponse::failure(
+            request.request_id.clone(),
+            ENGINE_VERSION,
+            "engine.semantic-identity-mismatch",
+            "client and engine semantic-contract identities do not match",
+        );
+    }
+    session.admitted = true;
+    let mut response = EngineResponse::success(
+        request.request_id.clone(),
+        ENGINE_VERSION,
+        json!({
+            "status": "admitted",
+            "semantic_identity": ENGINE_SEMANTIC_IDENTITY,
+        }),
+    );
+    response.semantic_identity = Some(ENGINE_SEMANTIC_IDENTITY.to_owned());
+    response
 }
 
 fn handshake(request: &EngineRequest) -> EngineResponse {
@@ -657,14 +729,36 @@ mod tests {
         }
     }
 
+    fn admit_session(session: &mut EngineSession) {
+        let handshake_response = handle(request("handshake"), session);
+        assert!(handshake_response.ok);
+        let mut admission = request("admit");
+        admission.params = json!({"semantic_identity": ENGINE_SEMANTIC_IDENTITY});
+        assert!(handle(admission, session).ok);
+    }
+
+    fn admitted_response(request: EngineRequest) -> EngineResponse {
+        let mut session = EngineSession::default();
+        admit_session(&mut session);
+        handle(request, &mut session)
+    }
+
     #[test]
     fn handshake_is_structured_and_echoes_request_identity() {
         let request = request("handshake");
         let request_id = request.request_id.clone();
-        let response = handle(request);
+        let mut session = EngineSession::default();
+        let response = handle(request, &mut session);
+        let mut emitted = Vec::new();
+        emit(&mut emitted, response).unwrap();
+        let response: EngineResponse = serde_json::from_slice(&emitted).unwrap();
         assert!(response.ok);
         assert_eq!(response.request_id, request_id);
         assert_eq!(response.engine_version, ENGINE_VERSION);
+        assert_eq!(
+            response.semantic_identity.as_deref(),
+            Some(ENGINE_SEMANTIC_IDENTITY)
+        );
         assert!(response
             .capabilities
             .unwrap()
@@ -676,16 +770,64 @@ mod tests {
     fn protocol_major_mismatch_is_transport_failure() {
         let mut request = request("handshake");
         request.protocol_version += 1;
-        let response = handle(request);
+        let mut session = EngineSession::default();
+        let response = handle(request, &mut session);
         assert!(!response.ok);
         assert_eq!(response.error.unwrap().code, "protocol.version-mismatch");
     }
 
     #[test]
     fn unsupported_operation_is_explicit() {
-        let response = handle(request("filesystem.write"));
+        let response = admitted_response(request("filesystem.write"));
         assert!(!response.ok);
         assert_eq!(response.error.unwrap().code, "operation.unsupported");
+    }
+
+    #[test]
+    fn operations_are_refused_before_same_process_admission() {
+        let root = std::env::temp_dir().join(format!(
+            "repopact-engine-unadmitted-{}-{}",
+            std::process::id(),
+            NEXT_TEST_ROOT.fetch_add(1, Ordering::Relaxed)
+        ));
+        fs::create_dir_all(&root).unwrap();
+        let mut operation = request("dashboard.write");
+        operation.root = Some(root.to_string_lossy().into_owned());
+        let mut session = EngineSession::default();
+        let response = handle(operation, &mut session);
+        assert!(!response.ok);
+        assert_eq!(response.error.unwrap().code, "engine.not-admitted");
+        assert!(!root.join("audits/reports/dashboard.md").exists());
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn mismatched_admission_keeps_all_operations_before_dispatch() {
+        let root = std::env::temp_dir().join(format!(
+            "repopact-engine-mismatch-{}-{}",
+            std::process::id(),
+            NEXT_TEST_ROOT.fetch_add(1, Ordering::Relaxed)
+        ));
+        fs::create_dir_all(&root).unwrap();
+        let mut session = EngineSession::default();
+        assert!(handle(request("handshake"), &mut session).ok);
+        let mut admission = request("admit");
+        admission.params = json!({
+            "semantic_identity": "repopact-semantic-v1:sha256:0000000000000000000000000000000000000000000000000000000000000000"
+        });
+        let response = handle(admission, &mut session);
+        assert!(!response.ok);
+        assert_eq!(
+            response.error.unwrap().code,
+            "engine.semantic-identity-mismatch"
+        );
+        let mut operation = request("dashboard.write");
+        operation.root = Some(root.to_string_lossy().into_owned());
+        let response = handle(operation, &mut session);
+        assert!(!response.ok);
+        assert_eq!(response.error.unwrap().code, "engine.not-admitted");
+        assert!(!root.join("audits/reports/dashboard.md").exists());
+        fs::remove_dir_all(root).unwrap();
     }
 
     #[test]
@@ -704,7 +846,7 @@ mod tests {
         fs::create_dir_all(&root).unwrap();
         let mut request = request("validate");
         request.root = Some(root.to_string_lossy().into_owned());
-        let response = handle(request);
+        let response = admitted_response(request);
         assert!(response.ok);
         assert_eq!(response.result.unwrap()["valid"], false);
         fs::remove_dir_all(root).unwrap();

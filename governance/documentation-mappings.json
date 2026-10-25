@@ -21,7 +21,7 @@
       ],
       "description": "The opt-in mapping diagnostics and snapshot command are explained by the adopter-facing freshness guide.",
       "snapshot": {
-        "source_digest": "96d875d92d7cecb68d50772e955bf502713c4f5972897b4168cdd2c0ce746fa0",
+        "source_digest": "c691b54971e488e5fe920d3fc94e67bc64942966f962083fd51f6a335c50979b",
         "documentation_digest": "6a7b56a721f7965e9cafedb5f980758d186016f15bb4be426b429c9c0d8b618b"
       }
     },
@@ -47,8 +47,40 @@
       ],
       "description": "The generated SPEC catalog, version statement, and invariant table are derived from the listed generator inputs.",
       "snapshot": {
-        "source_digest": "4afb47e5e20690b4b50c4ea11430a5181fbff95bc45eed637515b2f303a5f755",
-        "documentation_digest": "eb9f55441ab866f107b39bc822fa26696b1cc03f7e0f89f2e08d46d9fd4d8c8e"
+        "source_digest": "25133f38d9f1e7e98b1683e7843e8dd14c506ef695677702fd5d7da9676411b0",
+        "documentation_digest": "dda239b0221e9f58e4289d0723cab8eb94bcfc2da6a667a4ab899874f3366a43"
+      }
+    },
+    {
+      "id": "engine-semantic-compatibility",
+      "kind": "manual",
+      "source_paths": [
+        "pyproject.toml",
+        "build/semantic-input-manifest.json",
+        "build/semantic-input-policy.json",
+        "repopact/_semantic-input-manifest.json",
+        "repopact/_semantic_identity.json",
+        "repopact/engine_client.py",
+        "repopact/engine_session.py",
+        "repopact/requirements-runtime.lock",
+        "repopact/runtime-dependency-groups.json",
+        "repopact/runtime_dependencies.py",
+        "repopact/run_conformance.py",
+        "rust/Cargo.lock",
+        "rust/Cargo.toml",
+        "rust/apps/repopact-engine/Cargo.toml",
+        "rust/apps/repopact-engine/src/main.rs",
+        "rust/crates/repopact-protocol/src/lib.rs",
+        "scripts/generate_engine_semantic_identity.py",
+        "scripts/verify_engine_package_identity.py"
+      ],
+      "documentation_paths": [
+        "docs/guides/packaging-and-engine.md"
+      ],
+      "description": "The installation and packaging guide explains semantic identity, same-process admission, exact runtime dependency checks, migration, no-replay handling for uncertain outcomes, wheel payload and packaged-engine verification, and the limits of executable provenance.",
+      "snapshot": {
+        "source_digest": "b27b687579332687b2f9e369a9eca61f57a1af9b15541ecf463981219f31b11b",
+        "documentation_digest": "1fc2acdea4d2217eb53a8e8c23388bed705be45b26b56ae90a203d4807491ace"
       }
     }
   ]

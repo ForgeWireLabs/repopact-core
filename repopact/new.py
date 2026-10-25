@@ -42,10 +42,18 @@ def _template_text(root: Path, name: str) -> str:
     return init_repo._seed_dir("templates").joinpath(name).read_text(encoding="utf-8")
 
 
-def new_work_item(title: str, today: date, root: Path = ROOT, status: str = "active") -> Path:
+def new_work_item(
+    title: str,
+    today: date,
+    root: Path = ROOT,
+    status: str = "active",
+    *,
+    client=None,
+) -> Path:
     from .engine_client import EngineClient, EngineProtocolError, validated_mutation_result
 
-    response = EngineClient().call(
+    engine = client or EngineClient()
+    response = engine.call(
         "work.create", root=root,
         params={
             "title": title,
@@ -67,9 +75,10 @@ def new_work_item(title: str, today: date, root: Path = ROOT, status: str = "act
     return root.resolve() / relative
 
 
-def new_markdown(kind: str, title: str, today: date, root: Path = ROOT) -> Path:
+def new_markdown(kind: str, title: str, today: date, root: Path = ROOT, *, client=None) -> Path:
     from .engine_client import EngineClient, write_dashboard_canonically
-    EngineClient().check_compatibility("validate", "dashboard.write")
+    engine = client or EngineClient()
+    engine.check_compatibility("validate", "dashboard.write")
     slug = slugify(title)
     if kind == "decision":
         directory, width, template = root / "decisions", 4, "decision.md"
@@ -82,7 +91,7 @@ def new_markdown(kind: str, title: str, today: date, root: Path = ROOT) -> Path:
     text = text.replace("Decision Title", title).replace("Policy Title", title)
     path = directory / f"{record_id}-{slug}.md"
     path.write_text(text, encoding="utf-8")
-    write_dashboard_canonically(root)
+    write_dashboard_canonically(root, client=engine)
     return path
 
 
@@ -95,12 +104,13 @@ def main() -> int:
     args = parser.parse_args()
     today = date.today()
     from .engine_client import EngineClient, EngineError, render_validation
+    engine = EngineClient()
     try:
         if args.kind == "work-item":
-            path = new_work_item(args.title, today, status=args.status)
+            path = new_work_item(args.title, today, status=args.status, client=engine)
         else:
-            path = new_markdown(args.kind, args.title, today)
-        result = render_validation(EngineClient().call("validate", root=ROOT))
+            path = new_markdown(args.kind, args.title, today, client=engine)
+        result = render_validation(engine.call("validate", root=ROOT))
     except EngineError as exc:
         print(f"Rust engine compatibility error: {exc}", file=sys.stderr)
         return 1

@@ -1,0 +1,8 @@
+test_real_maturin_archives_pass_and_attack_copies_fail_closed (tests.test_engine_package_identity.ActualMaturinArchiveRegressionTests.test_real_maturin_archives_pass_and_attack_copies_fail_closed) ... C:\Program Files\Python312\Lib\zipfile\__init__.py:1607: UserWarning: Duplicate name: 'repopact/engine_client.py'
+  return self._open_to_write(zinfo, force_zip64=force_zip64)
+ok
+
+----------------------------------------------------------------------
+Ran 1 test in 7.401s
+
+OK

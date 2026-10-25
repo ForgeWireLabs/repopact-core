@@ -63,10 +63,11 @@ def _json(path: Path, data: object) -> None:
     _write(path, json.dumps(data, indent=2) + "\n")
 
 
-def bootstrap(target: Path, today: date | None = None) -> Path:
+def bootstrap(target: Path, today: date | None = None, *, client=None) -> Path:
     today = today or date.today()
     from .engine_client import EngineClient
-    EngineClient().check_compatibility("dashboard.write")
+    engine = client or EngineClient()
+    engine.check_compatibility("dashboard.write")
     next_review = (today + timedelta(days=90)).isoformat()
     target.mkdir(parents=True, exist_ok=True)
 
@@ -157,7 +158,7 @@ def bootstrap(target: Path, today: date | None = None) -> Path:
            "the records, `python -m repopact.verify_cli governance` for the local verification profile, "
            "and `repopact dashboard` to regenerate the derived projection.\n")
     from .engine_client import write_dashboard_canonically
-    write_dashboard_canonically(target)
+    write_dashboard_canonically(target, client=engine)
     return target
 
 
@@ -174,7 +175,7 @@ def main() -> int:
     except EngineError as exc:
         print(f"Rust engine compatibility error: {exc}", file=sys.stderr)
         return 1
-    bootstrap(target)
+    bootstrap(target, client=client)
     try:
         result = render_validation(client.call("validate", root=target))
     except EngineError as exc:

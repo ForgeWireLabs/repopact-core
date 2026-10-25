@@ -1,0 +1,19 @@
+{
+  "format_version": 1,
+  "lock": "requirements-runtime.lock",
+  "groups": {
+    "core": [
+      "attrs",
+      "jsonschema",
+      "jsonschema-specifications",
+      "referencing",
+      "rpds-py",
+      "typing-extensions"
+    ],
+    "enforcement": [
+      "cffi",
+      "cryptography",
+      "pycparser"
+    ]
+  }
+}

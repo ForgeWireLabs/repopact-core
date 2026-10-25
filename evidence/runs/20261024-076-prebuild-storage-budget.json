@@ -1,0 +1,44 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261024-076-prebuild-storage-budget",
+  "timestamp": "2026-10-24T15:22:08Z",
+  "work_item": "076",
+  "result": "passed",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "PowerShell read-only pre-build snapshot: Get-Volume, Win32_Process query for cargo.exe/rustc.exe, environment paths, and target-directory existence",
+      "exit_code": 0,
+      "summary": "C: was healthy NTFS with 2,242,760,704 bytes free (2.09 GiB); it was the only volume. One unrelated fabric-qualification Cargo test process tree was active. Core target directories and the planned WI076 build root were absent; CARGO_TARGET_DIR was unset and TEMP existed."
+    },
+    {
+      "command": "PowerShell read-only inspection of the active cargo.exe process and parent command line",
+      "exit_code": 0,
+      "summary": "The active command was cargo test --workspace --locked --features fabric-hub/test-harness in an unrelated fabric-qualification workspace. No process was started, stopped, or modified by this task."
+    }
+  ],
+  "artifacts": [
+    "work/active/076-engine-semantic-compatibility-identity/README.md",
+    "decisions/0077-engine-semantic-compatibility-identity.md"
+  ],
+  "environment": {
+    "snapshot_time_utc": "2026-10-24T15:22:08Z",
+    "volume": "C:",
+    "filesystem": "NTFS",
+    "health": "Healthy",
+    "free_bytes": 2242760704,
+    "alternative_volumes": [],
+    "active_unrelated_cargo_process_tree": "cargo test --workspace --locked --features fabric-hub/test-harness",
+    "core_target_exists": false,
+    "cargo_target_dir_before_build": null,
+    "temp_path": "C:/Users/jerem/AppData/Local/Temp",
+    "planned_cargo_target_dir": "C:/Projects/repopact-core-wi076-build/target",
+    "planned_temp_path": "C:/Projects/repopact-core-wi076-build/tmp",
+    "target_output_budget_gib": 12,
+    "temporary_and_wheel_output_budget_gib": 2,
+    "headroom_gib": 4,
+    "minimum_free_space_gib": 18,
+    "build_decision": "not run: free space is below budget and an unrelated Cargo test is active",
+    "output_disposition": "reuse task-owned target; after evidence capture and process exit, clean only that task-owned target if needed; preserve all other targets and Cargo caches"
+  }
+}

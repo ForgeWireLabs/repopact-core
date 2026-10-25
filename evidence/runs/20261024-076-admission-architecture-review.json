@@ -1,0 +1,55 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261024-076-admission-architecture-review",
+  "timestamp": "2026-10-24T15:48:08Z",
+  "work_item": "076",
+  "result": "passed",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "Read-only review of repopact/engine_client.py, repopact/run_conformance.py, tests/test_engine_client.py, rust/apps/repopact-engine/src/main.rs, rust/apps/repopact-engine/build.rs, rust/crates/repopact-protocol/src/lib.rs, rust/crates/repopact-schema/src/lib.rs, pyproject.toml, SPEC.md, and conformance/",
+      "exit_code": 0,
+      "summary": "Confirmed the current client handshakes in one subprocess and invokes each operation in a separate subprocess, while the current engine reads one JSON object to EOF. Corrected the architecture recommendation: same-process handshake and explicit admission must precede the operation in that same engine image. Per-response identity checks alone occur after a side effect. Legacy engines that wait for EOF or omit identity receive no operation request."
+    },
+    {
+      "command": "Read-only recursive TOML dependency traversal from rust/apps/repopact-engine/Cargo.toml through the local workspace manifests",
+      "exit_code": 0,
+      "summary": "Recorded the current local closure: repopact-engine, repopact-analysis, repopact-core, repopact-graph, repopact-mutation, repopact-protocol, repopact-repository, repopact-schema, repopact-types, and repopact-validation. Included protocol capability declarations, the eight current Rust embedded schemas, Python package contract files, package dependency locking, and the conformance corpus in the revised proposed input boundary."
+    },
+    {
+      "command": "Read-only Windows storage and cargo.exe/rustc.exe process snapshot",
+      "exit_code": 0,
+      "summary": "At 15:48 UTC, C: was healthy NTFS with 16,077,275,136 bytes free (14.97 GiB); no cargo.exe or rustc.exe process was found. This remains below the recorded 18 GiB compile minimum. No compilation, cleanup, or process intervention was performed."
+    }
+  ],
+  "artifacts": [
+    "decisions/0077-engine-semantic-compatibility-identity.md",
+    "work/active/076-engine-semantic-compatibility-identity/README.md",
+    "work/active/076-engine-semantic-compatibility-identity/work-item.json",
+    "repopact/engine_client.py",
+    "repopact/run_conformance.py",
+    "rust/apps/repopact-engine/src/main.rs",
+    "rust/apps/repopact-engine/build.rs",
+    "rust/crates/repopact-protocol/src/lib.rs",
+    "rust/crates/repopact-schema/src/lib.rs",
+    "rust/Cargo.toml",
+    "rust/apps/repopact-engine/Cargo.toml",
+    "pyproject.toml",
+    "SPEC.md",
+    "conformance/manifest.json",
+    "tests/test_engine_client.py"
+  ],
+  "environment": {
+    "repository_commit_reviewed": "e5581a3aecdb5afceeff30013dcf5044a252c2b7",
+    "design_branch_head_reviewed": "9a109a35272a3af88d078d6502d511dc54bcd45b",
+    "decision_status": "proposed; tooling-owner approval is an implementation gate",
+    "implementation": "not started",
+    "source_tests_or_compilation": "not run",
+    "free_bytes_at_snapshot": 16077275136,
+    "minimum_free_bytes_for_compile": 19327352832,
+    "active_cargo_or_rustc_processes_at_snapshot": [],
+    "cleanup_or_process_intervention": "none",
+    "identity_does_not_claim_executable_authenticity": true,
+    "wi074_rps016": "pending"
+  }
+}

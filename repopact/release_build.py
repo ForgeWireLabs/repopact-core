@@ -316,6 +316,7 @@ def _build_once(root: Path, revision: str, destination: Path) -> dict[str, Any]:
     env = os.environ.copy()
     env["SOURCE_DATE_EPOCH"] = epoch
     env["PYTHONHASHSEED"] = "0"
+    env["REPOPACT_SOURCE_REVISION"] = revision
     # Each independent build below exports to its own fresh temporary
     # directory (see `_export`), so without normalization cargo/rustc would
     # embed that ephemeral, build-to-build-varying absolute path into
@@ -333,7 +334,7 @@ def _build_once(root: Path, revision: str, destination: Path) -> dict[str, Any]:
         env["RUSTFLAGS"] = f"-C debuginfo=0 -C link-arg=/DEBUG:NONE -C link-arg=/Brepro {remap}"
     else:
         env["RUSTFLAGS"] = f"-C debuginfo=0 {remap}"
-    _run(
+    cargo_metadata = _run(
         [
             "cargo",
             "metadata",
@@ -347,6 +348,17 @@ def _build_once(root: Path, revision: str, destination: Path) -> dict[str, Any]:
         env=env,
         timeout=30,
     )
+    cargo_metadata_path = destination / "cargo-metadata.json"
+    try:
+        cargo_metadata_value = json.loads(cargo_metadata)
+    except json.JSONDecodeError as exc:
+        raise ReleaseBuildError(f"cargo metadata returned invalid JSON: {exc}") from exc
+    if not isinstance(cargo_metadata_value, dict):
+        raise ReleaseBuildError("cargo metadata did not return an object")
+    cargo_metadata_path.write_text(
+        json.dumps(cargo_metadata_value, sort_keys=True, separators=(",", ":")) + "\n",
+        encoding="utf-8",
+    )
     _run(
         [
             sys.executable,
@@ -354,6 +366,8 @@ def _build_once(root: Path, revision: str, destination: Path) -> dict[str, Any]:
             "maturin",
             "build",
             "--sdist",
+            "--release",
+            "--locked",
             "--out",
             str(output),
         ],
@@ -368,11 +382,34 @@ def _build_once(root: Path, revision: str, destination: Path) -> dict[str, Any]:
         )
     _normalize_wheel(wheels[0], int(epoch))
     _normalize_sdist(sdists[0], int(epoch))
+    identity_report = _run(
+        [
+            sys.executable,
+            str(source / "scripts" / "verify_engine_package_identity.py"),
+            "--root",
+            str(source),
+            "--sdist",
+            str(sdists[0]),
+            "--wheel",
+            str(wheels[0]),
+            "--cargo-metadata",
+            str(cargo_metadata_path),
+            "--source-revision",
+            revision,
+        ],
+        cwd=source,
+        env=env,
+    )
+    try:
+        identity_agreement = json.loads(identity_report)
+    except json.JSONDecodeError as exc:
+        raise ReleaseBuildError(f"package identity verifier returned invalid JSON: {exc}") from exc
     return {
         "version": version,
         "artifact_version": artifact_version,
         "wheel": inspect_wheel(wheels[0], artifact_version),
         "sdist": inspect_sdist(sdists[0], artifact_version),
+        "identity_agreement": identity_agreement,
         "wheel_path": wheels[0],
         "sdist_path": sdists[0],
     }
@@ -400,6 +437,8 @@ def build_release(root: Path, outdir: Path, revision: str = "HEAD") -> dict[str,
                     f"{kind} is not reproducible: "
                     f"{first[kind]['sha256']} != {second[kind]['sha256']}"
                 )
+        if first["identity_agreement"] != second["identity_agreement"]:
+            raise ReleaseBuildError("source/sdist/wheel semantic identity agreement differs between builds")
         wheel_target = outdir / first["wheel"]["path"]
         sdist_target = outdir / first["sdist"]["path"]
         shutil.copy2(first["wheel_path"], wheel_target)
@@ -409,6 +448,7 @@ def build_release(root: Path, outdir: Path, revision: str = "HEAD") -> dict[str,
         "version": first["version"],
         "artifact_version": first["artifact_version"],
         "reproducible": True,
+        "identity_agreement": first["identity_agreement"],
         "wheel": first["wheel"],
         "sdist": first["sdist"],
     }

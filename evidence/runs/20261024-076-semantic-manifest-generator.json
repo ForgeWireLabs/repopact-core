@@ -1,0 +1,61 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261024-076-semantic-manifest-generator",
+  "timestamp": "2026-10-24T16:41:34-05:00",
+  "work_item": "076",
+  "result": "partial",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "uv pip compile pyproject.toml --extra enforcement --universal --generate-hashes --no-emit-package repopact --output-file requirements-runtime.lock",
+      "exit_code": 0,
+      "summary": "Resolved and pinned eight packages for the mandatory jsonschema closure and optional enforcement/cryptography closure, with SHA-256 artifact hashes. No packages were installed."
+    },
+    {
+      "command": "python scripts/generate_engine_semantic_identity.py --update",
+      "exit_code": 0,
+      "summary": "Explicitly generated the checked-in manifest and package identity file for 253 discovered inputs. Semantic identity: repopact-semantic-v1:sha256:404a0dd4b1d90555174f254d3f1332d4051f5972f42478681f4483ec4d245696. The manifest and identity outputs are excluded from hashing."
+    },
+    {
+      "command": "python scripts/generate_engine_semantic_identity.py --check",
+      "exit_code": 0,
+      "summary": "Recomputed the closure and confirmed the checked-in manifest and identity file are current without writing."
+    },
+    {
+      "command": "python -m unittest tests.test_semantic_identity -v",
+      "exit_code": 0,
+      "summary": "Eight focused pure-Python tests passed: canonical known answer, input order stability, local Cargo dependency/include discovery, added/removed input detection, product-version projection exclusion, packaging projection inclusion, read-only stale check, explicit update, and dynamic include fail-closed behavior."
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "summary": "No whitespace errors."
+    },
+    {
+      "command": "python -c \"from pathlib import Path; from repopact.generate_dashboard import write_dashboard; write_dashboard(Path.cwd())\"",
+      "exit_code": 0,
+      "summary": "Refreshed the derived dashboard from the current records, changing the evidence-run count from 207 to 209. This used the Python projection only; canonical Rust dashboard parity was not checked because the current executable has no enforced semantic identity yet."
+    }
+  ],
+  "artifacts": [
+    "build/semantic-input-policy.json",
+    "build/semantic-input-manifest.json",
+    "repopact/_semantic_identity.json",
+    "scripts/generate_engine_semantic_identity.py",
+    "requirements-runtime.lock",
+    "tests/test_semantic_identity.py",
+    "pyproject.toml"
+  ],
+  "environment": {
+    "source_scope": "WI076 implementation increment 1: deterministic semantic input discovery and manifest generation",
+    "input_count": 253,
+    "local_rust_package_count_in_engine_closure": 10,
+    "semantic_identity": "repopact-semantic-v1:sha256:404a0dd4b1d90555174f254d3f1332d4051f5972f42478681f4483ec4d245696",
+    "ac4_status": "partial; lock is present and input discovery is tested, but installed dependency enforcement and sdist/wheel identity agreement remain unimplemented and unverified",
+    "rust_or_maturin_build": "not run",
+    "storage_gate": "not remeasured because no Rust or Maturin build was attempted",
+    "wi076": "active; AC-2 through AC-6 pending",
+    "wi074_rps016": "pending",
+    "dashboard": "refreshed from Python projection; canonical engine parity not verified"
+  }
+}
