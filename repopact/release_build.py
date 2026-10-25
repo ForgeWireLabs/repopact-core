@@ -366,6 +366,7 @@ def _build_once(root: Path, revision: str, destination: Path) -> dict[str, Any]:
             "maturin",
             "build",
             "--sdist",
+            "--locked",
             "--out",
             str(output),
         ],

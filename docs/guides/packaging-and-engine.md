@@ -73,11 +73,10 @@ Use a supported Rust toolchain with Cargo and Maturin 1.15 or newer but below
 
 ```powershell
 python -m pip install "maturin>=1.15,<2"
-# Verify the locked workspace before Maturin's source-export build.  Maturin's
-# combined --sdist build performs its own source export and does not accept
-# --locked for that second Cargo invocation.
+# Verify the locked workspace before Maturin's source-export build. Keep the
+# Cargo lockfile fixed while Maturin builds the wheel from the pruned sdist.
 cargo metadata --format-version 1 --locked --manifest-path rust/Cargo.toml
-python -m maturin build --sdist --out dist
+python -m maturin build --sdist --locked --out dist
 python -m pip install dist\repopact-*.tar.gz
 ```
 
