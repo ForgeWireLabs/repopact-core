@@ -60,20 +60,22 @@ deadline, and OS-reported engine working-set sampling where available. Full
 The benchmark harness copies the Core source to a temporary directory and
 mutates only that disposable copy. The checked-in machine-readable report is
 2026-10-27-work-propose-benchmark.json. On Windows 10, Intel64 Family 6 Model
-94, Python 3.12.4, the Core fixture began with 77 work items, 201 evidence
-records, and 3 audit findings. Across ten proposals after an explicit
-read-only warm-up plan, client wall time was p50 870.883 ms, p95/worst
-1,014.683 ms. The separate cold warm-up plan took 4,154 ms. Rust engine
-execution was p50 786 ms; snapshot p50 600 ms, planning p50 133 ms, critical
-validation p50 131 ms, and dashboard regeneration p50 31 ms. Atomic commit was
-p50 1 ms. The proposal path examined p50 457 / p95 467 indexed records and read
-p50 560 / p95 575 source files. The OS-reported proposal process working set
-was p50 47.5 MB and p95 47.8 MB. The ten-second deadline was not reached. These
-are Core fixture measurements, not ForgeWire-scale results.
+94, Python 3.12.4, the rebased Core fixture began with 78 work items, 225
+evidence records, 3 audit findings, and 1,013 source files. Across ten warm
+proposals after an explicit read-only warm-up plan, client wall time was p50
+928.209 ms and p95/worst 1,001.371 ms. The separate cold warm-up plan took
+4,144.514 ms. Rust engine execution was p50 821 ms / p95 893 ms; snapshot p50
+613 ms / p95 683 ms; planning p50 144 ms / p95 188 ms; critical validation p50
+143 ms / p95 186 ms; dashboard regeneration p50 33 ms / p95 37 ms; and atomic
+commit p50/p95 2 ms. The proposal path examined p50 484 / p95 494 indexed
+records and read p50 588 / p95 603 source files. The OS-reported proposal
+process working set was p50 49.3 MB and p95 49.5 MB. The ten-second deadline
+was not reached. These are Core fixture measurements, not ForgeWire-scale
+results.
 
 For context, ten explicit-preflight proposals on the clean baseline source
 engine took p50 10,041 ms and p95/worst 13,370 ms. The observed candidate
-reduction is about 91% at p50 and 92% at p95, but the baseline direct-engine and
+reduction is about 91% at p50 and 93% at p95, but the baseline direct-engine and
 candidate Python-client measurements do not use an identical runner, so this
 comparison is indicative rather than a controlled before/after benchmark. That
 baseline did not expose phase metrics.
@@ -87,12 +89,14 @@ and atomic dashboard regeneration after commit. Release, verification, graph,
 adopter, research, and documentation-mapping audits remain in canonical
 repopact validate.
 
-Validation results: repopact validate passed; cargo test -p
-repopact-mutation passed (26 Rust tests across unit and integration targets);
-cargo test -p repopact-validation passed (79 tests); python -m unittest
-tests.test_engine_client -v passed (17 tests); python -m unittest discover -s
-tests -v passed (396 tests, 3 skipped); conformance passed 43/43 compatibility
-cases and 8/8 WI050 admission vectors; check-frozen reported no changes.
+Validation results on the rebased implementation: repopact validate passed;
+cargo test -p repopact-mutation passed (27 Rust tests across unit and
+integration targets); cargo test -p repopact-validation passed (79 tests);
+python -m unittest discover -s tests -v passed (448 tests, 4 skipped); the
+canonical conformance cases passed 43/43 and WI050 admission vectors passed
+8/8. The first conformance evidence run correctly remained provisional because
+the source tree was dirty; a clean-source provenance rerun is recorded
+separately. check-frozen reported no changes.
 
 ## Safety and unresolved evidence
 
