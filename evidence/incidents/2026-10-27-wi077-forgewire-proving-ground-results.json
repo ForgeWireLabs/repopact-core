@@ -1,0 +1,537 @@
+{
+  "acceptance_status": {
+    "AC-1": "pending: original trace unavailable and the original cause cannot be established",
+    "AC-2": "pending: actual ForgeWire-scale p95 was 9464.412 ms, above 5000 ms",
+    "AC-3": "pending: Core adversarial regressions pass and actual CLI proposal/recovery paths were exercised, but parallel lock timeouts occurred and the complete actual-scale adversarial matrix was not established"
+  },
+  "adversarial": {
+    "actual_cli_parallel_proposals": {
+      "duplicate_items_observed": false,
+      "final_key_states": [
+        "committed",
+        "absent",
+        "committed",
+        "absent"
+      ],
+      "final_work_items": 179,
+      "initial_outcomes": [
+        "one unknown outcome",
+        "two proposal-lock timeouts",
+        "one committed proposal"
+      ],
+      "initial_work_items": 177,
+      "matching_receipts": 2,
+      "mode": "two concurrent pairs against a disposable ForgeWire-scale snapshot",
+      "same_key_retry": {
+        "elapsed_ms": 3048.152,
+        "outcome": "committed"
+      },
+      "unique_committed_work_item_ids": 2,
+      "unknown_key_status_before_retry": "absent"
+    },
+    "actual_lifecycle_transition": {
+      "deadline_ms": 60000,
+      "detail": "supported Rust CLI transition on the full-size disposable copy exceeded the bounded outer deadline; no lifecycle change was observed",
+      "fixture_lifecycle_regression": "passed",
+      "result": "not completed"
+    },
+    "python_engine_client": {
+      "contract_tests_passed": 17,
+      "coverage": [
+        "unknown outcomes retain same-key status/retry guidance",
+        "uncertain outcomes are not automatically replayed",
+        "engine identity and protocol mismatches fail closed before mutation"
+      ],
+      "semantic_provenance_tests_passed": 21
+    },
+    "rust_mutation_crate": {
+      "coverage": [
+        "authority drift after validation and during staging is rejected",
+        "a simultaneous non-proposal mutation waits for proposal publish and then rejects its stale plan",
+        "unrelated inputs outside the read set do not stale plans",
+        "parallel proposals allocate unique identifiers and receipts",
+        "matching corrupted and unidentifiable malformed historical receipts fail closed",
+        "valid unrelated receipts do not couple lookup",
+        "missing receipts report absent without proving no prior commit",
+        "receipt lookup follows a work item through an active lifecycle transition",
+        "failed staging leaves no item or receipt and can be retried",
+        "stale dashboards and unrelated expired reviews are warnings while applicable authorization/reference errors block"
+      ],
+      "result": "passed",
+      "tests_passed": 34
+    }
+  },
+  "canonical_validation": {
+    "commit": "f74f5ff4b2926e15d088aba60cfb813e7c1b5195",
+    "elapsed_ms": 2719,
+    "fixture": "clean ForgeWire main snapshot",
+    "result": "passed"
+  },
+  "core_source": {
+    "commit": "9c57d6272349951e29e4d08b22c11bb284fbce3a",
+    "semantic_identity": "repopact-semantic-v1:sha256:e603e0b505d70a92504dab23e4259f2cb66bd81d03a6495db132a5cb8260dc7d",
+    "version": "3.1.4"
+  },
+  "crash_durability": {
+    "atomic_visibility": "proposal item, README, and receipt are staged on the same volume and published by one directory rename; readers see the complete directory after the commit point during normal operation",
+    "file_sync": "each staged file is passed to sync_all before rename",
+    "power_loss_persistence": "not guaranteed or tested; the containing directory is not explicitly synced after rename and Windows write-through is not requested"
+  },
+  "decision_0078": {
+    "decision_status": "accepted",
+    "normative_spec": "SPEC.md section 19 describes the same operation-scoped admission contract and retains canonical full validation",
+    "reconciled": true
+  },
+  "engine": {
+    "product_version": "3.1.4.dev0",
+    "profile": "release",
+    "protocol_version": 2,
+    "sha256": "f292a5e867acafcf016d094a624f29ad88948e7faa84d2e3983f9c1419c73381",
+    "source_revision": "9c57d6272349951e29e4d08b22c11bb284fbce3a",
+    "target": "x86_64-pc-windows-msvc"
+  },
+  "environment": {
+    "cpu": "Intel64, CPUID family 6 model 94",
+    "engine_process_policy": "A new EngineClient process was started for each measured proposal; wall latency includes handshake and operation.",
+    "os": "Windows 10 build 19045 x64",
+    "python": "3.12.4",
+    "rustc": "1.96.0"
+  },
+  "fixtures": [
+    {
+      "cold_read_only_warmup_ms": 448.746,
+      "engine_phase_statistics_ms": {
+        "atomic_commit_ms": {
+          "p50_ms": 3.0,
+          "p95_ms": 4.0,
+          "worst_ms": 4.0
+        },
+        "authority_checks_ms": {
+          "p50_ms": 6.0,
+          "p95_ms": 10.0,
+          "worst_ms": 10.0
+        },
+        "critical_validation_ms": {
+          "p50_ms": 13.0,
+          "p95_ms": 29.0,
+          "worst_ms": 29.0
+        },
+        "dashboard_regeneration_ms": {
+          "p50_ms": 7.0,
+          "p95_ms": 8.0,
+          "worst_ms": 8.0
+        },
+        "dependency_graph_ms": {
+          "p50_ms": 0.0,
+          "p95_ms": 0.0,
+          "worst_ms": 0.0
+        },
+        "engine_execution_ms": {
+          "p50_ms": 100.0,
+          "p95_ms": 188.0,
+          "worst_ms": 188.0
+        },
+        "external_integrations_ms": {
+          "p50_ms": 0.0,
+          "p95_ms": 0.0,
+          "worst_ms": 0.0
+        },
+        "filesystem_staging_ms": {
+          "p50_ms": 30.0,
+          "p95_ms": 43.0,
+          "worst_ms": 43.0
+        },
+        "idempotency_lookup_ms": {
+          "p50_ms": 2.0,
+          "p95_ms": 4.0,
+          "worst_ms": 4.0
+        },
+        "maintenance_diagnostics_ms": {
+          "p50_ms": 0.0,
+          "p95_ms": 0.0,
+          "worst_ms": 0.0
+        },
+        "planning_ms": {
+          "p50_ms": 18.0,
+          "p95_ms": 43.0,
+          "worst_ms": 43.0
+        },
+        "proposal_lock_wait_ms": {
+          "p50_ms": 0.0,
+          "p95_ms": 1.0,
+          "worst_ms": 1.0
+        },
+        "snapshot_ms": {
+          "p50_ms": 40.0,
+          "p95_ms": 94.0,
+          "worst_ms": 94.0
+        },
+        "stale_check_ms": {
+          "p50_ms": 0.0,
+          "p95_ms": 0.0,
+          "worst_ms": 0.0
+        },
+        "work_schema_ms": {
+          "p50_ms": 3.0,
+          "p95_ms": 12.0,
+          "worst_ms": 12.0
+        }
+      },
+      "fixture": "Core conformance fixture",
+      "forgewire_scale": false,
+      "initial_record_counts": {
+        "audit_findings": 0,
+        "evidence_records": 1,
+        "source_files": 10,
+        "work_items": 1
+      },
+      "peak_operation_working_set_bytes": {
+        "p50": 7241728.0,
+        "p95": 7393280.0,
+        "worst": 7393280.0
+      },
+      "proposal_wall_ms": {
+        "p50_ms": 278.929,
+        "p95_ms": 424.344,
+        "worst_ms": 424.344
+      },
+      "python_client_total_ms": {
+        "p50_ms": 278.0,
+        "p95_ms": 424.0,
+        "worst_ms": 424.0
+      },
+      "record_count_statistics": {
+        "records_examined": {
+          "p50": 17.0,
+          "p95": 27.0,
+          "worst": 27.0
+        },
+        "source_files_read": {
+          "p50": 22.0,
+          "p95": 37.0,
+          "worst": 37.0
+        }
+      },
+      "repetitions": 10,
+      "timeouts_or_rejections": 0
+    },
+    {
+      "cold_read_only_warmup_ms": 7757.63,
+      "engine_phase_statistics_ms": {
+        "atomic_commit_ms": {
+          "p50_ms": 2.0,
+          "p95_ms": 4.0,
+          "worst_ms": 4.0
+        },
+        "authority_checks_ms": {
+          "p50_ms": 6.0,
+          "p95_ms": 13.0,
+          "worst_ms": 13.0
+        },
+        "critical_validation_ms": {
+          "p50_ms": 242.0,
+          "p95_ms": 466.0,
+          "worst_ms": 466.0
+        },
+        "dashboard_regeneration_ms": {
+          "p50_ms": 47.0,
+          "p95_ms": 86.0,
+          "worst_ms": 86.0
+        },
+        "dependency_graph_ms": {
+          "p50_ms": 1.0,
+          "p95_ms": 2.0,
+          "worst_ms": 2.0
+        },
+        "engine_execution_ms": {
+          "p50_ms": 1601.0,
+          "p95_ms": 2300.0,
+          "worst_ms": 2300.0
+        },
+        "external_integrations_ms": {
+          "p50_ms": 0.0,
+          "p95_ms": 0.0,
+          "worst_ms": 0.0
+        },
+        "filesystem_staging_ms": {
+          "p50_ms": 283.0,
+          "p95_ms": 468.0,
+          "worst_ms": 468.0
+        },
+        "idempotency_lookup_ms": {
+          "p50_ms": 6.0,
+          "p95_ms": 7.0,
+          "worst_ms": 7.0
+        },
+        "maintenance_diagnostics_ms": {
+          "p50_ms": 0.0,
+          "p95_ms": 1.0,
+          "worst_ms": 1.0
+        },
+        "planning_ms": {
+          "p50_ms": 332.0,
+          "p95_ms": 606.0,
+          "worst_ms": 606.0
+        },
+        "proposal_lock_wait_ms": {
+          "p50_ms": 0.0,
+          "p95_ms": 0.0,
+          "worst_ms": 0.0
+        },
+        "snapshot_ms": {
+          "p50_ms": 916.0,
+          "p95_ms": 1175.0,
+          "worst_ms": 1175.0
+        },
+        "stale_check_ms": {
+          "p50_ms": 0.0,
+          "p95_ms": 0.0,
+          "worst_ms": 0.0
+        },
+        "work_schema_ms": {
+          "p50_ms": 3.0,
+          "p95_ms": 85.0,
+          "worst_ms": 85.0
+        }
+      },
+      "fixture": "Core repository snapshot",
+      "forgewire_scale": false,
+      "initial_record_counts": {
+        "audit_findings": 3,
+        "evidence_records": 229,
+        "source_files": 1018,
+        "work_items": 78
+      },
+      "peak_operation_working_set_bytes": {
+        "p50": 50180096.0,
+        "p95": 50450432.0,
+        "worst": 50450432.0
+      },
+      "proposal_wall_ms": {
+        "p50_ms": 1746.444,
+        "p95_ms": 2484.903,
+        "worst_ms": 2484.903
+      },
+      "python_client_total_ms": {
+        "p50_ms": 1746.0,
+        "p95_ms": 2484.0,
+        "worst_ms": 2484.0
+      },
+      "record_count_statistics": {
+        "records_examined": {
+          "p50": 488.0,
+          "p95": 498.0,
+          "worst": 498.0
+        },
+        "source_files_read": {
+          "p50": 592.0,
+          "p95": 607.0,
+          "worst": 607.0
+        }
+      },
+      "repetitions": 10,
+      "timeouts_or_rejections": 0
+    }
+  ],
+  "forgewire_scale": {
+    "baseline_comparison": "No comparable pre-correction ForgeWire baseline was available. Core fixture results are not used as a substitute.",
+    "cold_read_only_warmup": {
+      "deadline_ms": 10000,
+      "excluded_from_proposal_statistics": true,
+      "operation": "work.proposal-plan",
+      "outcome": "timeout"
+    },
+    "engine_phase_statistics_ms": {
+      "atomic_commit_ms": {
+        "p50_ms": 1.0,
+        "p95_ms": 1.0,
+        "worst_ms": 1.0
+      },
+      "authority_checks_ms": {
+        "p50_ms": 11.0,
+        "p95_ms": 17.0,
+        "worst_ms": 17.0
+      },
+      "critical_validation_ms": {
+        "p50_ms": 333.0,
+        "p95_ms": 727.0,
+        "worst_ms": 727.0
+      },
+      "dashboard_regeneration_ms": {
+        "p50_ms": 60.0,
+        "p95_ms": 93.0,
+        "worst_ms": 93.0
+      },
+      "dependency_graph_ms": {
+        "p50_ms": 1.0,
+        "p95_ms": 3.0,
+        "worst_ms": 3.0
+      },
+      "engine_execution_ms": {
+        "p50_ms": 2269.0,
+        "p95_ms": 9231.0,
+        "worst_ms": 9231.0
+      },
+      "external_integrations_ms": {
+        "p50_ms": 0.0,
+        "p95_ms": 0.0,
+        "worst_ms": 0.0
+      },
+      "filesystem_staging_ms": {
+        "p50_ms": 393.0,
+        "p95_ms": 528.0,
+        "worst_ms": 528.0
+      },
+      "idempotency_lookup_ms": {
+        "p50_ms": 7.0,
+        "p95_ms": 12.0,
+        "worst_ms": 12.0
+      },
+      "maintenance_diagnostics_ms": {
+        "p50_ms": 1.0,
+        "p95_ms": 1.0,
+        "worst_ms": 1.0
+      },
+      "planning_ms": {
+        "p50_ms": 476.0,
+        "p95_ms": 920.0,
+        "worst_ms": 920.0
+      },
+      "proposal_lock_wait_ms": {
+        "p50_ms": 0.0,
+        "p95_ms": 0.0,
+        "worst_ms": 0.0
+      },
+      "snapshot_ms": {
+        "p50_ms": 1312.0,
+        "p95_ms": 8286.0,
+        "worst_ms": 8286.0
+      },
+      "stale_check_ms": {
+        "p50_ms": 0.0,
+        "p95_ms": 0.0,
+        "worst_ms": 0.0
+      },
+      "work_schema_ms": {
+        "p50_ms": 1.0,
+        "p95_ms": 119.0,
+        "worst_ms": 119.0
+      }
+    },
+    "fixture": "ForgeWire current working-tree snapshot, sanitized and disposable",
+    "initial_record_counts": {
+      "audit_findings": 0,
+      "evidence_records": 340,
+      "source_files": 4721,
+      "work_items": 177
+    },
+    "peak_operation_working_set_bytes": {
+      "p50": 89608192.0,
+      "p95": 89874432.0,
+      "worst": 89874432.0
+    },
+    "proposal_deadline_ms": 10000,
+    "proposal_latency_samples_ms": [
+      9464.412,
+      2292.861,
+      2442.578,
+      2346.118,
+      2338.268,
+      2383.094,
+      2319.4,
+      3763.28,
+      3660.4,
+      3668.307
+    ],
+    "proposal_wall_ms": {
+      "p50": 2383.094,
+      "p95": 9464.412,
+      "worst": 9464.412
+    },
+    "python_client_metric_statistics": {
+      "handshake_process_ms": {
+        "p50": 118.0,
+        "p95": 230.0,
+        "worst": 230.0
+      },
+      "operation_peak_working_set_bytes": {
+        "p50": 89608192.0,
+        "p95": 89874432.0,
+        "worst": 89874432.0
+      },
+      "operation_process_ms": {
+        "p50": 2271.0,
+        "p95": 9233.0,
+        "worst": 9233.0
+      },
+      "python_client_total_ms": {
+        "p50": 2383.0,
+        "p95": 9464.0,
+        "worst": 9464.0
+      },
+      "python_orchestration_ms": {
+        "p50": 1.0,
+        "p95": 2.0,
+        "worst": 2.0
+      }
+    },
+    "records_examined": {
+      "p50": 742.0,
+      "p95": 752.0,
+      "worst": 752.0
+    },
+    "repetitions_requested": 10,
+    "repetitions_successful": 10,
+    "repository_commit": "46b85bd01453ff7bf79add03e5121e314a23e127",
+    "sanitization": "Preserved governed records and source trees; omitted Git metadata, credential files, virtual environments, model data, logs, caches, generated artifacts, user data, and the private incident draft.",
+    "source_files_read": {
+      "p50": 1015.0,
+      "p95": 1030.0,
+      "worst": 1030.0
+    },
+    "source_worktree_was_dirty": true,
+    "target_met": false,
+    "target_p95_ms": 5000,
+    "timeouts_or_rejections_in_measured_proposals": 0
+  },
+  "id": "20261027-077-forgewire-proving-ground-results",
+  "installed_cli": {
+    "python_source_sha256": {
+      "repopact/cli.py": "6dea4cc09a7063a669f8fcb6f00e78cf9f31c2e1c995e90880a62e796581ca1d",
+      "repopact/engine_client.py": "854199212595538ba63a659c377c8e03ad6ef75349be33d8a9247e483eda00a7"
+    },
+    "source_matches_core_main": true,
+    "version": "3.1.4dev0"
+  },
+  "limitations": [
+    "No before/after ForgeWire comparison is available.",
+    "The actual-scale proposal p95 target was not met.",
+    "Concurrent CLI proposal load produced lock timeouts and one unknown outcome; same-key recovery committed without duplication.",
+    "The full-size actual-scale lifecycle transition exceeded the bounded deadline.",
+    "Power-loss persistence remains unverified."
+  ],
+  "original_fabric_incident": {
+    "cause_separation": {
+      "current_default_engine": "unusable handshake was reproduced, but this does not prove the original cause",
+      "fabric_specific_cause": "not isolated",
+      "original_timeout": "not established",
+      "repository_scale": "read-only plan timed out at 10 seconds; measured ForgeWire-scale proposal p95 was 9464.412 ms"
+    },
+    "current_environment_findings": {
+      "default_engine_handshake": "timed out after approximately 5.1 seconds; an actual disposable CLI proposal exited before mutating its ledger",
+      "default_engine_location_class": "Program Files distribution",
+      "default_engine_sha256": "b9f4004a486dc17ceb91d8af00e821f94183191e5e0aa98743b360d7b79eab1f",
+      "explicit_core_engine": "handshake succeeded and was used for all measured runs"
+    },
+    "missing_artifacts": [
+      "original work.propose command and arguments",
+      "incident timestamps",
+      "incident-time CLI and engine build identities",
+      "process stdout/stderr and host telemetry",
+      "contemporaneous governed repository snapshot"
+    ],
+    "status": "unresolved; operator confirmed original trace is unavailable"
+  },
+  "result": "partial",
+  "work_item": "077"
+}

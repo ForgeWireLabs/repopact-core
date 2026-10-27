@@ -1,0 +1,81 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "artifacts": [
+    "evidence/incidents/2026-10-27-wi077-forgewire-proving-ground-results.json"
+  ],
+  "commands": [
+    {
+      "command": "cargo test --manifest-path rust/Cargo.toml -p repopact-mutation",
+      "exit_code": 0,
+      "summary": "34 Rust tests passed, including stale-read-set races, receipt corruption/missing/lifecycle behavior, parallel proposals, and staged-failure recovery."
+    },
+    {
+      "command": "python -m unittest discover -s tests -p 'test_engine_client.py' -v",
+      "exit_code": 0,
+      "summary": "17 focused CLI/engine-client contract tests passed."
+    },
+    {
+      "command": "python -m unittest discover -s tests -p 'test_engine_client_semantic.py' -v",
+      "exit_code": 0,
+      "summary": "21 focused engine identity, provenance, and unknown-outcome tests passed."
+    },
+    {
+      "command": "python -m unittest discover -s tests -v",
+      "exit_code": 1,
+      "summary": "448 tests ran: 435 passed, 9 package archive identity tests errored during setup, and 4 were skipped. The errored tests reported that the custom CARGO_TARGET_DIR pointed at the original checkout while their source copies require a target directory under each temporary root; the affected module passed when rerun without CARGO_TARGET_DIR."
+    },
+    {
+      "command": "python -m unittest discover -s tests -p 'test_engine_package_identity.py' -v (CARGO_TARGET_DIR unset)",
+      "exit_code": 0,
+      "summary": "9 package archive identity tests passed and 1 was skipped after removing the incompatible target-directory override."
+    },
+    {
+      "command": "repopact validate --root <clean ForgeWire main snapshot> (explicit Core engine override)",
+      "exit_code": 0,
+      "summary": "Canonical full validation passed on the clean upstream main snapshot; isolated run completed in 2719 ms."
+    },
+    {
+      "command": "10 work.propose requests on a sanitized ForgeWire current-working-tree snapshot; fixed 10000 ms operation deadline; unique keys; new engine process per sample",
+      "exit_code": 0,
+      "summary": "10/10 proposals committed; p50 2383.094 ms, p95 and worst 9464.412 ms. The actual-scale p95 target of 5000 ms was missed."
+    },
+    {
+      "command": "cold read-only work.proposal-plan on a sanitized ForgeWire-scale snapshot; fixed 10000 ms deadline",
+      "exit_code": 1,
+      "summary": "Timed out at 10000 ms; kept separate from proposal latency statistics."
+    },
+    {
+      "command": "actual CLI proposal recovery on two concurrent proposal pairs and a disposable ForgeWire-scale ledger",
+      "exit_code": 0,
+      "summary": "One unknown outcome and two lock timeouts; the unknown key was absent on lookup, then the same-key retry committed. Final state: two unique items and two receipts, no duplicate."
+    },
+    {
+      "command": "default-engine CLI proposal probe with REPOPACT_ENGINE unset",
+      "exit_code": 1,
+      "summary": "Selected Program Files engine timed out during handshake; disposable ledger remained unchanged. All benchmark and acceptance calls used the explicitly identified Core main engine."
+    },
+    {
+      "command": "supported Rust CLI lifecycle transition on full-size disposable ForgeWire snapshot",
+      "exit_code": 1,
+      "summary": "Exceeded the 60000 ms outer bound; transition was not observed. The Core fixture lifecycle regression passed."
+    },
+    {
+      "command": "decision 0078 status and normative SPEC reconciliation",
+      "exit_code": 0,
+      "summary": "Decision 0078 is accepted; SPEC.md section 19 describes its operation-scoped boundary and preserves canonical validation."
+    }
+  ],
+  "environment": {
+    "core_source_revision": "9c57d6272349951e29e4d08b22c11bb284fbce3a",
+    "cpu": "Intel64, CPUID family 6 model 94",
+    "engine_sha256": "f292a5e867acafcf016d094a624f29ad88948e7faa84d2e3983f9c1419c73381",
+    "os": "Windows 10 build 19045 x64",
+    "python": "3.12.4",
+    "rustc": "1.96.0"
+  },
+  "id": "20261027-077-forgewire-proving-ground",
+  "provenance": "concrete",
+  "result": "partial",
+  "timestamp": "2026-10-27T22:41:23Z",
+  "work_item": "077"
+}
