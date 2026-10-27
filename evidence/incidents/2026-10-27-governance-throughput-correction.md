@@ -94,9 +94,12 @@ cargo test -p repopact-mutation passed (27 Rust tests across unit and
 integration targets); cargo test -p repopact-validation passed (79 tests);
 python -m unittest discover -s tests -v passed (448 tests, 4 skipped); the
 canonical conformance cases passed 43/43 and WI050 admission vectors passed
-8/8. The first conformance evidence run correctly remained provisional because
-the source tree was dirty; a clean-source provenance rerun is recorded
-separately. check-frozen reported no changes.
+8/8. Two preliminary conformance attempts remain recorded as provisional: the
+first ran from a dirty source tree, and the next reused an engine stamped with
+the prior revision. The final release engine was rebuilt with source revision
+`e7e94eb93912c33eabe7c615e1c223c8d8814fb2`; the clean-source conformance
+record reports complete provenance and matching source/engine revisions.
+check-frozen reported no changes.
 
 ## Safety and unresolved evidence
 
