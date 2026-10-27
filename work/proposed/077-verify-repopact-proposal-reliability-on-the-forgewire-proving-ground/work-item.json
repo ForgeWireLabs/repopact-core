@@ -1,0 +1,37 @@
+{
+  "$schema": "../../../repopact/schemas/work-item.schema.json",
+  "id": "077",
+  "title": "Verify RepoPact proposal reliability on the ForgeWire proving ground",
+  "status": "proposed",
+  "owner_scope": "tooling",
+  "affected_scopes": ["tooling", "governance", "docs", "evidence"],
+  "depends_on": [],
+  "provenance": "concrete",
+  "preflight": {
+    "created_before_work_started": true,
+    "created_at": "2026-10-27T16:20:14Z",
+    "note": "Recorded before work on actual Fabric incident reproduction and ForgeWire-scale validation began. The Core correction already present in this branch is not represented as work performed under this follow-up item."
+  },
+  "acceptance_criteria": [
+    {
+      "id": "AC-1",
+      "text": "Reproduce the reported Fabric work.propose timeout using the original repository, governance data, invocation trace, and host telemetry; record versions, environment, command, phase timings, affected records, root cause, and linked evidence. If those inputs remain unavailable, record the exact missing artifacts and leave this criterion pending.",
+      "state": "pending",
+      "evidence": []
+    },
+    {
+      "id": "AC-2",
+      "text": "Benchmark at least ten proposal runs on representative small, medium, and actual ForgeWire-scale repositories after separating cold read-only warm-up. Record p50, p95, worst case, phase timings, peak working set, records examined, hardware, and workload. Demonstrate p95 below 5,000 ms on the actual ForgeWire-scale fixture; keep this criterion pending if the fixture is unavailable or the target is not met.",
+      "state": "pending",
+      "evidence": []
+    },
+    {
+      "id": "AC-3",
+      "text": "Run adversarial acceptance coverage against the ForgeWire proving ground: stale dashboards and unrelated expired reviews remain non-blocking; authorization violations, broken authoritative references, and dependency cycles block; unknown-outcome retries and parallel proposals do not duplicate work; engine identity mismatch remains fail-closed; canonical full validation remains available and authoritative. Link executable results and the repository state used.",
+      "state": "pending",
+      "evidence": []
+    }
+  ],
+  "created": "2026-10-27",
+  "updated": "2026-10-27"
+}

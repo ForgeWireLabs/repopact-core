@@ -54,3 +54,13 @@ it records sentinel hashes and explicitly labels this as pre-action proof, not
 arbitrary-process confinement. The OS-neutral policy contract is shared by
 Windows, Linux, and macOS backends; this checkout records unavailable host proof
 rather than overstating sandbox coverage.
+
+Proposal mutation has an additional operation-level contract in
+[`conformance/operations/work-proposal.md`](conformance/operations/work-proposal.md).
+It covers scoped blockers, maintenance warnings, atomic failure, idempotent
+recovery, parallel ID allocation, and the unchanged full-validation boundary.
+Run the focused native tests with `cargo test --manifest-path rust/Cargo.toml
+-p repopact-mutation` and `python -m unittest tests.test_engine_client -v` in
+addition to the repository fixture corpus. Proposal conformance does not imply
+the actual ForgeWire-scale performance target; that requires the real governed
+dataset and recorded host conditions.

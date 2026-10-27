@@ -13,6 +13,7 @@ Start here if you want to govern a repository rather than develop RepoPact itsel
 - [Adopt RepoPact](adopt-repopact.md) — end-to-end first use on the stable package.
 - [CLI reference](cli-reference.md) — supported top-level commands, common arguments, and command groups.
 - [Troubleshooting](troubleshooting.md) — diagnose installation, validation, evidence, and drift failures.
+- [Governance recovery](guides/governance-recovery.md) — classify a rejection, invalid state, runtime failure, timeout, or derived-state inconsistency and recover safely.
 - [Check documentation links locally](guides/validate-documentation.md) — repeatable relative-link, heading, asset, and cross-repository checks.
 - [Define your governance](guides/define-your-governance.md) — roles, scopes, invariants, and frozen surfaces.
 - [Author records](guides/author-records.md) — work items, evidence, decisions, and policies.

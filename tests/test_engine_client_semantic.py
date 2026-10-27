@@ -291,6 +291,24 @@ class EngineClientSemanticAdmissionTests(unittest.TestCase):
             operations = [event["operation"] for event in self.events(events)]
             self.assertEqual(1, operations.count("dashboard.write"))
 
+    def test_proposal_unknown_outcome_in_admitted_session_keeps_retry_guidance(self):
+        client = engine_client.EngineClient.__new__(engine_client.EngineClient)
+        client._strict = True
+        client.timeout = 1.0
+        client._handshake = mock.Mock()
+        client._call_admitted = mock.Mock(
+            side_effect=engine_client.EngineOutcomeUnknownError("response lost after dispatch")
+        )
+        client._sample_engine_working_set = mock.Mock(return_value=None)
+        key = "scale-verification-retry-key"
+
+        with self.assertRaises(engine_client.OperationOutcomeUnknownError) as caught:
+            client.call("work.propose", params={"idempotency_key": key})
+
+        self.assertIn(key, str(caught.exception))
+        self.assertIn("proposal-status", str(caught.exception))
+        client._call_admitted.assert_called_once()
+
     def test_keyboard_interrupt_while_waiting_preserves_cancellation_and_poisons_session(self):
         with tempfile.TemporaryDirectory() as temporary:
             client, events, mutation = self.make_client(

@@ -1,7 +1,11 @@
 from __future__ import annotations
 
+import io
+import json
 import tempfile
 import unittest
+import subprocess
+from contextlib import redirect_stdout
 from datetime import date
 from pathlib import Path
 from unittest import mock
@@ -76,12 +80,13 @@ class EngineClientContractTests(unittest.TestCase):
                 created = new_work_item("Probe", date(2026, 9, 25), root=root, status="proposed")
             self.assertEqual(root / "work/proposed/001-probe/work-item.json", created)
             client_type.return_value.call.assert_called_once_with(
-                "work.create", root=root,
+                "work.propose", root=root,
                 params={
                     "title": "Probe",
                     "date": "2026-09-25",
                     "status": "proposed",
                     "preflight_confirmed_before_work_started": True,
+                    "idempotency_key": client_type.return_value.call.call_args.kwargs["params"]["idempotency_key"],
                 },
             )
 
@@ -185,14 +190,114 @@ class EngineClientContractTests(unittest.TestCase):
             }
             with mock.patch.object(engine_client, "EngineClient") as client_type:
                 client_type.return_value.call.return_value = response
-                self.assertEqual(0, cli.main(["work", "propose", "Probe", "--root", str(root)]))
+                self.assertEqual(0, cli.main([
+                    "work", "propose", "Probe", "--root", str(root), "--confirm-preflight"
+                ]))
                 call = client_type.return_value.call.call_args
                 operation = call.args[0]
                 kwargs = call.kwargs
                 self.assertEqual("work.propose", operation)
                 self.assertEqual(root.resolve(), kwargs["root"])
                 self.assertEqual("Probe", kwargs["params"]["title"])
+                self.assertTrue(kwargs["params"]["preflight_confirmed_before_work_started"])
+                self.assertTrue(kwargs["params"]["idempotency_key"])
 
+    def test_protocol_and_engine_diagnostics_with_different_shapes_are_normalized(self) -> None:
+        response = {
+            "ok": True,
+            "result": {
+                "success": False,
+                "changed_paths": [],
+                "diagnostics": [{
+                    "blocking": True,
+                    "code": "mutation.preflight-unconfirmed",
+                    "message": "confirmation required",
+                    "path": None,
+                    "related_records": [],
+                }],
+            },
+            "diagnostics": [{
+                "severity": "error",
+                "code": "mutation.preflight-unconfirmed",
+                "message": "confirmation required",
+                "path": None,
+            }],
+        }
+        result = engine_client.validated_mutation_result(response)
+        self.assertFalse(result["success"])
+
+    def test_proposal_timeout_reports_unknown_outcome_and_reusable_key(self) -> None:
+        client = object.__new__(engine_client.EngineClient)
+        client.timeout = 0.01
+        client.engine = Path("fake-engine")
+        process = mock.Mock()
+        process.communicate.side_effect = [
+            subprocess.TimeoutExpired("fake-engine", 0.01),
+            ("", ""),
+        ]
+        with mock.patch.object(engine_client.subprocess, "Popen", return_value=process):
+            with self.assertRaises(engine_client.OperationOutcomeUnknownError) as caught:
+                client._invoke({
+                    "operation": "work.propose",
+                    "request_id": "request-1",
+                    "params": {"idempotency_key": "retry-key"},
+                })
+        self.assertEqual("retry-key", caught.exception.idempotency_key)
+        self.assertIn("proposal-status retry-key", str(caught.exception))
+
+    def test_proposal_protocol_failure_reports_unknown_outcome(self) -> None:
+        client = object.__new__(engine_client.EngineClient)
+        client.timeout = 1.0
+        client.engine = Path("fake-engine")
+        process = mock.Mock()
+        process.communicate.return_value = ("", "engine exited after request")
+        with mock.patch.object(engine_client.subprocess, "Popen", return_value=process):
+            with self.assertRaises(engine_client.OperationOutcomeUnknownError) as caught:
+                client._invoke({
+                    "operation": "work.propose",
+                    "request_id": "request-2",
+                    "params": {"idempotency_key": "retry-key"},
+                })
+        self.assertEqual("retry-key", caught.exception.idempotency_key)
+        self.assertIn("proposal-status retry-key", str(caught.exception))
+
+    def test_json_proposal_output_contains_only_structured_lines(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            response = {
+                "ok": True,
+                "result": {
+                    "success": True,
+                    "changed_paths": ["work/proposed/001-probe/work-item.json"],
+                    "diagnostics": [{
+                        "blocking": False,
+                        "code": "dashboard.stale",
+                        "message": "stale dashboard",
+                        "path": "audits/reports/dashboard.md",
+                    }],
+                },
+                "diagnostics": [{
+                    "severity": "warning",
+                    "code": "dashboard.stale",
+                    "message": "stale dashboard",
+                    "path": "audits/reports/dashboard.md",
+                }],
+            }
+            output = io.StringIO()
+            with mock.patch.object(engine_client, "EngineClient") as client_type:
+                client_type.return_value.call.return_value = response
+                with redirect_stdout(output):
+                    result = cli._rust_mutation(
+                        Path(temp),
+                        "work.propose",
+                        {"idempotency_key": "json-key"},
+                        "Created proposed",
+                        timeout=10.0,
+                        json_output=True,
+                    )
+            self.assertEqual(0, result)
+            value = json.loads(output.getvalue())
+            self.assertEqual("committed", value["outcome"])
+            self.assertEqual("dashboard.stale", value["result"]["diagnostics"][0]["code"])
     def test_engine_client_does_not_parse_human_output(self) -> None:
         client = object.__new__(engine_client.EngineClient)
         response = client._decode_response(

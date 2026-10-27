@@ -13,6 +13,7 @@ from __future__ import annotations
 import argparse
 import re
 import sys
+import uuid
 from datetime import date
 from pathlib import Path
 
@@ -52,26 +53,28 @@ def new_work_item(
 ) -> Path:
     from .engine_client import EngineClient, EngineProtocolError, validated_mutation_result
 
-    engine = client or EngineClient()
-    response = engine.call(
-        "work.create", root=root,
-        params={
-            "title": title,
-            "date": today.isoformat(),
-            "status": status,
-            # Invoking the dedicated registration command is the operator's
-            # preflight act; implementation is not performed by this command.
-            "preflight_confirmed_before_work_started": True,
-        },
-    )
+    proposal = status == "proposed"
+    params = {
+        "title": title,
+        "date": today.isoformat(),
+        "status": status,
+        # Invoking the dedicated registration command is the operator's
+        # preflight act; implementation is not performed by this command.
+        "preflight_confirmed_before_work_started": True,
+    }
+    if proposal:
+        params["idempotency_key"] = uuid.uuid4().hex
+    engine = client or EngineClient(timeout=10.0 if proposal else 30.0)
+    operation = "work.propose" if proposal else "work.create"
+    response = engine.call(operation, root=root, params=params)
     result = validated_mutation_result(response)
     paths = result["changed_paths"]
     record = next((item for item in paths if isinstance(item, str) and item.endswith("/work-item.json")), None)
     if record is None:
-        raise EngineProtocolError("Rust engine work.create omitted the created work-item path")
+        raise EngineProtocolError(f"Rust engine {operation} omitted the created work-item path")
     relative = Path(record)
     if relative.is_absolute() or ".." in relative.parts:
-        raise EngineProtocolError("Rust engine work.create returned a path outside the repository")
+        raise EngineProtocolError(f"Rust engine {operation} returned a path outside the repository")
     return root.resolve() / relative
 
 

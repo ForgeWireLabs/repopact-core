@@ -248,6 +248,32 @@ cross-record consistency.
     feature is disabled when the setting is absent or disabled, preserving
     existing adopter compatibility.
 
+19. **Operation-scoped proposal admission (Decision 0078).** `work.propose`
+    records candidate intent without granting implementation authority. It
+    blocks on unsupported repository surfaces, invalid contracts or binding
+    invariants, frozen-surface violations, invalid owner authorization,
+    candidate schema or identity errors, duplicate work IDs, broken work or
+    evidence references, dependency cycles, proposed-work dependency misuse,
+    and enabled scope conflicts. Broken authoritative evidence/assurance
+    references and sensitive-evidence errors remain blocking. Unrelated
+    historical work findings are warnings. Proposal admission reports review
+    expiry, audit-registry expiry, and dashboard freshness as non-blocking
+    warnings; it does not traverse release, verification, graph, adoption,
+    research, or documentation-mapping audits.
+    The canonical repopact validate operation keeps its repository-wide
+    behavior and remains the full assurance check.
+    `work.proposal-plan` is read-only. `work.proposal-status` reads a durable
+    receipt. Both proposal operations require explicit preflight confirmation
+    at submission and a bounded client deadline. A caller-supplied idempotency
+    key is bound to the canonical request payload; same-payload retry returns
+    the committed record and a different payload under that key is rejected.
+    The authoritative work-item directory, README, and receipt are committed
+    together by one directory rename under a bounded lock. A timeout or
+    invalid/lost operation response is an unknown outcome until status is read;
+    retry only with the same key.
+    Dashboard regeneration occurs after the authoritative commit and cannot
+    turn a committed proposal into a reported rejection.
+
 ## 5. Lifecycle state machine
 
 A work item's status is the name of its lifecycle directory; the JSON `status` must

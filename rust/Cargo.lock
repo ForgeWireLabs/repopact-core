@@ -677,6 +677,7 @@ dependencies = [
 name = "repopact-mutation"
 version = "0.1.0"
 dependencies = [
+ "libc",
  "repopact-graph",
  "repopact-repository",
  "repopact-types",
@@ -684,6 +685,7 @@ dependencies = [
  "serde",
  "serde_json",
  "sha2",
+ "windows-sys",
 ]
 
 [[package]]
