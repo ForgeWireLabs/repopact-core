@@ -1,0 +1,73 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "wi077-pr13-core-final-review-20261027T201653Z",
+  "timestamp": "2026-10-27T20:16:53Z",
+  "work_item": "077",
+  "result": "partial",
+  "provenance": "concrete",
+  "commands": [
+    {"command": "cargo test --manifest-path rust/Cargo.toml -p repopact-mutation", "exit_code": 0, "summary": "30 unit tests, 3 remote-boundary tests, and 1 post-validation test passed"},
+    {"command": "cargo test --manifest-path rust/Cargo.toml -p repopact-validation", "exit_code": 0, "summary": "79 tests passed"},
+    {"command": "python -m unittest tests.test_engine_client tests.test_engine_client_semantic -v", "exit_code": 0, "summary": "38 focused client and semantic-identity tests passed"},
+    {"command": "python -m unittest discover -s tests -v", "exit_code": 0, "summary": "448 tests passed; 4 existing skips"},
+    {"command": "python -m repopact.run_conformance --legacy-python --provenance-out evidence/runs/wi076-ac6-engine-conformance-20261027T201448.370590Z.json", "exit_code": 0, "summary": "Canonical Rust 43/43; legacy Python comparator 43/43; WI050 admission vectors 8/8; complete process-image provenance"},
+    {"command": "python scripts/benchmark_work_propose.py --root core=. --repetitions 10 --engine rust/target/release/repopact-engine.exe --output evidence/incidents/2026-10-27-pr13-core-proposal-benchmark.json", "exit_code": 0, "summary": "Core fixture only: p50 1224.479 ms, p95 2030.171 ms; not a ForgeWire-scale measurement"},
+    {"command": "repopact validate --root .", "exit_code": 0, "summary": "Repository governance validation passed"},
+    {"command": "repopact check-frozen --base origin/main", "exit_code": 0, "summary": "No frozen-surface changes detected"},
+    {"command": "python scripts/generate_engine_semantic_identity.py --check", "exit_code": 0, "summary": "Generated semantic identity matches the semantic inputs"},
+    {"command": "cargo fmt --manifest-path rust/crates/repopact-mutation/Cargo.toml --check", "exit_code": 0, "summary": "Focused mutation-crate formatting check passed"}
+  ],
+  "artifacts": [
+    "decisions/0078-operation-scoped-proposal-admission.md",
+    "SPEC.md",
+    "conformance/operations/work-proposal.md",
+    "docs/guides/governance-recovery.md",
+    "rust/crates/repopact-mutation/src/lib.rs",
+    "rust/crates/repopact-mutation/tests/verification_post_validation.rs",
+    "evidence/runs/wi076-ac6-engine-conformance-20261027T201448.370590Z.json",
+    "evidence/incidents/2026-10-27-pr13-core-proposal-benchmark.json"
+  ],
+  "environment": {
+    "review_scope": "Bounded Core PR #13 correctness review; this record is not ForgeWire proving-ground acceptance evidence.",
+    "source_revision": "c0befff88eda64af64858ee4e9d4513a27442fff",
+    "engine": {
+      "path": "rust/target/release/repopact-engine.exe",
+      "profile": "release",
+      "sha256": "a1ac8283841467c9924ba7e4902e3d6e0053ab584865d0d643353880499a5a5b",
+      "semantic_identity": "repopact-semantic-v1:sha256:e603e0b505d70a92504dab23e4259f2cb66bd81d03a6495db132a5cb8260dc7d",
+      "provenance_record": "evidence/runs/wi076-ac6-engine-conformance-20261027T201448.370590Z.json",
+      "source_tree_clean_at_conformance_start": true
+    },
+    "concurrency_coverage": [
+      "Authorization and owner-scope drift injected after validation but during staging is rejected before publish.",
+      "A simultaneous ordinary active-item create shares the repository mutation lock; the competing proposal's stale plan is rejected.",
+      "A post-publish dashboard failure reports the committed item and receipt without reversal."
+    ],
+    "receipt_recovery_coverage": [
+      "Matching corrupt receipts and historical receipts with unidentifiable keys fail closed.",
+      "A valid receipt with a different key does not block lookup for the requested key.",
+      "A receipt resolves its item after lifecycle movement and returns the current path.",
+      "Missing receipt lookup reports absence; it does not prove the item was never committed."
+    ],
+    "crash_durability_boundary": {
+      "staged_files_synced": true,
+      "commit_point": "same-volume directory rename; atomic visibility boundary",
+      "parent_directory_synced": false,
+      "windows_write_through_requested": false,
+      "power_loss_persistence_promised_or_tested": false
+    },
+    "decision_reconciliation": "Decision 0078 is accepted; SPEC.md section 19 is normative and records the same proposal, receipt, and durability boundary.",
+    "core_benchmark": {
+      "repetitions": 10,
+      "p50_ms": 1224.479,
+      "p95_ms": 2030.171,
+      "measured_fixture": "RepoPact Core repository",
+      "ForgeWire_scale_measured": false
+    },
+    "wi077_acceptance": {
+      "AC-1": "pending: actual Fabric repository, governance data, original trace, and host telemetry were not available; no reproduction claimed",
+      "AC-2": "pending: this is a Core fixture benchmark only; small, medium, and actual ForgeWire-scale measurements are outstanding",
+      "AC-3": "pending: adversarial regressions ran against Core, not the ForgeWire proving ground"
+    }
+  }
+}
