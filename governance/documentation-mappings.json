@@ -48,7 +48,7 @@
       "description": "The generated SPEC catalog, version statement, and invariant table are derived from the listed generator inputs.",
       "snapshot": {
         "source_digest": "25133f38d9f1e7e98b1683e7843e8dd14c506ef695677702fd5d7da9676411b0",
-        "documentation_digest": "9dbac26052921a4bbe92b28bd0d257d285d2c97c04c0dd1f22af6b6e67e20fdd"
+        "documentation_digest": "8571e5c564668db0f7d43b96817cb0cd6ed58fd289497cbcb63998bcdb97c943"
       }
     },
     {
@@ -79,7 +79,7 @@
       ],
       "description": "The installation and packaging guide explains semantic identity, same-process admission, exact runtime dependency checks, migration, no-replay handling for uncertain outcomes, wheel payload and packaged-engine verification, and the limits of executable provenance.",
       "snapshot": {
-        "source_digest": "7ea6ceb9a9b8f3df8119e1b3400d584288aad30a2f6fc4026896559dd356ccea",
+        "source_digest": "16f3b6cedf51b619fdd15878f3c4e0e00f020d64069695cf165a2e89bb24cb46",
         "documentation_digest": "1fc2acdea4d2217eb53a8e8c23388bed705be45b26b56ae90a203d4807491ace"
       }
     }

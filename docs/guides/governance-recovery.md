@@ -28,10 +28,21 @@ authorize bypassing protected mutations.
    repopact work proposal-status <key> --root .
    ```
 
-   If the state is `committed`, use the returned work-item path. If it is
-   `absent`, retry the exact request with the same key. A different payload
-   under a committed key is rejected. Status lookup does not grant work
-   authority.
+   If the state is `committed`, use the returned current work-item path. The
+   receipt is looked up across every lifecycle directory, so it remains
+   discoverable after a transition. If the state is `absent`, do not treat that
+   as proof that the request never committed: inspect the work ledger and
+   repository history. If a corresponding item exists without its receipt,
+   stop and reconcile it rather than retrying. A malformed matching receipt,
+   duplicate key, missing/inconsistent item record, malformed JSON, or a
+   missing/invalid receipt key fails closed; a valid receipt for another key
+   does not block lookup. Status lookup does not grant work authority.
+
+   The receipt and work item are visible together at the directory-rename
+   commit point after each staged file is passed to `sync_all()`. This provides
+   atomic visibility during normal operation. The containing directories are
+   not synced after rename and Windows write-through is not requested, so this
+   implementation does not promise survival of sudden power loss.
 5. **Derived-state inconsistency.** A stale or missing dashboard is a
    maintenance diagnostic for proposal admission. After the source change,
    run `repopact dashboard` and `repopact validate`; never edit generated

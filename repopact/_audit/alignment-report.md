@@ -448,3 +448,24 @@
   now passes `--release --locked`, preventing Cargo from pruning unrelated
   lock entries and ensuring the wheel embeds the same release-profile
   executables whose digests the verifier anchors before its handshake.
+
+## 2026-10-27 focused proposal merge-readiness review
+
+- Proposal and ordinary RepoPact mutations now share a bounded in-process and
+  cross-process repository lock. Work-item plans include lifecycle inventory
+  facts, proposals recheck their read set after staging and before directory
+  rename, and a concurrent non-proposal mutation with a stale ID allocation is
+  rejected after the proposal publishes.
+- Receipt status follows items across lifecycle directories. Matching receipt
+  corruption, duplicate keys, missing/mismatched item records, and malformed
+  JSON whose key cannot be identified fail closed; valid unrelated-key receipts
+  do not block lookup. An absent receipt remains ambiguous after a prior
+  unknown outcome and requires ledger/history inspection before retry.
+- Staged item, README, and receipt files receive `sync_all()` before the
+  same-volume directory rename. This establishes atomic visibility during
+  normal operation, not power-loss persistence; neither parent-directory sync
+  nor an explicit Windows write-through request is present.
+- Decision 0078 is accepted for the Core contract now stated normatively in
+  `SPEC.md`. WI077 remains open for its actual Fabric reproduction and
+  ForgeWire-scale measurements; the Core benchmark does not satisfy those
+  acceptance criteria.

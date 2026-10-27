@@ -262,15 +262,29 @@ cross-record consistency.
     research, or documentation-mapping audits.
     The canonical repopact validate operation keeps its repository-wide
     behavior and remains the full assurance check.
-    `work.proposal-plan` is read-only. `work.proposal-status` reads a durable
+    `work.proposal-plan` is read-only. `work.proposal-status` reads a
     receipt. Both proposal operations require explicit preflight confirmation
     at submission and a bounded client deadline. A caller-supplied idempotency
     key is bound to the canonical request payload; same-payload retry returns
-    the committed record and a different payload under that key is rejected.
-    The authoritative work-item directory, README, and receipt are committed
-    together by one directory rename under a bounded lock. A timeout or
-    invalid/lost operation response is an unknown outcome until status is read;
-    retry only with the same key.
+    the associated record and a different payload under that key is rejected.
+    Proposal commits and ordinary RepoPact mutations share a bounded
+    repository-scoped lock. A proposal rechecks its read set after staging and
+    before publish; ordinary mutations recheck after lock acquisition. The
+    authoritative work-item directory, README, and receipt are written to
+    same-volume staging, each file is passed to `sync_all()`, and one directory
+    rename publishes the complete transaction. The rename is the
+    atomic-visibility boundary during normal operation. The containing
+    directories are not synced after rename and Windows write-through is not
+    requested, so power-loss persistence is not promised or tested. Status
+    scans all lifecycle directories and follows a valid receipt after
+    lifecycle moves. A matching malformed receipt, duplicate key, missing or
+    inconsistent work-item record, or malformed receipt with an unidentifiable
+    key fails closed; a valid receipt for another key does not block
+    lookup. A missing receipt reports `absent` but cannot distinguish a request
+    that never committed from a receipt removed after commit. A timeout or
+    invalid/lost response is an unknown outcome until status and the work ledger
+    are inspected; do not blindly retry when a corresponding item exists
+    without its receipt.
     Dashboard regeneration occurs after the authoritative commit and cannot
     turn a committed proposal into a reported rejection.
 

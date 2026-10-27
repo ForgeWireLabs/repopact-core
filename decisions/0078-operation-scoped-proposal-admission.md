@@ -1,7 +1,7 @@
 ---
 id: 0078
 title: Operation-scoped proposal admission and recovery
-status: proposed
+status: accepted
 date: 2026-10-27
 supersedes: []
 ---
@@ -33,19 +33,38 @@ traverse release, full verification, graph, adoption,
 research, or documentation-mapping audits; the full validate operation remains
 canonical for those repository-wide checks.
 The proposal request requires explicit preflight confirmation and a caller
-idempotency key. A durable receipt binds that key to a canonical request digest.
-Retrying the same payload returns the committed item; reusing the key for a
-different payload fails. The item, README, and receipt are staged together and
-committed by one directory rename under a repository-scoped lock with a two
-second acquisition bound. The client proposal deadline is ten seconds. A
-timeout or invalid/lost operation response is reported as an unknown outcome;
-the operator checks the read-only status operation and retries only with the
-same key. A derived dashboard is
-regenerated after the authoritative commit; failure is a warning and does not
-reverse or misstate the commit.
+idempotency key. A receipt binds that key to a canonical request digest.
+Retrying the same payload returns the associated item; reusing the key for a
+different payload fails. The item, README, and receipt are written to a
+same-volume staging directory; each staged file is passed to `sync_all()`
+before one directory rename publishes the transaction. This rename is the
+atomic-visibility boundary: during normal operation, the proposal becomes
+visible as a complete item, README, and receipt together. The containing
+directories are not synced after the rename, and Windows write-through is not
+requested explicitly, so the implementation does not promise that the rename
+survives sudden power loss. Power-loss persistence has not been tested.
+
+Proposal commits and ordinary RepoPact mutations share a repository-scoped
+lock with a two-second acquisition bound. A proposal rechecks its read set
+after staging and immediately before publish; ordinary mutations check their
+planned read set after acquiring the same lock. The client proposal deadline is
+ten seconds. A timeout or invalid/lost operation response is an unknown
+outcome, so the operator checks the read-only status operation. Status scans
+all lifecycle directories, and a valid receipt remains resolvable after its
+item moves to another lifecycle state. A matching malformed receipt, duplicate
+key, or receipt whose work-item record is missing or inconsistent fails
+closed. Malformed JSON or a missing/invalid key also fails closed when its key
+cannot be identified; a valid receipt for a different key does not block
+lookup. A missing receipt
+reports `absent`, but cannot distinguish a request that never committed from a
+receipt later removed from a committed item. Inspect the work ledger and
+history before retrying an unknown outcome; do not retry if a corresponding
+item exists without its receipt. A derived dashboard is regenerated after the
+authoritative commit; failure is a warning and does not reverse or misstate the
+commit.
 
 `work.proposal-plan` is read-only and returns diagnostics and phase metrics.
-`work.proposal-status` reads the durable receipt. Both have bounded client
+`work.proposal-status` reads receipt state. Both have bounded client
 deadlines. Phase measurements include snapshot, lock wait, receipt lookup,
 staleness check, authority checks, work schema, dependency graph, maintenance
 diagnostics, staging, atomic commit, dashboard regeneration, engine execution,
@@ -94,7 +113,9 @@ exposes it; unavailable measurements must be reported as unavailable.
 ## Limits
 
 The operation-scoped result is not a replacement for canonical full validation.
-The target is not established until measured against the actual ForgeWire
-governance dataset. A client timeout may still leave the outcome unknown; the
-receipt lookup and same-key retry resolve that uncertainty without creating a
-second item.
+Acceptance of this Core contract does not close WI077: its actual Fabric
+reproduction and ForgeWire-scale performance measurement remain pending. The
+target is not established until measured against the actual ForgeWire
+governance dataset. A client timeout may still leave the outcome unknown; a
+valid receipt resolves it, while absent or corrupt receipt state may require
+operator reconciliation.

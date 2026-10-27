@@ -16,7 +16,7 @@
     },
     {
       "path": "SPEC.md",
-      "sha256": "5043b86443f4812597667818926710ab5379cd32e3559aa5b29470fb34218e6c"
+      "sha256": "c32ca4c1d4499ce727433954048919f9a82e50aaad21c247ebbb503bc114f00f"
     },
     {
       "path": "build/semantic-input-policy.json",
@@ -456,7 +456,7 @@
     },
     {
       "path": "conformance/operations/work-proposal.md",
-      "sha256": "53d98d4ce336aedf7e741f158a4fd00253376d2c787faffd9d99dc15ab8dcd0d"
+      "sha256": "dda6d7e2fde7eddb63d09288f1c236fbed19289322eaccc394b6d4fbb5cde9a7"
     },
     {
       "path": "repopact/__init__.py",
@@ -932,7 +932,7 @@
     },
     {
       "path": "rust/crates/repopact-mutation/src/lib.rs",
-      "sha256": "e0a7cf2d8bc1cb7098e938b3c7284b13df64a0d63ddcf7d9f6840b2d66fc4851"
+      "sha256": "41920595eaeb611760bafcad08111e88abf09931aeef4102453f5d721ecd6e0b"
     },
     {
       "path": "rust/crates/repopact-mutation/tests/fixtures/edit/after/work-item.json",
@@ -1035,5 +1035,5 @@
       "sha256": "568ee233f91fcfc6afad4dfdb4fd6cbadd2761f0b795d91a089030c3b0b0bbb3"
     }
   ],
-  "semantic_identity": "repopact-semantic-v1:sha256:03492fbfad6bf905c1a79a8470cd9427ae9aa4a2d86b07202146dc9cfe8ac741"
+  "semantic_identity": "repopact-semantic-v1:sha256:e603e0b505d70a92504dab23e4259f2cb66bd81d03a6495db132a5cb8260dc7d"
 }
