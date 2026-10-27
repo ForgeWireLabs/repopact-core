@@ -11,6 +11,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+import uuid
 from datetime import date
 from pathlib import Path
 from typing import Any
@@ -44,11 +45,35 @@ def _require_engine_compatibility():
         return None
 
 
-def _rust_mutation(root: Path, operation: str, params: dict[str, Any], label: str) -> int:
-    from .engine_client import EngineError, EngineClient, validated_mutation_result
+def _rust_mutation(
+    root: Path,
+    operation: str,
+    params: dict[str, Any],
+    label: str,
+    *,
+    timeout: float = 30.0,
+    json_output: bool = False,
+) -> int:
+    from .engine_client import (
+        EngineError,
+        EngineClient,
+        OperationOutcomeUnknownError,
+        validated_mutation_result,
+    )
 
     try:
-        response = EngineClient().call(operation, root=root, params=params)
+        response = EngineClient(timeout=timeout).call(operation, root=root, params=params)
+    except OperationOutcomeUnknownError as exc:
+        key = exc.idempotency_key or "<missing>"
+        message = (
+            f"Outcome unknown for {operation}; inspect `repopact work proposal-status {key}` "
+            f"before retrying with the same --idempotency-key. {exc}"
+        )
+        if json_output:
+            print(json.dumps({"outcome": "unknown", "idempotency_key": key, "message": message}))
+        else:
+            print(message, file=sys.stderr)
+        return 2
     except EngineError as exc:
         print(f"Rust engine compatibility error: {exc}", file=sys.stderr)
         return 1
@@ -58,18 +83,35 @@ def _rust_mutation(root: Path, operation: str, params: dict[str, Any], label: st
         print(f"Rust engine returned an invalid mutation result: {exc}", file=sys.stderr)
         return 1
     diagnostics = result["diagnostics"]
+    if json_output:
+        print(json.dumps({
+            "outcome": "committed" if result.get("success") else "rejected",
+            "result": result,
+            "client_metrics": response.get("client_metrics", {}),
+        }, indent=2, sort_keys=True))
     if not result.get("success", False):
+        if not json_output:
+            for diagnostic in diagnostics:
+                code = diagnostic.get("code", "engine.diagnostic")
+                location = diagnostic.get("path") or diagnostic.get("record") or "<repository>"
+                level = "ERROR" if diagnostic.get("blocking", True) else "WARNING"
+                print(f"{level} [{code}] {location}: {diagnostic.get('message', '')}")
+            print("Proposal was rejected; no work-item record was committed.", file=sys.stderr)
+        return 1
+    if not json_output:
         for diagnostic in diagnostics:
+            if diagnostic.get("blocking", True):
+                continue
             code = diagnostic.get("code", "engine.diagnostic")
             location = diagnostic.get("path") or diagnostic.get("record") or "<repository>"
-            print(f"ERROR [{code}] {location}: {diagnostic.get('message', '')}")
-        print("Mutation failed; no repository changes were accepted.", file=sys.stderr)
-        return 1
+            print(f"WARNING [{code}] {location}: {diagnostic.get('message', '')}")
     record = next(
         (path for path in result.get("changed_paths", []) if str(path).endswith("/work-item.json")),
         None,
     )
-    print(f"{label} {record or 'work-item'}")
+    replayed = " (replayed)" if result.get("replayed") else ""
+    if not json_output:
+        print(f"{label} {record or 'work-item'}{replayed}")
     return 0
 
 
@@ -248,6 +290,16 @@ def main(argv: list[str] | None = None) -> int:
     work_sub = p_work.add_subparsers(dest="work_command", required=True)
     p_prop = work_sub.add_parser("propose", help="Create proposed work without implementation authority")
     p_prop.add_argument("title"); p_prop.add_argument("--root", type=Path, default=Path.cwd())
+    p_prop.add_argument("--confirm-preflight", action="store_true", required=True,
+                        help="Confirm this proposal is recorded before implementation starts")
+    p_prop.add_argument("--idempotency-key", help="Reuse this key to inspect or safely retry a proposal")
+    p_prop.add_argument("--json", action="store_true", help="Print the structured result and phase timings")
+    p_plan = work_sub.add_parser("plan", help="Read-only diagnostics for a proposed work item")
+    p_plan.add_argument("title"); p_plan.add_argument("--root", type=Path, default=Path.cwd())
+    p_plan.add_argument("--confirm-preflight", action="store_true", required=True)
+    p_plan.add_argument("--idempotency-key", help="Key to reuse when the proposal is submitted")
+    p_status = work_sub.add_parser("proposal-status", help="Read-only lookup for a proposal key")
+    p_status.add_argument("idempotency_key"); p_status.add_argument("--root", type=Path, default=Path.cwd())
     p_amend = work_sub.add_parser("amend-proposal", help="Change only the title of proposed work")
     p_amend.add_argument("work_item"); p_amend.add_argument("title"); p_amend.add_argument("--root", type=Path, default=Path.cwd())
 
@@ -385,12 +437,61 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "work":
             root = args.root.resolve()
             if args.work_command == "propose":
+                key = args.idempotency_key or uuid.uuid4().hex
+                if args.json:
+                    print(json.dumps({"event": "proposal-started", "idempotency_key": key}), flush=True)
+                else:
+                    print(f"Proposal idempotency key: {key}", flush=True)
                 return _rust_mutation(
                     root,
                     "work.propose",
-                    {"title": args.title, "date": date.today().isoformat()},
+                    {
+                        "title": args.title,
+                        "date": date.today().isoformat(),
+                        "preflight_confirmed_before_work_started": args.confirm_preflight,
+                        "idempotency_key": key,
+                    },
                     "Created proposed",
+                    timeout=10.0,
+                    json_output=args.json,
                 )
+            if args.work_command == "plan":
+                from .engine_client import EngineError, EngineClient
+
+                key = args.idempotency_key or uuid.uuid4().hex
+                try:
+                    response = EngineClient(timeout=10.0).call(
+                        "work.proposal-plan",
+                        root=root,
+                        params={
+                            "title": args.title,
+                            "date": date.today().isoformat(),
+                            "preflight_confirmed_before_work_started": args.confirm_preflight,
+                            "idempotency_key": key,
+                        },
+                    )
+                except EngineError as exc:
+                    print(f"Proposal planning failed: {exc}", file=sys.stderr)
+                    return 1
+                result = response.get("result") or {}
+                result["idempotency_key"] = key
+                result["client_metrics"] = response.get("client_metrics", {})
+                print(json.dumps(result, indent=2, sort_keys=True))
+                return 0 if result.get("applicable", False) else 1
+            if args.work_command == "proposal-status":
+                from .engine_client import EngineError, EngineClient
+
+                try:
+                    response = EngineClient(timeout=5.0).call(
+                        "work.proposal-status",
+                        root=root,
+                        params={"idempotency_key": args.idempotency_key},
+                    )
+                except EngineError as exc:
+                    print(f"Proposal status lookup failed: {exc}", file=sys.stderr)
+                    return 1
+                print(json.dumps(response.get("result") or {}, indent=2, sort_keys=True))
+                return 0
             return _rust_mutation(
                 root,
                 "work.amend_proposal",
@@ -607,6 +708,21 @@ def main(argv: list[str] | None = None) -> int:
             if args.status != "proposed" and (root / "governance" / "admission-policy.json").is_file():
                 print("WI050 admission requires operator-controlled activation; create proposed work first.", file=sys.stderr)
                 return 1
+            if args.status == "proposed":
+                key = uuid.uuid4().hex
+                print(f"Proposal idempotency key: {key}", flush=True)
+                return _rust_mutation(
+                    root,
+                    "work.propose",
+                    {
+                        "title": args.title,
+                        "date": date.today().isoformat(),
+                        "preflight_confirmed_before_work_started": True,
+                        "idempotency_key": key,
+                    },
+                    "Created proposed",
+                    timeout=10.0,
+                )
             return _rust_mutation(
                 root,
                 "work.create",

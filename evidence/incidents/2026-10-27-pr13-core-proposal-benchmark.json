@@ -1,0 +1,523 @@
+{
+  "benchmark": "repopact-work-propose",
+  "engine": "C:\\Users\\jerem\\.codex\\worktrees\\governance-throughput-correction-forgewire\\repopact-core\\rust\\target\\release\\repopact-engine.exe",
+  "host": {
+    "platform": "Windows-10-10.0.19045-SP0",
+    "processor": "Intel64 Family 6 Model 94 Stepping 3, GenuineIntel",
+    "python": "3.12.4"
+  },
+  "operation_deadline_ms": 10000,
+  "runs": [
+    {
+      "initial_record_counts": {
+        "audit_findings": 3,
+        "evidence_records": 228,
+        "source_files": 1016,
+        "work_items": 78
+      },
+      "label": "core",
+      "memory_measurement": "OS high-water mark when supported; null means unavailable",
+      "peak_operation_working_set_bytes": {
+        "p50": 49741824.0,
+        "p95": 50114560.0,
+        "worst": 50114560.0
+      },
+      "phase_statistics": {
+        "atomic_commit_ms": {
+          "p50_ms": 1.0,
+          "p95_ms": 2.0,
+          "worst_ms": 2.0
+        },
+        "authority_checks_ms": {
+          "p50_ms": 4.0,
+          "p95_ms": 8.0,
+          "worst_ms": 8.0
+        },
+        "critical_validation_ms": {
+          "p50_ms": 131.0,
+          "p95_ms": 191.0,
+          "worst_ms": 191.0
+        },
+        "dashboard_regeneration_ms": {
+          "p50_ms": 31.0,
+          "p95_ms": 58.0,
+          "worst_ms": 58.0
+        },
+        "dependency_graph_ms": {
+          "p50_ms": 0.0,
+          "p95_ms": 1.0,
+          "worst_ms": 1.0
+        },
+        "engine_execution_ms": {
+          "p50_ms": 1118.0,
+          "p95_ms": 1880.0,
+          "worst_ms": 1880.0
+        },
+        "external_integrations_ms": {
+          "p50_ms": 0.0,
+          "p95_ms": 0.0,
+          "worst_ms": 0.0
+        },
+        "filesystem_staging_ms": {
+          "p50_ms": 243.0,
+          "p95_ms": 454.0,
+          "worst_ms": 454.0
+        },
+        "idempotency_lookup_ms": {
+          "p50_ms": 4.0,
+          "p95_ms": 8.0,
+          "worst_ms": 8.0
+        },
+        "maintenance_diagnostics_ms": {
+          "p50_ms": 0.0,
+          "p95_ms": 2.0,
+          "worst_ms": 2.0
+        },
+        "planning_ms": {
+          "p50_ms": 208.0,
+          "p95_ms": 314.0,
+          "worst_ms": 314.0
+        },
+        "proposal_lock_wait_ms": {
+          "p50_ms": 0.0,
+          "p95_ms": 0.0,
+          "worst_ms": 0.0
+        },
+        "python_client_total_ms": {
+          "p50_ms": 1224.0,
+          "p95_ms": 2030.0,
+          "worst_ms": 2030.0
+        },
+        "snapshot_ms": {
+          "p50_ms": 615.0,
+          "p95_ms": 1212.0,
+          "worst_ms": 1212.0
+        },
+        "stale_check_ms": {
+          "p50_ms": 0.0,
+          "p95_ms": 0.0,
+          "worst_ms": 0.0
+        },
+        "wall_ms": {
+          "p50_ms": 1224.479,
+          "p95_ms": 2030.171,
+          "worst_ms": 2030.171
+        },
+        "work_schema_ms": {
+          "p50_ms": 0.0,
+          "p95_ms": 3.0,
+          "worst_ms": 3.0
+        }
+      },
+      "record_count_statistics": {
+        "records_examined": {
+          "p50": 487.0,
+          "p95": 497.0,
+          "worst": 497.0
+        },
+        "source_files_read": {
+          "p50": 591.0,
+          "p95": 606.0,
+          "worst": 606.0
+        }
+      },
+      "repetitions": 10,
+      "samples": [
+        {
+          "client_metrics": {
+            "handshake_peak_working_set_bytes": 6090752,
+            "handshake_process_ms": 104,
+            "operation_peak_working_set_bytes": 49582080,
+            "operation_process_ms": 1051,
+            "python_client_total_ms": 1156,
+            "python_orchestration_ms": 1
+          },
+          "engine_metrics": {
+            "atomic_commit_ms": 1,
+            "authority_checks_ms": 3,
+            "critical_validation_ms": 122,
+            "dashboard_regeneration_ms": 27,
+            "dependency_graph_ms": 0,
+            "engine_execution_ms": 1049,
+            "external_integrations_ms": 0,
+            "filesystem_staging_ms": 220,
+            "idempotency_lookup_ms": 4,
+            "maintenance_diagnostics_ms": 0,
+            "planning_ms": 199,
+            "proposal_lock_wait_ms": 0,
+            "records_examined": 479,
+            "snapshot_ms": 580,
+            "source_files_read": 579,
+            "stale_check_ms": 0,
+            "work_schema_ms": 0
+          },
+          "record_counts": {
+            "audit_findings": 3,
+            "evidence_records": 228,
+            "source_files": 1019,
+            "work_items": 79
+          },
+          "wall_ms": 1156.77
+        },
+        {
+          "client_metrics": {
+            "handshake_peak_working_set_bytes": 6176768,
+            "handshake_process_ms": 104,
+            "operation_peak_working_set_bytes": 49840128,
+            "operation_process_ms": 1080,
+            "python_client_total_ms": 1185,
+            "python_orchestration_ms": 1
+          },
+          "engine_metrics": {
+            "atomic_commit_ms": 2,
+            "authority_checks_ms": 4,
+            "critical_validation_ms": 125,
+            "dashboard_regeneration_ms": 31,
+            "dependency_graph_ms": 0,
+            "engine_execution_ms": 1078,
+            "external_integrations_ms": 0,
+            "filesystem_staging_ms": 238,
+            "idempotency_lookup_ms": 3,
+            "maintenance_diagnostics_ms": 0,
+            "planning_ms": 206,
+            "proposal_lock_wait_ms": 0,
+            "records_examined": 481,
+            "snapshot_ms": 584,
+            "source_files_read": 582,
+            "stale_check_ms": 0,
+            "work_schema_ms": 0
+          },
+          "record_counts": {
+            "audit_findings": 3,
+            "evidence_records": 228,
+            "source_files": 1022,
+            "work_items": 80
+          },
+          "wall_ms": 1185.551
+        },
+        {
+          "client_metrics": {
+            "handshake_peak_working_set_bytes": 6176768,
+            "handshake_process_ms": 113,
+            "operation_peak_working_set_bytes": 49729536,
+            "operation_process_ms": 1080,
+            "python_client_total_ms": 1194,
+            "python_orchestration_ms": 1
+          },
+          "engine_metrics": {
+            "atomic_commit_ms": 1,
+            "authority_checks_ms": 3,
+            "critical_validation_ms": 131,
+            "dashboard_regeneration_ms": 30,
+            "dependency_graph_ms": 0,
+            "engine_execution_ms": 1079,
+            "external_integrations_ms": 0,
+            "filesystem_staging_ms": 235,
+            "idempotency_lookup_ms": 4,
+            "maintenance_diagnostics_ms": 0,
+            "planning_ms": 208,
+            "proposal_lock_wait_ms": 0,
+            "records_examined": 483,
+            "snapshot_ms": 588,
+            "source_files_read": 585,
+            "stale_check_ms": 0,
+            "work_schema_ms": 0
+          },
+          "record_counts": {
+            "audit_findings": 3,
+            "evidence_records": 228,
+            "source_files": 1025,
+            "work_items": 81
+          },
+          "wall_ms": 1194.341
+        },
+        {
+          "client_metrics": {
+            "handshake_peak_working_set_bytes": 6176768,
+            "handshake_process_ms": 103,
+            "operation_peak_working_set_bytes": 49610752,
+            "operation_process_ms": 1108,
+            "python_client_total_ms": 1211,
+            "python_orchestration_ms": 0
+          },
+          "engine_metrics": {
+            "atomic_commit_ms": 1,
+            "authority_checks_ms": 3,
+            "critical_validation_ms": 125,
+            "dashboard_regeneration_ms": 30,
+            "dependency_graph_ms": 0,
+            "engine_execution_ms": 1106,
+            "external_integrations_ms": 0,
+            "filesystem_staging_ms": 249,
+            "idempotency_lookup_ms": 4,
+            "maintenance_diagnostics_ms": 0,
+            "planning_ms": 205,
+            "proposal_lock_wait_ms": 0,
+            "records_examined": 485,
+            "snapshot_ms": 604,
+            "source_files_read": 588,
+            "stale_check_ms": 0,
+            "work_schema_ms": 0
+          },
+          "record_counts": {
+            "audit_findings": 3,
+            "evidence_records": 228,
+            "source_files": 1028,
+            "work_items": 82
+          },
+          "wall_ms": 1211.999
+        },
+        {
+          "client_metrics": {
+            "handshake_peak_working_set_bytes": 6176768,
+            "handshake_process_ms": 111,
+            "operation_peak_working_set_bytes": 49737728,
+            "operation_process_ms": 1448,
+            "python_client_total_ms": 1560,
+            "python_orchestration_ms": 1
+          },
+          "engine_metrics": {
+            "atomic_commit_ms": 2,
+            "authority_checks_ms": 4,
+            "critical_validation_ms": 162,
+            "dashboard_regeneration_ms": 42,
+            "dependency_graph_ms": 1,
+            "engine_execution_ms": 1446,
+            "external_integrations_ms": 0,
+            "filesystem_staging_ms": 454,
+            "idempotency_lookup_ms": 4,
+            "maintenance_diagnostics_ms": 2,
+            "planning_ms": 279,
+            "proposal_lock_wait_ms": 0,
+            "records_examined": 487,
+            "snapshot_ms": 653,
+            "source_files_read": 591,
+            "stale_check_ms": 0,
+            "work_schema_ms": 0
+          },
+          "record_counts": {
+            "audit_findings": 3,
+            "evidence_records": 228,
+            "source_files": 1031,
+            "work_items": 83
+          },
+          "wall_ms": 1560.802
+        },
+        {
+          "client_metrics": {
+            "handshake_peak_working_set_bytes": 6156288,
+            "handshake_process_ms": 145,
+            "operation_peak_working_set_bytes": 50114560,
+            "operation_process_ms": 1884,
+            "python_client_total_ms": 2030,
+            "python_orchestration_ms": 1
+          },
+          "engine_metrics": {
+            "atomic_commit_ms": 2,
+            "authority_checks_ms": 8,
+            "critical_validation_ms": 186,
+            "dashboard_regeneration_ms": 58,
+            "dependency_graph_ms": 0,
+            "engine_execution_ms": 1880,
+            "external_integrations_ms": 0,
+            "filesystem_staging_ms": 302,
+            "idempotency_lookup_ms": 8,
+            "maintenance_diagnostics_ms": 0,
+            "planning_ms": 280,
+            "proposal_lock_wait_ms": 0,
+            "records_examined": 489,
+            "snapshot_ms": 1212,
+            "source_files_read": 594,
+            "stale_check_ms": 0,
+            "work_schema_ms": 3
+          },
+          "record_counts": {
+            "audit_findings": 3,
+            "evidence_records": 228,
+            "source_files": 1034,
+            "work_items": 84
+          },
+          "wall_ms": 2030.171
+        },
+        {
+          "client_metrics": {
+            "handshake_peak_working_set_bytes": 6172672,
+            "handshake_process_ms": 130,
+            "operation_peak_working_set_bytes": 49741824,
+            "operation_process_ms": 1352,
+            "python_client_total_ms": 1483,
+            "python_orchestration_ms": 1
+          },
+          "engine_metrics": {
+            "atomic_commit_ms": 2,
+            "authority_checks_ms": 6,
+            "critical_validation_ms": 178,
+            "dashboard_regeneration_ms": 39,
+            "dependency_graph_ms": 1,
+            "engine_execution_ms": 1350,
+            "external_integrations_ms": 0,
+            "filesystem_staging_ms": 267,
+            "idempotency_lookup_ms": 4,
+            "maintenance_diagnostics_ms": 0,
+            "planning_ms": 261,
+            "proposal_lock_wait_ms": 0,
+            "records_examined": 491,
+            "snapshot_ms": 760,
+            "source_files_read": 597,
+            "stale_check_ms": 0,
+            "work_schema_ms": 0
+          },
+          "record_counts": {
+            "audit_findings": 3,
+            "evidence_records": 228,
+            "source_files": 1037,
+            "work_items": 85
+          },
+          "wall_ms": 1483.584
+        },
+        {
+          "client_metrics": {
+            "handshake_peak_working_set_bytes": 6172672,
+            "handshake_process_ms": 120,
+            "operation_peak_working_set_bytes": 50044928,
+            "operation_process_ms": 1392,
+            "python_client_total_ms": 1513,
+            "python_orchestration_ms": 1
+          },
+          "engine_metrics": {
+            "atomic_commit_ms": 2,
+            "authority_checks_ms": 6,
+            "critical_validation_ms": 191,
+            "dashboard_regeneration_ms": 38,
+            "dependency_graph_ms": 1,
+            "engine_execution_ms": 1390,
+            "external_integrations_ms": 0,
+            "filesystem_staging_ms": 268,
+            "idempotency_lookup_ms": 5,
+            "maintenance_diagnostics_ms": 2,
+            "planning_ms": 314,
+            "proposal_lock_wait_ms": 0,
+            "records_examined": 493,
+            "snapshot_ms": 746,
+            "source_files_read": 600,
+            "stale_check_ms": 0,
+            "work_schema_ms": 0
+          },
+          "record_counts": {
+            "audit_findings": 3,
+            "evidence_records": 228,
+            "source_files": 1040,
+            "work_items": 86
+          },
+          "wall_ms": 1513.621
+        },
+        {
+          "client_metrics": {
+            "handshake_peak_working_set_bytes": 6172672,
+            "handshake_process_ms": 111,
+            "operation_peak_working_set_bytes": 49938432,
+            "operation_process_ms": 1225,
+            "python_client_total_ms": 1337,
+            "python_orchestration_ms": 1
+          },
+          "engine_metrics": {
+            "atomic_commit_ms": 1,
+            "authority_checks_ms": 4,
+            "critical_validation_ms": 162,
+            "dashboard_regeneration_ms": 33,
+            "dependency_graph_ms": 0,
+            "engine_execution_ms": 1223,
+            "external_integrations_ms": 0,
+            "filesystem_staging_ms": 238,
+            "idempotency_lookup_ms": 5,
+            "maintenance_diagnostics_ms": 0,
+            "planning_ms": 254,
+            "proposal_lock_wait_ms": 0,
+            "records_examined": 495,
+            "snapshot_ms": 680,
+            "source_files_read": 603,
+            "stale_check_ms": 0,
+            "work_schema_ms": 0
+          },
+          "record_counts": {
+            "audit_findings": 3,
+            "evidence_records": 228,
+            "source_files": 1043,
+            "work_items": 87
+          },
+          "wall_ms": 1337.215
+        },
+        {
+          "client_metrics": {
+            "handshake_peak_working_set_bytes": 6172672,
+            "handshake_process_ms": 103,
+            "operation_peak_working_set_bytes": 49934336,
+            "operation_process_ms": 1120,
+            "python_client_total_ms": 1224,
+            "python_orchestration_ms": 1
+          },
+          "engine_metrics": {
+            "atomic_commit_ms": 1,
+            "authority_checks_ms": 4,
+            "critical_validation_ms": 129,
+            "dashboard_regeneration_ms": 31,
+            "dependency_graph_ms": 0,
+            "engine_execution_ms": 1118,
+            "external_integrations_ms": 0,
+            "filesystem_staging_ms": 243,
+            "idempotency_lookup_ms": 5,
+            "maintenance_diagnostics_ms": 0,
+            "planning_ms": 208,
+            "proposal_lock_wait_ms": 0,
+            "records_examined": 497,
+            "snapshot_ms": 615,
+            "source_files_read": 606,
+            "stale_check_ms": 0,
+            "work_schema_ms": 0
+          },
+          "record_counts": {
+            "audit_findings": 3,
+            "evidence_records": 228,
+            "source_files": 1046,
+            "work_items": 88
+          },
+          "wall_ms": 1224.479
+        }
+      ],
+      "source_root": "C:\\Users\\jerem\\.codex\\worktrees\\governance-throughput-correction-forgewire\\repopact-core",
+      "target_p95_below_5000ms_met_for_this_fixture": true,
+      "warmup_sample_excluded_from_statistics": {
+        "client_metrics": {
+          "handshake_peak_working_set_bytes": 3407872,
+          "handshake_process_ms": 201,
+          "operation_peak_working_set_bytes": 49414144,
+          "operation_process_ms": 3861,
+          "python_client_total_ms": 4063,
+          "python_orchestration_ms": 1
+        },
+        "engine_metrics": {
+          "atomic_commit_ms": 0,
+          "authority_checks_ms": 4,
+          "critical_validation_ms": 129,
+          "dashboard_regeneration_ms": 0,
+          "dependency_graph_ms": 1,
+          "engine_execution_ms": 3849,
+          "external_integrations_ms": 0,
+          "filesystem_staging_ms": 0,
+          "idempotency_lookup_ms": 0,
+          "maintenance_diagnostics_ms": 0,
+          "planning_ms": 205,
+          "proposal_lock_wait_ms": 0,
+          "records_examined": 479,
+          "snapshot_ms": 3644,
+          "source_files_read": 579,
+          "stale_check_ms": 0,
+          "work_schema_ms": 0
+        },
+        "wall_ms": 4063.643
+      }
+    }
+  ],
+  "target_ms_p95": 5000,
+  "timestamp_utc": "2026-10-27T20:15:44Z"
+}

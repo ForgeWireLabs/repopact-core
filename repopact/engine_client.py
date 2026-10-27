@@ -12,6 +12,7 @@ import subprocess
 import sys
 import sysconfig
 import threading
+import time
 import uuid
 from pathlib import Path
 from typing import Any
@@ -49,6 +50,21 @@ class EngineOutcomeUnknownError(EngineProtocolError):
 
 class _EngineRequestNotSentError(EngineProtocolError):
     """The selected process was already gone before request bytes were written."""
+
+
+class OperationOutcomeUnknownError(EngineOutcomeUnknownError):
+    """A proposal request started but its authoritative response was not received."""
+
+    def __init__(self, operation: str, idempotency_key: str | None, detail: str):
+        self.operation = operation
+        self.idempotency_key = idempotency_key
+        recovery = (
+            f" Inspect `repopact work proposal-status {idempotency_key}` before retrying "
+            f"with the same --idempotency-key."
+            if idempotency_key
+            else " No retry key was returned; inspect the repository before attempting another proposal."
+        )
+        super().__init__(f"{operation} response was not received; outcome is unknown: {detail}.{recovery}")
 
 
 def expected_product_version() -> str:
@@ -250,6 +266,8 @@ class EngineClient:
         self._closed = False
         self._launch_provenance: dict[str, Any] | None = None
         self._engine_metadata: dict[str, Any] = {}
+        self._last_peak_working_set_bytes: int | None = None
+        self._operation_deadline: float | None = None
 
     def __enter__(self) -> "EngineClient":
         return self
@@ -441,26 +459,79 @@ class EngineClient:
         root: Path | None = None,
         params: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
-        if getattr(self, "_strict", False):
-            return self._call_admitted(operation, root=root, params=params)
-        self._handshake()
-        response = self._invoke(
-            {
-                "protocol": PROTOCOL,
-                "protocol_version": PROTOCOL_VERSION,
-                "request_id": uuid.uuid4().hex,
-                "operation": operation,
-                "root": str(root.resolve()) if root is not None else None,
-                "params": params or {},
+        client_started = time.perf_counter()
+        previous_deadline = getattr(self, "_operation_deadline", None)
+        self._operation_deadline = time.monotonic() + self.timeout if operation == "work.propose" else None
+        handshake_started = time.perf_counter()
+        try:
+            self._handshake()
+            handshake_ms = int((time.perf_counter() - handshake_started) * 1000)
+            handshake_memory = self._sample_engine_working_set()
+            operation_started = time.perf_counter()
+            if getattr(self, "_strict", False):
+                try:
+                    response = self._call_admitted(operation, root=root, params=params)
+                except EngineOutcomeUnknownError as exc:
+                    if operation != "work.propose":
+                        raise
+                    key = (params or {}).get("idempotency_key")
+                    raise OperationOutcomeUnknownError(
+                        operation, key if isinstance(key, str) else None, str(exc)
+                    ) from exc
+            else:
+                request = {
+                    "protocol": PROTOCOL,
+                    "protocol_version": PROTOCOL_VERSION,
+                    "request_id": uuid.uuid4().hex,
+                    "operation": operation,
+                    "root": str(root.resolve()) if root is not None else None,
+                    "params": params or {},
+                }
+                try:
+                    response = self._invoke(request)
+                except OperationOutcomeUnknownError:
+                    raise
+                except EngineProtocolError as exc:
+                    if operation != "work.propose":
+                        raise
+                    key = (params or {}).get("idempotency_key")
+                    raise OperationOutcomeUnknownError(
+                        operation, key if isinstance(key, str) else None, str(exc)
+                    ) from exc
+            if operation == "work.propose" and response.get("ok", False):
+                try:
+                    validated_mutation_result(response)
+                except EngineProtocolError as exc:
+                    key = (params or {}).get("idempotency_key")
+                    raise OperationOutcomeUnknownError(
+                        operation, key if isinstance(key, str) else None,
+                        f"engine returned an invalid mutation result: {exc}",
+                    ) from exc
+            operation_ms = int((time.perf_counter() - operation_started) * 1000)
+            operation_memory = self._sample_engine_working_set()
+            if not response.get("ok", False):
+                error = response.get("error") or {}
+                raise EngineSemanticError(
+                    f"Rust engine rejected {operation}: {error.get('code', 'engine.error')}: "
+                    f"{error.get('message', 'unknown engine error')}"
+                )
+            total_ms = int((time.perf_counter() - client_started) * 1000)
+            response["client_metrics"] = {
+                "handshake_process_ms": handshake_ms,
+                "operation_process_ms": operation_ms,
+                "python_orchestration_ms": max(0, total_ms - handshake_ms - operation_ms),
+                "python_client_total_ms": total_ms,
+                "handshake_peak_working_set_bytes": handshake_memory,
+                "operation_peak_working_set_bytes": operation_memory,
             }
-        )
-        if not response.get("ok", False):
-            error = response.get("error") or {}
-            raise EngineSemanticError(
-                f"Rust engine rejected {operation}: {error.get('code', 'engine.error')}: "
-                f"{error.get('message', 'unknown engine error')}"
-            )
-        return response
+            return response
+        finally:
+            self._operation_deadline = previous_deadline
+
+    def _sample_engine_working_set(self) -> int | None:
+        if getattr(self, "_strict", False):
+            return _process_peak_working_set_bytes(self._process)
+        return getattr(self, "_last_peak_working_set_bytes", None)
 
     def _handshake(self) -> None:
         if getattr(self, "_strict", False):
@@ -616,6 +687,11 @@ class EngineClient:
         process = self._process
         if process is None or process.poll() is not None:
             raise _EngineRequestNotSentError("Rust engine process exited before request dispatch")
+        operation_deadline = getattr(self, "_operation_deadline", None)
+        if operation_deadline is not None and time.monotonic() >= operation_deadline:
+            raise _EngineRequestNotSentError(
+                f"client deadline expired before {request['operation']} dispatch"
+            )
         assert process.stdin is not None
         encoded = json.dumps(request, sort_keys=True, separators=(",", ":")) + "\n"
         dispatch_attempted = False
@@ -626,7 +702,13 @@ class EngineClient:
             process.stdin.write(encoded)
             process.stdin.flush()
             try:
-                line = self._stdout_lines.get(timeout=self.timeout)
+                wait_timeout = self.timeout
+                if operation_deadline is not None:
+                    wait_timeout = min(
+                        wait_timeout,
+                        max(0.0, operation_deadline - time.monotonic()),
+                    )
+                line = self._stdout_lines.get(timeout=wait_timeout)
             except queue.Empty as exc:
                 raise EngineProtocolError(
                     f"Rust engine timed out after {self.timeout:g}s during {request['operation']}"
@@ -705,20 +787,57 @@ class EngineClient:
                 shell=False,
                 creationflags=creationflags,
             )
-            stdout, stderr = process.communicate(encoded, timeout=self.timeout)
+            pending_input: str | None = encoded
+            deadline = getattr(self, "_operation_deadline", None) or (time.monotonic() + self.timeout)
+            peak_memory = _process_peak_working_set_bytes(process)
+            while True:
+                remaining = deadline - time.monotonic()
+                try:
+                    stdout, stderr = process.communicate(
+                        pending_input, timeout=max(0.001, min(0.05, remaining))
+                    )
+                    break
+                except subprocess.TimeoutExpired:
+                    pending_input = None
+                    current_memory = _process_peak_working_set_bytes(process)
+                    if current_memory is not None:
+                        peak_memory = max(peak_memory or 0, current_memory)
+                    if time.monotonic() >= deadline:
+                        raise
         except FileNotFoundError as exc:
             raise EngineUnavailableError(f"unable to start Rust engine {self.engine}: {exc}") from exc
         except subprocess.TimeoutExpired as exc:
             process.kill()
             process.communicate()
+            if request.get("operation") == "work.propose":
+                key = request.get("params", {}).get("idempotency_key")
+                raise OperationOutcomeUnknownError(
+                    request["operation"],
+                    key if isinstance(key, str) else None,
+                    f"engine deadline of {self.timeout:g}s expired",
+                ) from exc
             raise EngineProtocolError(
                 f"Rust engine timed out after {self.timeout:g}s during {request['operation']}"
             ) from exc
         except OSError as exc:
             raise EngineProtocolError(f"unable to start Rust engine {self.engine}: {exc}") from exc
 
-        response = self._decode_response(stdout, stderr, request["request_id"])
-        self._verify_response(response, request["operation"], request["request_id"])
+        current_memory = _process_peak_working_set_bytes(process)
+        if current_memory is not None:
+            peak_memory = max(peak_memory or 0, current_memory)
+        try:
+            response = self._decode_response(stdout, stderr, request["request_id"])
+            self._verify_response(response, request["operation"], request["request_id"])
+        except EngineProtocolError as exc:
+            if request.get("operation") != "work.propose":
+                raise
+            key = request.get("params", {}).get("idempotency_key")
+            raise OperationOutcomeUnknownError(
+                request["operation"],
+                key if isinstance(key, str) else None,
+                str(exc),
+            ) from exc
+        self._last_peak_working_set_bytes = peak_memory
         if process.returncode != 0 and response.get("ok"):
             detail = stderr.strip() or "engine exited unsuccessfully"
             raise EngineProtocolError(f"Rust engine failed after a successful response: {detail}")
@@ -770,6 +889,51 @@ class EngineClient:
             )
 
 
+def _process_peak_working_set_bytes(process: subprocess.Popen[str]) -> int | None:
+    """Read a bounded OS-reported high-water mark without spawning another process."""
+    if os.name == "nt":
+        try:
+            import ctypes
+            from ctypes import wintypes
+
+            handle = getattr(process, "_handle", None)
+            if not isinstance(handle, int):
+                return None
+
+            class ProcessMemoryCounters(ctypes.Structure):
+                _fields_ = [
+                    ("cb", wintypes.DWORD),
+                    ("PageFaultCount", wintypes.DWORD),
+                    ("PeakWorkingSetSize", ctypes.c_size_t),
+                    ("WorkingSetSize", ctypes.c_size_t),
+                    ("QuotaPeakPagedPoolUsage", ctypes.c_size_t),
+                    ("QuotaPagedPoolUsage", ctypes.c_size_t),
+                    ("QuotaPeakNonPagedPoolUsage", ctypes.c_size_t),
+                    ("QuotaNonPagedPoolUsage", ctypes.c_size_t),
+                    ("PagefileUsage", ctypes.c_size_t),
+                    ("PeakPagefileUsage", ctypes.c_size_t),
+                    ("PrivateUsage", ctypes.c_size_t),
+                ]
+
+            counters = ProcessMemoryCounters()
+            counters.cb = ctypes.sizeof(counters)
+            psapi = ctypes.WinDLL("psapi", use_last_error=True)
+            ok = psapi.GetProcessMemoryInfo(
+                handle, ctypes.byref(counters), counters.cb
+            )
+            return int(counters.PeakWorkingSetSize) if ok else None
+        except Exception:
+            return None
+    if sys.platform.startswith("linux"):
+        try:
+            for line in Path(f"/proc/{process.pid}/status").read_text().splitlines():
+                if line.startswith("VmHWM:"):
+                    return int(line.split()[1]) * 1024
+        except (OSError, ValueError, IndexError):
+            return None
+    return None
+
+
 def client() -> EngineClient:
     return EngineClient()
 
@@ -815,15 +979,47 @@ def validated_mutation_result(response: dict[str, Any]) -> dict[str, Any]:
     if "diagnostics" not in response:
         if diagnostics:
             raise EngineProtocolError("Rust engine omitted non-empty top-level mutation diagnostics")
-    elif not isinstance(top_level, list) or top_level != diagnostics:
-        raise EngineProtocolError("Rust engine mutation diagnostics are inconsistent")
-    if any(not isinstance(item, dict) or item.get("severity") not in {"error", "warning", "info"}
-           for item in diagnostics):
+    elif not isinstance(top_level, list):
+        raise EngineProtocolError("Rust engine mutation diagnostics are malformed")
+    if any(not isinstance(item, dict) for item in diagnostics):
         raise EngineProtocolError("Rust engine mutation returned malformed diagnostics")
-    has_errors = any(item["severity"] == "error" for item in diagnostics)
+    if "diagnostics" in response and any(not isinstance(item, dict) for item in top_level):
+        raise EngineProtocolError("Rust engine mutation returned malformed top-level diagnostics")
+    if "diagnostics" in response and _normalized_mutation_diagnostics(top_level) != _normalized_mutation_diagnostics(diagnostics):
+        raise EngineProtocolError("Rust engine mutation diagnostics are inconsistent")
+    has_errors = any(
+        item.get("severity", "error" if item.get("blocking", True) else "warning") == "error"
+        for item in diagnostics
+    )
     if result["success"] != (not has_errors):
         raise EngineProtocolError("Rust engine mutation success conflicts with its diagnostics")
     return result
+
+
+def _normalized_mutation_diagnostics(items: list[dict[str, Any]]) -> list[tuple[Any, ...]]:
+    normalized = []
+    for item in items:
+        if not isinstance(item.get("code"), str) or not isinstance(item.get("message"), str):
+            raise EngineProtocolError("Rust engine mutation returned malformed diagnostic identity")
+        if item.get("path") is not None and not isinstance(item.get("path"), str):
+            raise EngineProtocolError("Rust engine mutation returned malformed diagnostic path")
+        severity = item.get("severity")
+        blocking = item.get("blocking")
+        if severity is None:
+            severity = "error" if blocking is not False else "warning"
+        if severity not in {"error", "warning", "info"}:
+            raise EngineProtocolError("Rust engine mutation returned an unknown diagnostic severity")
+        if blocking is not None and type(blocking) is not bool:
+            raise EngineProtocolError("Rust engine mutation returned malformed blocking state")
+        if blocking is not None and blocking != (severity == "error"):
+            raise EngineProtocolError("Rust engine mutation severity conflicts with blocking state")
+        related = item.get("related_records", [])
+        if not isinstance(related, list) or any(not isinstance(value, str) for value in related):
+            raise EngineProtocolError("Rust engine mutation returned malformed related records")
+        normalized.append((
+            item.get("code"), severity, item.get("message"), item.get("path"), tuple(related)
+        ))
+    return normalized
 
 
 def render_validation(response: dict[str, Any]) -> int:

@@ -9,16 +9,17 @@ use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 #[cfg(test)]
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::time::{Instant, SystemTime, UNIX_EPOCH};
 
 use repopact_repository::{
     path_string, resolve_within_root, IndexedRecord, RecordIndex, Repository, RepositorySnapshot,
     RepositoryTopology, STATUSES,
 };
 use repopact_schema::SchemaStore;
-#[cfg(test)]
-use repopact_types::Severity;
-use repopact_types::{Diagnostic, LifecycleStatus, ValidationReport, WorkItem};
+
+use repopact_types::{
+    Diagnostic, LifecycleStatus, RecordKind, RecordRef, Severity, ValidationReport, WorkItem,
+};
 use serde_json::{Map, Value};
 
 const REQUIRED_WORK_FIELDS: [&str; 9] = [
@@ -50,6 +51,167 @@ pub fn validate(root: impl AsRef<Path>) -> ValidationReport {
 /// validation boundary.
 pub fn validate_snapshot(snapshot: &RepositorySnapshot) -> ValidationReport {
     Validator::from_snapshot(snapshot).validate()
+}
+
+/// Timing and bounded-work counters for the proposal admission boundary.
+/// Full repository validation remains the canonical assurance operation.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct ProposalValidationMetrics {
+    pub authority_ms: u128,
+    pub work_schema_ms: u128,
+    pub dependency_graph_ms: u128,
+    pub maintenance_ms: u128,
+    pub records_examined: usize,
+    pub source_files_read: usize,
+}
+
+/// Validate the integrity and authorization boundary required to add one
+/// proposed work item. Unrelated repository maintenance findings remain visible
+/// as warnings; work-ledger integrity, scope authorization, and dependency
+/// invariants remain blocking.
+pub fn validate_proposal_candidate_detailed(
+    snapshot: &RepositorySnapshot,
+    candidate_path: impl AsRef<Path>,
+    candidate: Value,
+    readme: String,
+) -> (ValidationReport, ProposalValidationMetrics) {
+    let candidate_path = candidate_path.as_ref().to_path_buf();
+    let candidate_directory = candidate_path
+        .parent()
+        .unwrap_or_else(|| Path::new("work/proposed"))
+        .to_path_buf();
+    let mut validator = Validator::from_snapshot(snapshot);
+
+    let authority_started = Instant::now();
+    validator.report_unsupported_surfaces();
+    validator.validate_contracts();
+    validator.validate_invariants();
+    validator.validate_frozen_surface();
+    let (owner_scopes, enforce_disjoint) = validator.validate_owners();
+    let authority_ms = authority_started.elapsed().as_millis();
+
+    let id = candidate
+        .get("id")
+        .and_then(Value::as_str)
+        .unwrap_or("candidate")
+        .to_owned();
+    let relative = snapshot.repository().relative_path(&candidate_path);
+    let candidate_relative_directory = snapshot.repository().relative_path(&candidate_directory);
+    let readme_path = candidate_directory.join("README.md");
+    validator.index.work_items.push(IndexedRecord {
+        reference: RecordRef::new(RecordKind::WorkItem, id, relative.clone()),
+        path: candidate_path.clone(),
+        value: Ok(candidate),
+        text: Some(readme.clone()),
+        front_matter: Err("not Markdown".to_owned()),
+    });
+    validator
+        .index
+        .work_directories
+        .push(candidate_directory.clone());
+    validator.index.text_files.insert(readme_path, readme);
+
+    let work_validation_start = validator.diagnostics.len();
+    validator.validate_work(&owner_scopes, enforce_disjoint);
+    validator.validate_orphan_work_dirs();
+    for diagnostic in &mut validator.diagnostics[work_validation_start..] {
+        let affects_candidate = diagnostic
+            .path
+            .as_deref()
+            .is_some_and(|path| path == candidate_relative_directory || path == relative);
+        if !affects_candidate && !proposal_global_work_blocker(&diagnostic.code) {
+            diagnostic.severity = Severity::Warning;
+            diagnostic.message = format!(
+                "unrelated work-ledger finding (non-blocking for proposal admission): {}",
+                diagnostic.message
+            );
+        }
+    }
+    // Canonical evidence and assurance references plus sensitive-evidence
+    // guardrails remain critical even when unrelated repository audits are
+    // operation-scoped away.
+    validator.validate_evidence();
+    validator.validate_assurance_mappings();
+    validator.validate_sensitive_evidence();
+    let critical_count = validator.diagnostics.len();
+
+    // Keep proposal admission bounded to its authority and integrity boundary.
+    // Full release, verification, graph, adoption,
+    // research, and documentation audits remain available through validate.
+    // These three small freshness projections are useful to an operator but do
+    // not veto low-authority intent recording.
+    let maintenance_started = Instant::now();
+    validator.validate_proposal_review_freshness();
+    validator.validate_audit_registry();
+    validator.validate_dashboard();
+    let maintenance_ms = maintenance_started.elapsed().as_millis();
+    for diagnostic in &mut validator.diagnostics[critical_count..] {
+        if proposal_maintenance_is_nonblocking(&diagnostic.code) {
+            diagnostic.severity = Severity::Warning;
+        }
+    }
+    validator.diagnostics.sort_by(|left, right| {
+        (left.path.as_deref(), &left.code, &left.message).cmp(&(
+            right.path.as_deref(),
+            &right.code,
+            &right.message,
+        ))
+    });
+    let metrics = ProposalValidationMetrics {
+        authority_ms,
+        work_schema_ms: validator.work_schema_ms,
+        dependency_graph_ms: validator.dependency_graph_ms,
+        maintenance_ms,
+        records_examined: snapshot.index().work_items.len()
+            + snapshot.index().evidence.len()
+            + snapshot.index().decisions.len()
+            + snapshot.index().policies.len()
+            + snapshot.index().contracts.len()
+            + snapshot.index().work_directories.len()
+            + snapshot.index().assurance_mappings.len()
+            + snapshot.index().audit_findings.len()
+            + usize::from(snapshot.index().owners.is_some())
+            + usize::from(snapshot.index().invariants.is_some())
+            + usize::from(snapshot.index().frozen_surface.is_some())
+            + usize::from(snapshot.index().audit_registry.is_some())
+            + usize::from(snapshot.index().dashboard.is_some())
+            + usize::from(snapshot.index().adopters.is_some())
+            + usize::from(snapshot.index().research_metadata.is_some()),
+        source_files_read: snapshot.index().source_paths.len(),
+    };
+    (
+        ValidationReport {
+            diagnostics: validator.diagnostics,
+        },
+        metrics,
+    )
+}
+
+fn proposal_maintenance_is_nonblocking(code: &str) -> bool {
+    matches!(
+        code,
+        "dashboard.missing" | "dashboard.stale" | "audit-registry.freshness-expired"
+    )
+}
+fn proposal_global_work_blocker(code: &str) -> bool {
+    matches!(
+        code,
+        "work.json-invalid"
+            | "work.fields-missing"
+            | "work.record-unreadable"
+            | "work.id-invalid"
+            | "work.duplicate-id"
+            | "work.directory-id-mismatch"
+            | "work.status-directory-mismatch"
+            | "work.unknown-owner-scope"
+            | "work.unknown-affected-scope"
+            | "work.unknown-dependency"
+            | "work.unknown-evidence"
+            | "work.documentation-impact-unknown-evidence"
+            | "work.proposed-dependency"
+            | "work.dependency-cycle"
+            | "work.active-scope-conflict"
+    )
 }
 
 /// Compute the deterministic, read-only assurance-mapping review snapshot
@@ -96,6 +258,30 @@ pub fn render_dashboard_snapshot(snapshot: &RepositorySnapshot) -> Result<String
         .ok_or_else(|| "unable to render dashboard from repository source records".to_owned())
 }
 
+/// Render the next dashboard projection from the current immutable snapshot
+/// plus one candidate work item that has just crossed its atomic commit point.
+/// This is a narrow derived-state refresh; it does not run full validation.
+pub fn render_dashboard_snapshot_with_work_item(
+    snapshot: &RepositorySnapshot,
+    candidate_path: impl AsRef<Path>,
+    candidate: Value,
+) -> Result<String, String> {
+    let mut validator = Validator::from_snapshot(snapshot);
+    validator.work = loaded_work(snapshot.index());
+    if validator.work.iter().any(|record| record.item.is_none()) {
+        return Err("unable to render dashboard from malformed work-item records".to_owned());
+    }
+    let item = serde_json::from_value::<WorkItem>(candidate)
+        .map_err(|error| format!("unable to render dashboard from proposal: {error}"))?;
+    validator.work.push(LoadedWork {
+        path: candidate_path.as_ref().to_path_buf(),
+        item: Some(item),
+    });
+    validator
+        .generate_dashboard()
+        .ok_or_else(|| "unable to render dashboard from repository source records".to_owned())
+}
+
 pub struct Validator {
     repository: Repository,
     topology: RepositoryTopology,
@@ -109,6 +295,8 @@ pub struct Validator {
     /// expiry, overridable so tests are not wall-clock-dependent; `None`
     /// means production behavior (the real current date via `today_utc()`).
     today: Option<String>,
+    work_schema_ms: u128,
+    dependency_graph_ms: u128,
 }
 
 impl Validator {
@@ -144,6 +332,8 @@ impl Validator {
             evidence_ids,
             work_ids: BTreeSet::new(),
             today: None,
+            work_schema_ms: 0,
+            dependency_graph_ms: 0,
         }
     }
 
@@ -591,7 +781,9 @@ impl Validator {
                 ));
                 continue;
             }
+            let schema_started = Instant::now();
             self.extend_schema(&data, "work-item.schema.json", &record.path);
+            self.work_schema_ms += schema_started.elapsed().as_millis();
             let item: WorkItem = match serde_json::from_value(data.clone()) {
                 Ok(item) => item,
                 Err(error) => {
@@ -795,6 +987,7 @@ impl Validator {
                 item: Some(item),
             });
         }
+        let graph_started = Instant::now();
         let status_by_id = self
             .work
             .iter()
@@ -834,6 +1027,7 @@ impl Validator {
         if enforce_disjoint {
             self.validate_disjoint_scopes();
         }
+        self.dependency_graph_ms += graph_started.elapsed().as_millis();
     }
 
     fn preflight_config(&self) -> Value {

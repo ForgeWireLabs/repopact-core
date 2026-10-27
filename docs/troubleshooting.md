@@ -91,3 +91,8 @@ Read `AGENTS.md`, the active Work Item, linked decisions, and its latest
 evidence. Source records in the repository remain authoritative after a shell,
 machine, or contributor changes; the dashboard and graph can be regenerated
 when stale.
+
+For a defective engine or unknown proposal outcome, follow the [governance
+recovery guide](guides/governance-recovery.md). It explains how to check a
+proposal receipt and continue unaffected authorized development without
+claiming admission or approval.

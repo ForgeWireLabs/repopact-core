@@ -1,7 +1,10 @@
 use std::collections::{BTreeMap, BTreeSet};
-use std::fs;
+use std::fs::{self, File, OpenOptions};
+use std::io::Write;
 use std::path::{Path, PathBuf};
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::sync::{Condvar, Mutex, OnceLock};
+use std::thread;
+use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 use repopact_graph::{GraphEdge, RepositoryGraph};
 use repopact_repository::{path_string, Repository, RepositorySnapshot};
@@ -31,6 +34,8 @@ pub struct CreateWorkItem {
     /// preflight contract. Missing values fail closed for older callers.
     #[serde(default)]
     pub preflight_confirmed_before_work_started: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub idempotency_key: Option<String>,
 }
 
 impl CreateWorkItem {
@@ -45,6 +50,7 @@ impl CreateWorkItem {
             provenance: "concrete".to_owned(),
             acceptance_criteria: Vec::new(),
             preflight_confirmed_before_work_started: false,
+            idempotency_key: None,
         }
     }
 
@@ -70,6 +76,10 @@ impl CreateWorkItem {
     }
     pub fn confirm_preflight_before_work_started(mut self) -> Self {
         self.preflight_confirmed_before_work_started = true;
+        self
+    }
+    pub fn with_idempotency_key(mut self, key: impl Into<String>) -> Self {
+        self.idempotency_key = Some(key.into());
         self
     }
 }
@@ -223,6 +233,8 @@ pub struct MutationPlan {
     pub graph_impacts: Vec<GraphEdge>,
     pub diagnostics: Vec<MutationDiagnostic>,
     pub preview: String,
+    #[serde(default)]
+    pub metrics: MutationMetrics,
 }
 
 impl MutationPlan {
@@ -281,6 +293,31 @@ pub struct MutationResult {
     pub plan_token: String,
     pub changed_paths: Vec<String>,
     pub diagnostics: Vec<MutationDiagnostic>,
+    #[serde(default)]
+    pub replayed: bool,
+    #[serde(default)]
+    pub metrics: MutationMetrics,
+}
+
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub struct MutationMetrics {
+    pub snapshot_ms: u128,
+    pub planning_ms: u128,
+    pub engine_execution_ms: u128,
+    pub proposal_lock_wait_ms: u128,
+    pub idempotency_lookup_ms: u128,
+    pub stale_check_ms: u128,
+    pub critical_validation_ms: u128,
+    pub authority_checks_ms: u128,
+    pub work_schema_ms: u128,
+    pub dependency_graph_ms: u128,
+    pub maintenance_diagnostics_ms: u128,
+    pub filesystem_staging_ms: u128,
+    pub atomic_commit_ms: u128,
+    pub dashboard_regeneration_ms: u128,
+    pub records_examined: usize,
+    pub source_files_read: usize,
+    pub external_integrations_ms: u128,
 }
 
 pub fn plan(snapshot: &RepositorySnapshot, request: MutationRequest) -> MutationPlan {
@@ -299,6 +336,7 @@ pub fn plan_at(
     let mut diagnostics = Vec::new();
     let mut operations = Vec::new();
     let mut extra_absent = Vec::new();
+    let mut metrics = MutationMetrics::default();
     let request_for_graph = request.clone();
 
     if has_wi050_surface(repository.root()) {
@@ -459,21 +497,124 @@ pub fn plan_at(
         return empty_plan(snapshot, request.clone(), diagnostics);
     }
 
-    let dashboard = validate_candidate(repository.root(), &operations);
-    match dashboard {
-        Ok((content, candidate_diagnostics)) => {
-            operations.push(PathOperation::Write {
-                path: "audits/reports/dashboard.md".to_owned(),
-                content: platform_text(&content),
-            });
-            diagnostics.extend(candidate_diagnostics);
+    let proposal = match &request {
+        MutationRequest::CreateWorkItem(item) if item.status == "proposed" => Some(item),
+        _ => None,
+    };
+    if let Some(proposal) = proposal {
+        let Some(key) = proposal.idempotency_key.as_deref() else {
+            diagnostics.push(MutationDiagnostic::error(
+                "work.proposal-key-required",
+                "work.propose requires an idempotency key so retries can be resolved safely",
+            ));
+            return empty_plan(snapshot, request, diagnostics);
+        };
+        if key.trim().is_empty() || key.trim() != key || key.len() > 128 {
+            diagnostics.push(MutationDiagnostic::error(
+                "work.proposal-key-invalid",
+                "proposal idempotency key must contain 1 to 128 non-whitespace characters",
+            ));
+            return empty_plan(snapshot, request, diagnostics);
         }
-        Err(error) => diagnostics.push(MutationDiagnostic::error(
-            "mutation.dashboard-render",
-            error,
-        )),
+        let Some((manifest_path, manifest)) =
+            operations.iter().find_map(|operation| match operation {
+                PathOperation::Write { path, content } if path.ends_with("/work-item.json") => {
+                    Some((path.clone(), content.clone()))
+                }
+                _ => None,
+            })
+        else {
+            diagnostics.push(MutationDiagnostic::error(
+                "work.proposal-candidate-missing",
+                "proposal plan did not produce a work-item manifest",
+            ));
+            return empty_plan(snapshot, request, diagnostics);
+        };
+        let Some((_, readme)) = operations.iter().find_map(|operation| match operation {
+            PathOperation::Write { path, content } if path.ends_with("/README.md") => {
+                Some((path.clone(), content.clone()))
+            }
+            _ => None,
+        }) else {
+            diagnostics.push(MutationDiagnostic::error(
+                "work.proposal-readme-missing",
+                "proposal plan did not produce a narrative README",
+            ));
+            return empty_plan(snapshot, request, diagnostics);
+        };
+        let manifest_value = match serde_json::from_str::<Value>(&manifest) {
+            Ok(value) => value,
+            Err(error) => {
+                diagnostics.push(MutationDiagnostic::error(
+                    "work.proposal-manifest-invalid",
+                    format!("generated proposal manifest is not valid JSON: {error}"),
+                ));
+                return empty_plan(snapshot, request, diagnostics);
+            }
+        };
+        let directory = Path::new(&manifest_path)
+            .parent()
+            .map(path_string)
+            .unwrap_or_default();
+        let receipt = proposal_receipt(proposal, key, &manifest_value);
+        let receipt_path = format!("{directory}/proposal-receipt.json");
+        operations.push(PathOperation::Write {
+            path: receipt_path.clone(),
+            content: canonical_json(&receipt),
+        });
+        extra_absent.push(receipt_path);
+        let validation_started = Instant::now();
+        let (validation, validation_metrics) =
+            repopact_validation::validate_proposal_candidate_detailed(
+                snapshot,
+                repository.root().join(&manifest_path),
+                manifest_value,
+                readme,
+            );
+        metrics.critical_validation_ms = validation_started.elapsed().as_millis();
+        metrics.authority_checks_ms = validation_metrics.authority_ms;
+        metrics.work_schema_ms = validation_metrics.work_schema_ms;
+        metrics.dependency_graph_ms = validation_metrics.dependency_graph_ms;
+        metrics.maintenance_diagnostics_ms = validation_metrics.maintenance_ms;
+        metrics.records_examined = validation_metrics.records_examined;
+        metrics.source_files_read = validation_metrics.source_files_read;
+        for diagnostic in validation.diagnostics {
+            diagnostics.push(MutationDiagnostic {
+                code: diagnostic.code,
+                message: diagnostic.message,
+                path: diagnostic.path,
+                blocking: diagnostic.severity == Severity::Error,
+                related_records: diagnostic.related_records.unwrap_or_default(),
+            });
+        }
+    } else {
+        let dashboard = validate_candidate(repository.root(), &operations);
+        match dashboard {
+            Ok((content, candidate_diagnostics)) => {
+                operations.push(PathOperation::Write {
+                    path: "audits/reports/dashboard.md".to_owned(),
+                    content: platform_text(&content),
+                });
+                diagnostics.extend(candidate_diagnostics);
+            }
+            Err(error) => diagnostics.push(MutationDiagnostic::error(
+                "mutation.dashboard-render",
+                error,
+            )),
+        }
     }
     let mut read_facts = snapshot.read_set().facts.clone();
+    if matches!(&request, MutationRequest::CreateWorkItem(_)) {
+        // ID allocation and global work-ledger checks depend on the complete
+        // lifecycle inventory, including work items added after this snapshot.
+        for status in LifecycleStatus::ALL {
+            let relative = format!("work/{status}");
+            read_facts.push(ReadFact {
+                expected: repository.path_state(&repository.root().join(&relative)),
+                path: relative,
+            });
+        }
+    }
     for relative in extra_absent {
         let path = repository.root().join(&relative);
         read_facts.push(ReadFact {
@@ -482,7 +623,12 @@ pub fn plan_at(
         });
     }
     let read_set = ReadSet::new(read_facts);
-    let graph = RepositoryGraph::build(snapshot);
+    let graph_impacts = if matches!(request, MutationRequest::CreateWorkItem(_)) {
+        Vec::new()
+    } else {
+        let graph = RepositoryGraph::build(snapshot);
+        graph_impacts(&graph, &request_for_graph)
+    };
     let mut plan = MutationPlan {
         repository_identity: identity.clone(),
         plan_token: read_set.token(&identity),
@@ -491,8 +637,9 @@ pub fn plan_at(
         generated_impacts: impacts(repository, &operations),
         preview: preview(&operations),
         file_operations: operations,
-        graph_impacts: graph_impacts(&graph, &request_for_graph),
+        graph_impacts,
         diagnostics,
+        metrics,
     };
     add_frozen_diagnostics(snapshot, &mut plan);
     plan.diagnostics.sort_by(|left, right| {
@@ -514,6 +661,590 @@ pub fn plan_mutation(snapshot: &RepositorySnapshot, request: MutationRequest) ->
     plan(snapshot, request)
 }
 
+/// Look up visible receipt state without changing the repository. `None` means
+/// no matching receipt is present; it cannot prove that a prior commit never
+/// occurred if receipt state was later removed.
+pub fn proposal_status(root: impl AsRef<Path>, key: &str) -> Result<Option<Value>, String> {
+    validate_idempotency_key(key)?;
+    read_proposal_receipt(root.as_ref(), key)
+}
+
+/// Create a proposal from one authoritative snapshot while holding the
+/// cross-process proposal lock. The work directory rename is the commit point.
+pub fn propose_work_item(root: impl AsRef<Path>, mut request: CreateWorkItem) -> MutationResult {
+    request.status = "proposed".to_owned();
+    let mut result = empty_result();
+    let Some(key) = request.idempotency_key.as_deref() else {
+        result.diagnostics.push(MutationDiagnostic::error(
+            "work.proposal-key-required",
+            "work.propose requires an idempotency key so retries can be resolved safely",
+        ));
+        return result;
+    };
+    if let Err(error) = validate_idempotency_key(key) {
+        result.diagnostics.push(MutationDiagnostic::error(
+            "work.proposal-key-invalid",
+            error,
+        ));
+        return result;
+    }
+    if !request.preflight_confirmed_before_work_started {
+        result.diagnostics.push(MutationDiagnostic::error(
+            "mutation.preflight-unconfirmed",
+            "explicit operator confirmation is required before recording proposed work",
+        ));
+        return result;
+    }
+
+    let repository = Repository::open(root);
+    let lock_started = Instant::now();
+    let _lock = match RepositoryMutationLock::acquire(repository.root()) {
+        Ok(lock) => lock,
+        Err(error) => {
+            result.metrics.proposal_lock_wait_ms = lock_started.elapsed().as_millis();
+            result.diagnostics.push(MutationDiagnostic::error(
+                "work.proposal-lock-timeout",
+                error,
+            ));
+            return result;
+        }
+    };
+    result.metrics.proposal_lock_wait_ms = lock_started.elapsed().as_millis();
+    let cleanup_started = Instant::now();
+    if let Err(error) = ensure_safe_repository_directory(repository.root(), Path::new("work")) {
+        result.metrics.filesystem_staging_ms += cleanup_started.elapsed().as_millis();
+        result.diagnostics.push(MutationDiagnostic::error(
+            "work.proposal-stage-cleanup-failed",
+            error,
+        ));
+        return result;
+    }
+    if let Err(error) =
+        ensure_safe_repository_directory(repository.root(), Path::new("work/proposed"))
+    {
+        result.metrics.filesystem_staging_ms += cleanup_started.elapsed().as_millis();
+        result.diagnostics.push(MutationDiagnostic::error(
+            "work.proposal-stage-cleanup-failed",
+            error,
+        ));
+        return result;
+    }
+    if let Err(error) = clean_stale_proposal_staging(repository.root()) {
+        result.metrics.filesystem_staging_ms += cleanup_started.elapsed().as_millis();
+        result.diagnostics.push(MutationDiagnostic::error(
+            "work.proposal-stage-cleanup-failed",
+            error,
+        ));
+        return result;
+    }
+    result.metrics.filesystem_staging_ms += cleanup_started.elapsed().as_millis();
+    let receipt_started = Instant::now();
+    let receipt = resolve_proposal_receipt(repository.root(), key, &request, &mut result);
+    result.metrics.idempotency_lookup_ms = receipt_started.elapsed().as_millis();
+    match receipt {
+        Ok(false) => return result,
+        Ok(true) => {}
+        Err(error) => {
+            result.diagnostics.push(MutationDiagnostic::error(
+                "work.proposal-receipt-read-failed",
+                error,
+            ));
+            return result;
+        }
+    }
+    let snapshot_started = Instant::now();
+    let snapshot = repository.session().snapshot();
+    result.metrics.snapshot_ms = snapshot_started.elapsed().as_millis();
+    let planning_started = Instant::now();
+    let plan = plan(&snapshot, MutationRequest::create_work_item(request));
+    result.metrics.planning_ms = planning_started.elapsed().as_millis();
+    result.metrics.critical_validation_ms = plan.metrics.critical_validation_ms;
+    result.metrics.authority_checks_ms = plan.metrics.authority_checks_ms;
+    result.metrics.work_schema_ms = plan.metrics.work_schema_ms;
+    result.metrics.dependency_graph_ms = plan.metrics.dependency_graph_ms;
+    result.metrics.maintenance_diagnostics_ms = plan.metrics.maintenance_diagnostics_ms;
+    result.metrics.records_examined = plan.metrics.records_examined;
+    result.metrics.source_files_read = plan.metrics.source_files_read;
+    result.plan_token = plan.plan_token.clone();
+    result.diagnostics = plan.diagnostics.clone();
+    if !plan.is_applicable() {
+        return result;
+    }
+    commit_proposal_locked(
+        &repository,
+        &plan,
+        &snapshot,
+        &ApplyOptions::default(),
+        result,
+    )
+}
+
+fn empty_result() -> MutationResult {
+    MutationResult {
+        success: false,
+        rolled_back: false,
+        plan_token: String::new(),
+        changed_paths: Vec::new(),
+        diagnostics: Vec::new(),
+        replayed: false,
+        metrics: MutationMetrics::default(),
+    }
+}
+
+fn validate_idempotency_key(key: &str) -> Result<(), String> {
+    if key.is_empty() || key.trim() != key || key.len() > 128 {
+        Err("proposal idempotency key must contain 1 to 128 non-whitespace characters".to_owned())
+    } else {
+        Ok(())
+    }
+}
+
+fn proposal_payload_digest(request: &CreateWorkItem) -> String {
+    let payload = serde_json::json!({
+        "title": request.title,
+        "owner_scope": request.owner_scope,
+        "affected_scopes": request.affected_scopes,
+        "depends_on": request.depends_on,
+        "provenance": request.provenance,
+        "acceptance_criteria": request.acceptance_criteria,
+    });
+    let bytes = serde_json::to_vec(&payload).unwrap_or_default();
+    hex_digest(&Sha256::digest(bytes))
+}
+
+fn proposal_receipt(request: &CreateWorkItem, key: &str, manifest: &Value) -> Value {
+    let id = manifest
+        .get("id")
+        .and_then(Value::as_str)
+        .unwrap_or_default();
+    serde_json::json!({
+        "format_version": 1,
+        "idempotency_key": key,
+        "request_digest": proposal_payload_digest(request),
+        "work_item_id": id,
+        "work_item_path": format!("work/proposed/{id}-{}", slugify(&request.title)),
+    })
+}
+
+fn resolve_proposal_receipt(
+    root: &Path,
+    key: &str,
+    request: &CreateWorkItem,
+    result: &mut MutationResult,
+) -> Result<bool, String> {
+    let Some(receipt) = read_proposal_receipt(root, key)? else {
+        return Ok(true);
+    };
+    let expected = proposal_payload_digest(request);
+    if receipt.get("request_digest").and_then(Value::as_str) != Some(expected.as_str()) {
+        result.diagnostics.push(MutationDiagnostic::error(
+            "work.proposal-key-conflict",
+            "this idempotency key is already bound to a different proposal payload",
+        ));
+        return Ok(false);
+    }
+    let path = receipt
+        .get("current_work_item_path")
+        .or_else(|| receipt.get("work_item_path"))
+        .and_then(Value::as_str)
+        .unwrap_or("work/proposed");
+    result.success = true;
+    result.replayed = true;
+    result.changed_paths = vec![format!("{path}/work-item.json")];
+    Ok(false)
+}
+
+fn read_proposal_receipt(root: &Path, key: &str) -> Result<Option<Value>, String> {
+    let mut found: Option<Value> = None;
+    let mut visited = 0usize;
+    for status in LifecycleStatus::ALL {
+        let directory = root.join("work").join(status);
+        let metadata = match fs::symlink_metadata(&directory) {
+            Ok(metadata) => metadata,
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => continue,
+            Err(error) => {
+                return Err(format!(
+                    "unable to inspect {} work directory: {error}",
+                    status
+                ))
+            }
+        };
+        if !metadata.file_type().is_dir() || metadata.file_type().is_symlink() {
+            return Err(format!("{} work path is not a regular directory", status));
+        }
+        let entries = match fs::read_dir(&directory) {
+            Ok(entries) => entries,
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => continue,
+            Err(error) => return Err(format!("unable to inspect {} work items: {error}", status)),
+        };
+        for entry in entries {
+            let entry =
+                entry.map_err(|error| format!("unable to enumerate work items: {error}"))?;
+            if !entry.file_type().map(|kind| kind.is_dir()).unwrap_or(false) {
+                continue;
+            }
+            visited += 1;
+            if visited > 100_000 {
+                return Err(
+                    "work tree exceeds the 100000-directory proposal lookup bound".to_owned(),
+                );
+            }
+            let path = entry.path().join("proposal-receipt.json");
+            let metadata = match fs::symlink_metadata(&path) {
+                Ok(metadata) => metadata,
+                Err(error) if error.kind() == std::io::ErrorKind::NotFound => continue,
+                Err(error) => {
+                    return Err(format!(
+                        "unable to inspect proposal receipt {}: {error}",
+                        path.display()
+                    ))
+                }
+            };
+            if !metadata.file_type().is_file() || metadata.file_type().is_symlink() {
+                return Err(format!(
+                    "proposal receipt {} is not a regular file",
+                    path.display()
+                ));
+            }
+            if metadata.len() > 65_536 {
+                return Err(format!(
+                    "proposal receipt {} exceeds the 64 KiB read bound",
+                    path.display()
+                ));
+            }
+            let bytes = fs::read(&path).map_err(|error| {
+                format!(
+                    "unable to read proposal receipt {}: {error}",
+                    path.display()
+                )
+            })?;
+            let value: Value = serde_json::from_slice(&bytes)
+                .map_err(|error| format!("invalid proposal receipt {}: {error}", path.display()))?;
+            let receipt_key = value
+                .get("idempotency_key")
+                .and_then(Value::as_str)
+                .ok_or_else(|| {
+                    format!(
+                        "proposal receipt {} has no identifiable idempotency key",
+                        path.display()
+                    )
+                })?;
+            validate_idempotency_key(receipt_key).map_err(|error| {
+                format!(
+                    "proposal receipt {} has an invalid idempotency key: {error}",
+                    path.display()
+                )
+            })?;
+            if receipt_key == key {
+                if value.get("format_version").and_then(Value::as_u64) != Some(1) {
+                    return Err(format!(
+                        "proposal receipt {} has an unsupported format version",
+                        path.display()
+                    ));
+                }
+                let digest = value
+                    .get("request_digest")
+                    .and_then(Value::as_str)
+                    .ok_or_else(|| {
+                        format!("proposal receipt {} has no request digest", path.display())
+                    })?;
+                if digest.len() != 64
+                    || !digest
+                        .bytes()
+                        .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
+                {
+                    return Err(format!(
+                        "proposal receipt {} has an invalid request digest",
+                        path.display()
+                    ));
+                }
+                let receipt_id = value
+                    .get("work_item_id")
+                    .and_then(Value::as_str)
+                    .filter(|id| !id.is_empty())
+                    .ok_or_else(|| {
+                        format!("proposal receipt {} has no work item ID", path.display())
+                    })?;
+                let historical_path = value
+                    .get("work_item_path")
+                    .and_then(Value::as_str)
+                    .ok_or_else(|| {
+                        format!("proposal receipt {} has no work item path", path.display())
+                    })?;
+                let historical = Path::new(historical_path);
+                let components = historical.components().collect::<Vec<_>>();
+                if components.len() != 3
+                    || components[0] != std::path::Component::Normal("work".as_ref())
+                    || !components[1]
+                        .as_os_str()
+                        .to_str()
+                        .is_some_and(|status| LifecycleStatus::ALL.contains(&status))
+                    || components
+                        .iter()
+                        .any(|component| !matches!(component, std::path::Component::Normal(_)))
+                {
+                    return Err(format!(
+                        "proposal receipt {} has an unsafe work item path",
+                        path.display()
+                    ));
+                }
+                let item_path = entry.path().join("work-item.json");
+                let item_metadata = fs::symlink_metadata(&item_path).map_err(|error| {
+                    format!(
+                        "proposal receipt {} has no regular work-item record: {error}",
+                        path.display()
+                    )
+                })?;
+                if !item_metadata.file_type().is_file() || item_metadata.file_type().is_symlink() {
+                    return Err(format!(
+                        "proposal receipt {} has no regular work-item record",
+                        path.display()
+                    ));
+                }
+                let item_bytes = fs::read(&item_path).map_err(|error| {
+                    format!(
+                        "proposal receipt {} has an unreadable work-item record: {error}",
+                        path.display()
+                    )
+                })?;
+                let item: Value = serde_json::from_slice(&item_bytes).map_err(|error| {
+                    format!(
+                        "proposal receipt {} has an invalid work-item record: {error}",
+                        path.display()
+                    )
+                })?;
+                if item.get("id").and_then(Value::as_str) != Some(receipt_id)
+                    || item.get("status").and_then(Value::as_str) != Some(status)
+                {
+                    return Err(format!(
+                        "proposal receipt {} does not match its current work-item record",
+                        path.display()
+                    ));
+                }
+                if found.is_some() {
+                    return Err(format!(
+                        "idempotency key '{key}' appears in more than one proposal receipt"
+                    ));
+                }
+                let mut value = value;
+                if let Some(object) = value.as_object_mut() {
+                    let item_directory = entry.path();
+                    let relative = item_directory
+                        .strip_prefix(root)
+                        .map(path_string)
+                        .unwrap_or_else(|_| path_string(&item_directory));
+                    object.insert("current_work_item_path".to_owned(), Value::String(relative));
+                }
+                found = Some(value);
+            }
+        }
+    }
+    Ok(found)
+}
+
+struct RepositoryMutationLock {
+    file: File,
+    local_key: String,
+    #[cfg(windows)]
+    overlapped: windows_sys::Win32::System::IO::OVERLAPPED,
+}
+
+static LOCAL_REPOSITORY_LOCKS: OnceLock<(Mutex<BTreeSet<String>>, Condvar)> = OnceLock::new();
+
+impl RepositoryMutationLock {
+    fn acquire(root: &Path) -> Result<Self, String> {
+        let identity = root.to_string_lossy().to_ascii_lowercase();
+        let key = hex_digest(Sha256::digest(identity.as_bytes()));
+        let deadline = Instant::now() + Duration::from_secs(2);
+        let (held_keys, changed) =
+            LOCAL_REPOSITORY_LOCKS.get_or_init(|| (Mutex::new(BTreeSet::new()), Condvar::new()));
+        let mut held = held_keys.lock().unwrap_or_else(|error| error.into_inner());
+        while held.contains(&key) {
+            let now = Instant::now();
+            if now >= deadline {
+                return Err("repository mutation lock did not clear within 2000 ms; inspect operation status before retrying".to_owned());
+            }
+            let (next, timeout) = changed
+                .wait_timeout(held, deadline.saturating_duration_since(now))
+                .unwrap_or_else(|error| error.into_inner());
+            held = next;
+            if timeout.timed_out() && held.contains(&key) {
+                return Err("repository mutation lock did not clear within 2000 ms; inspect operation status before retrying".to_owned());
+            }
+        }
+        held.insert(key.clone());
+        drop(held);
+
+        let directory = std::env::temp_dir().join("repopact-proposal-locks");
+        if let Err(error) = fs::create_dir_all(&directory) {
+            release_local_repository_lock(&key);
+            return Err(format!(
+                "unable to prepare proposal lock directory: {error}"
+            ));
+        }
+        let path = directory.join(format!("{key}.lock"));
+        let file = match OpenOptions::new()
+            .read(true)
+            .write(true)
+            .create(true)
+            .truncate(false)
+            .open(&path)
+        {
+            Ok(file) => file,
+            Err(error) => {
+                release_local_repository_lock(&key);
+                return Err(format!("unable to open repository mutation lock: {error}"));
+            }
+        };
+        #[cfg(windows)]
+        let mut overlapped = windows_sys::Win32::System::IO::OVERLAPPED::default();
+        loop {
+            match try_lock_file(
+                &file,
+                #[cfg(windows)]
+                &mut overlapped,
+            ) {
+                Ok(()) => {
+                    return Ok(Self {
+                        file,
+                        local_key: key,
+                        #[cfg(windows)]
+                        overlapped,
+                    });
+                }
+                Err(error) if error.kind() == std::io::ErrorKind::WouldBlock => {
+                    if Instant::now() >= deadline {
+                        release_local_repository_lock(&key);
+                        return Err("repository mutation lock did not clear within 2000 ms; inspect operation status before retrying".to_owned());
+                    }
+                    thread::sleep(Duration::from_millis(20));
+                }
+                Err(error) => {
+                    release_local_repository_lock(&key);
+                    return Err(format!(
+                        "unable to acquire repository mutation lock: {error}"
+                    ));
+                }
+            }
+        }
+    }
+}
+
+impl Drop for RepositoryMutationLock {
+    fn drop(&mut self) {
+        unlock_file(
+            &self.file,
+            #[cfg(windows)]
+            &mut self.overlapped,
+        );
+        release_local_repository_lock(&self.local_key);
+    }
+}
+
+fn release_local_repository_lock(key: &str) {
+    if let Some((held_keys, changed)) = LOCAL_REPOSITORY_LOCKS.get() {
+        let mut held = held_keys.lock().unwrap_or_else(|error| error.into_inner());
+        held.remove(key);
+        changed.notify_all();
+    }
+}
+
+#[cfg(unix)]
+fn try_lock_file(file: &File) -> std::io::Result<()> {
+    use std::os::fd::AsRawFd;
+    let result = unsafe { libc::flock(file.as_raw_fd(), libc::LOCK_EX | libc::LOCK_NB) };
+    if result == 0 {
+        Ok(())
+    } else {
+        Err(std::io::Error::last_os_error())
+    }
+}
+
+#[cfg(unix)]
+fn unlock_file(file: &File) {
+    use std::os::fd::AsRawFd;
+    let _ = unsafe { libc::flock(file.as_raw_fd(), libc::LOCK_UN) };
+}
+
+#[cfg(windows)]
+fn try_lock_file(
+    file: &File,
+    overlapped: &mut windows_sys::Win32::System::IO::OVERLAPPED,
+) -> std::io::Result<()> {
+    use std::os::windows::io::AsRawHandle;
+    use windows_sys::Win32::Storage::FileSystem::{
+        LockFileEx, LOCKFILE_EXCLUSIVE_LOCK, LOCKFILE_FAIL_IMMEDIATELY,
+    };
+    let result = unsafe {
+        LockFileEx(
+            file.as_raw_handle() as windows_sys::Win32::Foundation::HANDLE,
+            LOCKFILE_EXCLUSIVE_LOCK | LOCKFILE_FAIL_IMMEDIATELY,
+            0,
+            1,
+            0,
+            overlapped,
+        )
+    };
+    if result != 0 {
+        Ok(())
+    } else {
+        let error = std::io::Error::last_os_error();
+        if error.raw_os_error() == Some(33) {
+            Err(std::io::Error::from(std::io::ErrorKind::WouldBlock))
+        } else {
+            Err(error)
+        }
+    }
+}
+
+#[cfg(windows)]
+fn unlock_file(file: &File, overlapped: &mut windows_sys::Win32::System::IO::OVERLAPPED) {
+    use std::os::windows::io::AsRawHandle;
+    let _ = unsafe {
+        windows_sys::Win32::Storage::FileSystem::UnlockFileEx(
+            file.as_raw_handle() as windows_sys::Win32::Foundation::HANDLE,
+            0,
+            1,
+            0,
+            overlapped,
+        )
+    };
+}
+
+fn clean_stale_proposal_staging(root: &Path) -> Result<(), String> {
+    let directory = root.join("work/.repopact-transactions");
+    match fs::symlink_metadata(&directory) {
+        Ok(metadata) if metadata.file_type().is_dir() && !metadata.file_type().is_symlink() => {}
+        Ok(_) => return Err("proposal staging path is not a regular directory".to_owned()),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(()),
+        Err(error) => return Err(format!("unable to inspect proposal staging: {error}")),
+    }
+    let entries = match fs::read_dir(&directory) {
+        Ok(entries) => entries,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(()),
+        Err(error) => return Err(format!("unable to inspect proposal staging: {error}")),
+    };
+    let mut removed = 0usize;
+    for entry in entries {
+        let entry =
+            entry.map_err(|error| format!("unable to enumerate proposal staging: {error}"))?;
+        if entry
+            .file_name()
+            .to_string_lossy()
+            .starts_with(".repopact-stage-")
+            && entry.file_type().map(|kind| kind.is_dir()).unwrap_or(false)
+        {
+            fs::remove_dir_all(entry.path())
+                .map_err(|error| format!("unable to remove stale proposal stage: {error}"))?;
+            removed += 1;
+            if removed > 1000 {
+                return Err("proposal staging cleanup exceeded its 1000-directory bound".to_owned());
+            }
+        }
+    }
+    Ok(())
+}
+
 fn empty_plan(
     snapshot: &RepositorySnapshot,
     request: impl Into<MutationRequest>,
@@ -532,6 +1263,7 @@ fn empty_plan(
         graph_impacts: Vec::new(),
         diagnostics,
         preview: String::new(),
+        metrics: MutationMetrics::default(),
     }
 }
 
@@ -964,11 +1696,25 @@ pub fn apply(plan: &MutationPlan, options: &ApplyOptions) -> MutationResult {
         plan_token: plan.plan_token.clone(),
         changed_paths: Vec::new(),
         diagnostics: plan.diagnostics.clone(),
+        replayed: false,
+        metrics: plan.metrics.clone(),
     };
+    if matches!(&plan.request, MutationRequest::CreateWorkItem(item) if item.status == "proposed") {
+        return apply_proposal(plan, options, result);
+    }
     if !plan.is_applicable() {
         return result;
     }
     let repository = Repository::open(&plan.repository_identity.root);
+    let _lock = match RepositoryMutationLock::acquire(repository.root()) {
+        Ok(lock) => lock,
+        Err(error) => {
+            result
+                .diagnostics
+                .push(MutationDiagnostic::error("mutation.lock-timeout", error));
+            return result;
+        }
+    };
     if repository.identity() != plan.repository_identity {
         result.diagnostics.push(MutationDiagnostic::error(
             "mutation.repository-identity",
@@ -1077,6 +1823,440 @@ pub fn apply(plan: &MutationPlan, options: &ApplyOptions) -> MutationResult {
         .into_iter()
         .collect();
     result
+}
+
+fn apply_proposal(
+    plan: &MutationPlan,
+    options: &ApplyOptions,
+    mut result: MutationResult,
+) -> MutationResult {
+    if !plan.is_applicable() {
+        return result;
+    }
+    let request = match &plan.request {
+        MutationRequest::CreateWorkItem(request) => request,
+        _ => return result,
+    };
+    let Some(key) = request.idempotency_key.as_deref() else {
+        result.diagnostics.push(MutationDiagnostic::error(
+            "work.proposal-key-required",
+            "proposal cannot be applied without its idempotency key",
+        ));
+        return result;
+    };
+    if let Err(error) = validate_idempotency_key(key) {
+        result.diagnostics.push(MutationDiagnostic::error(
+            "work.proposal-key-invalid",
+            error,
+        ));
+        return result;
+    }
+    let repository = Repository::open(&plan.repository_identity.root);
+    let lock_started = Instant::now();
+    let _lock = match RepositoryMutationLock::acquire(repository.root()) {
+        Ok(lock) => lock,
+        Err(error) => {
+            result.metrics.proposal_lock_wait_ms = lock_started.elapsed().as_millis();
+            result.diagnostics.push(MutationDiagnostic::error(
+                "work.proposal-lock-timeout",
+                error,
+            ));
+            return result;
+        }
+    };
+    result.metrics.proposal_lock_wait_ms = lock_started.elapsed().as_millis();
+    let cleanup_started = Instant::now();
+    if let Err(error) = ensure_safe_repository_directory(repository.root(), Path::new("work")) {
+        result.metrics.filesystem_staging_ms += cleanup_started.elapsed().as_millis();
+        result.diagnostics.push(MutationDiagnostic::error(
+            "work.proposal-stage-cleanup-failed",
+            error,
+        ));
+        return result;
+    }
+    if let Err(error) =
+        ensure_safe_repository_directory(repository.root(), Path::new("work/proposed"))
+    {
+        result.metrics.filesystem_staging_ms += cleanup_started.elapsed().as_millis();
+        result.diagnostics.push(MutationDiagnostic::error(
+            "work.proposal-stage-cleanup-failed",
+            error,
+        ));
+        return result;
+    }
+    if let Err(error) = clean_stale_proposal_staging(repository.root()) {
+        result.metrics.filesystem_staging_ms += cleanup_started.elapsed().as_millis();
+        result.diagnostics.push(MutationDiagnostic::error(
+            "work.proposal-stage-cleanup-failed",
+            error,
+        ));
+        return result;
+    }
+    result.metrics.filesystem_staging_ms += cleanup_started.elapsed().as_millis();
+    let receipt_started = Instant::now();
+    let receipt = resolve_proposal_receipt(repository.root(), key, request, &mut result);
+    result.metrics.idempotency_lookup_ms = receipt_started.elapsed().as_millis();
+    match receipt {
+        Ok(false) => return result,
+        Ok(true) => {}
+        Err(error) => {
+            result.diagnostics.push(MutationDiagnostic::error(
+                "work.proposal-receipt-read-failed",
+                error,
+            ));
+            return result;
+        }
+    }
+    if repository.identity() != plan.repository_identity {
+        result.diagnostics.push(MutationDiagnostic::error(
+            "mutation.repository-identity",
+            "repository identity changed since proposal planning",
+        ));
+        return result;
+    }
+
+    let snapshot_started = Instant::now();
+    let fresh = repository.session().snapshot();
+    result.metrics.snapshot_ms += snapshot_started.elapsed().as_millis();
+    let stale_started = Instant::now();
+    let stale_plan = stale_read_fact(&repository, &plan.read_set).is_some();
+    result.metrics.stale_check_ms = stale_started.elapsed().as_millis();
+    let planned_id = plan
+        .file_operations
+        .iter()
+        .find_map(|operation| match operation {
+            PathOperation::Write { path, content } if path.ends_with("/work-item.json") => {
+                serde_json::from_str::<Value>(content)
+                    .ok()
+                    .and_then(|value| value.get("id").and_then(Value::as_str).map(str::to_owned))
+            }
+            _ => None,
+        });
+    let allocated_id_now = planned_id
+        .as_deref()
+        .is_some_and(|id| fresh.index().work_item(id).is_some());
+    let effective_plan = if stale_plan || allocated_id_now {
+        let started = Instant::now();
+        let replanned = plan_mutation(&fresh, plan.request.clone());
+        result.metrics.planning_ms += started.elapsed().as_millis();
+        result.metrics.critical_validation_ms += replanned.metrics.critical_validation_ms;
+        result.metrics.authority_checks_ms = replanned.metrics.authority_checks_ms;
+        result.metrics.work_schema_ms = replanned.metrics.work_schema_ms;
+        result.metrics.dependency_graph_ms = replanned.metrics.dependency_graph_ms;
+        result.metrics.maintenance_diagnostics_ms = replanned.metrics.maintenance_diagnostics_ms;
+        result.metrics.records_examined = replanned.metrics.records_examined;
+        result.metrics.source_files_read = replanned.metrics.source_files_read;
+        result.plan_token = replanned.plan_token.clone();
+        result.diagnostics = replanned.diagnostics.clone();
+        if !replanned.is_applicable() {
+            return result;
+        }
+        return commit_proposal_locked(&repository, &replanned, &fresh, options, result);
+    } else {
+        plan.clone()
+    };
+    commit_proposal_locked(&repository, &effective_plan, &fresh, options, result)
+}
+
+fn commit_proposal_locked(
+    repository: &Repository,
+    plan: &MutationPlan,
+    snapshot: &RepositorySnapshot,
+    options: &ApplyOptions,
+    result: MutationResult,
+) -> MutationResult {
+    commit_proposal_locked_with_hook(repository, plan, snapshot, options, result, || {})
+}
+
+fn commit_proposal_locked_with_hook<F>(
+    repository: &Repository,
+    plan: &MutationPlan,
+    snapshot: &RepositorySnapshot,
+    options: &ApplyOptions,
+    mut result: MutationResult,
+    before_publish: F,
+) -> MutationResult
+where
+    F: FnOnce(),
+{
+    let mut files = Vec::new();
+    let mut manifest_path: Option<String> = None;
+    let mut manifest_value: Option<Value> = None;
+    for operation in &plan.file_operations {
+        let PathOperation::Write { path, content } = operation else {
+            result.diagnostics.push(MutationDiagnostic::error(
+                "work.proposal-transaction-invalid",
+                "proposal transaction contains a directory move",
+            ));
+            return result;
+        };
+        if path.ends_with("/work-item.json") {
+            match serde_json::from_str::<Value>(content) {
+                Ok(value) => {
+                    manifest_path = Some(path.clone());
+                    manifest_value = Some(value);
+                }
+                Err(error) => {
+                    result.diagnostics.push(MutationDiagnostic::error(
+                        "work.proposal-manifest-invalid",
+                        format!("proposal manifest is not valid JSON: {error}"),
+                    ));
+                    return result;
+                }
+            }
+        }
+        files.push((path.clone(), content.as_bytes().to_vec()));
+    }
+    let (Some(manifest_path), Some(candidate)) = (manifest_path, manifest_value) else {
+        result.diagnostics.push(MutationDiagnostic::error(
+            "work.proposal-candidate-missing",
+            "proposal transaction has no work-item manifest",
+        ));
+        return result;
+    };
+    let Some(directory) = Path::new(&manifest_path).parent() else {
+        result.diagnostics.push(MutationDiagnostic::error(
+            "work.proposal-transaction-invalid",
+            "proposal manifest path has no parent directory",
+        ));
+        return result;
+    };
+    let destination = repository.root().join(directory);
+    let relative_parent = directory.parent().unwrap_or_else(|| Path::new("."));
+    if let Err(error) = ensure_safe_repository_directory(repository.root(), relative_parent) {
+        result.diagnostics.push(MutationDiagnostic::error(
+            "work.proposal-stage-failed",
+            format!("unable to prepare safe proposal parent directory: {error}"),
+        ));
+        return result;
+    }
+    if fs::symlink_metadata(&destination).is_ok() {
+        result.diagnostics.push(MutationDiagnostic::error(
+            "work.proposal-id-collision",
+            format!(
+                "proposal destination '{}' already exists; retry with the same key",
+                path_string(&destination)
+            ),
+        ));
+        return result;
+    }
+    if options.fail_before_operation == Some(0) {
+        result.diagnostics.push(MutationDiagnostic::error(
+            "work.proposal-stage-failed",
+            "proposal transaction failed before its atomic commit point",
+        ));
+        return result;
+    }
+    let stage_started = Instant::now();
+    let nonce = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_nanos();
+    let staging_root = match ensure_safe_repository_directory(
+        repository.root(),
+        Path::new("work/.repopact-transactions"),
+    ) {
+        Ok(path) => path,
+        Err(error) => {
+            result.metrics.filesystem_staging_ms += stage_started.elapsed().as_millis();
+            result.diagnostics.push(MutationDiagnostic::error(
+                "work.proposal-stage-failed",
+                format!("unable to prepare same-volume proposal staging: {error}"),
+            ));
+            return result;
+        }
+    };
+    let stage = staging_root.join(format!(".repopact-stage-{}-{nonce}", std::process::id()));
+    if let Err(error) = fs::create_dir(&stage) {
+        result.metrics.filesystem_staging_ms += stage_started.elapsed().as_millis();
+        result.diagnostics.push(MutationDiagnostic::error(
+            "work.proposal-stage-failed",
+            format!("unable to create proposal staging directory: {error}"),
+        ));
+        return result;
+    }
+    let mut atomic_commit_ms = 0;
+    let staged = (|| -> Result<(), String> {
+        for (index, (path, bytes)) in files.iter().enumerate() {
+            if options.external_drift_at == Some(index) {
+                if let Some(path) = options.external_drift_path.as_deref() {
+                    let absolute = repository.root().join(path);
+                    if let Some(parent) = absolute.parent() {
+                        fs::create_dir_all(parent).map_err(|error| error.to_string())?;
+                    }
+                    fs::write(
+                        &absolute,
+                        b"external drift injected during proposal staging",
+                    )
+                    .map_err(|error| error.to_string())?;
+                }
+            }
+            if options.fail_before_operation == Some(index) {
+                return Err(format!(
+                    "injected proposal-stage failure before staged file {index}"
+                ));
+            }
+            let relative = Path::new(path);
+            if relative.parent() != Some(directory) {
+                return Err(format!(
+                    "proposal path '{path}' escaped its transaction directory"
+                ));
+            }
+            let name = relative
+                .file_name()
+                .ok_or_else(|| format!("proposal path '{path}' has no filename"))?;
+            let mut file = OpenOptions::new()
+                .write(true)
+                .create_new(true)
+                .open(stage.join(name))
+                .map_err(|error| error.to_string())?;
+            file.write_all(bytes).map_err(|error| error.to_string())?;
+            file.sync_all().map_err(|error| error.to_string())?;
+        }
+        before_publish();
+        if let Some(stale) = stale_read_fact(repository, &plan.read_set) {
+            return Err(format!(
+                "proposal read fact '{}' changed after validation",
+                stale.path
+            ));
+        }
+        if fs::symlink_metadata(&destination).is_ok() {
+            return Err("proposal destination appeared before atomic commit".to_owned());
+        }
+        let commit_started = Instant::now();
+        fs::rename(&stage, &destination).map_err(|error| error.to_string())?;
+        atomic_commit_ms = commit_started.elapsed().as_millis();
+        Ok(())
+    })();
+    let elapsed = stage_started.elapsed().as_millis();
+    result.metrics.filesystem_staging_ms += elapsed.saturating_sub(atomic_commit_ms);
+    result.metrics.atomic_commit_ms = atomic_commit_ms;
+    if let Err(error) = staged {
+        let _ = fs::remove_dir_all(&stage);
+        result.diagnostics.push(MutationDiagnostic::error(
+            "work.proposal-commit-failed",
+            format!("proposal was not committed: {error}"),
+        ));
+        return result;
+    }
+    result.success = true;
+    result.changed_paths = files.iter().map(|(path, _)| path.clone()).collect();
+
+    let dashboard_started = Instant::now();
+    let dashboard = repopact_validation::render_dashboard_snapshot_with_work_item(
+        snapshot,
+        repository.root().join(&manifest_path),
+        candidate,
+    )
+    .and_then(|content| {
+        ensure_safe_repository_directory(repository.root(), Path::new("audits/reports"))?;
+        atomic_write_projection(
+            &repository.root().join("audits/reports/dashboard.md"),
+            content.as_bytes(),
+        )
+        .map(|changed| (content, changed))
+    });
+    result.metrics.dashboard_regeneration_ms = dashboard_started.elapsed().as_millis();
+    match dashboard {
+        Ok((_, changed)) => {
+            result
+                .diagnostics
+                .retain(|item| item.code != "dashboard.stale" && item.code != "dashboard.missing");
+            if changed {
+                result
+                    .changed_paths
+                    .push("audits/reports/dashboard.md".to_owned());
+            }
+        }
+        Err(error) => result.diagnostics.push(MutationDiagnostic {
+            code: "mutation.dashboard-regeneration-failed".to_owned(),
+            message: format!("proposal committed; dashboard maintenance needs repair: {error}"),
+            path: Some("audits/reports/dashboard.md".to_owned()),
+            blocking: false,
+            related_records: Vec::new(),
+        }),
+    }
+    result.changed_paths.sort();
+    result.changed_paths.dedup();
+    result
+}
+
+fn ensure_safe_repository_directory(root: &Path, relative: &Path) -> Result<PathBuf, String> {
+    if relative.is_absolute()
+        || relative
+            .components()
+            .any(|component| !matches!(component, std::path::Component::Normal(_)))
+    {
+        return Err(format!(
+            "repository directory path '{}' is not a contained relative path",
+            path_string(relative)
+        ));
+    }
+    let mut current = root.to_path_buf();
+    for component in relative.components() {
+        current.push(component.as_os_str());
+        match fs::symlink_metadata(&current) {
+            Ok(metadata) if metadata.file_type().is_dir() && !metadata.file_type().is_symlink() => {
+            }
+            Ok(_) => {
+                return Err(format!(
+                    "repository path '{}' is not a regular directory",
+                    path_string(&current)
+                ));
+            }
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+                match fs::create_dir(&current) {
+                    Ok(()) => {}
+                    Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists => {
+                        let metadata =
+                            fs::symlink_metadata(&current).map_err(|error| error.to_string())?;
+                        if !metadata.file_type().is_dir() || metadata.file_type().is_symlink() {
+                            return Err(format!(
+                                "repository path '{}' is not a regular directory",
+                                path_string(&current)
+                            ));
+                        }
+                    }
+                    Err(error) => return Err(error.to_string()),
+                }
+            }
+            Err(error) => return Err(error.to_string()),
+        }
+    }
+    Ok(current)
+}
+
+fn atomic_write_projection(path: &Path, content: &[u8]) -> Result<bool, String> {
+    if fs::read(path).ok().as_deref() == Some(content) {
+        return Ok(false);
+    }
+    let parent = path
+        .parent()
+        .ok_or_else(|| "projection has no parent directory".to_owned())?;
+    fs::create_dir_all(parent).map_err(|error| error.to_string())?;
+    let nonce = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_nanos();
+    let name = path
+        .file_name()
+        .and_then(|value| value.to_str())
+        .unwrap_or("dashboard.md");
+    let temporary = parent.join(format!(".{name}.repopact-{nonce}.tmp"));
+    let written = (|| -> Result<(), String> {
+        let mut file = OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(&temporary)
+            .map_err(|error| error.to_string())?;
+        file.write_all(content).map_err(|error| error.to_string())?;
+        file.sync_all().map_err(|error| error.to_string())?;
+        fs::rename(&temporary, path).map_err(|error| error.to_string())
+    })();
+    if written.is_err() {
+        let _ = fs::remove_file(&temporary);
+    }
+    written.map(|_| true)
 }
 
 fn failure_with_rollback(
@@ -1366,6 +2546,8 @@ mod tests {
     use repopact_repository::RepositorySession;
     use std::path::PathBuf;
     use std::sync::atomic::{AtomicU64, Ordering};
+    use std::sync::mpsc;
+    use std::time::Duration;
 
     static TEST_ROOT_COUNTER: AtomicU64 = AtomicU64::new(0);
 
@@ -1681,10 +2863,13 @@ mod tests {
         fs::create_dir_all(root.join("work/active/002-a-new-thing")).unwrap();
         let result = plan.apply();
         assert!(!result.success);
-        assert!(result
-            .diagnostics
-            .iter()
-            .any(|diagnostic| diagnostic.code == "mutation.plan-stale"));
+        assert!(
+            result
+                .diagnostics
+                .iter()
+                .any(|diagnostic| diagnostic.code == "mutation.plan-stale"),
+            "{result:?}"
+        );
         fs::remove_dir_all(root).unwrap();
     }
 
@@ -1811,10 +2996,13 @@ mod tests {
             fs::write(root.join(relative), b"changed input\n").unwrap();
             let result = plan.apply();
             assert!(!result.success, "{relative}: {result:?}");
-            assert!(result
-                .diagnostics
-                .iter()
-                .any(|diagnostic| diagnostic.code == "mutation.plan-stale"));
+            assert!(
+                result
+                    .diagnostics
+                    .iter()
+                    .any(|diagnostic| diagnostic.code == "mutation.plan-stale"),
+                "{relative}: {result:?}"
+            );
             fs::remove_dir_all(root).unwrap();
         }
     }
@@ -1853,5 +3041,424 @@ mod tests {
             "../tests/fixtures/transition/after/work/active/001-reopen/work-item.json"
         );
         assert_eq!(actual.replace("\r\n", "\n"), expected.replace("\r\n", "\n"));
+    }
+
+    fn proposal_request(title: &str, key: &str) -> CreateWorkItem {
+        create_request(title, "2026-10-27")
+            .with_status("proposed")
+            .with_idempotency_key(key)
+    }
+
+    #[test]
+    fn proposal_reports_stale_dashboard_and_expired_review_as_warnings_then_refreshes_dashboard() {
+        let (root, _) = fixture();
+        fs::create_dir_all(root.join("assurance/mappings")).unwrap();
+        fs::write(
+            root.join("assurance/mappings/expired-review.json"),
+            r#"{
+                "$schema": "assurance-mapping.schema.json",
+                "version": 1,
+                "id": "expired-review",
+                "framework": {"id": "example-framework", "source_authority": "adopter-extension"},
+                "requirement": {"id": "AC-7"},
+                "applicability": {"status": "unassessed"},
+                "review": {"review_due_at": "2026-01-01T00:00:00Z"},
+                "created": "2026-01-01",
+                "updated": "2026-01-01"
+            }"#,
+        )
+        .unwrap();
+        let snapshot = RepositorySession::open(&root).snapshot();
+        let full = repopact_validation::validate_snapshot(&snapshot);
+        assert!(full.diagnostics.iter().any(|diagnostic| {
+            diagnostic.code == "dashboard.stale" && diagnostic.severity == Severity::Error
+        }));
+        let plan = plan(
+            &snapshot,
+            MutationRequest::create_work_item(proposal_request("Scoped proposal", "retry-1")),
+        );
+        assert!(plan.is_applicable(), "{:?}", plan.diagnostics);
+        for code in ["dashboard.stale", "assurance.review-overdue"] {
+            assert!(
+                plan.diagnostics
+                    .iter()
+                    .any(|diagnostic| { diagnostic.code == code && !diagnostic.blocking }),
+                "expected non-blocking {code}: {:?}",
+                plan.diagnostics
+            );
+        }
+        let result = plan.apply();
+        assert!(result.success, "{:?}", result.diagnostics);
+        assert!(
+            !result.diagnostics.iter().any(|diagnostic| {
+                diagnostic.code == "dashboard.stale" || diagnostic.code == "dashboard.missing"
+            }),
+            "successful proposal should regenerate the dashboard: {:?}",
+            result.diagnostics
+        );
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn proposal_rejects_candidate_scope_violation_and_preserves_global_reference_blockers() {
+        let (root, snapshot) = fixture();
+        let invalid_scope =
+            proposal_request("Invalid scope", "scope-key").with_owner_scope("not-a-declared-scope");
+        let scope_plan = plan(&snapshot, MutationRequest::create_work_item(invalid_scope));
+        assert!(!scope_plan.is_applicable());
+        assert!(scope_plan.diagnostics.iter().any(|diagnostic| {
+            diagnostic.code == "work.unknown-owner-scope" && diagnostic.blocking
+        }));
+
+        let broken_reference = proposal_request("Broken reference", "reference-key")
+            .with_dependencies(vec!["999".to_owned()]);
+        let dependency_plan = plan(
+            &snapshot,
+            MutationRequest::create_work_item(broken_reference),
+        );
+        assert!(!dependency_plan.is_applicable());
+        assert!(dependency_plan.diagnostics.iter().any(|diagnostic| {
+            diagnostic.code == "work.unknown-dependency" && diagnostic.blocking
+        }));
+
+        let mut evidence_request = proposal_request("Broken evidence reference", "evidence-key");
+        evidence_request.acceptance_criteria[0].evidence = vec!["missing-run".to_owned()];
+        let evidence_plan = plan(
+            &snapshot,
+            MutationRequest::create_work_item(evidence_request),
+        );
+        assert!(!evidence_plan.is_applicable());
+        assert!(evidence_plan.diagnostics.iter().any(|diagnostic| {
+            diagnostic.code == "work.unknown-evidence" && diagnostic.blocking
+        }));
+
+        fs::write(
+            root.join("evidence/runs/20261027-broken-reference.json"),
+            r#"{
+                "$schema": "../../schemas/evidence-run.schema.json",
+                "id": "20261027-broken-reference",
+                "timestamp": "2026-10-27T12:00:00Z",
+                "work_item": "999",
+                "result": "passed",
+                "commands": [],
+                "artifacts": [],
+                "environment": {}
+            }"#,
+        )
+        .unwrap();
+        let snapshot = RepositorySession::open(&root).snapshot();
+        let historical_reference_plan = plan(
+            &snapshot,
+            MutationRequest::create_work_item(proposal_request(
+                "Broken historical evidence link",
+                "historical-reference-key",
+            )),
+        );
+        assert!(!historical_reference_plan.is_applicable());
+        assert!(historical_reference_plan
+            .diagnostics
+            .iter()
+            .any(|diagnostic| {
+                diagnostic.code == "evidence.unknown-work-item" && diagnostic.blocking
+            }));
+
+        let work_path = root.join("work/active/001-one/work-item.json");
+        let mut existing: Value = serde_json::from_slice(&fs::read(&work_path).unwrap()).unwrap();
+        existing["depends_on"] = serde_json::json!(["002"]);
+        fs::write(&work_path, canonical_json(&existing)).unwrap();
+        let snapshot = RepositorySession::open(&root).snapshot();
+        let cycle_request = proposal_request("Cycle candidate", "cycle-key")
+            .with_dependencies(vec!["001".to_owned()]);
+        let cycle_plan = plan(&snapshot, MutationRequest::create_work_item(cycle_request));
+        assert!(!cycle_plan.is_applicable());
+        assert!(cycle_plan.diagnostics.iter().any(|diagnostic| {
+            diagnostic.code == "work.dependency-cycle" && diagnostic.blocking
+        }));
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn failed_staged_proposal_leaves_no_work_item_or_receipt_and_can_be_retried() {
+        let (root, snapshot) = fixture();
+        let request = proposal_request("Atomic retry", "atomic-key");
+        let plan = plan(
+            &snapshot,
+            MutationRequest::create_work_item(request.clone()),
+        );
+        assert!(plan.is_applicable(), "{:?}", plan.diagnostics);
+        let failed = plan.apply_with_options(&ApplyOptions {
+            fail_before_operation: Some(1),
+            ..ApplyOptions::default()
+        });
+        assert!(!failed.success);
+        assert!(!root.join("work/proposed/002-atomic-retry").exists());
+        assert_eq!(proposal_status(&root, "atomic-key").unwrap(), None);
+
+        let committed = propose_work_item(&root, request.clone());
+        assert!(committed.success, "{:?}", committed.diagnostics);
+        assert!(root
+            .join("work/proposed/002-atomic-retry/proposal-receipt.json")
+            .is_file());
+        let replay = propose_work_item(&root, request);
+        assert!(replay.success, "{:?}", replay.diagnostics);
+        assert!(replay.replayed);
+        assert!(replay
+            .changed_paths
+            .iter()
+            .any(|path| path.ends_with("/work-item.json")));
+        assert_eq!(
+            fs::read_dir(root.join("work/proposed")).unwrap().count(),
+            1,
+            "same-key retry must not create a second work item"
+        );
+        assert!(committed
+            .changed_paths
+            .iter()
+            .any(|path| path == "audits/reports/dashboard.md"));
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn proposal_rejects_authority_drift_after_validation_and_during_staging() {
+        let (root, snapshot) = fixture();
+        let request = proposal_request("Authority race", "authority-race-key");
+        let plan = plan(&snapshot, MutationRequest::create_work_item(request));
+        let result =
+            plan.apply_with_options(&ApplyOptions::external_drift(1, "governance/owners.json"));
+        assert!(
+            !result.success,
+            "stale authorization must not commit: {result:?}"
+        );
+        assert!(result.diagnostics.iter().any(|diagnostic| {
+            diagnostic.code == "work.proposal-commit-failed"
+                && diagnostic.message.contains("governance/owners.json")
+        }));
+        assert!(!root.join("work/proposed/002-authority-race").exists());
+        assert_eq!(proposal_status(&root, "authority-race-key").unwrap(), None);
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn post_publish_dashboard_failure_does_not_misreport_or_undo_the_commit() {
+        let (root, _) = fixture();
+        let dashboard = root.join("audits/reports/dashboard.md");
+        fs::remove_file(&dashboard).unwrap();
+        fs::create_dir(&dashboard).unwrap();
+
+        let result = propose_work_item(&root, proposal_request("Published", "published-key"));
+        assert!(result.success, "{:?}", result.diagnostics);
+        assert!(result.diagnostics.iter().any(|diagnostic| {
+            diagnostic.code == "mutation.dashboard-regeneration-failed" && !diagnostic.blocking
+        }));
+        assert!(root
+            .join("work/proposed/002-published/work-item.json")
+            .is_file());
+        assert!(root.join("work/proposed/002-published/README.md").is_file());
+        assert!(root
+            .join("work/proposed/002-published/proposal-receipt.json")
+            .is_file());
+        assert!(proposal_status(&root, "published-key").unwrap().is_some());
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn nonproposal_mutation_waits_for_proposal_publish_then_rejects_its_stale_id_plan() {
+        let (root, _) = fixture();
+        ensure_safe_repository_directory(&root, Path::new("work/proposed")).unwrap();
+        let snapshot = RepositorySession::open(&root).snapshot();
+        let proposal = plan(
+            &snapshot,
+            MutationRequest::create_work_item(proposal_request(
+                "Concurrent proposal",
+                "concurrent-proposal-key",
+            )),
+        );
+        let competing = plan(
+            &snapshot,
+            MutationRequest::create_work_item(create_request(
+                "Concurrent active item",
+                "2026-10-27",
+            )),
+        );
+        assert!(proposal.is_applicable(), "{:?}", proposal.diagnostics);
+        assert!(competing.is_applicable(), "{:?}", competing.diagnostics);
+
+        let repository = Repository::open(&root);
+        let lock = RepositoryMutationLock::acquire(repository.root()).unwrap();
+        let (started_tx, started_rx) = mpsc::channel();
+        let (result_tx, result_rx) = mpsc::channel();
+        let worker = std::thread::spawn(move || {
+            started_tx.send(()).unwrap();
+            result_tx.send(competing.apply()).unwrap();
+        });
+        started_rx
+            .recv_timeout(Duration::from_secs(1))
+            .expect("competing mutation starts while the proposal owns the lock");
+
+        let mut initial = empty_result();
+        initial.plan_token = proposal.plan_token.clone();
+        initial.diagnostics = proposal.diagnostics.clone();
+        let committed = commit_proposal_locked_with_hook(
+            &repository,
+            &proposal,
+            &snapshot,
+            &ApplyOptions::default(),
+            initial,
+            || match result_rx.recv_timeout(Duration::from_millis(150)) {
+                Err(mpsc::RecvTimeoutError::Timeout) => {}
+                Ok(result) => {
+                    panic!("non-proposal mutation completed before proposal publish: {result:?}")
+                }
+                Err(error) => panic!("competing mutation channel failed: {error}"),
+            },
+        );
+        assert!(committed.success, "{:?}", committed.diagnostics);
+        drop(lock);
+
+        let competing_result = result_rx
+            .recv_timeout(Duration::from_secs(2))
+            .expect("competing mutation finishes after proposal releases the lock");
+        worker.join().unwrap();
+        assert!(!competing_result.success, "{competing_result:?}");
+        assert!(competing_result
+            .diagnostics
+            .iter()
+            .any(|diagnostic| diagnostic.code == "mutation.plan-stale"));
+        assert!(root.join("work/proposed/002-concurrent-proposal").is_dir());
+        assert!(!root.join("work/active/002-concurrent-active-item").exists());
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn proposal_receipt_lookup_follows_the_item_through_lifecycle_transitions() {
+        let (root, _) = fixture();
+        let request = proposal_request("Lifecycle receipt", "lifecycle-receipt-key");
+        let created = propose_work_item(&root, request.clone());
+        assert!(created.success, "{:?}", created.diagnostics);
+
+        let snapshot = RepositorySession::open(&root).snapshot();
+        let transition = plan(
+            &snapshot,
+            MutationRequest::transition_work_item(TransitionWorkItem::new("002", "active")),
+        );
+        assert!(transition.is_applicable(), "{:?}", transition.diagnostics);
+        let moved = transition.apply();
+        assert!(moved.success, "{:?}", moved.diagnostics);
+
+        let receipt = proposal_status(&root, "lifecycle-receipt-key")
+            .unwrap()
+            .expect("receipt remains visible after lifecycle move");
+        assert_eq!(
+            receipt["current_work_item_path"],
+            "work/active/002-lifecycle-receipt"
+        );
+        let replay = propose_work_item(&root, request);
+        assert!(replay.success, "{:?}", replay.diagnostics);
+        assert!(replay.replayed);
+        assert_eq!(
+            fs::read_dir(root.join("work/active")).unwrap().count(),
+            2,
+            "same-key replay after transition must not create another item"
+        );
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn matching_corrupt_receipt_fails_closed_but_valid_unrelated_receipt_does_not_couple_lookup() {
+        let (root, _) = fixture();
+        assert!(propose_work_item(&root, proposal_request("Original", "original-key")).success);
+        let receipt_path = root.join("work/proposed/002-original/proposal-receipt.json");
+        let mut receipt: Value = serde_json::from_slice(&fs::read(&receipt_path).unwrap()).unwrap();
+        receipt["work_item_id"] = Value::String("999".to_owned());
+        fs::write(&receipt_path, canonical_json(&receipt)).unwrap();
+        assert!(proposal_status(&root, "original-key").is_err());
+
+        receipt["work_item_id"] = Value::String("002".to_owned());
+        receipt["request_digest"] = Value::String("broken".to_owned());
+        fs::write(&receipt_path, canonical_json(&receipt)).unwrap();
+
+        assert!(proposal_status(&root, "original-key").is_err());
+        assert_eq!(proposal_status(&root, "different-key").unwrap(), None);
+        let unrelated = propose_work_item(&root, proposal_request("Unrelated", "different-key"));
+        assert!(unrelated.success, "{:?}", unrelated.diagnostics);
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn malformed_historical_receipt_fails_closed_when_its_key_cannot_be_identified() {
+        let (root, _) = fixture();
+        let corrupt = root.join("work/proposed/900-corrupt/proposal-receipt.json");
+        fs::create_dir_all(corrupt.parent().unwrap()).unwrap();
+        fs::write(&corrupt, b"not-json\n").unwrap();
+
+        assert!(proposal_status(&root, "unrelated-key").is_err());
+        fs::write(&corrupt, b"{}\n").unwrap();
+        assert!(proposal_status(&root, "unrelated-key").is_err());
+        let result = propose_work_item(&root, proposal_request("Candidate", "unrelated-key"));
+        assert!(!result.success);
+        assert!(result
+            .diagnostics
+            .iter()
+            .any(|diagnostic| { diagnostic.code == "work.proposal-receipt-read-failed" }));
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn missing_receipt_is_absent_even_when_a_historical_item_remains() {
+        let (root, _) = fixture();
+        assert!(
+            propose_work_item(&root, proposal_request("Receipt removed", "removed-key")).success
+        );
+        fs::remove_file(root.join("work/proposed/002-receipt-removed/proposal-receipt.json"))
+            .unwrap();
+
+        assert_eq!(proposal_status(&root, "removed-key").unwrap(), None);
+        assert!(root
+            .join("work/proposed/002-receipt-removed/work-item.json")
+            .is_file());
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn proposal_idempotency_key_cannot_be_reused_for_a_different_payload() {
+        let (root, _) = fixture();
+        let first = propose_work_item(&root, proposal_request("First title", "bound-key"));
+        assert!(first.success, "{:?}", first.diagnostics);
+        let second = propose_work_item(&root, proposal_request("Other title", "bound-key"));
+        assert!(!second.success);
+        assert!(second
+            .diagnostics
+            .iter()
+            .any(|diagnostic| diagnostic.code == "work.proposal-key-conflict"));
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn parallel_proposals_allocate_unique_ids_and_keep_receipts_resolvable() {
+        let (root, _) = fixture();
+        let root = std::sync::Arc::new(root);
+        let workers = (0..4)
+            .map(|index| {
+                let root = root.clone();
+                std::thread::spawn(move || {
+                    let key = format!("parallel-{index}");
+                    let request = proposal_request(&format!("Parallel {index}"), &key);
+                    (key, propose_work_item(root.as_path(), request))
+                })
+            })
+            .collect::<Vec<_>>();
+        let mut ids = BTreeSet::new();
+        for worker in workers {
+            let (key, result) = worker.join().expect("proposal worker");
+            assert!(result.success, "{key}: {:?}", result.diagnostics);
+            let receipt = proposal_status(root.as_path(), &key)
+                .unwrap()
+                .expect("durable receipt");
+            ids.insert(receipt["work_item_id"].as_str().unwrap().to_owned());
+        }
+        assert_eq!(ids.len(), 4);
+        assert_eq!(ids.first().map(String::as_str), Some("002"));
+        assert_eq!(ids.last().map(String::as_str), Some("005"));
+        fs::remove_dir_all(root.as_path()).unwrap();
     }
 }

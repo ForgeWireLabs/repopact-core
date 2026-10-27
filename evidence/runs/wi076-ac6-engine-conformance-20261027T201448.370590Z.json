@@ -1,0 +1,335 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "artifacts": [
+    "conformance/manifest.json",
+    "build/semantic-input-manifest.json"
+  ],
+  "commands": [
+    {
+      "command": "python -m repopact.run_conformance (canonical Rust engine; process-image provenance)",
+      "exit_code": 0,
+      "summary": "canonical=43/43; WI050=8/8; process-image provenance=complete"
+    }
+  ],
+  "environment": {
+    "build_identity": "repopact-build-v1:sha256:05f2858169688843d6b1eab74c6ae5d9dbb846f1c2cc5afb86fe7f3873c2ebd2",
+    "conformance": {
+      "cases": [
+        {
+          "detail": "accepted",
+          "id": "valid-minimal",
+          "status": "PASS"
+        },
+        {
+          "detail": "accepted",
+          "id": "valid-proposed-work",
+          "status": "PASS"
+        },
+        {
+          "detail": "rejected with 'depends on proposed work item'",
+          "id": "active-depends-on-proposed",
+          "status": "PASS"
+        },
+        {
+          "detail": "rejected with 'completed item has pending criterion'",
+          "id": "completed-with-pending",
+          "status": "PASS"
+        },
+        {
+          "detail": "rejected with 'satisfied without evidence'",
+          "id": "satisfied-without-evidence",
+          "status": "PASS"
+        },
+        {
+          "detail": "rejected with 'unknown dependency'",
+          "id": "unknown-dependency",
+          "status": "PASS"
+        },
+        {
+          "detail": "rejected with 'not registered in audits/registry.json'",
+          "id": "unregistered-contract",
+          "status": "PASS"
+        },
+        {
+          "detail": "rejected with 'dependency cycle'",
+          "id": "dependency-cycle",
+          "status": "PASS"
+        },
+        {
+          "detail": "accepted",
+          "id": "valid-provisional-work",
+          "status": "PASS"
+        },
+        {
+          "detail": "rejected with 'cannot be completed; ratchet to concrete first (P2)'",
+          "id": "completed-provisional-work",
+          "status": "PASS"
+        },
+        {
+          "detail": "rejected with 'status 'active' does not match directory 'completed''",
+          "id": "status-directory-mismatch",
+          "status": "PASS"
+        },
+        {
+          "detail": "rejected with 'must be semantic (MAJOR.MINOR.PATCH)'",
+          "id": "invalid-semantic-version",
+          "status": "PASS"
+        },
+        {
+          "detail": "accepted",
+          "id": "valid-release-label",
+          "status": "PASS"
+        },
+        {
+          "detail": "rejected with 'must equal VERSION'",
+          "id": "release-label-version-mismatch",
+          "status": "PASS"
+        },
+        {
+          "detail": "rejected with 'schema result: 'unknown' is not one of'",
+          "id": "schema-invalid-evidence",
+          "status": "PASS"
+        },
+        {
+          "detail": "rejected with 'does not name a declared verification profile'",
+          "id": "verification-default-profile",
+          "status": "PASS"
+        },
+        {
+          "detail": "rejected with 'work directory holds planning content'",
+          "id": "orphan-work-directory",
+          "status": "PASS"
+        },
+        {
+          "detail": "rejected with 'active scope conflict'",
+          "id": "disjoint-active-scopes",
+          "status": "PASS"
+        },
+        {
+          "detail": "rejected with 'missing generated dashboard'",
+          "id": "missing-dashboard",
+          "status": "PASS"
+        },
+        {
+          "detail": "rejected with 'dashboard is stale'",
+          "id": "stale-dashboard",
+          "status": "PASS"
+        },
+        {
+          "detail": "rejected with 'but VERSION is'",
+          "id": "readme-release-drift",
+          "status": "PASS"
+        },
+        {
+          "detail": "rejected with 'checkbox is unchecked'",
+          "id": "readme-checkbox-mismatch",
+          "status": "PASS"
+        },
+        {
+          "detail": "accepted",
+          "id": "valid-assurance-mapping-minimal",
+          "status": "PASS"
+        },
+        {
+          "detail": "accepted",
+          "id": "valid-assurance-mapping-full",
+          "status": "PASS"
+        },
+        {
+          "detail": "accepted",
+          "id": "valid-assurance-mapping-not-applicable",
+          "status": "PASS"
+        },
+        {
+          "detail": "rejected with 'is not one of'",
+          "id": "assurance-schema-invalid",
+          "status": "PASS"
+        },
+        {
+          "detail": "rejected with 'requires a rationale'",
+          "id": "assurance-applicability-rationale-missing",
+          "status": "PASS"
+        },
+        {
+          "detail": "rejected with 'references unknown decision'",
+          "id": "assurance-unknown-decision",
+          "status": "PASS"
+        },
+        {
+          "detail": "rejected with 'escapes the repository'",
+          "id": "assurance-implementation-path-escapes",
+          "status": "PASS"
+        },
+        {
+          "detail": "rejected with 'does not exist'",
+          "id": "assurance-implementation-reference-missing",
+          "status": "PASS"
+        },
+        {
+          "detail": "rejected with 'references unknown evidence run'",
+          "id": "assurance-unknown-evidence-run",
+          "status": "PASS"
+        },
+        {
+          "detail": "accepted",
+          "id": "valid-assurance-mapping-forgewire",
+          "status": "PASS"
+        },
+        {
+          "detail": "accepted",
+          "id": "valid-assurance-restricted-artifact-warning",
+          "status": "PASS"
+        },
+        {
+          "detail": "rejected with 'private-key marker'",
+          "id": "assurance-private-key-evidence",
+          "status": "PASS"
+        },
+        {
+          "detail": "rejected with 'no corresponding data to support it'",
+          "id": "assurance-documentation-claim-basis-unsupported",
+          "status": "PASS"
+        },
+        {
+          "detail": "rejected with 'completed item requires a resolved documentation_impact'",
+          "id": "documentation-impact-missing-on-completed",
+          "status": "PASS"
+        },
+        {
+          "detail": "rejected with 'documentation_impact references unknown evidence'",
+          "id": "documentation-impact-affected-unknown-evidence",
+          "status": "PASS"
+        },
+        {
+          "detail": "rejected with 'documentation_impact/evidence'",
+          "id": "documentation-impact-affected-evidence-empty",
+          "status": "PASS"
+        },
+        {
+          "detail": "accepted",
+          "id": "documentation-impact-justified-none",
+          "status": "PASS"
+        },
+        {
+          "detail": "accepted",
+          "id": "documentation-impact-affected-updated",
+          "status": "PASS"
+        },
+        {
+          "detail": "accepted",
+          "id": "documentation-mapping-neutral-current",
+          "status": "PASS"
+        },
+        {
+          "detail": "rejected with 'mapped source changed while related documentation stayed at its reviewed bytes'",
+          "id": "documentation-mapping-forgewire-stale",
+          "status": "PASS"
+        },
+        {
+          "detail": "rejected with 'mapped source/generator changed while generated documentation stayed at its reviewed bytes'",
+          "id": "documentation-generated-output-stale",
+          "status": "PASS"
+        }
+      ],
+      "failed": 0,
+      "manifest": "C:\\Users\\jerem\\.codex\\worktrees\\governance-throughput-correction-forgewire\\repopact-core\\conformance\\manifest.json",
+      "passed": 43,
+      "suite_version": "3.1.4",
+      "wi050_admission_corpus": {
+        "cases": [
+          {
+            "detail": "mutation is not a no-lease operation",
+            "id": "WI050-no-lease-taxonomy",
+            "status": "PASS"
+          },
+          {
+            "detail": "signed receipt verifies",
+            "id": "WI050-receipt-binding",
+            "status": "PASS"
+          },
+          {
+            "detail": "receipt class mutation is rejected",
+            "id": "WI050-receipt-class-tamper",
+            "status": "PASS"
+          },
+          {
+            "detail": "strict child authority accepted",
+            "id": "WI050-delegation-subset",
+            "status": "PASS"
+          },
+          {
+            "detail": "path widening rejected",
+            "id": "WI050-delegation-widening",
+            "status": "PASS"
+          },
+          {
+            "detail": "pre-action family advertised",
+            "id": "WI050-adapter-pre-action",
+            "status": "PASS"
+          },
+          {
+            "detail": "independent lower-assurance family reported honestly",
+            "id": "WI050-adapter-launcher",
+            "status": "PASS"
+          },
+          {
+            "detail": "denial cannot downgrade to advisory",
+            "id": "WI050-fail-closed",
+            "status": "PASS"
+          }
+        ],
+        "failed": 0,
+        "passed": 8
+      }
+    },
+    "engine": {
+      "authenticity": "not established by semantic identity or this file digest",
+      "engine": {
+        "build_info": {
+          "profile": "release",
+          "rustc_version": "rustc 1.96.0 (ac68faa20 2026-05-25); binary: rustc; commit-hash: ac68faa20c58cbccd01ee7208bf3b6e93a7d7f96; commit-date: 2026-05-25; host: x86_64-pc-windows-msvc; release: 1.96.0; LLVM version: 22.1.2",
+          "source_revision": "c0befff88eda64af64858ee4e9d4513a27442fff",
+          "target": "x86_64-pc-windows-msvc"
+        },
+        "product_version": "3.1.4.dev0",
+        "protocol": "repopact-engine",
+        "protocol_version": 2,
+        "semantic_identity": "repopact-semantic-v1:sha256:e603e0b505d70a92504dab23e4259f2cb66bd81d03a6495db132a5cb8260dc7d"
+      },
+      "executable": {
+        "file_identity": {
+          "device": 9251113309582558494,
+          "file_index": 4785074606855965,
+          "mtime_ns": 1793129730318357100,
+          "size": 13809664
+        },
+        "pid": 1280,
+        "process_image_path": "C:\\Users\\jerem\\.codex\\worktrees\\governance-throughput-correction-forgewire\\repopact-core\\rust\\target\\release\\repopact-engine.exe",
+        "selected_path": "C:\\Users\\jerem\\.codex\\worktrees\\governance-throughput-correction-forgewire\\repopact-core\\rust\\target\\release\\repopact-engine.exe",
+        "sha256": "a1ac8283841467c9924ba7e4902e3d6e0053ab584865d0d643353880499a5a5b",
+        "sha256_after_run": "a1ac8283841467c9924ba7e4902e3d6e0053ab584865d0d643353880499a5a5b",
+        "sha256_at_process_image": "a1ac8283841467c9924ba7e4902e3d6e0053ab584865d0d643353880499a5a5b",
+        "sha256_before_launch": "a1ac8283841467c9924ba7e4902e3d6e0053ab584865d0d643353880499a5a5b"
+      },
+      "format_version": 1,
+      "incomplete_reasons": [],
+      "python": {
+        "executable": "C:\\Program Files\\Python312\\python.exe",
+        "implementation": "CPython",
+        "version": "3.12.4"
+      },
+      "status": "complete"
+    },
+    "evidence_kind": "repopact-engine-conformance-provenance-v1",
+    "source": {
+      "dirty": false,
+      "revision": "c0befff88eda64af64858ee4e9d4513a27442fff",
+      "status_porcelain": ""
+    }
+  },
+  "id": "wi076-ac6-engine-conformance-20261027T201448.370590Z",
+  "provenance": "concrete",
+  "result": "passed",
+  "timestamp": "2026-10-27T20:14:48.370590Z",
+  "work_item": "076"
+}

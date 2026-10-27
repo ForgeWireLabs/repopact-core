@@ -248,6 +248,46 @@ cross-record consistency.
     feature is disabled when the setting is absent or disabled, preserving
     existing adopter compatibility.
 
+19. **Operation-scoped proposal admission (Decision 0078).** `work.propose`
+    records candidate intent without granting implementation authority. It
+    blocks on unsupported repository surfaces, invalid contracts or binding
+    invariants, frozen-surface violations, invalid owner authorization,
+    candidate schema or identity errors, duplicate work IDs, broken work or
+    evidence references, dependency cycles, proposed-work dependency misuse,
+    and enabled scope conflicts. Broken authoritative evidence/assurance
+    references and sensitive-evidence errors remain blocking. Unrelated
+    historical work findings are warnings. Proposal admission reports review
+    expiry, audit-registry expiry, and dashboard freshness as non-blocking
+    warnings; it does not traverse release, verification, graph, adoption,
+    research, or documentation-mapping audits.
+    The canonical repopact validate operation keeps its repository-wide
+    behavior and remains the full assurance check.
+    `work.proposal-plan` is read-only. `work.proposal-status` reads a
+    receipt. Both proposal operations require explicit preflight confirmation
+    at submission and a bounded client deadline. A caller-supplied idempotency
+    key is bound to the canonical request payload; same-payload retry returns
+    the associated record and a different payload under that key is rejected.
+    Proposal commits and ordinary RepoPact mutations share a bounded
+    repository-scoped lock. A proposal rechecks its read set after staging and
+    before publish; ordinary mutations recheck after lock acquisition. The
+    authoritative work-item directory, README, and receipt are written to
+    same-volume staging, each file is passed to `sync_all()`, and one directory
+    rename publishes the complete transaction. The rename is the
+    atomic-visibility boundary during normal operation. The containing
+    directories are not synced after rename and Windows write-through is not
+    requested, so power-loss persistence is not promised or tested. Status
+    scans all lifecycle directories and follows a valid receipt after
+    lifecycle moves. A matching malformed receipt, duplicate key, missing or
+    inconsistent work-item record, or malformed receipt with an unidentifiable
+    key fails closed; a valid receipt for another key does not block
+    lookup. A missing receipt reports `absent` but cannot distinguish a request
+    that never committed from a receipt removed after commit. A timeout or
+    invalid/lost response is an unknown outcome until status and the work ledger
+    are inspected; do not blindly retry when a corresponding item exists
+    without its receipt.
+    Dashboard regeneration occurs after the authoritative commit and cannot
+    turn a committed proposal into a reported rejection.
+
 ## 5. Lifecycle state machine
 
 A work item's status is the name of its lifecycle directory; the JSON `status` must

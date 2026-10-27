@@ -46,6 +46,13 @@ struct CreateParams {
     preflight_confirmed_before_work_started: bool,
     #[serde(default)]
     acceptance_criteria: Vec<AcceptanceCriterion>,
+    #[serde(default)]
+    idempotency_key: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+struct ProposalStatusParams {
+    idempotency_key: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -148,6 +155,8 @@ fn dispatch(request: EngineRequest, operation: &str) -> EngineResponse {
         "validate" => validate(&request),
         "dashboard.write" => dashboard_write(&request),
         "work.create" | "work.propose" => create_work(&request),
+        "work.proposal-plan" => proposal_plan(&request),
+        "work.proposal-status" => proposal_status(&request),
         "work.amend_proposal" => amend_proposal(&request),
         "graph" => graph(&request),
         "graph.status" => graph_status(&request),
@@ -335,22 +344,134 @@ fn create_work(request: &EngineRequest) -> EngineResponse {
             return semantic_failure(request, "work.invalid-parameters", error.to_string())
         }
     };
-    let status = if request.operation == "work.propose" {
-        "proposed".to_owned()
-    } else {
-        params.status
-    };
+    if request.operation == "work.propose" {
+        let operation_started = std::time::Instant::now();
+        let mut intent = CreateWorkItem::new(params.title, params.date).with_status("proposed");
+        if let Some(key) = params.idempotency_key {
+            intent = intent.with_idempotency_key(key);
+        }
+        if params.preflight_confirmed_before_work_started {
+            intent = intent.confirm_preflight_before_work_started();
+        }
+        if !params.acceptance_criteria.is_empty() {
+            intent = intent.with_acceptance_criteria(params.acceptance_criteria);
+        }
+        let mut result = repopact_mutation::propose_work_item(&root, intent);
+        result.metrics.engine_execution_ms = operation_started.elapsed().as_millis();
+        return mutation_response(request, result);
+    }
+    if params.status == "proposed" {
+        return semantic_failure(
+            request,
+            "work.proposal-operation-required",
+            "proposed work must use the idempotent work.propose operation",
+        );
+    }
+    let status = params.status;
     let core = RepoPactCore::open(&root);
+    let snapshot_started = std::time::Instant::now();
     let snapshot = core.snapshot();
+    let snapshot_ms = snapshot_started.elapsed().as_millis();
     let mut intent = CreateWorkItem::new(params.title, params.date)
         .with_status(status)
         .with_acceptance_criteria(params.acceptance_criteria);
     if params.preflight_confirmed_before_work_started {
         intent = intent.confirm_preflight_before_work_started();
     }
+    let planning_started = std::time::Instant::now();
     let plan = core.plan_mutation_snapshot(&snapshot, MutationRequest::create_work_item(intent));
+    let planning_ms = planning_started.elapsed().as_millis();
+    let operation_started = std::time::Instant::now();
     let result = plan.apply();
+    let mut result = result;
+    result.metrics.snapshot_ms = snapshot_ms;
+    result.metrics.planning_ms = planning_ms;
+    result.metrics.engine_execution_ms =
+        operation_started.elapsed().as_millis() + snapshot_ms + planning_ms;
     mutation_response(request, result)
+}
+
+fn proposal_plan(request: &EngineRequest) -> EngineResponse {
+    let root = match require_root(request) {
+        Ok(root) => root,
+        Err(response) => return response,
+    };
+    let params = match serde_json::from_value::<CreateParams>(request.params.clone()) {
+        Ok(params) => params,
+        Err(error) => {
+            return semantic_failure(request, "work.invalid-parameters", error.to_string())
+        }
+    };
+    let Some(key) = params.idempotency_key.clone() else {
+        return semantic_failure(
+            request,
+            "work.proposal-key-required",
+            "work.proposal-plan requires an idempotency key",
+        );
+    };
+    let operation_started = std::time::Instant::now();
+    let core = RepoPactCore::open(&root);
+    let snapshot_started = std::time::Instant::now();
+    let snapshot = core.snapshot();
+    let snapshot_ms = snapshot_started.elapsed().as_millis();
+    let mut intent = CreateWorkItem::new(params.title, params.date)
+        .with_status("proposed")
+        .with_idempotency_key(key);
+    if params.preflight_confirmed_before_work_started {
+        intent = intent.confirm_preflight_before_work_started();
+    }
+    if !params.acceptance_criteria.is_empty() {
+        intent = intent.with_acceptance_criteria(params.acceptance_criteria);
+    }
+    let planning_started = std::time::Instant::now();
+    let plan = core.plan_mutation_snapshot(&snapshot, MutationRequest::create_work_item(intent));
+    let planning_ms = planning_started.elapsed().as_millis();
+    let mut metrics = plan.metrics.clone();
+    metrics.snapshot_ms = snapshot_ms;
+    metrics.planning_ms = planning_ms;
+    metrics.engine_execution_ms = operation_started.elapsed().as_millis();
+    let diagnostics = plan
+        .diagnostics
+        .iter()
+        .map(mutation_diagnostic)
+        .collect::<Vec<_>>();
+    let result = json!({
+        "applicable": plan.is_applicable(),
+        "plan_token": plan.plan_token,
+        "preview": plan.preview,
+        "diagnostics": plan.diagnostics,
+        "metrics": metrics,
+    });
+    let mut response = EngineResponse::success(request.request_id.clone(), ENGINE_VERSION, result);
+    response.diagnostics = diagnostics;
+    response
+}
+
+fn proposal_status(request: &EngineRequest) -> EngineResponse {
+    let root = match require_root(request) {
+        Ok(root) => root,
+        Err(response) => return response,
+    };
+    let params = match serde_json::from_value::<ProposalStatusParams>(request.params.clone()) {
+        Ok(params) => params,
+        Err(error) => {
+            return semantic_failure(request, "work.invalid-parameters", error.to_string())
+        }
+    };
+    match repopact_mutation::proposal_status(&root, &params.idempotency_key) {
+        Ok(Some(mut receipt)) => {
+            if let Some(object) = receipt.as_object_mut() {
+                object.insert("state".to_owned(), Value::String("committed".to_owned()));
+            }
+            EngineResponse::success(request.request_id.clone(), ENGINE_VERSION, receipt)
+        }
+        Ok(None) => EngineResponse::success(
+            request.request_id.clone(),
+            ENGINE_VERSION,
+            json!({"state": "absent", "idempotency_key": params.idempotency_key}),
+        ),
+        Err(error) => semantic_failure(request, "work.proposal-status-failed", error),
+    }
 }
 
 fn amend_proposal(request: &EngineRequest) -> EngineResponse {
@@ -636,6 +757,8 @@ fn mutation_response(request: &EngineRequest, result: MutationResult) -> EngineR
         "plan_token": result.plan_token,
         "changed_paths": result.changed_paths,
         "diagnostics": result.diagnostics,
+        "replayed": result.replayed,
+        "metrics": result.metrics,
     });
     let mut response = EngineResponse::success(request.request_id.clone(), ENGINE_VERSION, value);
     response.diagnostics = diagnostics;
@@ -701,7 +824,7 @@ fn protocol_diagnostic(value: &Diagnostic) -> ProtocolDiagnostic {
 fn mutation_diagnostic(value: &repopact_mutation::MutationDiagnostic) -> ProtocolDiagnostic {
     ProtocolDiagnostic {
         code: value.code.clone(),
-        severity: "error".to_owned(),
+        severity: if value.blocking { "error" } else { "warning" }.to_owned(),
         message: value.message.clone(),
         path: value.path.clone(),
         record: None,

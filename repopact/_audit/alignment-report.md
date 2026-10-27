@@ -1,5 +1,30 @@
 # Tooling Alignment Report
 
+## 2026-10-27 operation-scoped proposal admission
+
+- Baseline reproduction on clean ForgeWireLabs Core commit `e5581a3` found two
+  independent failures: the proposal CLI omitted required preflight
+  confirmation, and the Python client rejected a valid engine diagnostic
+  because protocol severity and nested mutation blocking state use different
+  response shapes. A confirmed direct proposal in a disposable Core copy took
+  p50 10,041 ms and p95/worst 13,370 ms across ten samples; no per-phase or
+  memory telemetry existed. The private Fabric trace and governance dataset
+  were not available, so that incident is not claimed as reproduced.
+- Proposed work now validates the candidate and global work integrity against
+  one immutable snapshot without cloned repository validation passes. Broken
+  authority, identity, reference, dependency, sensitive-evidence, and
+  scope-integrity findings remain blocking; unrelated work and maintenance
+  findings are surfaced as warnings. Full `validate` remains unchanged.
+- Proposal writes stage the work item, README, and idempotency receipt in one
+  same-volume transaction directory and commit by directory rename while a
+  bounded lock serializes ID allocation. Read-only plan/status operations,
+  same-key recovery, structured phase counters, post-commit dashboard refresh,
+  and client/engine working-set telemetry are covered by the operation suite.
+- `conformance/operations/work-proposal.md` documents the adversarial matrix;
+  `scripts/benchmark_work_propose.py` measures only disposable copies. The
+  actual ForgeWire-scale p95 target remains pending until its governed dataset
+  and host conditions can be measured.
+
 ## 2026-10-22 WI047 structural documentation freshness
 
 - Added opt-in versioned source-to-documentation mappings with exact contained
@@ -423,3 +448,24 @@
   now passes `--release --locked`, preventing Cargo from pruning unrelated
   lock entries and ensuring the wheel embeds the same release-profile
   executables whose digests the verifier anchors before its handshake.
+
+## 2026-10-27 focused proposal merge-readiness review
+
+- Proposal and ordinary RepoPact mutations now share a bounded in-process and
+  cross-process repository lock. Work-item plans include lifecycle inventory
+  facts, proposals recheck their read set after staging and before directory
+  rename, and a concurrent non-proposal mutation with a stale ID allocation is
+  rejected after the proposal publishes.
+- Receipt status follows items across lifecycle directories. Matching receipt
+  corruption, duplicate keys, missing/mismatched item records, and malformed
+  JSON whose key cannot be identified fail closed; valid unrelated-key receipts
+  do not block lookup. An absent receipt remains ambiguous after a prior
+  unknown outcome and requires ledger/history inspection before retry.
+- Staged item, README, and receipt files receive `sync_all()` before the
+  same-volume directory rename. This establishes atomic visibility during
+  normal operation, not power-loss persistence; neither parent-directory sync
+  nor an explicit Windows write-through request is present.
+- Decision 0078 is accepted for the Core contract now stated normatively in
+  `SPEC.md`. WI077 remains open for its actual Fabric reproduction and
+  ForgeWire-scale measurements; the Core benchmark does not satisfy those
+  acceptance criteria.

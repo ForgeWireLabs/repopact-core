@@ -2,7 +2,9 @@ use std::fs;
 use std::path::PathBuf;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use repopact_mutation::{apply, ApplyOptions, CreateWorkItem, MutationPlan, MutationRequest};
+use repopact_mutation::{
+    apply, ApplyOptions, CreateWorkItem, MutationMetrics, MutationPlan, MutationRequest,
+};
 use repopact_repository::Repository;
 
 fn temp_root() -> PathBuf {
@@ -44,6 +46,7 @@ fn mutation_post_validation_includes_shared_verification_contract_diagnostics() 
         graph_impacts: Vec::new(),
         diagnostics: Vec::new(),
         preview: String::new(),
+        metrics: MutationMetrics::default(),
     };
 
     let result = apply(&plan, &ApplyOptions::default());

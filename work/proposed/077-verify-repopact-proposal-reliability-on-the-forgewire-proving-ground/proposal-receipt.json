@@ -1,0 +1,7 @@
+{
+  "format_version": 1,
+  "idempotency_key": "2026-10-27-governance-throughput-scale-verification",
+  "request_digest": "b5df46cd94a3687442fd1d19acfc207277c1dc32dbd452b00259d47a82c30838",
+  "work_item_id": "077",
+  "work_item_path": "work/proposed/077-verify-repopact-proposal-reliability-on-the-forgewire-proving-ground"
+}

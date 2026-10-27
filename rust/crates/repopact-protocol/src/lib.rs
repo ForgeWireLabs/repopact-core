@@ -140,6 +140,8 @@ pub fn capabilities() -> Capabilities {
             "dashboard.write".to_owned(),
             "work.create".to_owned(),
             "work.propose".to_owned(),
+            "work.proposal-plan".to_owned(),
+            "work.proposal-status".to_owned(),
             "work.amend_proposal".to_owned(),
             "graph".to_owned(),
             "graph.status".to_owned(),

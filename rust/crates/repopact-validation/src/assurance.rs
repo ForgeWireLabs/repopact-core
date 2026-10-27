@@ -642,6 +642,29 @@ fn parse_date_prefix(value: &str) -> Option<(i64, i64, i64)> {
 }
 
 impl Validator {
+    /// Proposal admission reports only review expiry, without traversing
+    /// mapping-reference digests or re-evaluating documentation claims.
+    pub(crate) fn validate_proposal_review_freshness(&mut self) {
+        if self.index.assurance_mappings.is_empty() {
+            return;
+        }
+        let today = self.today.clone().unwrap_or_else(crate::today_utc);
+        for record in self.index.assurance_mappings.clone() {
+            let Ok(data) = record.value.clone() else {
+                continue;
+            };
+            let Some(object) = data.as_object() else {
+                continue;
+            };
+            let mapping_id = object
+                .get("id")
+                .and_then(Value::as_str)
+                .unwrap_or("")
+                .to_owned();
+            self.check_review_due(object, &mapping_id, &record.path, &today);
+        }
+    }
+
     pub(crate) fn validate_review_and_claims(&mut self) {
         if self.index.assurance_mappings.is_empty() {
             return;
