@@ -143,6 +143,9 @@ pub fn capabilities() -> Capabilities {
             "work.proposal-plan".to_owned(),
             "work.proposal-status".to_owned(),
             "work.amend_proposal".to_owned(),
+            "record.create-markdown".to_owned(),
+            "record.preview-markdown".to_owned(),
+            "mutation.receipt".to_owned(),
             "graph".to_owned(),
             "graph.status".to_owned(),
             "graph.build".to_owned(),
@@ -174,6 +177,7 @@ pub fn capabilities() -> Capabilities {
             "orientation-graph-query".to_owned(),
             "analysis".to_owned(),
             "typed-work-item-mutation".to_owned(),
+            "serialized-governance-record-allocation".to_owned(),
         ],
     }
 }

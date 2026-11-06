@@ -458,6 +458,7 @@ class EngineClient:
         *,
         root: Path | None = None,
         params: dict[str, Any] | None = None,
+        request_id: str | None = None,
     ) -> dict[str, Any]:
         client_started = time.perf_counter()
         previous_deadline = getattr(self, "_operation_deadline", None)
@@ -470,7 +471,9 @@ class EngineClient:
             operation_started = time.perf_counter()
             if getattr(self, "_strict", False):
                 try:
-                    response = self._call_admitted(operation, root=root, params=params)
+                    response = self._call_admitted(
+                        operation, root=root, params=params, request_id=request_id
+                    )
                 except EngineOutcomeUnknownError as exc:
                     if operation != "work.propose":
                         raise
@@ -479,14 +482,9 @@ class EngineClient:
                         operation, key if isinstance(key, str) else None, str(exc)
                     ) from exc
             else:
-                request = {
-                    "protocol": PROTOCOL,
-                    "protocol_version": PROTOCOL_VERSION,
-                    "request_id": uuid.uuid4().hex,
-                    "operation": operation,
-                    "root": str(root.resolve()) if root is not None else None,
-                    "params": params or {},
-                }
+                request = self._request(
+                    operation, root=root, params=params, request_id=request_id
+                )
                 try:
                     response = self._invoke(request)
                 except OperationOutcomeUnknownError:
@@ -622,12 +620,27 @@ class EngineClient:
             raise
 
     def _request(
-        self, operation: str, *, root: Path | None = None, params: dict[str, Any] | None = None
+        self,
+        operation: str,
+        *,
+        root: Path | None = None,
+        params: dict[str, Any] | None = None,
+        request_id: str | None = None,
     ) -> dict[str, Any]:
+        if request_id is None:
+            request_id = uuid.uuid4().hex
+        if not isinstance(request_id, str) or not request_id or "\0" in request_id:
+            raise ValueError("request_id must contain 1 to 256 UTF-8 bytes and no NUL")
+        try:
+            encoded_length = len(request_id.encode("utf-8"))
+        except UnicodeEncodeError as exc:
+            raise ValueError("request_id must be valid UTF-8 text") from exc
+        if encoded_length > 256:
+            raise ValueError("request_id must contain 1 to 256 UTF-8 bytes and no NUL")
         return {
             "protocol": PROTOCOL,
             "protocol_version": PROTOCOL_VERSION,
-            "request_id": uuid.uuid4().hex,
+            "request_id": request_id,
             "operation": operation,
             "root": str(root.resolve()) if root is not None else None,
             "params": params or {},
@@ -747,7 +760,12 @@ class EngineClient:
             ) from exc
 
     def _call_admitted(
-        self, operation: str, *, root: Path | None, params: dict[str, Any] | None
+        self,
+        operation: str,
+        *,
+        root: Path | None,
+        params: dict[str, Any] | None,
+        request_id: str | None = None,
     ) -> dict[str, Any]:
         with self._io_lock:
             self._ensure_admitted()
@@ -756,7 +774,9 @@ class EngineClient:
                 self._session.authorize_operation(operation)
             except AdmissionError as exc:
                 raise EngineProtocolError(str(exc)) from exc
-            request = self._request(operation, root=root, params=params)
+            request = self._request(
+                operation, root=root, params=params, request_id=request_id
+            )
             try:
                 response = self._session_exchange(request)
             except _EngineRequestNotSentError as exc:

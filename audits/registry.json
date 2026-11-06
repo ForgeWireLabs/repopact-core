@@ -23,10 +23,10 @@
       "path": "docs",
       "owner": "docs-owner",
       "contract": "docs/AGENTS.md",
-      "last_reviewed": "2026-10-27",
-      "next_review": "2027-01-25",
+      "last_reviewed": "2026-11-06",
+      "next_review": "2027-02-04",
       "alignment": "current",
-      "notes": "Diataxis documentation set reconciled through RepoPact 3.1.4.dev0, including audience-oriented navigation, authoritative-vs-derived state, admission assurance boundaries, local-first verification, opt-in source/documentation freshness mappings, operation-scoped proposal recovery with receipt-loss ambiguity and the atomic-visibility versus power-loss boundary, engine semantic identity and compatibility migration, uncertain outcomes with no replay after dispatch, packaged-wheel semantic-payload and engine-handshake verification, and launch claim boundaries. Reviewed 2026-10-27; governed lightly with no per-page audit inventories (policies 001 and 002)."
+      "notes": "Diataxis documentation set reconciled through RepoPact 3.1.4.dev0, including audience-oriented navigation, authoritative-vs-derived state, admission assurance boundaries, local-first verification, opt-in source/documentation freshness mappings, operation-scoped proposal recovery and durable generic mutation receipts with explicit same-key conflict semantics, engine semantic identity and compatibility migration, uncertain outcomes without automatic replay, packaged-wheel semantic-payload and engine-handshake verification, and launch claim boundaries. Transaction recovery evidence is limited to verified Windows process termination; Unix locking and power-loss durability remain unverified. Reviewed 2026-11-06; governed lightly with no per-page audit inventories (policies 001 and 002)."
     },
     {
       "path": "work/completed/026-deterministic-dashboard-validation",

@@ -1,0 +1,37 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261106-076-final-engine-rebuild-prebuild",
+  "timestamp": "2026-11-06T22:40:03Z",
+  "work_item": "076",
+  "result": "passed",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "PowerShell read-only pre-build snapshot: C: free space, active cargo/rustc processes, and task-owned Cargo target size",
+      "exit_code": 0,
+      "summary": "C: had 102,127,296,512 bytes free (95.11 GiB). No cargo or rustc process was active. The existing task-owned target contained 3,696 files totaling 2,101,456,094 bytes (1.96 GiB)."
+    }
+  ],
+  "artifacts": [
+    "rust/crates/repopact-mutation/src/lib.rs",
+    "build/semantic-input-manifest.json",
+    "repopact/_semantic-input-manifest.json",
+    "repopact/_semantic_identity.json"
+  ],
+  "environment": {
+    "snapshot_time_utc": "2026-11-06T22:40:03Z",
+    "volume": "C:",
+    "filesystem": "NTFS",
+    "health": "not queried",
+    "free_bytes": 102127296512,
+    "cargo_target_dir_before_build": "C:/Users/jerem/AppData/Local/Temp/RepoPact/wi076-final-regression/target",
+    "cargo_target_size_before_build_bytes": 2101456094,
+    "temp_path": "C:/Users/jerem/AppData/Local/Temp",
+    "planned_cargo_target_dir": "C:/Users/jerem/AppData/Local/Temp/RepoPact/wi076-final-regression/target",
+    "target_output_budget_gib": 1,
+    "temporary_output_budget_gib": 0.5,
+    "headroom_gib": 93.61,
+    "build_decision": "proceed with one incremental engine rebuild to embed the regenerated semantic identity; reuse the task-owned target and preserve shared Cargo caches",
+    "output_disposition": "retain the task-owned target through focused final validation and remove only this target after recording the final engine digest"
+  }
+}

@@ -1,0 +1,146 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261106-076-final-regression-reconciliation",
+  "timestamp": "2026-11-07T00:16:01Z",
+  "work_item": "076",
+  "result": "passed",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "python -u -m unittest discover -s tests -v (CPython 3.12.4; REPOPACT_ENGINE points to the task-owned engine; CARGO_TARGET_DIR unset; rebased on current main)",
+      "exit_code": 0,
+      "summary": "Current-main run: 453 tests in 1589.259 seconds; 449 passed, 0 failed, 4 skipped. Log: evidence/runs/wi076-python-full-suite-final-main-20261106.log; SHA-256 d5f6078205279afc09a829da5723a814712df9c057fa58cd85e98aabc1eea5bb."
+    },
+    {
+      "command": "cargo test --locked -p repopact-mutation -p repopact-validation -p repopact-engine -p repopact-core -p repopact-protocol (task-owned CARGO_TARGET_DIR)",
+      "exit_code": 0,
+      "summary": "Engine: 7 passed. Mutation: 35 unit tests and 4 integration tests passed; 1 child-process crash fixture is intentionally ignored by the harness. Validation: 79 passed. Core and protocol: 0 unit tests."
+    },
+    {
+      "command": "python -m unittest tests.test_engine_client tests.test_engine_client_semantic tests.test_takeover_transaction -v (final task engine)",
+      "exit_code": 0,
+      "summary": "43 focused engine-client, semantic-admission, and takeover-transaction tests passed."
+    },
+    {
+      "command": "rustfmt --edition 2021 --check rust/apps/repopact-engine/src/main.rs rust/crates/repopact-core/src/lib.rs rust/crates/repopact-mutation/src/lib.rs rust/crates/repopact-mutation/src/transaction_store.rs rust/crates/repopact-protocol/src/lib.rs",
+      "exit_code": 0,
+      "summary": "Changed Rust implementation and test code passed rustfmt check."
+    },
+    {
+      "command": "python scripts/generate_engine_semantic_identity.py --check",
+      "exit_code": 0,
+      "summary": "The generated semantic input manifest and identity are current."
+    },
+    {
+      "command": "repopact validate --root . (REPOPACT_ENGINE points to the task-owned engine)",
+      "exit_code": 0,
+      "summary": "Canonical repository validation passed with 0 diagnostics after mapping and dashboard reconciliation."
+    },
+    {
+      "command": "repopact check-frozen --base 0ac343a2bf25f56a47e8f42798eca938844199fa",
+      "exit_code": 0,
+      "summary": "No frozen-surface changes detected against the current main base after PR #14."
+    },
+    {
+      "command": "repopact dashboard --root . (REPOPACT_ENGINE points to the task-owned engine)",
+      "exit_code": 0,
+      "summary": "Regenerated the derived dashboard after refreshing the reviewed engine-semantic-compatibility documentation snapshot."
+    }
+  ],
+  "artifacts": [
+    "evidence/runs/wi076-python-full-suite-final-pass-20261106.log",
+    "rust/crates/repopact-mutation/src/lib.rs",
+    "rust/crates/repopact-mutation/src/transaction_store.rs",
+    "rust/apps/repopact-engine/src/main.rs",
+    "repopact/engine_client.py",
+    "repopact/new.py",
+    "repopact/takeover.py",
+    "tests/test_engine_client.py",
+    "tests/test_takeover_transaction.py",
+    "docs/guides/packaging-and-engine.md",
+    "work/active/076-engine-semantic-compatibility-identity/work-item.json",
+    "evidence/runs/wi076-python-full-suite-20261106.log",
+    "evidence/runs/wi076-python-full-suite-final-20261106.log",
+    "evidence/runs/wi076-python-full-suite-final-main-20261106.log"
+  ],
+  "environment": {
+    "repository": "C:/Projects/repopact-core",
+    "authorized_worktree": "C:/Projects/repopact-core-wi076-fix",
+    "branch": "codex/wi076-final-regression",
+    "base_head": "0ac343a2bf25f56a47e8f42798eca938844199fa",
+    "source_state_at_test_time": "Task changes were present in the worktree. The engine build metadata identifies the base HEAD; the semantic identity and selected executable digest identify the tested input state. The worktree was dirty, so base HEAD alone is not a complete source snapshot.",
+    "python": "CPython 3.12.4 at C:/Program Files/Python312/python.exe",
+    "python_full_suite": {
+      "tests": 453,
+      "passed": 449,
+      "failed": 0,
+      "skipped": 4,
+      "duration_seconds": 1589.259,
+      "skipped_tests": [
+        "test_real_maturin_archives_pass_and_attack_copies_fail_closed: actual Maturin archive paths are supplied by the focused build run",
+        "test_unix_service_returns_protocol_error_before_closing_connection: POSIX-only guard-service test; this host is Windows",
+        "test_relational_contract_weakening_is_caught: O-6 open; nested-contract refinement order is not mechanized",
+        "test_temporal_history_rewrite_is_caught: O-4 open; git-trace history-rewrite semantics are not mechanized"
+      ],
+      "log": "evidence/runs/wi076-python-full-suite-final-main-20261106.log",
+      "log_sha256": "d5f6078205279afc09a829da5723a814712df9c057fa58cd85e98aabc1eea5bb"
+    },
+    "cargo_target_dir": "C:/Users/jerem/AppData/Local/Temp/RepoPact/wi076-final-regression/target",
+    "product_version": "3.1.4.dev0",
+    "protocol": "repopact-engine v2",
+    "semantic_identity": "repopact-semantic-v1:sha256:de2f4167b6663bbd36fc6a8258dcaf8e2fde8293dbec9125ece1539f171bdbd1",
+    "engine_identity_smoke": {
+      "status": "complete",
+      "selected_path": "C:/Users/jerem/AppData/Local/Temp/RepoPact/wi076-final-regression/target/debug/repopact-engine.exe",
+      "process_image_path": "C:/Users/jerem/AppData/Local/Temp/RepoPact/wi076-final-regression/target/debug/repopact-engine.exe",
+      "file_identity": {
+        "device": 9251113309582558494,
+        "file_index": 72902018968255069,
+        "size": 22037504,
+        "mtime_ns": 1794004822178963400
+      },
+      "sha256_before_launch": "8e5874d25632875e30e87535f514f85fdf07d532277d5cd0522bc6e03fdb614b",
+      "sha256_at_process_image": "8e5874d25632875e30e87535f514f85fdf07d532277d5cd0522bc6e03fdb614b",
+      "sha256_after_run": "8e5874d25632875e30e87535f514f85fdf07d532277d5cd0522bc6e03fdb614b",
+      "scope": "Separate handshake/admission smoke; per-invocation image provenance was not collected for the full suite or conformance, so AC-6 remains pending.",
+      "authenticity": "Not established by semantic identity or file digest."
+    },
+    "security_acl": {
+      "c_projects": "Rejected as a trust root: C:/Projects inherits Authenticated Users Modify; path-chain policy remains enabled.",
+      "python_interpreter": "Protected path check passed for C:/Program Files/Python312/python.exe; BUILTIN Users have read/execute and SYSTEM/Administrators have full control.",
+      "task_engine": "Located under user-writable Temp and rejected as an installed trust source; selected explicitly for this development regression run.",
+      "policy_change": "No trust exception or broader writable-path allowance was added."
+    },
+    "transaction_recovery": "Windows process-termination recovery, repeated recovery, receipt replay/conflict, and lock release were tested. Unix locking remains unverified. No power-loss durability claim is made.",
+    "acceptance_state": "WI076 remains active. AC-2 through AC-6 remain pending. AC-9 remains satisfied and was not reopened. WI074/RPS-016 and Fabric governance records were unchanged.",
+    "superseded_attempt": {
+      "log": "evidence/runs/wi076-python-full-suite-final-20261106.log",
+      "exit_code": 1,
+      "tests": 453,
+      "failures": 9,
+      "skipped": 4,
+      "cause": "The semantic identity was regenerated after the reviewed mapping snapshot, leaving that snapshot and the generated dashboard stale. All nine affected tests passed after both derived records were refreshed."
+    },
+    "earlier_pre_final_identity_suite": {
+      "log": "evidence/runs/wi076-python-full-suite-20261106.log",
+      "result": "passed before the final semantic identity regeneration; superseded by the final pass log"
+    },
+    "tested_commit": "507e9ef",
+    "engine_build_source_revision": "9c57d6272349951e29e4d08b22c11bb284fbce3a",
+    "engine_build_note": "The task engine was built before the PR #14 rebase. PR #14 changed WI077 records and the generated dashboard only; no Rust or semantic identity inputs changed. The semantic identity remained the same.",
+    "prior_python_full_suite_on_pr13_base": {
+      "tests": 453,
+      "passed": 449,
+      "failed": 0,
+      "skipped": 4,
+      "duration_seconds": 1645.536,
+      "log": "evidence/runs/wi076-python-full-suite-final-pass-20261106.log",
+      "log_sha256": "2c401bb8ec572d0b79651d59e890b3a2c3fb309a6b50b84082a63f0be85707e8",
+      "superseded_by_current_main_run": true
+    },
+    "post_pr14_integration": {
+      "main_commit": "0ac343a2bf25f56a47e8f42798eca938844199fa",
+      "result": "Rebased; dashboard regenerated to include WI076 and WI077. No WI077 source records changed."
+    }
+  }
+}

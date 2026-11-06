@@ -1,0 +1,91 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261028-076-transaction-recovery",
+  "timestamp": "2026-10-28T23:28:20Z",
+  "work_item": "076",
+  "result": "partial",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "cargo build --locked --offline --manifest-path rust/Cargo.toml -p repopact-engine",
+      "exit_code": 0,
+      "summary": "Built with CARGO_TARGET_DIR set to the task-owned temporary target; no shared rust/target was used. The exact engine binary used by the Python client tests was C:/Users/jerem/AppData/Local/Temp/repopact-wi076-transaction-recovery-20261028/target/debug/repopact-engine.exe."
+    },
+    {
+      "command": "cargo test --locked --offline --manifest-path rust/Cargo.toml -p repopact-mutation",
+      "exit_code": 0,
+      "summary": "Passed: 36 unit tests, 2 ignored; 3 remote-provider governance integration tests; and 1 verification_post_validation integration test. Crash subprocess cases cover interruption before snapshot completion, during candidate validation, before commit, between multi-file writes, during rollback and recovery; repeated recovery, baseline restoration, receipt replay/conflict, concurrent same-key serialization, and lock release passed."
+    },
+    {
+      "command": "task venv: python -m pip install --no-build-isolation -e .[dev]",
+      "exit_code": 0,
+      "summary": "Editable install succeeded in the task-owned venv using already available dependencies. The standard isolated install could not fetch maturin because network access is unavailable; the global interpreter install was not used after it encountered a protected installed engine file."
+    },
+    {
+      "command": "task venv with REPOPACT_ENGINE set to the task binary: python -m unittest tests.test_engine_client -v",
+      "exit_code": 0,
+      "summary": "20 EngineClient tests passed, including request-id validation and forwarding."
+    },
+    {
+      "command": "task venv with REPOPACT_ENGINE set to the task binary: python -m unittest tests.test_engine_client_semantic -v",
+      "exit_code": 0,
+      "summary": "17 semantic-engine admission and identity tests passed."
+    },
+    {
+      "command": "task venv with REPOPACT_ENGINE set to the task binary: python -m unittest tests.test_takeover_transaction -v",
+      "exit_code": 0,
+      "summary": "3 takeover transaction tests passed, covering receipt reuse, Rust preview on dry-run, and stable request identity for creation."
+    },
+    {
+      "command": "python -m unittest discover -s tests -v (short task-owned TEMP path)",
+      "exit_code": 1,
+      "summary": "Ran 441 tests in 1723.376 seconds: 437 passed, 4 failed, 3 skipped. Three README release-line fixture tests expected 3.1.3 while this checkout's VERSION is 3.1.4. The remaining test, test_existing_protected_descendant_is_not_rejected_by_volume_root_acl, classified the C:/Projects path as a known user-writable root. These failures are outside transaction recovery and remain reported; the suite is not recorded as passing."
+    },
+    {
+      "command": "python scripts/generate_engine_semantic_identity.py --check --root .",
+      "exit_code": 0,
+      "summary": "The semantic input manifest is current."
+    },
+    {
+      "command": "repopact dashboard --root . (task venv, task engine)",
+      "exit_code": 0,
+      "summary": "Regenerated the derived dashboard after linking AC-9 evidence."
+    },
+    {
+      "command": "repopact validate --root . (task venv, task engine)",
+      "exit_code": 0,
+      "summary": "Canonical repository governance validation passed after the work-item and evidence updates."
+    }
+  ],
+  "artifacts": [
+    "rust/crates/repopact-mutation/src/lib.rs",
+    "rust/crates/repopact-mutation/src/transaction_lock.rs",
+    "rust/crates/repopact-mutation/src/transaction_store.rs",
+    "rust/crates/repopact-mutation/tests/verification_post_validation.rs",
+    "rust/apps/repopact-engine/src/main.rs",
+    "repopact/engine_client.py",
+    "repopact/new.py",
+    "repopact/takeover.py",
+    "tests/test_engine_client.py",
+    "tests/test_takeover_transaction.py",
+    "docs/concepts.md",
+    "work/active/076-engine-semantic-compatibility-identity/work-item.json"
+  ],
+  "environment": {
+    "repository": "C:/Projects/repopact-core",
+    "branch": "codex/wi076-semantic-identity-design",
+    "head": "bf6d8b3a5a7b5a74c5a9b3ba45ae5f1a1de994df",
+    "product_version": "3.1.4.dev0",
+    "engine_protocol": "repopact-engine v2",
+    "semantic_identity": "repopact-semantic-v1:sha256:a54e1dabc625d72d2965a1a5ac278024298404247ecddd53b23c73c5e9849e3d",
+    "engine_source_revision": "bf6d8b3a5a7b5a74c5a9b3ba45ae5f1a1de994df",
+    "engine_target": "Windows x64",
+    "rust_toolchain": "1.96.0",
+    "engine_binary_path": "C:/Users/jerem/AppData/Local/Temp/repopact-wi076-transaction-recovery-20261028/target/debug/repopact-engine.exe",
+    "engine_binary_sha256": "86ab967ad2f61d293d61a168d72f5d401b8912ccfab0c5b9eea83d2c4d471be8",
+    "transaction_guarantees": "Verified process termination recovery and repeated recovery on Windows. The Windows lock is an exclusive OS handle released on process exit; Unix flock behavior is implemented but not verified on this host. No power-loss durability claim is made.",
+    "work_item_state": "WI076 remains active; AC-2 through AC-6 remain pending; WI074/RPS-016 is not changed.",
+    "external_actions": "No Fabric Work Item was registered, no publication occurred, frozen workflows and repository visibility were not changed, and no signing was provisioned.",
+    "storage_and_cleanup": "Build outputs were task-owned under C:/Users/jerem/AppData/Local/Temp/repopact-wi076-transaction-recovery-20261028/target. Only this target is authorized for cleanup after all processes exit; rust/target and shared Cargo caches are preserved."
+  }
+}

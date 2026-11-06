@@ -2,9 +2,12 @@ use std::path::Path;
 
 use repopact_analysis::{analyze, AnalysisQuery, AnalysisReport};
 use repopact_graph::{build, RepositoryGraph};
-use repopact_mutation::{apply, plan, ApplyOptions, MutationPlan, MutationRequest, MutationResult};
+use repopact_mutation::{
+    apply, plan, ApplyOptions, MutationDiagnostic, MutationPlan, MutationRequest, MutationResult,
+};
 use repopact_repository::{Repository, RepositorySession, RepositorySnapshot};
 use repopact_types::{RepositoryIdentity, ValidationReport};
+use serde_json::Value;
 
 /// Reusable, non-Tauri RepoPact façade. Graph, analysis, mutation, and
 /// validation all start from an immutable snapshot produced by the same
@@ -123,6 +126,38 @@ impl RepoPactCore {
         options: &ApplyOptions,
     ) -> MutationResult {
         apply(mutation, options)
+    }
+
+    /// Plan and apply under the shared repository lock with a durable request
+    /// receipt. Proposal admission remains on its operation-scoped path.
+    pub fn plan_and_apply_idempotently(
+        &self,
+        request_key: &str,
+        operation: &str,
+        params: &Value,
+        request: MutationRequest,
+    ) -> MutationResult {
+        repopact_mutation::plan_and_apply_idempotently(
+            self.repository().root(),
+            request_key,
+            operation,
+            params,
+            request,
+        )
+    }
+
+    pub fn preview_mutation_transactionally(
+        &self,
+        request: MutationRequest,
+    ) -> Result<MutationPlan, MutationDiagnostic> {
+        repopact_mutation::preview_mutation_transactionally(self.repository().root(), request)
+    }
+
+    pub fn request_receipt(
+        &self,
+        request_key: &str,
+    ) -> Result<Option<MutationResult>, MutationDiagnostic> {
+        repopact_mutation::read_request_receipt(self.repository().root(), request_key)
     }
 }
 
