@@ -1,6 +1,6 @@
 # WI076 — Engine Semantic Compatibility Identity
 
-> **Status**: Completed on 2026-10-25 after final archive-closure verification. Earlier closeout and reopening entries below remain historical; PR #12 stays draft and unmerged pending independent review.
+> **Status**: Active — the 2026-10-25 archive-closure record remains historical; AC-2 through AC-6 remain pending while final regression and integration evidence is completed. AC-9 transaction recovery is satisfied.
 > **Owner**: tooling-owner (lead); docs-owner and evidence-owner affected.
 > **Related issue**: [Core issue #10](https://github.com/ForgeWireLabs/repopact-core/issues/10).
 > **Related readiness gate**: WI074 / RPS-016. This work can provide one compatibility input, but it cannot satisfy RPS-016 by itself.
@@ -443,6 +443,34 @@ review; no package or release was published. WI074 RPS-016 remains pending.
 This Windows x64 evidence does not establish Linux or macOS behavior, binary
 authenticity, real interruption rollback, or the broader release/install gate.
 
+## Transaction recovery and PR #13 integration continuation (2026-10-28 onward)
+
+The repository lifecycle reopened WI076 after the earlier archive-closure
+record so the transaction-recovery work could be preserved and reconciled with
+the operation-scoped proposal implementation merged through PR #13. The
+2026-10-25 completion remains a historical record; it does not close this
+continuation. AC-2 through AC-6 remain pending until their full criteria have
+criterion-specific evidence. AC-9 remains satisfied by
+[`20261028-076-transaction-recovery`](../../../evidence/runs/20261028-076-transaction-recovery.json).
+
+The preserved AC-9 evidence verifies process-termination recovery and repeated
+recovery on Windows. Unix locking has not been verified on this host, and no
+power-loss durability claim is made. The 2026-10-28 full Python run recorded
+441 tests: 437 passed, four failed, and three skipped. Three release-line
+failures used stale `3.1.3` fixture expectations against `VERSION` 3.1.4; the
+fourth came from running the Windows path-chain test under a user-writable
+checkout/virtual-environment path. These findings are being rechecked on the
+PR #13 source with the protected system interpreter. The ACL policy remains
+unchanged: `C:\Projects` and task temporary directories are user-writable and
+are not trusted executable roots.
+
+The final regression record will link the Rust mutation, validation,
+semantic-identity, Python integration, formatting, and full-suite results.
+The remaining owners are the tooling-owner for AC-2 through AC-5 and the
+integration reconciliation; the evidence-owner for AC-6 process-image
+provenance. The docs-owner is affected where AC-5 compatibility documentation
+needs further evidence. WI074/RPS-016 remains unchanged.
+
 ## 2026-10-24 archive-closure review reopening
 
 The independent PR #12 review found that AC-4's prior Maturin evidence checked
@@ -503,3 +531,78 @@ canonical RepoPact validator passed, the dashboard was regenerated, the
 semantic identity check passed, the frozen-surface check found no changes, and
 the offline documentation checker passed for 340 Markdown files with 37
 external GitHub URLs unchecked by design.
+
+## Final regression and PR #13 integration reconciliation (2026-11-06)
+
+The final Windows regression is recorded in
+[`20261106-076-final-regression-reconciliation`](../../../evidence/runs/20261106-076-final-regression-reconciliation.json).
+The Python suite passed 453 tests (449 passed, four skipped, zero failed) on
+CPython 3.12.4 with the task engine explicitly selected and no Cargo target
+override. Rust results were: mutation 35 unit plus four integration tests
+passed, one child-process crash fixture intentionally ignored by the harness;
+validation 79 passed; engine 7 passed. Rust formatting, semantic-identity
+freshness, canonical validation, and frozen-surface checks passed. The complete
+Python log is linked from the evidence record.
+
+The three README release checks use the repository `VERSION` as the current
+release contract; stable 3.1.3 remains a historical compatibility reference.
+The current release fixtures pass. The nine failures in the first final-suite
+attempt were caused by a stale `engine-semantic-compatibility` mapping snapshot
+and generated dashboard after semantic identity regeneration. After reviewing
+the mapped documentation, the snapshot and dashboard were refreshed; all nine
+affected tests then passed in isolation and the full rerun passed.
+
+The Windows ACL failure was investigated independently. `C:\Projects` inherits
+`Authenticated Users:(M)` and remains untrusted. The task engine under user
+Temp is also not a trusted install path. The protected-path check for
+`C:\Program Files\Python312\python.exe` passed with Users read/execute and
+SYSTEM/Administrators full control. The historical ACL test failure came from
+running under an interpreter located in a user-writable path; it passes under
+the protected interpreter. The existing path check skips only the volume root
+for an already-existing descendant and still checks each replaceable
+component. No trust exception or user-writable executable allowance was added.
+
+Integration review found that proposals and ordinary mutations now serialize
+through the same repository lock in the same order: repository lock, shared
+transaction recovery/store, fresh snapshot and identifier allocation, then
+validation and commit. Proposal admission retains its operation-scoped
+idempotency receipt; ordinary work and decision/policy mutations use the
+shared transaction receipt keyed by engine request ID and fingerprinted by
+operation and parameters. Identical retries replay the recorded result;
+reusing a key for another payload conflicts. Takeover retirement decisions
+reuse stable request IDs. Concurrency tests cover proposal/ordinary ID
+allocation, and mutation tests cover read-set revalidation, rollback,
+repeated process-crash recovery, and lock release. The engine semantic
+identity remains `repopact-semantic-v1:sha256:de2f4167b6663bbd36fc6a8258dcaf8e2fde8293dbec9125ece1539f171bdbd1`.
+
+AC-9 remains satisfied; no contradictory evidence was found. WI076 remains
+active and AC-2 through AC-6 remain pending. Windows process-termination
+recovery is verified; Unix locking is unverified and no power-loss durability
+claim is made. WI074/RPS-016 and Fabric governance were not changed.
+
+### Remaining blockers and owners
+
+- **AC-2 — tooling-owner:** link criterion-specific evidence for same-process
+  admission and every retained canonical-dependent Python writer in the
+  integrated source state.
+- **AC-3 — tooling-owner:** link the complete stale/missing/malformed identity,
+  override, path-replacement, no-mutation snapshot, and no-replay test matrix.
+- **AC-4 — tooling-owner:** rebuild the current source distributions and verify
+  checkout/sdist/wheel identity agreement; the full Python suite skips the
+  real-Maturin-archive test when focused archive paths are not supplied.
+- **AC-5 — docs-owner (tooling-owner lead):** provide criterion-specific review
+  evidence for the four identity guarantees, mismatch and override behavior,
+  and migration path.
+- **AC-6 — evidence-owner:** capture process-image file identity and executable
+  SHA-256 for each conformance run with matching source commit and identity.
+  The separate engine admission smoke in the final record does not complete
+  this per-run requirement.
+
+After PR #14 reached `main`, this branch was rebased onto
+`0ac343a2bf25f56a47e8f42798eca938844199fa`; the generated dashboard was
+recreated with both WI076 and WI077 active, with no WI077 source records
+changed. The full Python suite was rerun on rebased commit `507e9ef` and passed
+453 tests (449 passed, four skipped, zero failed) in 1589.259 seconds. The
+current-main log is linked from the final regression evidence record. PR #14
+changed only WI077 records and the dashboard; the task engine's semantic
+identity stayed unchanged.

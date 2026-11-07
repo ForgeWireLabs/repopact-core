@@ -26,6 +26,7 @@ archive so nothing unrecoverable is lost.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import posixpath
@@ -82,36 +83,19 @@ def git_recoverable(root: Path, d: Path) -> tuple[bool, str | None, str | None]:
     return (True, sha.strip(), None)
 
 
-def _next_decision_id(root: Path) -> str:
-    used: set[str] = set()
-    decisions = root / "decisions"
-    if decisions.is_dir():
-        for p in decisions.glob("*.md"):
-            m = re.match(r"(\d{4,})", p.name)
-            if m:
-                used.add(m.group(1))
-    n = 1
-    while f"{n:04d}" in used:
-        n += 1
-    return f"{n:04d}"
-
-
 def write_retire_decision(root: Path, rel: str, item_count: int, sha: str,
-                          dry_run: bool, report: dict) -> str:
+                          dry_run: bool, report: dict, engine: EngineClient) -> str:
     """Record an ADR explaining why a fully-migrated plan dir was deleted."""
-    did = _next_decision_id(root)
-    slug = adopt_repo._slug(f"retire-{rel}-legacy-plan-directory")
-    path = root / "decisions" / f"{did}-{slug}.md"
     today = date.today().isoformat()
     text = (
         f"---\n"
-        f"id: {did}\n"
+        f"id: NNNN\n"
         f"title: Retire legacy plan directory `{rel}/`\n"
         f"status: accepted\n"
         f"date: {today}\n"
         f"supersedes: []\n"
         f"---\n\n"
-        f"# {did}: Retire legacy plan directory `{rel}/`\n\n"
+        f"# NNNN: Retire legacy plan directory `{rel}/`\n\n"
         f"## Context\n\n"
         f"`{rel}/` was a homegrown planning method that has been fully imported into\n"
         f"the RepoPact `work/` ledger: every one of its {item_count} plan item(s) is\n"
@@ -135,10 +119,77 @@ def write_retire_decision(root: Path, rel: str, item_count: int, sha: str,
         f"- Item-level narrative lives in each work item's README; finer-grained detail\n"
         f"  files live in git history at `{sha}` and can be restored if needed.\n"
     )
-    report["decisions"].append(str(path.relative_to(root)).replace("\\", "/"))
-    if not dry_run:
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(text, encoding="utf-8")
+    title = f"Retire legacy plan directory `{rel}/`"
+    params = {
+        "kind": "decision",
+        "title": title,
+        "date": today,
+        "template": text,
+    }
+    stable_key = "takeover-retire-" + hashlib.sha256(
+        f"{rel}\0{sha}".encode("utf-8")
+    ).hexdigest()
+
+    receipt_response = engine.call(
+        "mutation.receipt", root=root, params={}, request_id=stable_key
+    )
+    receipt_data = receipt_response.get("result") or {}
+    if receipt_data.get("found"):
+        receipt = receipt_data.get("receipt") or {}
+        if not receipt.get("success"):
+            raise EngineError(
+                "the earlier retirement decision request did not commit: "
+                + "; ".join(
+                    item.get("message", "mutation failed")
+                    for item in receipt.get("diagnostics", [])
+                )
+            )
+        record_path = next(
+            (path for path in receipt.get("changed_paths", [])
+             if isinstance(path, str) and path.startswith("decisions/") and path.endswith(".md")),
+            None,
+        )
+    elif dry_run:
+        preview = engine.call(
+            "record.preview-markdown", root=root, params=params
+        ).get("result") or {}
+        if not preview.get("success"):
+            raise EngineError("Rust engine rejected the retirement decision preview")
+        record_path = next(
+            (path for path in preview.get("changed_paths", [])
+             if isinstance(path, str) and path.startswith("decisions/") and path.endswith(".md")),
+            None,
+        )
+    else:
+        from .engine_client import validated_mutation_result
+
+        response = engine.call(
+            "record.create-markdown", root=root, params=params, request_id=stable_key
+        )
+        result = validated_mutation_result(response)
+        if not result.get("success"):
+            # If another takeover invocation committed this key after the
+            # receipt lookup, its receipt is authoritative even if today's
+            # generated date changed before this invocation reached the lock.
+            raced = engine.call(
+                "mutation.receipt", root=root, params={}, request_id=stable_key
+            ).get("result") or {}
+            receipt = raced.get("receipt") or {}
+            if not raced.get("found") or not receipt.get("success"):
+                raise EngineError("Rust engine did not create the retirement decision")
+            result = receipt
+        if not result.get("success"):
+            raise EngineError("Rust engine did not create the retirement decision")
+        record_path = next(
+            (path for path in result.get("changed_paths", [])
+             if isinstance(path, str) and path.startswith("decisions/") and path.endswith(".md")),
+            None,
+        )
+
+    if not isinstance(record_path, str):
+        raise EngineError("Rust engine omitted the retirement decision path")
+    did = Path(record_path).name.split("-", 1)[0]
+    report["decisions"].append(record_path)
     return did
 
 
@@ -306,7 +357,13 @@ def takeover(root: Path, delete: bool = False, dry_run: bool = False, *, client=
 
     try:
         engine = client or EngineClient()
-        engine.check_compatibility("validate", "dashboard.write")
+        engine.check_compatibility(
+            "validate",
+            "dashboard.write",
+            "mutation.receipt",
+            "record.preview-markdown",
+            "record.create-markdown",
+        )
         validation = validate_repository(root, client=engine)
     except EngineError as exc:
         report["validated"] = False
@@ -337,7 +394,16 @@ def takeover(root: Path, delete: bool = False, dry_run: bool = False, *, client=
         if delete:
             ok, sha, why = git_recoverable(root, d)
             if ok:
-                did = write_retire_decision(root, rel, len(done), sha, dry_run, report)
+                try:
+                    did = write_retire_decision(
+                        root, rel, len(done), sha, dry_run, report, engine
+                    )
+                except EngineError as exc:
+                    report["validated"] = False
+                    report["problems"] = [
+                        f"canonical Rust decision mutation unavailable: {exc}"
+                    ]
+                    return report
                 report["actions"].append(
                     f"delete {rel}/ ({len(done)} migrated item(s); documented in "
                     f"decisions/{did}-*, recoverable at {sha[:10]})")

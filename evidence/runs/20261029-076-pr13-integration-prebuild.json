@@ -1,0 +1,34 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261029-076-pr13-integration-prebuild",
+  "timestamp": "2026-10-29T02:04:28Z",
+  "work_item": "076",
+  "result": "passed",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "PowerShell read-only pre-build snapshot: Get-PSDrive C:, cargo/rustc versions, environment target override, and task target existence",
+      "exit_code": 0,
+      "summary": "C: had 15,175,995,392 bytes free (about 14.13 GiB). Rust 1.96.0 and Cargo 1.96.0 are available. CARGO_TARGET_DIR and RUSTUP_TOOLCHAIN are unset. No task target exists. No Cargo process was queried or modified by this snapshot."
+    }
+  ],
+  "artifacts": [
+    "rust/crates/repopact-mutation/src/lib.rs",
+    "rust/crates/repopact-mutation/src/transaction_store.rs"
+  ],
+  "environment": {
+    "snapshot_time_utc": "2026-10-29T02:04:28Z",
+    "volume": "C:",
+    "filesystem": "NTFS",
+    "health": "not queried",
+    "free_bytes": 15175995392,
+    "cargo_target_dir_before_build": null,
+    "temp_path": "C:/Users/jerem/AppData/Local/Temp",
+    "planned_cargo_target_dir": "C:/Users/jerem/AppData/Local/Temp/RepoPact/wi076-final-regression/target",
+    "target_output_budget_gib": 6,
+    "temporary_output_budget_gib": 1,
+    "headroom_gib": 7.13,
+    "build_decision": "proceed with one task-owned Cargo target; no unrelated target or cache will be modified",
+    "output_disposition": "retain the task-owned target through Rust and Python regression runs, then remove only this task-owned target after evidence and executable hashes are recorded"
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261106-076-rollback-regression-prebuild",
+  "timestamp": "2026-11-06T22:38:35Z",
+  "work_item": "076",
+  "result": "passed",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "PowerShell read-only pre-build snapshot: C: free space, active cargo/rustc processes, and task-owned Cargo target size",
+      "exit_code": 0,
+      "summary": "C: had 102,200,602,624 bytes free (95.18 GiB). No cargo or rustc process was active. The existing task-owned target contained 3,293 files totaling 1,997,762,279 bytes (1.86 GiB)."
+    }
+  ],
+  "artifacts": [
+    "rust/crates/repopact-mutation/src/lib.rs"
+  ],
+  "environment": {
+    "snapshot_time_utc": "2026-11-06T22:38:35Z",
+    "volume": "C:",
+    "filesystem": "NTFS",
+    "health": "not queried",
+    "free_bytes": 102200602624,
+    "cargo_target_dir_before_build": "C:/Users/jerem/AppData/Local/Temp/RepoPact/wi076-final-regression/target",
+    "cargo_target_size_before_build_bytes": 1997762279,
+    "temp_path": "C:/Users/jerem/AppData/Local/Temp",
+    "planned_cargo_target_dir": "C:/Users/jerem/AppData/Local/Temp/RepoPact/wi076-final-regression/target",
+    "target_output_budget_gib": 1,
+    "temporary_output_budget_gib": 0.5,
+    "headroom_gib": 93.68,
+    "build_decision": "proceed with one incremental mutation-test build reusing the task-owned target; no shared rust/target or Cargo cache will be modified",
+    "output_disposition": "retain the task-owned target through regression evidence and cleanup only this target after its final process-image digest is recorded"
+  }
+}

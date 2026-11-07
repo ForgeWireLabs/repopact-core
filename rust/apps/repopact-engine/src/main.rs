@@ -6,7 +6,8 @@ use std::process::ExitCode;
 use repopact_analysis::{AnalysisQuery, AnalysisReport};
 use repopact_core::RepoPactCore;
 use repopact_mutation::{
-    CreateWorkItem, EditWorkItem, MutationRequest, MutationResult, WorkItemEdits,
+    CreateMarkdownRecord, CreateWorkItem, EditWorkItem, MutationRequest, MutationResult,
+    PathOperation, WorkItemEdits,
 };
 use repopact_protocol::{
     capabilities, EngineBuildInfo, EngineRequest, EngineResponse, ProtocolDiagnostic, PROTOCOL,
@@ -53,6 +54,14 @@ struct CreateParams {
 #[derive(Debug, Deserialize)]
 struct ProposalStatusParams {
     idempotency_key: String,
+}
+
+#[derive(Debug, Deserialize)]
+struct CreateMarkdownRecordParams {
+    kind: String,
+    title: String,
+    date: String,
+    template: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -158,6 +167,9 @@ fn dispatch(request: EngineRequest, operation: &str) -> EngineResponse {
         "work.proposal-plan" => proposal_plan(&request),
         "work.proposal-status" => proposal_status(&request),
         "work.amend_proposal" => amend_proposal(&request),
+        "record.create-markdown" => create_markdown_record(&request),
+        "record.preview-markdown" => preview_markdown_record(&request),
+        "mutation.receipt" => mutation_receipt(&request),
         "graph" => graph(&request),
         "graph.status" => graph_status(&request),
         "graph.build" => graph_build(&request),
@@ -369,26 +381,116 @@ fn create_work(request: &EngineRequest) -> EngineResponse {
     }
     let status = params.status;
     let core = RepoPactCore::open(&root);
-    let snapshot_started = std::time::Instant::now();
-    let snapshot = core.snapshot();
-    let snapshot_ms = snapshot_started.elapsed().as_millis();
     let mut intent = CreateWorkItem::new(params.title, params.date)
         .with_status(status)
         .with_acceptance_criteria(params.acceptance_criteria);
     if params.preflight_confirmed_before_work_started {
         intent = intent.confirm_preflight_before_work_started();
     }
-    let planning_started = std::time::Instant::now();
-    let plan = core.plan_mutation_snapshot(&snapshot, MutationRequest::create_work_item(intent));
-    let planning_ms = planning_started.elapsed().as_millis();
     let operation_started = std::time::Instant::now();
-    let result = plan.apply();
+    let result = core.plan_and_apply_idempotently(
+        &request.request_id,
+        &request.operation,
+        &request.params,
+        MutationRequest::create_work_item(intent),
+    );
     let mut result = result;
-    result.metrics.snapshot_ms = snapshot_ms;
-    result.metrics.planning_ms = planning_ms;
-    result.metrics.engine_execution_ms =
-        operation_started.elapsed().as_millis() + snapshot_ms + planning_ms;
+    result.metrics.engine_execution_ms = operation_started.elapsed().as_millis();
     mutation_response(request, result)
+}
+
+fn create_markdown_record(request: &EngineRequest) -> EngineResponse {
+    let root = match require_root(request) {
+        Ok(root) => root,
+        Err(response) => return response,
+    };
+    let params = match serde_json::from_value::<CreateMarkdownRecordParams>(request.params.clone())
+    {
+        Ok(params) => params,
+        Err(error) => {
+            return semantic_failure(request, "record.invalid-parameters", error.to_string())
+        }
+    };
+    let core = RepoPactCore::open(&root);
+    let intent = CreateMarkdownRecord::new(params.kind, params.title, params.date, params.template);
+    let result = core.plan_and_apply_idempotently(
+        &request.request_id,
+        &request.operation,
+        &request.params,
+        MutationRequest::create_markdown_record(intent),
+    );
+    mutation_response(request, result)
+}
+
+fn preview_markdown_record(request: &EngineRequest) -> EngineResponse {
+    let root = match require_root(request) {
+        Ok(root) => root,
+        Err(response) => return response,
+    };
+    let params = match serde_json::from_value::<CreateMarkdownRecordParams>(request.params.clone())
+    {
+        Ok(params) => params,
+        Err(error) => {
+            return semantic_failure(request, "record.invalid-parameters", error.to_string())
+        }
+    };
+    let core = RepoPactCore::open(&root);
+    let intent = CreateMarkdownRecord::new(params.kind, params.title, params.date, params.template);
+    let plan = match core
+        .preview_mutation_transactionally(MutationRequest::create_markdown_record(intent))
+    {
+        Ok(plan) => plan,
+        Err(error) => return semantic_failure(request, error.code, error.message),
+    };
+    let paths = plan
+        .file_operations
+        .iter()
+        .flat_map(|operation| match operation {
+            PathOperation::Write { path, .. } => vec![path.clone()],
+            PathOperation::Move { from, to } => vec![from.clone(), to.clone()],
+        })
+        .collect::<Vec<_>>();
+    let diagnostics = plan
+        .diagnostics
+        .iter()
+        .map(mutation_diagnostic)
+        .collect::<Vec<_>>();
+    let mut response = EngineResponse::success(
+        request.request_id.clone(),
+        ENGINE_VERSION,
+        json!({
+            "success": plan.is_applicable(),
+            "changed_paths": paths,
+            "diagnostics": diagnostics,
+        }),
+    );
+    response.diagnostics = diagnostics;
+    response
+}
+
+fn mutation_receipt(request: &EngineRequest) -> EngineResponse {
+    let root = match require_root(request) {
+        Ok(root) => root,
+        Err(response) => return response,
+    };
+    match RepoPactCore::open(root).request_receipt(&request.request_id) {
+        Ok(Some(receipt)) => EngineResponse::success(
+            request.request_id.clone(),
+            ENGINE_VERSION,
+            json!({"found": true, "receipt": receipt}),
+        ),
+        Ok(None) => EngineResponse::success(
+            request.request_id.clone(),
+            ENGINE_VERSION,
+            json!({"found": false}),
+        ),
+        Err(error) => EngineResponse::failure(
+            request.request_id.clone(),
+            ENGINE_VERSION,
+            error.code,
+            error.message,
+        ),
+    }
 }
 
 fn proposal_plan(request: &EngineRequest) -> EngineResponse {
@@ -754,6 +856,7 @@ fn mutation_response(request: &EngineRequest, result: MutationResult) -> EngineR
     let value = json!({
         "success": result.success,
         "rolled_back": result.rolled_back,
+        "transaction_outcome": result.transaction_outcome,
         "plan_token": result.plan_token,
         "changed_paths": result.changed_paths,
         "diagnostics": result.diagnostics,

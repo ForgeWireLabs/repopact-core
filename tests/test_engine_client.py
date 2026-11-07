@@ -90,6 +90,55 @@ class EngineClientContractTests(unittest.TestCase):
                 },
             )
 
+    def test_markdown_records_use_the_transactional_engine_with_a_stable_request_id(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            templates = root / "templates"
+            templates.mkdir()
+            (templates / "decision.md").write_text(
+                "# NNNN: Decision Title\n\nDate: YYYY-MM-DD\n", encoding="utf-8"
+            )
+            response = {
+                "ok": True,
+                "result": {
+                    "success": True,
+                    "changed_paths": ["decisions/0001-probe.md", "audits/reports/dashboard.md"],
+                    "diagnostics": [],
+                },
+                "diagnostics": [],
+            }
+            client = mock.Mock()
+            client.call.return_value = response
+            from repopact.new import new_markdown
+
+            created = new_markdown(
+                "decision", "Probe", date(2026, 10, 28), root,
+                request_id="decision-retry-1", client=client,
+            )
+            self.assertEqual(root / "decisions/0001-probe.md", created)
+            client.check_compatibility.assert_called_once_with(
+                "validate", "record.create-markdown"
+            )
+            client.call.assert_called_once_with(
+                "record.create-markdown",
+                root=root,
+                params={
+                    "kind": "decision",
+                    "title": "Probe",
+                    "date": "2026-10-28",
+                    "template": "# NNNN: Decision Title\n\nDate: YYYY-MM-DD\n",
+                },
+                request_id="decision-retry-1",
+            )
+            self.assertFalse((root / "decisions/0001-probe.md").exists())
+
+    def test_engine_request_preserves_a_valid_explicit_request_id(self) -> None:
+        client = object.__new__(engine_client.EngineClient)
+        request = client._request("record.create-markdown", request_id="stable-key")
+        self.assertEqual("stable-key", request["request_id"])
+        with self.assertRaisesRegex(ValueError, "request_id"):
+            client._request("record.create-markdown", request_id="bad\0key")
+
     def test_takeover_preserves_source_when_canonical_engine_is_unavailable(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)

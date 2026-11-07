@@ -1,7 +1,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs::{self, File, OpenOptions};
 use std::io::Write;
-use std::path::{Path, PathBuf};
+use std::path::{Component, Path, PathBuf};
 use std::sync::{Condvar, Mutex, OnceLock};
 use std::thread;
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
@@ -15,6 +15,9 @@ use repopact_types::{
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use sha2::{Digest, Sha256};
+
+mod transaction_store;
+use transaction_store::{Phase as TransactionPhase, TransactionRecord, TransactionStore};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct CreateWorkItem {
@@ -142,8 +145,33 @@ impl TransitionWorkItem {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct CreateMarkdownRecord {
+    pub kind: String,
+    pub title: String,
+    pub date: String,
+    pub template: String,
+}
+
+impl CreateMarkdownRecord {
+    pub fn new(
+        kind: impl Into<String>,
+        title: impl Into<String>,
+        date: impl Into<String>,
+        template: impl Into<String>,
+    ) -> Self {
+        Self {
+            kind: kind.into(),
+            title: title.into(),
+            date: date.into(),
+            template: template.into(),
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum MutationRequest {
     CreateWorkItem(CreateWorkItem),
+    CreateMarkdownRecord(CreateMarkdownRecord),
     EditWorkItem(EditWorkItem),
     TransitionWorkItem(TransitionWorkItem),
 }
@@ -166,9 +194,18 @@ impl From<TransitionWorkItem> for MutationRequest {
     }
 }
 
+impl From<CreateMarkdownRecord> for MutationRequest {
+    fn from(request: CreateMarkdownRecord) -> Self {
+        Self::CreateMarkdownRecord(request)
+    }
+}
+
 impl MutationRequest {
     pub fn create_work_item(request: CreateWorkItem) -> Self {
         Self::CreateWorkItem(request)
+    }
+    pub fn create_markdown_record(request: CreateMarkdownRecord) -> Self {
+        Self::CreateMarkdownRecord(request)
     }
     pub fn edit_work_item(request: EditWorkItem) -> Self {
         Self::EditWorkItem(request)
@@ -290,6 +327,8 @@ impl ApplyOptions {
 pub struct MutationResult {
     pub success: bool,
     pub rolled_back: bool,
+    #[serde(default)]
+    pub transaction_outcome: String,
     pub plan_token: String,
     pub changed_paths: Vec<String>,
     pub diagnostics: Vec<MutationDiagnostic>,
@@ -389,6 +428,52 @@ pub fn plan_at(
                 content: create_readme(request, &id, status.as_str()),
             });
             extra_absent.extend([directory, manifest_path, readme_path]);
+        }
+        MutationRequest::CreateMarkdownRecord(request) => {
+            let (directory, width) = match request.kind.as_str() {
+                "decision" => ("decisions", 4),
+                "policy" => ("governance/policies", 3),
+                _ => {
+                    diagnostics.push(MutationDiagnostic::error(
+                        "mutation.record-kind-invalid",
+                        format!("unsupported markdown record kind '{}'", request.kind),
+                    ));
+                    return empty_plan(snapshot, request.clone(), diagnostics);
+                }
+            };
+            if request.title.trim().is_empty() {
+                diagnostics.push(MutationDiagnostic::error(
+                    "mutation.record-title-invalid",
+                    "markdown record title must not be empty",
+                ));
+                return empty_plan(snapshot, request.clone(), diagnostics);
+            }
+            if request.template.len() > 16 * 1024 * 1024 {
+                diagnostics.push(MutationDiagnostic::error(
+                    "mutation.record-template-too-large",
+                    "markdown record template exceeds the 16 MiB limit",
+                ));
+                return empty_plan(snapshot, request.clone(), diagnostics);
+            }
+            let next = match request.kind.as_str() {
+                "decision" => next_markdown_id(&snapshot.index().decisions),
+                "policy" => next_markdown_id(&snapshot.index().policies),
+                _ => unreachable!("record kind checked above"),
+            };
+            let id = format!("{next:0width$}");
+            let path = format!("{directory}/{id}-{}.md", slugify(&request.title));
+            let content = request
+                .template
+                .replace("NNNN", &id)
+                .replace("NNN", &id)
+                .replace("YYYY-MM-DD", &request.date)
+                .replace("Decision Title", &request.title)
+                .replace("Policy Title", &request.title);
+            operations.push(PathOperation::Write {
+                path: path.clone(),
+                content,
+            });
+            extra_absent.push(path);
         }
         MutationRequest::EditWorkItem(request) => {
             let Some(record) = snapshot.index().work_item(&request.id) else {
@@ -501,6 +586,7 @@ pub fn plan_at(
         MutationRequest::CreateWorkItem(item) if item.status == "proposed" => Some(item),
         _ => None,
     };
+    maybe_test_crash("during-candidate-validation");
     if let Some(proposal) = proposal {
         let Some(key) = proposal.idempotency_key.as_deref() else {
             diagnostics.push(MutationDiagnostic::error(
@@ -623,7 +709,10 @@ pub fn plan_at(
         });
     }
     let read_set = ReadSet::new(read_facts);
-    let graph_impacts = if matches!(request, MutationRequest::CreateWorkItem(_)) {
+    let graph_impacts = if matches!(
+        request,
+        MutationRequest::CreateWorkItem(_) | MutationRequest::CreateMarkdownRecord(_)
+    ) {
         Vec::new()
     } else {
         let graph = RepositoryGraph::build(snapshot);
@@ -710,6 +799,22 @@ pub fn propose_work_item(root: impl AsRef<Path>, mut request: CreateWorkItem) ->
         }
     };
     result.metrics.proposal_lock_wait_ms = lock_started.elapsed().as_millis();
+    let transaction_store = match TransactionStore::open(repository.root()) {
+        Ok(store) => store,
+        Err(error) => {
+            result.diagnostics.push(MutationDiagnostic::error(
+                "mutation.transaction-store",
+                error,
+            ));
+            return result;
+        }
+    };
+    if let Err(error) = recover_pending_transactions(&repository, &transaction_store) {
+        result
+            .diagnostics
+            .push(MutationDiagnostic::error("mutation.recovery-failed", error));
+        return result;
+    }
     let cleanup_started = Instant::now();
     if let Err(error) = ensure_safe_repository_directory(repository.root(), Path::new("work")) {
         result.metrics.filesystem_staging_ms += cleanup_started.elapsed().as_millis();
@@ -783,6 +888,7 @@ fn empty_result() -> MutationResult {
     MutationResult {
         success: false,
         rolled_back: false,
+        transaction_outcome: "rejected".to_owned(),
         plan_token: String::new(),
         changed_paths: Vec::new(),
         diagnostics: Vec::new(),
@@ -849,6 +955,7 @@ fn resolve_proposal_receipt(
         .and_then(Value::as_str)
         .unwrap_or("work/proposed");
     result.success = true;
+    result.transaction_outcome = "committed".to_owned();
     result.replayed = true;
     result.changed_paths = vec![format!("{path}/work-item.json")];
     Ok(false)
@@ -1643,7 +1750,7 @@ fn preview(operations: &[PathOperation]) -> String {
 
 fn graph_impacts(graph: &RepositoryGraph, request: &MutationRequest) -> Vec<GraphEdge> {
     let id = match request {
-        MutationRequest::CreateWorkItem(_) => None,
+        MutationRequest::CreateWorkItem(_) | MutationRequest::CreateMarkdownRecord(_) => None,
         MutationRequest::EditWorkItem(request) => Some(request.id.as_str()),
         MutationRequest::TransitionWorkItem(request) => Some(request.id.as_str()),
     };
@@ -1689,10 +1796,162 @@ fn add_frozen_diagnostics(snapshot: &RepositorySnapshot, plan: &mut MutationPlan
     }
 }
 
+/// Plan and apply a mutation while retaining the repository lock across ID
+/// allocation, validation, preimage capture, and commit.
+pub fn plan_and_apply_transactionally(
+    root: impl AsRef<Path>,
+    request: MutationRequest,
+) -> MutationResult {
+    let payload = serde_json::to_vec(&request).unwrap_or_default();
+    let request_key = private_request_key();
+    plan_and_apply_with_identity(
+        root.as_ref(),
+        &request_key,
+        hex_digest(Sha256::digest(payload)),
+        request,
+        &ApplyOptions::default(),
+    )
+}
+
+/// Apply an engine mutation under a durable request identity. The operation
+/// and raw parameters form the payload fingerprint; reusing a key for another
+/// payload returns a conflict receipt.
+pub fn plan_and_apply_idempotently(
+    root: impl AsRef<Path>,
+    request_key: &str,
+    operation: &str,
+    params: &Value,
+    request: MutationRequest,
+) -> MutationResult {
+    plan_and_apply_idempotently_with_options(
+        root.as_ref(),
+        request_key,
+        operation,
+        params,
+        request,
+        &ApplyOptions::default(),
+    )
+}
+
+fn plan_and_apply_idempotently_with_options(
+    root: &Path,
+    request_key: &str,
+    operation: &str,
+    params: &Value,
+    request: MutationRequest,
+    options: &ApplyOptions,
+) -> MutationResult {
+    let payload = serde_json::to_vec(&(operation, params)).unwrap_or_default();
+    plan_and_apply_with_identity(
+        root,
+        request_key,
+        hex_digest(Sha256::digest(payload)),
+        request,
+        options,
+    )
+}
+
+fn plan_and_apply_with_identity(
+    root: &Path,
+    request_key: &str,
+    payload_sha256: String,
+    request: MutationRequest,
+    options: &ApplyOptions,
+) -> MutationResult {
+    if let Err(message) = validate_request_key(request_key) {
+        return rejected_transaction_result("mutation.idempotency-key-invalid", message);
+    }
+    let repository = Repository::open(root);
+    let lock = match RepositoryMutationLock::acquire(repository.root()) {
+        Ok(lock) => lock,
+        Err(error) => return rejected_transaction_result("mutation.transaction-lock", error),
+    };
+    let store = match TransactionStore::open(repository.root()) {
+        Ok(store) => store,
+        Err(error) => return rejected_transaction_result("mutation.transaction-store", error),
+    };
+    if let Err(error) = recover_pending_transactions(&repository, &store) {
+        return rejected_transaction_result("mutation.recovery-failed", error);
+    }
+    match store.load(request_key) {
+        Ok(Some(previous)) => {
+            if previous.payload_sha256 != payload_sha256 {
+                return idempotency_conflict_result();
+            }
+            return replay_or_pending_result(previous);
+        }
+        Ok(None) => {}
+        Err(error) => return rejected_transaction_result("mutation.transaction-store", error),
+    }
+    let mut record = match store.create(request_key, payload_sha256) {
+        Ok(record) => record,
+        Err(error) => return rejected_transaction_result("mutation.transaction-store", error),
+    };
+
+    maybe_test_crash("before-snapshot-complete");
+    let snapshot = repository.session().snapshot();
+    let plan = plan(&snapshot, request);
+    let result = apply_with_transaction_lock(&plan, options, lock, &store, &mut record);
+    if record.phase == TransactionPhase::Planning {
+        persist_terminal_receipt(&store, &mut record, TransactionPhase::Rejected, result)
+    } else {
+        result
+    }
+}
+
+/// Recover unfinished mutation receipts while holding the same lock used by
+/// proposals and ordinary mutations.
+pub fn recover_repository_transactions(root: impl AsRef<Path>) -> Result<(), MutationDiagnostic> {
+    let repository = Repository::open(root);
+    let _lock = RepositoryMutationLock::acquire(repository.root())
+        .map_err(|error| MutationDiagnostic::error("mutation.transaction-lock", error))?;
+    let store = TransactionStore::open(repository.root())
+        .map_err(|error| MutationDiagnostic::error("mutation.transaction-store", error))?;
+    recover_pending_transactions(&repository, &store)
+        .map_err(|error| MutationDiagnostic::error("mutation.recovery-failed", error))
+}
+
+/// Read a durable generic-mutation receipt after recovering pending work.
+pub fn read_request_receipt(
+    root: impl AsRef<Path>,
+    request_key: &str,
+) -> Result<Option<MutationResult>, MutationDiagnostic> {
+    validate_request_key(request_key).map_err(|message| {
+        MutationDiagnostic::error("mutation.idempotency-key-invalid", message)
+    })?;
+    let repository = Repository::open(root);
+    let _lock = RepositoryMutationLock::acquire(repository.root())
+        .map_err(|error| MutationDiagnostic::error("mutation.transaction-lock", error))?;
+    let store = TransactionStore::open(repository.root())
+        .map_err(|error| MutationDiagnostic::error("mutation.transaction-store", error))?;
+    recover_pending_transactions(&repository, &store)
+        .map_err(|error| MutationDiagnostic::error("mutation.recovery-failed", error))?;
+    store
+        .load(request_key)
+        .map(|record| record.and_then(|record| record.result))
+        .map_err(|error| MutationDiagnostic::error("mutation.transaction-store", error))
+}
+
+/// Build a non-reserving plan after resolving any interrupted transaction.
+pub fn preview_mutation_transactionally(
+    root: impl AsRef<Path>,
+    request: MutationRequest,
+) -> Result<MutationPlan, MutationDiagnostic> {
+    let repository = Repository::open(root);
+    let _lock = RepositoryMutationLock::acquire(repository.root())
+        .map_err(|error| MutationDiagnostic::error("mutation.transaction-lock", error))?;
+    let store = TransactionStore::open(repository.root())
+        .map_err(|error| MutationDiagnostic::error("mutation.transaction-store", error))?;
+    recover_pending_transactions(&repository, &store)
+        .map_err(|error| MutationDiagnostic::error("mutation.recovery-failed", error))?;
+    Ok(plan(&repository.session().snapshot(), request))
+}
+
 pub fn apply(plan: &MutationPlan, options: &ApplyOptions) -> MutationResult {
     let mut result = MutationResult {
         success: false,
         rolled_back: false,
+        transaction_outcome: "rejected".to_owned(),
         plan_token: plan.plan_token.clone(),
         changed_paths: Vec::new(),
         diagnostics: plan.diagnostics.clone(),
@@ -1703,18 +1962,75 @@ pub fn apply(plan: &MutationPlan, options: &ApplyOptions) -> MutationResult {
         return apply_proposal(plan, options, result);
     }
     if !plan.is_applicable() {
+        result.transaction_outcome = "rejected".to_owned();
         return result;
     }
     let repository = Repository::open(&plan.repository_identity.root);
-    let _lock = match RepositoryMutationLock::acquire(repository.root()) {
+    let lock = match RepositoryMutationLock::acquire(repository.root()) {
         Ok(lock) => lock,
         Err(error) => {
+            result.transaction_outcome = "rejected".to_owned();
             result
                 .diagnostics
                 .push(MutationDiagnostic::error("mutation.lock-timeout", error));
             return result;
         }
     };
+    let store = match TransactionStore::open(repository.root()) {
+        Ok(store) => store,
+        Err(error) => return rejected_transaction_result("mutation.transaction-store", error),
+    };
+    if let Err(error) = recover_pending_transactions(&repository, &store) {
+        return rejected_transaction_result("mutation.recovery-failed", error);
+    }
+    let request_key = format!("plan:{}", plan.plan_token);
+    let payload =
+        serde_json::to_vec(&(plan.plan_token.as_str(), &plan.request, options)).unwrap_or_default();
+    let payload_sha256 = hex_digest(Sha256::digest(payload));
+    match store.load(&request_key) {
+        Ok(Some(previous)) => {
+            if previous.payload_sha256 != payload_sha256 {
+                return idempotency_conflict_result();
+            }
+            return replay_or_pending_result(previous);
+        }
+        Ok(None) => {}
+        Err(error) => return rejected_transaction_result("mutation.transaction-store", error),
+    }
+    let mut record = match store.create(&request_key, payload_sha256) {
+        Ok(record) => record,
+        Err(error) => return rejected_transaction_result("mutation.transaction-store", error),
+    };
+    let applied = apply_with_transaction_lock(plan, options, lock, &store, &mut record);
+    if record.phase == TransactionPhase::Planning {
+        persist_terminal_receipt(&store, &mut record, TransactionPhase::Rejected, applied)
+    } else {
+        applied
+    }
+}
+
+fn apply_with_transaction_lock(
+    plan: &MutationPlan,
+    options: &ApplyOptions,
+    _repository_lock: RepositoryMutationLock,
+    store: &TransactionStore,
+    record: &mut TransactionRecord,
+) -> MutationResult {
+    let mut result = MutationResult {
+        success: false,
+        rolled_back: false,
+        transaction_outcome: "rejected".to_owned(),
+        plan_token: plan.plan_token.clone(),
+        changed_paths: Vec::new(),
+        diagnostics: plan.diagnostics.clone(),
+        replayed: false,
+        metrics: plan.metrics.clone(),
+    };
+    record.plan_token = plan.plan_token.clone();
+    if !plan.is_applicable() {
+        return result;
+    }
+    let repository = Repository::open(&plan.repository_identity.root);
     if repository.identity() != plan.repository_identity {
         result.diagnostics.push(MutationDiagnostic::error(
             "mutation.repository-identity",
@@ -1737,7 +2053,41 @@ pub fn apply(plan: &MutationPlan, options: &ApplyOptions) -> MutationResult {
     }
 
     let roots = operation_roots(plan, &repository);
-    let preimages = capture_preimages(&repository, &roots);
+    let preimages = match capture_transaction_preimages(&repository, &roots) {
+        Ok(preimages) => preimages,
+        Err(error) => {
+            result
+                .diagnostics
+                .push(MutationDiagnostic::error("mutation.preimage-read", error));
+            return result;
+        }
+    };
+    let (directories, _, files) = match store.write_preimages(record, &preimages) {
+        Ok(preimages) => preimages,
+        Err(error) => {
+            result.diagnostics.push(MutationDiagnostic::error(
+                "mutation.preimage-persist",
+                error,
+            ));
+            return result;
+        }
+    };
+    record.roots = roots.iter().map(|path| path_string(path)).collect();
+    record.preimage_directories = directories;
+    record.preimage_files = files;
+    record.phase = TransactionPhase::Prepared;
+    if let Err(error) = store.save(record) {
+        record.phase = TransactionPhase::Planning;
+        record.roots.clear();
+        record.preimage_directories.clear();
+        record.preimage_files.clear();
+        result.diagnostics.push(MutationDiagnostic::error(
+            "mutation.transaction-prepare",
+            error,
+        ));
+        return result;
+    }
+    maybe_test_crash("after-preimage-prepare");
     let mut expected = roots
         .iter()
         .map(|path| {
@@ -1748,6 +2098,19 @@ pub fn apply(plan: &MutationPlan, options: &ApplyOptions) -> MutationResult {
         })
         .collect::<BTreeMap<_, _>>();
     for (index, operation) in plan.file_operations.iter().enumerate() {
+        if let Some(stale) =
+            stale_unmodified_read_fact(&repository, &plan.read_set, &plan.file_operations)
+        {
+            return failure_with_rollback(
+                &repository,
+                &roots,
+                &preimages,
+                store,
+                record,
+                result,
+                format!("unmodified input '{}' changed during apply", stale.path),
+            );
+        }
         if options.external_drift_at == Some(index) {
             if let Some(path) = options.external_drift_path.as_deref() {
                 let absolute = repository.root().join(path);
@@ -1759,6 +2122,8 @@ pub fn apply(plan: &MutationPlan, options: &ApplyOptions) -> MutationResult {
                         &repository,
                         &roots,
                         &preimages,
+                        store,
+                        record,
                         result,
                         format!("unable to inject external drift: {error}"),
                     );
@@ -1770,33 +2135,62 @@ pub fn apply(plan: &MutationPlan, options: &ApplyOptions) -> MutationResult {
                 &repository,
                 &roots,
                 &preimages,
+                store,
+                record,
                 result,
                 format!("failure injected before operation {index}"),
             );
         }
         if let Some(stale_path) = operation_drift(operation, &repository, &expected) {
-            return failure_with_rollback(&repository, &roots, &preimages, result, format!("target '{stale_path}' changed during apply; refusing to merge external content"));
+            return failure_with_rollback(
+                &repository,
+                &roots,
+                &preimages,
+                store,
+                record,
+                result,
+                format!("target '{stale_path}' changed during apply; refusing to merge external content"),
+            );
+        }
+        for path in operation_paths(operation) {
+            if let Err(error) = reject_existing_symlink_components(repository.root(), &path) {
+                return failure_with_rollback(
+                    &repository,
+                    &roots,
+                    &preimages,
+                    store,
+                    record,
+                    result,
+                    error,
+                );
+            }
         }
         if let Err(error) = apply_operation(repository.root(), operation) {
             return failure_with_rollback(
                 &repository,
                 &roots,
                 &preimages,
+                store,
+                record,
                 result,
                 format!("apply failed: {error}"),
             );
         }
         refresh_expected_paths(&repository, &mut expected, operation_paths(operation));
+        maybe_test_crash("between-multi-file-writes");
         if options.fail_after_operation == Some(index) {
             return failure_with_rollback(
                 &repository,
                 &roots,
                 &preimages,
+                store,
+                record,
                 result,
                 format!("failure injected after operation {index}"),
             );
         }
     }
+    maybe_test_crash("during-candidate-validation");
     let post = repopact_validation::validate(repository.root());
     if post.has_errors() {
         let messages = post
@@ -1809,11 +2203,15 @@ pub fn apply(plan: &MutationPlan, options: &ApplyOptions) -> MutationResult {
             &repository,
             &roots,
             &preimages,
+            store,
+            record,
             result,
             format!("post-state validation failed: {messages}"),
         );
     }
+    maybe_test_crash("immediately-before-commit");
     result.success = true;
+    result.transaction_outcome = "committed".to_owned();
     result.changed_paths = plan
         .file_operations
         .iter()
@@ -1822,6 +2220,23 @@ pub fn apply(plan: &MutationPlan, options: &ApplyOptions) -> MutationResult {
         .collect::<BTreeSet<_>>()
         .into_iter()
         .collect();
+    record.phase = TransactionPhase::Committed;
+    record.result = Some(result.clone());
+    if let Err(error) = store.save(record) {
+        record.phase = TransactionPhase::Prepared;
+        record.result = None;
+        return failure_with_rollback(
+            &repository,
+            &roots,
+            &preimages,
+            store,
+            record,
+            result,
+            format!("unable to persist commit receipt: {error}"),
+        );
+    }
+    maybe_test_crash("after-commit-receipt");
+    let _ = store.remove_preimages(record);
     result
 }
 
@@ -1865,6 +2280,22 @@ fn apply_proposal(
         }
     };
     result.metrics.proposal_lock_wait_ms = lock_started.elapsed().as_millis();
+    let transaction_store = match TransactionStore::open(repository.root()) {
+        Ok(store) => store,
+        Err(error) => {
+            result.diagnostics.push(MutationDiagnostic::error(
+                "mutation.transaction-store",
+                error,
+            ));
+            return result;
+        }
+    };
+    if let Err(error) = recover_pending_transactions(&repository, &transaction_store) {
+        result
+            .diagnostics
+            .push(MutationDiagnostic::error("mutation.recovery-failed", error));
+        return result;
+    }
     let cleanup_started = Instant::now();
     if let Err(error) = ensure_safe_repository_directory(repository.root(), Path::new("work")) {
         result.metrics.filesystem_staging_ms += cleanup_started.elapsed().as_millis();
@@ -2140,6 +2571,7 @@ where
         return result;
     }
     result.success = true;
+    result.transaction_outcome = "committed".to_owned();
     result.changed_paths = files.iter().map(|(path, _)| path.clone()).collect();
 
     let dashboard_started = Instant::now();
@@ -2263,19 +2695,236 @@ fn failure_with_rollback(
     repository: &Repository,
     roots: &[PathBuf],
     preimages: &Preimages,
+    store: &TransactionStore,
+    record: &mut TransactionRecord,
     mut result: MutationResult,
     message: String,
 ) -> MutationResult {
     result
         .diagnostics
         .push(MutationDiagnostic::error("mutation.apply-failed", message));
-    match restore_preimages(repository, roots, preimages) {
-        Ok(()) => result.rolled_back = true,
-        Err(error) => result
-            .diagnostics
-            .push(MutationDiagnostic::error("mutation.rollback-failed", error)),
+    let mut durable_result = result.clone();
+    durable_result.rolled_back = true;
+    durable_result.transaction_outcome = "rolled-back".to_owned();
+    record.phase = TransactionPhase::RollingBack;
+    record.result = Some(durable_result.clone());
+    if let Err(error) = store.save(record) {
+        result.diagnostics.push(MutationDiagnostic::error(
+            "mutation.rollback-receipt",
+            format!("unable to persist rollback intent: {error}"),
+        ));
     }
+    maybe_test_crash("during-rollback");
+    match restore_preimages(repository, roots, preimages) {
+        Ok(()) => {
+            record.phase = TransactionPhase::RolledBack;
+            record.result = Some(durable_result.clone());
+            if let Err(error) = store.save(record) {
+                result.transaction_outcome = "receipt-persist-failed".to_owned();
+                result.rolled_back = true;
+                result.diagnostics.push(MutationDiagnostic::error(
+                    "mutation.rollback-receipt",
+                    format!("unable to persist rollback receipt: {error}"),
+                ));
+                return result;
+            }
+            let _ = store.remove_preimages(record);
+            durable_result
+        }
+        Err(error) => {
+            result.transaction_outcome = "rollback-failed".to_owned();
+            result
+                .diagnostics
+                .push(MutationDiagnostic::error("mutation.rollback-failed", error));
+            result
+        }
+    }
+}
+
+fn persist_terminal_receipt(
+    store: &TransactionStore,
+    record: &mut TransactionRecord,
+    phase: TransactionPhase,
+    mut result: MutationResult,
+) -> MutationResult {
+    record.phase = phase;
+    record.plan_token = result.plan_token.clone();
+    record.result = Some(result.clone());
+    if let Err(error) = store.save(record) {
+        result.transaction_outcome = "receipt-persist-failed".to_owned();
+        result
+            .diagnostics
+            .push(MutationDiagnostic::error("mutation.receipt-persist", error));
+        return result;
+    }
+    let _ = store.remove_preimages(record);
     result
+}
+
+fn recover_pending_transactions(
+    repository: &Repository,
+    store: &TransactionStore,
+) -> Result<(), String> {
+    for mut record in store.records()? {
+        if record.phase.is_terminal() {
+            let _ = store.remove_preimages(&record);
+            continue;
+        }
+        match record.phase {
+            TransactionPhase::Planning => {
+                let mut result = rejected_transaction_result(
+                    "mutation.transaction-interrupted",
+                    "the prior request ended before repository writes began",
+                );
+                result.transaction_outcome = "interrupted-before-apply".to_owned();
+                record.phase = TransactionPhase::Rejected;
+                record.result = Some(result);
+                store.save(&record)?;
+                let _ = store.remove_preimages(&record);
+            }
+            TransactionPhase::Prepared | TransactionPhase::RollingBack => {
+                let preimages = store.load_preimages(&record, MAX_TRANSACTION_PREIMAGE_BYTES)?;
+                let roots = record
+                    .roots
+                    .iter()
+                    .map(|path| {
+                        if is_normalized_relative_path(Path::new(path)) {
+                            Ok(PathBuf::from(path))
+                        } else {
+                            Err(format!(
+                                "transaction root '{path}' is not normalized and relative"
+                            ))
+                        }
+                    })
+                    .collect::<Result<Vec<_>, _>>()?;
+                maybe_test_crash("during-recovery");
+                restore_preimages(repository, &roots, &preimages)?;
+                let result = record
+                    .result
+                    .clone()
+                    .unwrap_or_else(|| recovered_rollback_result(&record.plan_token));
+                record.phase = TransactionPhase::RolledBack;
+                record.result = Some(result);
+                store.save(&record)?;
+                let _ = store.remove_preimages(&record);
+            }
+            TransactionPhase::Committed
+            | TransactionPhase::RolledBack
+            | TransactionPhase::Rejected => unreachable!("terminal transaction handled above"),
+        }
+    }
+    Ok(())
+}
+
+fn recovered_rollback_result(plan_token: &str) -> MutationResult {
+    MutationResult {
+        success: false,
+        rolled_back: true,
+        transaction_outcome: "rolled-back".to_owned(),
+        plan_token: plan_token.to_owned(),
+        changed_paths: Vec::new(),
+        diagnostics: vec![MutationDiagnostic::error(
+            "mutation.transaction-recovered",
+            "an interrupted mutation was restored from its durable preimage journal",
+        )],
+        replayed: false,
+        metrics: MutationMetrics::default(),
+    }
+}
+
+fn rejected_transaction_result(code: &str, message: impl Into<String>) -> MutationResult {
+    MutationResult {
+        success: false,
+        rolled_back: false,
+        transaction_outcome: "rejected".to_owned(),
+        plan_token: String::new(),
+        changed_paths: Vec::new(),
+        diagnostics: vec![MutationDiagnostic::error(code, message)],
+        replayed: false,
+        metrics: MutationMetrics::default(),
+    }
+}
+
+fn replay_or_pending_result(previous: TransactionRecord) -> MutationResult {
+    let Some(result) = previous.result else {
+        return rejected_transaction_result(
+            "mutation.recovery-pending",
+            "the prior request has no durable terminal receipt",
+        );
+    };
+    result
+}
+
+fn idempotency_conflict_result() -> MutationResult {
+    let mut result = rejected_transaction_result(
+        "mutation.idempotency-conflict",
+        "request identity was already used with a different payload",
+    );
+    result.transaction_outcome = "conflict".to_owned();
+    result
+}
+
+fn private_request_key() -> String {
+    static NEXT_PRIVATE_REQUEST: std::sync::atomic::AtomicU64 =
+        std::sync::atomic::AtomicU64::new(1);
+    format!(
+        "internal-{}-{}-{}",
+        std::process::id(),
+        SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_nanos(),
+        NEXT_PRIVATE_REQUEST.fetch_add(1, std::sync::atomic::Ordering::Relaxed)
+    )
+}
+
+fn validate_request_key(request_key: &str) -> Result<(), String> {
+    if request_key.is_empty() || request_key.len() > 256 || request_key.contains('\0') {
+        Err("request identity must contain 1 to 256 bytes and no NUL".to_owned())
+    } else {
+        Ok(())
+    }
+}
+
+#[cfg(test)]
+fn maybe_test_crash(point: &str) {
+    if std::env::var("REPOPACT_MUTATION_CRASH_AT").as_deref() == Ok(point) {
+        std::process::exit(86);
+    }
+}
+
+#[cfg(not(test))]
+fn maybe_test_crash(_point: &str) {}
+
+fn stale_unmodified_read_fact(
+    repository: &Repository,
+    read_set: &ReadSet,
+    operations: &[PathOperation],
+) -> Option<ReadFact> {
+    read_set
+        .facts
+        .iter()
+        .find(|fact| {
+            let path = fact.path.as_str();
+            #[cfg(test)]
+            if path == ".repopact-transaction-test-state"
+                || path.starts_with(".repopact-transaction-test-state/")
+            {
+                // Test receipts live in the fixture root so child processes can
+                // recover them; they are not repository inputs.
+                return false;
+            }
+            let modified = operations.iter().any(|operation| {
+                operation_paths(operation).iter().any(|operation_path| {
+                    let operation_path = path_string(operation_path);
+                    path == operation_path
+                        || path.starts_with(&format!("{operation_path}/"))
+                        || operation_path.starts_with(&format!("{path}/"))
+                })
+            });
+            !modified && repository.path_state(&repository.root().join(path)) != fact.expected
+        })
+        .cloned()
 }
 
 fn stale_read_fact(repository: &Repository, read_set: &ReadSet) -> Option<ReadFact> {
@@ -2358,44 +3007,181 @@ struct Preimages {
     directories: BTreeSet<PathBuf>,
 }
 
-fn capture_preimages(repository: &Repository, roots: &[PathBuf]) -> Preimages {
+const MAX_TRANSACTION_PREIMAGE_FILES: u64 = 10_000;
+const MAX_TRANSACTION_PREIMAGE_BYTES: u64 = 512 * 1024 * 1024;
+
+fn capture_transaction_preimages(
+    repository: &Repository,
+    roots: &[PathBuf],
+) -> Result<Preimages, String> {
     let mut preimages = Preimages::default();
-    for root in roots {
-        let absolute = repository.root().join(root);
-        if absolute.is_file() {
-            if let Ok(bytes) = fs::read(&absolute) {
-                preimages.files.insert(root.clone(), bytes);
+    let mut pending = Vec::new();
+    let mut files = 0u64;
+    let mut bytes = 0u64;
+    for relative in roots {
+        if !is_normalized_relative_path(relative) {
+            return Err(format!(
+                "transaction target '{}' is not normalized and repository-relative",
+                path_string(relative)
+            ));
+        }
+        let absolute = repository.root().join(relative);
+        match fs::symlink_metadata(&absolute) {
+            Ok(metadata) if is_reparse_point(&metadata) || metadata.file_type().is_symlink() => {
+                return Err(format!(
+                    "transaction target '{}' is a symlink or reparse point",
+                    path_string(relative)
+                ));
             }
-        } else if absolute.is_dir() {
-            collect_preimage_tree(repository.root(), &absolute, &mut preimages);
+            Ok(metadata) if metadata.is_file() => {
+                capture_preimage_file(
+                    &absolute,
+                    relative,
+                    &metadata,
+                    &mut preimages,
+                    &mut files,
+                    &mut bytes,
+                )?;
+            }
+            Ok(metadata) if metadata.is_dir() => pending.push(absolute),
+            Ok(_) => {
+                return Err(format!(
+                    "transaction target '{}' is not a regular file or directory",
+                    path_string(relative)
+                ));
+            }
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
+            Err(error) => return Err(format!("inspect transaction target: {error}")),
         }
     }
-    preimages
+    while let Some(directory) = pending.pop() {
+        let relative_directory = directory
+            .strip_prefix(repository.root())
+            .map_err(|error| format!("transaction preimage escaped repository: {error}"))?
+            .to_path_buf();
+        if !is_normalized_relative_path(&relative_directory) {
+            return Err("transaction directory preimage is not repository-relative".to_owned());
+        }
+        preimages.directories.insert(relative_directory);
+        for entry in fs::read_dir(&directory)
+            .map_err(|error| format!("read transaction directory: {error}"))?
+        {
+            let entry =
+                entry.map_err(|error| format!("read transaction directory entry: {error}"))?;
+            if entry.file_name() == ".git" {
+                return Err("transaction preimage contains a nested Git directory".to_owned());
+            }
+            let path = entry.path();
+            let relative = path
+                .strip_prefix(repository.root())
+                .map_err(|error| format!("transaction preimage escaped repository: {error}"))?
+                .to_path_buf();
+            if !is_normalized_relative_path(&relative) {
+                return Err("transaction file preimage is not repository-relative".to_owned());
+            }
+            let metadata = fs::symlink_metadata(&path)
+                .map_err(|error| format!("inspect transaction preimage: {error}"))?;
+            if is_reparse_point(&metadata) || metadata.file_type().is_symlink() {
+                return Err(format!(
+                    "transaction preimage '{}' is a symlink or reparse point",
+                    path_string(&relative)
+                ));
+            }
+            if metadata.is_dir() {
+                pending.push(path);
+            } else if metadata.is_file() {
+                capture_preimage_file(
+                    &path,
+                    &relative,
+                    &metadata,
+                    &mut preimages,
+                    &mut files,
+                    &mut bytes,
+                )?;
+            } else {
+                return Err(format!(
+                    "transaction preimage '{}' is not a regular file or directory",
+                    path_string(&relative)
+                ));
+            }
+        }
+    }
+    Ok(preimages)
 }
 
-fn collect_preimage_tree(root: &Path, current: &Path, preimages: &mut Preimages) {
-    let relative = current.strip_prefix(root).unwrap_or(current).to_path_buf();
-    preimages.directories.insert(relative);
-    let Ok(entries) = fs::read_dir(current) else {
-        return;
-    };
-    for entry in entries.flatten() {
-        let path = entry.path();
-        if entry.file_type().map(|kind| kind.is_dir()).unwrap_or(false) {
-            collect_preimage_tree(root, &path, preimages);
-        } else if entry
-            .file_type()
-            .map(|kind| kind.is_file())
-            .unwrap_or(false)
-        {
-            if let Ok(bytes) = fs::read(&path) {
-                preimages.files.insert(
-                    path.strip_prefix(root).unwrap_or(&path).to_path_buf(),
-                    bytes,
-                );
+fn capture_preimage_file(
+    absolute: &Path,
+    relative: &Path,
+    metadata: &std::fs::Metadata,
+    preimages: &mut Preimages,
+    files: &mut u64,
+    bytes: &mut u64,
+) -> Result<(), String> {
+    *files = (*files).saturating_add(1);
+    *bytes = (*bytes).saturating_add(metadata.len());
+    if *files > MAX_TRANSACTION_PREIMAGE_FILES {
+        return Err("transaction preimage file count exceeds the recovery limit".to_owned());
+    }
+    if *bytes > MAX_TRANSACTION_PREIMAGE_BYTES {
+        return Err("transaction preimages exceed the recovery byte limit".to_owned());
+    }
+    let content =
+        fs::read(absolute).map_err(|error| format!("read transaction preimage: {error}"))?;
+    if content.len() as u64 != metadata.len() {
+        return Err(format!(
+            "transaction preimage '{}' changed during capture",
+            path_string(relative)
+        ));
+    }
+    preimages.files.insert(relative.to_path_buf(), content);
+    Ok(())
+}
+
+fn is_normalized_relative_path(path: &Path) -> bool {
+    !path.as_os_str().is_empty()
+        && !path.is_absolute()
+        && path
+            .components()
+            .all(|component| matches!(component, Component::Normal(_)))
+}
+
+fn reject_existing_symlink_components(root: &Path, relative: &Path) -> Result<(), String> {
+    if !is_normalized_relative_path(relative) {
+        return Err(format!(
+            "transaction path '{}' is not normalized and repository-relative",
+            path_string(relative)
+        ));
+    }
+    let mut current = root.to_path_buf();
+    for component in relative.components() {
+        let Component::Normal(part) = component else {
+            return Err("transaction path contains a non-normal component".to_owned());
+        };
+        current.push(part);
+        match fs::symlink_metadata(&current) {
+            Ok(metadata) if is_reparse_point(&metadata) || metadata.file_type().is_symlink() => {
+                return Err(format!(
+                    "transaction path '{}' contains a symlink or reparse point",
+                    path_string(relative)
+                ));
             }
+            Ok(_) => {}
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => break,
+            Err(error) => return Err(format!("inspect transaction path: {error}")),
         }
     }
+    Ok(())
+}
+
+#[cfg(windows)]
+fn is_reparse_point(metadata: &std::fs::Metadata) -> bool {
+    use std::os::windows::fs::MetadataExt;
+    metadata.file_attributes() & 0x400 != 0
+}
+
+#[cfg(not(windows))]
+fn is_reparse_point(metadata: &std::fs::Metadata) -> bool {
+    metadata.file_type().is_symlink()
 }
 
 fn restore_preimages(
@@ -2403,6 +3189,14 @@ fn restore_preimages(
     roots: &[PathBuf],
     preimages: &Preimages,
 ) -> Result<(), String> {
+    for root in roots {
+        if !is_normalized_relative_path(root) {
+            return Err(format!(
+                "transaction root '{}' is not normalized and relative",
+                path_string(root)
+            ));
+        }
+    }
     let mut removal = roots
         .iter()
         .map(|root| repository.root().join(root))
@@ -2419,9 +3213,14 @@ fn restore_preimages(
         .collect::<Vec<_>>();
     directories.sort_by_key(|path| path.components().count());
     for path in directories {
+        let relative = path
+            .strip_prefix(repository.root())
+            .map_err(|error| format!("recovery directory escaped repository: {error}"))?;
+        reject_existing_symlink_components(repository.root(), relative)?;
         fs::create_dir_all(path).map_err(|error| error.to_string())?;
     }
     for (relative, bytes) in &preimages.files {
+        reject_existing_symlink_components(repository.root(), relative)?;
         let path = repository.root().join(relative);
         if let Some(parent) = path.parent() {
             fs::create_dir_all(parent).map_err(|error| error.to_string())?;
@@ -2432,12 +3231,21 @@ fn restore_preimages(
 }
 
 fn remove_path(path: &Path) -> Result<(), String> {
-    if path.is_dir() {
+    let metadata = match fs::symlink_metadata(path) {
+        Ok(metadata) => metadata,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(()),
+        Err(error) => return Err(error.to_string()),
+    };
+    if is_reparse_point(&metadata) || metadata.file_type().is_symlink() {
+        if metadata.is_dir() {
+            fs::remove_dir(path).map_err(|error| error.to_string())
+        } else {
+            fs::remove_file(path).map_err(|error| error.to_string())
+        }
+    } else if metadata.is_dir() {
         fs::remove_dir_all(path).map_err(|error| error.to_string())
-    } else if path.exists() {
-        fs::remove_file(path).map_err(|error| error.to_string())
     } else {
-        Ok(())
+        fs::remove_file(path).map_err(|error| error.to_string())
     }
 }
 
@@ -2476,6 +3284,23 @@ fn next_work_id(index: &repopact_repository::RecordIndex) -> u64 {
                 .nth(1)
                 .and_then(|directory| directory.split('-').next())
                 .and_then(|id| id.parse::<u64>().ok())
+                .or_else(|| record.reference.id.parse::<u64>().ok())
+        })
+        .max()
+        .unwrap_or(0)
+        + 1
+}
+
+fn next_markdown_id(records: &[repopact_repository::IndexedRecord]) -> u64 {
+    records
+        .iter()
+        .filter_map(|record| {
+            record
+                .path
+                .file_stem()
+                .and_then(|stem| stem.to_str())
+                .and_then(|stem| stem.split('-').next())
+                .and_then(|prefix| prefix.parse::<u64>().ok())
                 .or_else(|| record.reference.id.parse::<u64>().ok())
         })
         .max()
@@ -2545,6 +3370,7 @@ mod tests {
     use super::*;
     use repopact_repository::RepositorySession;
     use std::path::PathBuf;
+    use std::process::Command;
     use std::sync::atomic::{AtomicU64, Ordering};
     use std::sync::mpsc;
     use std::time::Duration;
@@ -2617,6 +3443,74 @@ mod tests {
                 evidence: Vec::new(),
                 provenance: "concrete".to_owned(),
             }])
+    }
+
+    fn snapshot_tree(root: &Path) -> (BTreeSet<String>, BTreeMap<String, Vec<u8>>) {
+        fn visit(
+            root: &Path,
+            current: &Path,
+            directories: &mut BTreeSet<String>,
+            files: &mut BTreeMap<String, Vec<u8>>,
+        ) {
+            for entry in fs::read_dir(current).unwrap() {
+                let entry = entry.unwrap();
+                let path = entry.path();
+                let relative = path.strip_prefix(root).unwrap();
+                if relative.components().next().is_some_and(|component| {
+                    component.as_os_str().to_string_lossy() == ".repopact-transaction-test-state"
+                }) {
+                    continue;
+                }
+                let key = relative.to_string_lossy().replace('\\', "/");
+                let metadata = fs::symlink_metadata(&path).unwrap();
+                if metadata.is_dir() {
+                    directories.insert(key);
+                    visit(root, &path, directories, files);
+                } else if metadata.is_file() {
+                    files.insert(key, fs::read(path).unwrap());
+                }
+            }
+        }
+
+        let mut directories = BTreeSet::new();
+        let mut files = BTreeMap::new();
+        visit(root, root, &mut directories, &mut files);
+        (directories, files)
+    }
+
+    fn launch_mutation_crash_fixture(
+        root: &Path,
+        mode: &str,
+        crash_at: &str,
+    ) -> std::process::Output {
+        Command::new(std::env::current_exe().unwrap())
+            .args([
+                "--ignored",
+                "--exact",
+                "tests::mutation_crash_fixture",
+                "--nocapture",
+            ])
+            .env("REPOPACT_TEST_ROOT", root)
+            .env("REPOPACT_TEST_MODE", mode)
+            .env("REPOPACT_MUTATION_CRASH_AT", crash_at)
+            .output()
+            .unwrap()
+    }
+
+    fn crash_fixture_request() -> (Value, MutationRequest) {
+        let create = create_request("Crash Recovery Probe", "2026-10-28");
+        let params = serde_json::json!({
+            "title": "Crash Recovery Probe",
+            "date": "2026-10-28",
+            "status": "active",
+            "preflight_confirmed_before_work_started": true,
+        });
+        (params, MutationRequest::create_work_item(create))
+    }
+
+    fn make_fixture_dashboard_current(root: &Path) {
+        let dashboard = repopact_validation::render_dashboard(root).unwrap();
+        fs::write(root.join("audits/reports/dashboard.md"), dashboard).unwrap();
     }
 
     // ---- ROG-037/040 adversarial authority-boundary proof (Decision 0053
@@ -3460,5 +4354,311 @@ mod tests {
         assert_eq!(ids.first().map(String::as_str), Some("002"));
         assert_eq!(ids.last().map(String::as_str), Some("005"));
         fs::remove_dir_all(root.as_path()).unwrap();
+    }
+
+    #[test]
+    fn process_crashes_recover_partial_transactions_repeatably_and_replay_receipts() {
+        for (crash_at, expect_rollback) in [
+            ("before-snapshot-complete", false),
+            ("during-candidate-validation", false),
+            ("immediately-before-commit", true),
+            ("between-multi-file-writes", true),
+        ] {
+            let (root, _) = fixture();
+            make_fixture_dashboard_current(&root);
+            fs::write(
+                root.join("unrelated-operator-note.txt"),
+                "keep this change\n",
+            )
+            .unwrap();
+            let before = snapshot_tree(&root);
+            let output = launch_mutation_crash_fixture(&root, "mutate", crash_at);
+            assert_eq!(
+                output.status.code(),
+                Some(86),
+                "child did not terminate at {crash_at}: stdout={} stderr={}",
+                String::from_utf8_lossy(&output.stdout),
+                String::from_utf8_lossy(&output.stderr)
+            );
+
+            if crash_at == "between-multi-file-writes" {
+                let interrupted_recovery =
+                    launch_mutation_crash_fixture(&root, "recover", "during-recovery");
+                assert_eq!(
+                    interrupted_recovery.status.code(),
+                    Some(86),
+                    "recovery child did not terminate during restore: stdout={} stderr={}",
+                    String::from_utf8_lossy(&interrupted_recovery.stdout),
+                    String::from_utf8_lossy(&interrupted_recovery.stderr)
+                );
+            }
+
+            recover_repository_transactions(&root).unwrap();
+            recover_repository_transactions(&root).unwrap();
+            assert_eq!(
+                snapshot_tree(&root),
+                before,
+                "{crash_at} did not restore baseline"
+            );
+            let (params, request) = crash_fixture_request();
+            let receipt = read_request_receipt(&root, "crash-recovery-key")
+                .unwrap()
+                .expect("recovered durable request receipt");
+            assert_eq!(
+                receipt.rolled_back, expect_rollback,
+                "{crash_at}: {receipt:?}"
+            );
+            assert!(
+                !receipt.success,
+                "{crash_at}: interrupted request cannot commit"
+            );
+            let retry = plan_and_apply_idempotently(
+                &root,
+                "crash-recovery-key",
+                "work.create",
+                &params,
+                request,
+            );
+            assert_eq!(
+                retry, receipt,
+                "{crash_at}: retry changed the original receipt"
+            );
+            let conflict = plan_and_apply_idempotently(
+                &root,
+                "crash-recovery-key",
+                "work.create",
+                &serde_json::json!({"title": "different payload"}),
+                MutationRequest::create_work_item(create_request(
+                    "Different Payload",
+                    "2026-10-28",
+                )),
+            );
+            assert_eq!(conflict.transaction_outcome, "conflict");
+            assert!(conflict
+                .diagnostics
+                .iter()
+                .any(|item| item.code == "mutation.idempotency-conflict"));
+            assert!(!repopact_validation::validate(&root).has_errors());
+            fs::remove_dir_all(root).unwrap();
+        }
+    }
+
+    #[test]
+    fn crash_during_rollback_reuses_the_journal_until_restoration_finishes() {
+        let (root, _) = fixture();
+        make_fixture_dashboard_current(&root);
+        fs::write(
+            root.join("unrelated-operator-note.txt"),
+            "keep this change\n",
+        )
+        .unwrap();
+        let before = snapshot_tree(&root);
+        let output = launch_mutation_crash_fixture(&root, "rollback", "during-rollback");
+        assert_eq!(
+            output.status.code(),
+            Some(86),
+            "child did not terminate during rollback: stdout={} stderr={}",
+            String::from_utf8_lossy(&output.stdout),
+            String::from_utf8_lossy(&output.stderr)
+        );
+        recover_repository_transactions(&root).unwrap();
+        recover_repository_transactions(&root).unwrap();
+        assert_eq!(snapshot_tree(&root), before);
+        let receipt = read_request_receipt(&root, "crash-rollback-key")
+            .unwrap()
+            .expect("durable rolled-back receipt");
+        assert!(!receipt.success);
+        assert!(receipt.rolled_back);
+        assert_eq!(receipt.transaction_outcome, "rolled-back");
+        let (params, request) = crash_fixture_request();
+        let retry = plan_and_apply_idempotently(
+            &root,
+            "crash-rollback-key",
+            "work.create",
+            &params,
+            request,
+        );
+        assert_eq!(retry, receipt);
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn committed_receipt_survives_process_crash_and_prevents_duplicate_creation() {
+        let (root, _) = fixture();
+        make_fixture_dashboard_current(&root);
+        let (params, request) = crash_fixture_request();
+        let output = launch_mutation_crash_fixture(&root, "mutate", "after-commit-receipt");
+        assert_eq!(
+            output.status.code(),
+            Some(86),
+            "child did not terminate after receipt commit: stdout={} stderr={}",
+            String::from_utf8_lossy(&output.stdout),
+            String::from_utf8_lossy(&output.stderr)
+        );
+        let receipt = read_request_receipt(&root, "crash-recovery-key")
+            .unwrap()
+            .expect("durable committed receipt");
+        assert!(receipt.success, "{receipt:?}");
+        assert_eq!(receipt.transaction_outcome, "committed");
+        let retry = plan_and_apply_idempotently(
+            &root,
+            "crash-recovery-key",
+            "work.create",
+            &params,
+            request,
+        );
+        assert_eq!(retry, receipt);
+        let created = fs::read_dir(root.join("work/active"))
+            .unwrap()
+            .filter_map(Result::ok)
+            .filter(|entry| {
+                entry
+                    .file_name()
+                    .to_string_lossy()
+                    .starts_with("002-crash-recovery-probe")
+            })
+            .count();
+        assert_eq!(created, 1);
+        assert!(!repopact_validation::validate(&root).has_errors());
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn same_request_key_concurrent_retries_return_one_original_receipt() {
+        let (root, _) = fixture();
+        make_fixture_dashboard_current(&root);
+        let root = std::sync::Arc::new(root);
+        let params = serde_json::json!({
+            "title": "Crash Recovery Probe",
+            "date": "2026-10-28",
+            "status": "active",
+            "preflight_confirmed_before_work_started": true,
+        });
+        let gate = std::sync::Arc::new(std::sync::Barrier::new(5));
+        let results = std::thread::scope(|scope| {
+            let workers = (0..4)
+                .map(|_| {
+                    let root = std::sync::Arc::clone(&root);
+                    let params = params.clone();
+                    let gate = std::sync::Arc::clone(&gate);
+                    scope.spawn(move || {
+                        let (_, request) = crash_fixture_request();
+                        gate.wait();
+                        plan_and_apply_idempotently(
+                            root.as_path(),
+                            "concurrent-same-request-key",
+                            "work.create",
+                            &params,
+                            request,
+                        )
+                    })
+                })
+                .collect::<Vec<_>>();
+            gate.wait();
+            workers
+                .into_iter()
+                .map(|worker| worker.join().unwrap())
+                .collect::<Vec<_>>()
+        });
+        assert!(results.iter().all(|result| result.success), "{results:?}");
+        assert!(results.iter().all(|result| result == &results[0]));
+        let created = fs::read_dir(root.join("work/active"))
+            .unwrap()
+            .filter_map(Result::ok)
+            .filter(|entry| {
+                entry
+                    .file_name()
+                    .to_string_lossy()
+                    .starts_with("002-crash-recovery-probe")
+            })
+            .count();
+        assert_eq!(created, 1);
+        assert_eq!(
+            read_request_receipt(root.as_path(), "concurrent-same-request-key").unwrap(),
+            Some(results[0].clone())
+        );
+        fs::remove_dir_all(root.as_path()).unwrap();
+    }
+
+    #[test]
+    fn proposal_and_ordinary_mutations_share_identifier_allocation_lock() {
+        let (root, _) = fixture();
+        make_fixture_dashboard_current(&root);
+        let root = std::sync::Arc::new(root);
+        let gate = std::sync::Arc::new(std::sync::Barrier::new(3));
+        let outputs = std::thread::scope(|scope| {
+            let proposal_root = std::sync::Arc::clone(&root);
+            let proposal_gate = std::sync::Arc::clone(&gate);
+            let proposal = scope.spawn(move || {
+                proposal_gate.wait();
+                propose_work_item(
+                    proposal_root.as_path(),
+                    proposal_request("Concurrent Proposal", "mixed-proposal-key"),
+                )
+            });
+            let ordinary_root = std::sync::Arc::clone(&root);
+            let ordinary_gate = std::sync::Arc::clone(&gate);
+            let ordinary = scope.spawn(move || {
+                let request = create_request("Concurrent Ordinary", "2026-10-28");
+                ordinary_gate.wait();
+                plan_and_apply_idempotently(
+                    ordinary_root.as_path(),
+                    "mixed-ordinary-key",
+                    "work.create",
+                    &serde_json::json!({"title": "Concurrent Ordinary"}),
+                    MutationRequest::create_work_item(request),
+                )
+            });
+            gate.wait();
+            vec![proposal.join().unwrap(), ordinary.join().unwrap()]
+        });
+        assert!(outputs.iter().all(|result| result.success), "{outputs:?}");
+        let ids = outputs
+            .iter()
+            .flat_map(|result| result.changed_paths.iter())
+            .filter(|path| path.ends_with("/work-item.json"))
+            .filter_map(|path| path.split('/').nth(2))
+            .filter_map(|directory| directory.split('-').next())
+            .collect::<BTreeSet<_>>();
+        assert_eq!(
+            ids.len(),
+            2,
+            "ordinary/proposal allocation collided: {outputs:?}"
+        );
+        assert!(!repopact_validation::validate(root.as_path()).has_errors());
+        fs::remove_dir_all(root.as_path()).unwrap();
+    }
+
+    #[test]
+    #[ignore = "launched in a child process to exercise transaction crash recovery"]
+    fn mutation_crash_fixture() {
+        let root = PathBuf::from(std::env::var_os("REPOPACT_TEST_ROOT").unwrap());
+        match std::env::var("REPOPACT_TEST_MODE").unwrap().as_str() {
+            "mutate" => {
+                let (params, request) = crash_fixture_request();
+                let _ = plan_and_apply_idempotently_with_options(
+                    &root,
+                    "crash-recovery-key",
+                    "work.create",
+                    &params,
+                    request,
+                    &ApplyOptions::default(),
+                );
+            }
+            "rollback" => {
+                let (params, request) = crash_fixture_request();
+                let _ = plan_and_apply_idempotently_with_options(
+                    &root,
+                    "crash-rollback-key",
+                    "work.create",
+                    &params,
+                    request,
+                    &ApplyOptions::fail_after(0),
+                );
+            }
+            "recover" => recover_repository_transactions(&root).unwrap(),
+            mode => panic!("unknown transaction fixture mode: {mode}"),
+        }
+        panic!("requested transaction crash point was not reached");
     }
 }

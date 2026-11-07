@@ -2,7 +2,7 @@
   "$schema": "../../../repopact/schemas/work-item.schema.json",
   "id": "076",
   "title": "Engine Semantic Compatibility Identity",
-  "status": "completed",
+  "status": "active",
   "owner_scope": "tooling",
   "lead": "tooling-owner",
   "affected_scopes": [
@@ -33,62 +33,45 @@
     {
       "id": "AC-2",
       "text": "Implement the approved semantic identity in the Rust engine and Python client. Each operation must execute only in the same engine process that passed semantic handshake and explicit admission; a process from an earlier handshake cannot authorize a later launch. Until admission succeeds, the engine rejects operations before dispatch. Retained Python workflows that write repository files and depend on canonical Core semantics must establish and hold the admitted session before their first filesystem write. Same-protocol, same-product-version engines with missing or mismatched identity fail closed in ordinary discovery and through REPOPACT_ENGINE; overrides cannot bypass admission.",
-      "state": "satisfied",
+      "state": "pending",
       "evidence": [
-        "20261024-076-matching-engine-integrated-validation",
-        "20261024-076-independent-review-findings",
-        "20261024-076-review-corrections-validation"
+        "20261024-076-python-admission-state-machine"
       ]
     },
     {
       "id": "AC-3",
       "text": "Add focused tests proving a stale same-version or legacy engine is rejected before any repository mutation and a matching engine is admitted. Cover ordinary Scripts discovery, a stale executable beside the Python package, explicit REPOPACT_ENGINE, missing/malformed/unsupported/mismatched identity, engine-side pre-admission rejection, executable-path replacement after handshake, retained Python-side canonical-dependent write workflows, and the compatibility boundary. Compare repository snapshots to prove the rejected cases changed no files and prove no operation was resent after an uncertain process exit.",
-      "state": "satisfied",
+      "state": "pending",
       "evidence": [
-        "20261024-076-matching-engine-integrated-validation",
-        "20261024-076-independent-review-findings",
-        "20261024-076-review-corrections-validation"
+        "20261024-076-python-admission-state-machine"
       ]
     },
     {
       "id": "AC-4",
       "text": "Verify automatic, reviewed input discovery and deterministic identity generation across the current Python contract and dependency closure, Rust engine dependency/build closure, protocol capabilities, embedded schemas, and conformance corpus. Enforce an exact Python dependency lock or an explicitly bounded supported-version contract at runtime, including affected optional dependencies. Detect added, omitted, removed, or changed inputs without implicit baseline updates; prove checkout, sdist, and wheel identity agreement through Maturin. Do not treat identity as proof of trusted executable bytes.",
-      "state": "satisfied",
+      "state": "pending",
       "evidence": [
-        "20261024-076-matching-engine-integrated-validation",
-        "20261024-076-independent-review-findings",
-        "20261024-076-review-corrections-validation",
-        "20261025-076-archive-closure-validation"
+        "20261024-076-semantic-manifest-generator"
       ]
     },
     {
       "id": "AC-5",
       "text": "Document the four identity guarantees, mismatch behavior, override rules, and migration path. Explicitly state that a semantic ID detects accidental version skew but does not authenticate a maliciously substituted binary; any trusted-artifact verification remains a separate design and approval.",
-      "state": "satisfied",
-      "evidence": [
-        "20261024-076-matching-engine-integrated-validation",
-        "20261024-076-review-corrections-validation",
-        "20261025-076-archive-closure-validation"
-      ]
+      "state": "pending",
+      "evidence": []
     },
     {
       "id": "AC-6",
       "text": "Record the exact process-image file identity and executable SHA-256 used for each conformance run, with source commit, product/protocol/semantic identities, toolchain and focused results. Mark provenance incomplete when the actual image cannot be correlated or its pre/post digest changes. Preserve prior historical evidence unchanged.",
-      "state": "satisfied",
-      "evidence": [
-        "20261024-076-matching-engine-integrated-validation",
-        "20261024-076-independent-review-findings",
-        "20261024-076-review-corrections-validation",
-        "20261025-076-archive-closure-validation"
-      ]
+      "state": "pending",
+      "evidence": []
     },
     {
       "id": "AC-7",
       "text": "Link this work to WI074/RPS-016 as supporting Core/Workbench compatibility evidence. Do not change RPS-016 to satisfied; its full acceptance remains independently pending after this work completes.",
       "state": "satisfied",
       "evidence": [
-        "20261024-076-rps016-link-registration",
-        "20261024-076-review-corrections-validation"
+        "20261024-076-rps016-link-registration"
       ]
     },
     {
@@ -97,8 +80,19 @@
       "state": "satisfied",
       "evidence": [
         "20261024-076-prebuild-storage-budget",
-        "20261024-076-review-fix-prebuild-gate",
-        "20261024-076-review-fix-rust-build-gate"
+        "20261028-076-prebuild-transaction-recovery",
+        "20261029-076-pr13-integration-prebuild",
+        "20261106-076-rollback-regression-prebuild",
+        "20261106-076-final-engine-rebuild-prebuild"
+      ]
+    },
+    {
+      "id": "AC-9",
+      "text": "The shared Rust mutation contract must recover deterministically and repeatably after process termination, persist request receipts keyed by request identity, return the original result for same-key/same-payload retries, reject same-key/different-payload retries explicitly, and serialize concurrent creation with identifier collision checks. Prove recovery before snapshot completion, during candidate validation, before commit, between multi-file writes, during rollback, and across repeated recovery; verify baseline restoration, registry consistency, receipt recovery, and lock release. Route takeover retirement decisions and decision/policy creation through the shared transaction contract without changing CLI behavior. Record verified process-crash guarantees separately from non-Windows locking and power-loss durability limits.",
+      "state": "satisfied",
+      "evidence": [
+        "20261028-076-transaction-recovery",
+        "20261106-076-final-regression-reconciliation"
       ]
     }
   ],
@@ -110,12 +104,9 @@
       "contributor_workflow"
     ],
     "evidence": [
-      "20261024-074-governance-closeout",
-      "20261024-076-matching-engine-integrated-validation",
-        "20261024-076-review-corrections-validation",
-        "20261025-076-archive-closure-validation"
+      "20261024-074-governance-closeout"
     ]
   },
   "created": "2026-10-24",
-  "updated": "2026-10-25"
+  "updated": "2026-11-06"
 }

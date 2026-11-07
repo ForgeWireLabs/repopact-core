@@ -53,6 +53,7 @@ def _rust_mutation(
     *,
     timeout: float = 30.0,
     json_output: bool = False,
+    request_id: str | None = None,
 ) -> int:
     from .engine_client import (
         EngineError,
@@ -62,7 +63,10 @@ def _rust_mutation(
     )
 
     try:
-        response = EngineClient(timeout=timeout).call(operation, root=root, params=params)
+        call_options: dict[str, Any] = {"root": root, "params": params}
+        if request_id is not None:
+            call_options["request_id"] = request_id
+        response = EngineClient(timeout=timeout).call(operation, **call_options)
     except OperationOutcomeUnknownError as exc:
         key = exc.idempotency_key or "<missing>"
         message = (
@@ -85,7 +89,8 @@ def _rust_mutation(
     diagnostics = result["diagnostics"]
     if json_output:
         print(json.dumps({
-            "outcome": "committed" if result.get("success") else "rejected",
+            "outcome": result.get("transaction_outcome")
+            or ("committed" if result.get("success") else "rejected"),
             "result": result,
             "client_metrics": response.get("client_metrics", {}),
         }, indent=2, sort_keys=True))
@@ -207,6 +212,7 @@ def main(argv: list[str] | None = None) -> int:
     p_new.add_argument("--root", type=Path, default=Path.cwd())
     p_new.add_argument("--status", choices=STATUSES, default="active",
                        help="Lifecycle status for a new work item")
+    p_new.add_argument("--request-id", help="Stable mutation request ID for retry-safe submission")
 
     p_frz = sub.add_parser("check-frozen", help="Report frozen-surface changes in a diff range")
     p_frz.add_argument("--root", type=Path, default=Path.cwd())
@@ -733,13 +739,21 @@ def main(argv: list[str] | None = None) -> int:
                     "preflight_confirmed_before_work_started": True,
                 },
                 "Created",
+                request_id=args.request_id,
             )
         else:
             from . import new
             engine = _require_engine_compatibility()
             if engine is None:
                 return 1
-            path = new.new_markdown(args.kind, args.title, date.today(), root, client=engine)
+            path = new.new_markdown(
+                args.kind,
+                args.title,
+                date.today(),
+                root,
+                request_id=args.request_id,
+                client=engine,
+            )
             validation_rc = _rust_validate(root, client=engine)
             if validation_rc:
                 return validation_rc

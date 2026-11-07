@@ -1,0 +1,37 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261028-076-prebuild-transaction-recovery",
+  "timestamp": "2026-10-28T22:22:36Z",
+  "work_item": "076",
+  "result": "passed",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "PowerShell pre-build gate: read C: free bytes, inspect cargo/rustc/maturin processes, and verify task-owned TEMP paths are absent",
+      "exit_code": 0,
+      "summary": "C: had 20,001,280,000 bytes free (18.63 GiB), above the 18 GiB minimum. No Cargo, rustc, or Maturin process was active at the final check. Two Cargo processes seen in an earlier read-only snapshot exited before this gate; neither was stopped or modified. The task-owned target and temporary directories did not exist."
+    }
+  ],
+  "artifacts": [
+    "C:/Users/jerem/AppData/Local/Temp/repopact-wi076-transaction-recovery-20261028/target",
+    "C:/Users/jerem/AppData/Local/Temp/repopact-wi076-transaction-recovery-20261028/temp"
+  ],
+  "environment": {
+    "repository": "C:/Projects/repopact-core",
+    "branch": "codex/wi076-semantic-identity-design",
+    "head": "bf6d8b3a5a7b5a74c5a9b3ba45ae5f1a1de994df",
+    "free_bytes_before_build": 20001280000,
+    "minimum_free_bytes": 19327352832,
+    "peak_output_budget_bytes": {
+      "cargo_target": 12884901888,
+      "temporary_output": 2147483648,
+      "reserved_headroom": 4294967296
+    },
+    "cargo_target_dir": "C:/Users/jerem/AppData/Local/Temp/repopact-wi076-transaction-recovery-20261028/target",
+    "temporary_dir": "C:/Users/jerem/AppData/Local/Temp/repopact-wi076-transaction-recovery-20261028/temp",
+    "target_preexisted": false,
+    "temporary_dir_preexisted": false,
+    "cleanup_plan": "Remove only this task-owned target after all build and test processes exit. Preserve rust/target and all shared Cargo caches. Do not remove the task temporary directory unless it is verified to contain only task-owned data.",
+    "previous_semantic_identity_before_recovery_edits": "repopact-semantic-v1:sha256:38e7e393b8d4e1a2a9f33a9377fa5b2537c0f3b70ce3f68cbed15184e50fe871"
+  }
+}

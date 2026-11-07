@@ -39,10 +39,19 @@ matching engine under the previous compatibility behavior.
 Once an operation request write is attempted, a timeout, interruption,
 transport failure, malformed response, or mismatched response poisons the
 session. The client terminates and reaps its owned process and does not retry
-or replay the request. The operation may already have taken effect, so callers
-must treat the result as unknown and inspect repository state before deciding
-what to do next. A keyboard interrupt remains a cancellation signal and carries
-the uncertain-outcome detail; it is not converted into a success or retried.
+or replay the request automatically. The operation may already have taken
+effect, so callers must treat the result as unknown and inspect repository
+state before deciding what to do next. For a generic mutation with a durable
+request receipt, a caller may query that receipt or resubmit the exact same
+operation and parameters under the same request ID; the engine returns the
+original result. Reusing the ID with a different operation or parameters is an
+explicit conflict. The `new` command accepts optional `--request-id` for a
+stable mutation identity. Proposal creation keeps its operation-scoped
+idempotency key and proposal-status lookup. These receipt guarantees cover
+verified process termination on Windows; Unix lock behavior and power-loss
+durability have not been verified. A keyboard interrupt remains a cancellation
+signal and carries the uncertain-outcome detail; it is not converted into a
+success or retried automatically.
 
 This session contract uses engine protocol major 2. Major 1 used one JSON
 request per process and read stdin through EOF; major 2 uses newline-framed

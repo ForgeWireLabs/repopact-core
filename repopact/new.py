@@ -39,6 +39,8 @@ def _next_numeric(paths: list[Path], width: int, start: int) -> str:
 def _template_text(root: Path, name: str) -> str:
     local = root / "templates" / name
     if local.is_file():
+        if local.stat().st_size > 16 * 1024 * 1024:
+            raise ValueError(f"template exceeds the 16 MiB per-file limit: {local}")
         return local.read_text(encoding="utf-8")
     return init_repo._seed_dir("templates").joinpath(name).read_text(encoding="utf-8")
 
@@ -49,6 +51,7 @@ def new_work_item(
     root: Path = ROOT,
     status: str = "active",
     *,
+    request_id: str | None = None,
     client=None,
 ) -> Path:
     from .engine_client import EngineClient, EngineProtocolError, validated_mutation_result
@@ -66,7 +69,10 @@ def new_work_item(
         params["idempotency_key"] = uuid.uuid4().hex
     engine = client or EngineClient(timeout=10.0 if proposal else 30.0)
     operation = "work.propose" if proposal else "work.create"
-    response = engine.call(operation, root=root, params=params)
+    call_options = {"root": root, "params": params}
+    if request_id is not None:
+        call_options["request_id"] = request_id
+    response = engine.call(operation, **call_options)
     result = validated_mutation_result(response)
     paths = result["changed_paths"]
     record = next((item for item in paths if isinstance(item, str) and item.endswith("/work-item.json")), None)
@@ -78,24 +84,52 @@ def new_work_item(
     return root.resolve() / relative
 
 
-def new_markdown(kind: str, title: str, today: date, root: Path = ROOT, *, client=None) -> Path:
-    from .engine_client import EngineClient, write_dashboard_canonically
+def new_markdown(
+    kind: str,
+    title: str,
+    today: date,
+    root: Path = ROOT,
+    *,
+    request_id: str | None = None,
+    client=None,
+) -> Path:
+    from .engine_client import EngineClient, EngineProtocolError, validated_mutation_result
+
     engine = client or EngineClient()
-    engine.check_compatibility("validate", "dashboard.write")
-    slug = slugify(title)
     if kind == "decision":
-        directory, width, template = root / "decisions", 4, "decision.md"
+        template_name = "decision.md"
+        prefix = "decisions/"
+    elif kind == "policy":
+        template_name = "policy.md"
+        prefix = "governance/policies/"
     else:
-        directory, width, template = root / "governance" / "policies", 3, "policy.md"
-    record_id = _next_numeric(list(directory.glob("*.md")), width, 1)
-    text = _template_text(root, template)
-    text = text.replace("NNNN", record_id).replace("NNN", record_id)
-    text = text.replace("YYYY-MM-DD", today.isoformat())
-    text = text.replace("Decision Title", title).replace("Policy Title", title)
-    path = directory / f"{record_id}-{slug}.md"
-    path.write_text(text, encoding="utf-8")
-    write_dashboard_canonically(root, client=engine)
-    return path
+        raise ValueError(f"unsupported markdown record kind: {kind}")
+    engine.check_compatibility("validate", "record.create-markdown")
+    params = {
+        "kind": kind,
+        "title": title,
+        "date": today.isoformat(),
+        "template": _template_text(root, template_name),
+    }
+    call_options = {"root": root, "params": params}
+    if request_id is not None:
+        call_options["request_id"] = request_id
+    response = engine.call("record.create-markdown", **call_options)
+    result = validated_mutation_result(response)
+    record = next(
+        (
+            item
+            for item in result["changed_paths"]
+            if isinstance(item, str) and item.startswith(prefix) and item.endswith(".md")
+        ),
+        None,
+    )
+    if record is None:
+        raise EngineProtocolError("Rust engine record.create-markdown omitted the created record path")
+    relative = Path(record)
+    if relative.is_absolute() or ".." in relative.parts:
+        raise EngineProtocolError("Rust engine record.create-markdown returned a path outside the repository")
+    return root.resolve() / relative
 
 
 def main() -> int:
@@ -104,15 +138,18 @@ def main() -> int:
     parser.add_argument("title")
     parser.add_argument("--status", choices=STATUSES, default="active",
                         help="Lifecycle status for a new work item")
+    parser.add_argument("--request-id", help="Stable mutation request ID for retry-safe submission")
     args = parser.parse_args()
     today = date.today()
     from .engine_client import EngineClient, EngineError, render_validation
     engine = EngineClient()
     try:
         if args.kind == "work-item":
-            path = new_work_item(args.title, today, status=args.status, client=engine)
+            path = new_work_item(
+                args.title, today, status=args.status, request_id=args.request_id, client=engine
+            )
         else:
-            path = new_markdown(args.kind, args.title, today, client=engine)
+            path = new_markdown(args.kind, args.title, today, request_id=args.request_id, client=engine)
         result = render_validation(engine.call("validate", root=ROOT))
     except EngineError as exc:
         print(f"Rust engine compatibility error: {exc}", file=sys.stderr)
