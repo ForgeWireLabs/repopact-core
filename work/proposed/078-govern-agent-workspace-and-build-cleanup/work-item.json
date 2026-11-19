@@ -1,0 +1,55 @@
+{
+  "$schema": "../../../repopact/schemas/work-item.schema.json",
+  "id": "078",
+  "title": "Govern agent workspace and build cleanup",
+  "status": "proposed",
+  "owner_scope": "tooling",
+  "affected_scopes": [
+    "tooling",
+    "governance",
+    "work",
+    "evidence",
+    "docs"
+  ],
+  "depends_on": [],
+  "provenance": "concrete",
+  "preflight": {
+    "created_before_work_started": true,
+    "created_at": "2026-11-19T21:38:09Z",
+    "note": "Recorded before implementation began."
+  },
+  "acceptance_criteria": [
+    {
+      "id": "AC-1",
+      "text": "On one Windows host, the configured-root inventory reports worktrees and build output by path and size, known work-item/run ownership, estimated reclaimable bytes, and preservation reasons. Unknown resources remain report-only.",
+      "state": "pending",
+      "evidence": []
+    },
+    {
+      "id": "AC-2",
+      "text": "The Windows pilot registers each managed worktree, its exact checkout commit, and its dedicated Cargo target directory before use. The runner queues concurrent heavy builds among participating runs and defers starts below the configured free-space floor on the build volume.",
+      "state": "pending",
+      "evidence": []
+    },
+    {
+      "id": "AC-3",
+      "text": "Normal closeout reclaims eligible run-owned build output and removes only idle, clean, unlocked managed worktrees whose commits are reachable from a retained ref. Apply rechecks a stale plan against current ownership, liveness, retention, and path containment. Verification covers dirty and untracked work, unregistered ignored files, pinned artifacts, evidence, branch refs, other runs, and Windows junction or symlink escapes.",
+      "state": "pending",
+      "evidence": []
+    },
+    {
+      "id": "AC-4",
+      "text": "Force-stop a run mid-build and restart the runner. Reconcile abandoned run output only after confirming inactivity, preserve failed-run evidence, defer reclamation while a surviving build child process uses those resources, and demonstrate that interrupted cleanup and Windows sharing violations can be retried safely without double-counting reclaimed bytes or affecting a live run.",
+      "state": "pending",
+      "evidence": []
+    },
+    {
+      "id": "AC-5",
+      "text": "Link the Windows pilot evidence showing baseline and post-cleanup storage, bytes reclaimed, retained resources and reasons, and clean and repeat build times with the proposed retention policy. Document the supported host integration and operator workflow.",
+      "state": "pending",
+      "evidence": []
+    }
+  ],
+  "created": "2026-11-19",
+  "updated": "2026-11-19"
+}
