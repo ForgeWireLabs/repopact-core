@@ -135,7 +135,7 @@ class CandidateAuditTests(unittest.TestCase):
             self_audit.inspect_report(self.root, report)
 
     def test_report_rejects_duplicate_path_claims(self):
-        (self.root / "alpha.txt").write_text("modified\\n", encoding="utf-8")
+        (self.root / "alpha.txt").write_text("modified\n", encoding="utf-8")
         report = self_audit.report_template(self.root, self.base)
         report["review"].update(
             outcome="pass", actor="agent", reviewed_paths=["alpha.txt", "alpha.txt"],
@@ -170,7 +170,7 @@ class CandidateAuditTests(unittest.TestCase):
         self.assertIn("renamed.txt", candidate["changed_paths"])
 
     def test_git_ignored_files_are_explicitly_not_covered(self):
-        (self.root / ".gitignore").write_text("ignored.bin\\n", encoding="utf-8")
+        (self.root / ".gitignore").write_text("ignored.bin\n", encoding="utf-8")
         (self.root / "ignored.bin").write_text("not part of Git candidate", encoding="utf-8")
         candidate = self.candidate()
         self.assertIn(".gitignore", candidate["changed_paths"])
@@ -179,7 +179,7 @@ class CandidateAuditTests(unittest.TestCase):
 
     def test_git_stdout_budget_fails_instead_of_truncating(self):
         from unittest.mock import patch
-        (self.root / "untracked-file.txt").write_text("new\\n", encoding="utf-8")
+        (self.root / "untracked-file.txt").write_text("new\n", encoding="utf-8")
         with patch.object(self_audit, "_MAX_COMMAND_OUTPUT", 4):
             with self.assertRaisesRegex(self_audit.SelfAuditError, "exceeded bounded capture"):
                 self_audit._git(self.root, "status", "--porcelain=v1", "--untracked-files=all")
@@ -235,7 +235,7 @@ class CandidateAuditTests(unittest.TestCase):
         )
 
     def test_cli_reports_blocking_finding_as_failure(self):
-        (self.root / "alpha.txt").write_text("modified\\n", encoding="utf-8")
+        (self.root / "alpha.txt").write_text("modified\n", encoding="utf-8")
         report = self_audit.report_template(self.root, self.base)
         report["review"].update(
             outcome="pass", actor="agent", reviewed_paths=["alpha.txt"],
