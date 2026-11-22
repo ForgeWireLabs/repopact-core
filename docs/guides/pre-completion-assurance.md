@@ -37,7 +37,7 @@ Then check:
 repopact self-audit check --root $root --report $report
 ```
 
-Exit codes: `0` means the **self-reported review matches the current candidate structurally**; `2` means missing, stale, invalid, unsupported, or incomplete. A successful check prints `self-report-current` and `assurance: instruction-only`: **it does not prove review thoroughness, test success, or independent approval**.
+Exit codes: `0` means the **self-reported review matches the current candidate structurally**; `1` means a declared unresolved blocking finding; `2` means missing, stale, invalid, unsupported, or incomplete. A relative `--report` path is resolved against `--root`, not the shell’s current directory. A successful check prints `self-report-current` and `assurance: instruction-only`: **it does not prove review thoroughness, test success, or independent approval**.
 
 ## Optional local verification integration
 
@@ -49,14 +49,14 @@ A repository can add a *required* argv step to its own `governance/verification.
   "argv": [
     "{python}", "-m", "repopact.self_audit",
     "check", "--root", "{root}",
-    "--report", "C:/validation/wi079-self-review.json"
+    "--report", "../wi079-self-review.json"
   ],
   "required": true,
   "timeout_seconds": 120
 }
 ```
 
-Configure the report path for the executing host and avoid embedding secrets or per-user private absolute paths in shared repository configuration. This is a *profile check on that host*, not universal model compliance. Independently run and record actual builds/tests, for example `repopact verify ci --evidence-work-item NNN` where the existing work-item and profile requirements permit it. The verification evidence records executed step statuses; it does not upgrade the self-review's trust class. Do not make a passing review claim a new source of authorization.
+Configure a distinct report filename per worktree for the executing host and avoid embedding secrets or private absolute paths in shared repository configuration. This is a *profile check on that host*, not universal model compliance. Independently run and record actual builds/tests, for example `repopact verify ci --evidence-work-item NNN` where the existing work-item and profile requirements permit it. The verification evidence records executed step statuses; it does not upgrade the self-review's trust class. Do not make a passing review claim a new source of authorization.
 
 ## Status and exclusions
 
