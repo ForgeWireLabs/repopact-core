@@ -163,6 +163,27 @@ class CandidateAuditTests(unittest.TestCase):
         with self.assertRaisesRegex(self_audit.SelfAuditError, "limitation"):
             self_audit.inspect_report(self.root, report)
 
+    def test_git_rename_exposes_both_source_and_destination(self):
+        self.git("mv", "alpha.txt", "renamed.txt")
+        candidate = self.candidate()
+        self.assertIn("alpha.txt", candidate["changed_paths"])
+        self.assertIn("renamed.txt", candidate["changed_paths"])
+
+    def test_git_ignored_files_are_explicitly_not_covered(self):
+        (self.root / ".gitignore").write_text("ignored.bin\\n", encoding="utf-8")
+        (self.root / "ignored.bin").write_text("not part of Git candidate", encoding="utf-8")
+        candidate = self.candidate()
+        self.assertIn(".gitignore", candidate["changed_paths"])
+        self.assertNotIn("ignored.bin", candidate["changed_paths"])
+        self.assertFalse(candidate["ignored_files_covered"])
+
+    def test_git_stdout_budget_fails_instead_of_truncating(self):
+        from unittest.mock import patch
+        (self.root / "untracked-file.txt").write_text("new\\n", encoding="utf-8")
+        with patch.object(self_audit, "_MAX_COMMAND_OUTPUT", 4):
+            with self.assertRaisesRegex(self_audit.SelfAuditError, "exceeded bounded capture"):
+                self_audit._git(self.root, "status", "--porcelain=v1", "--untracked-files=all")
+
     def test_non_git_root_and_nested_root_fail(self):
         nested = self.root / "nested"
         nested.mkdir()
