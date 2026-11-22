@@ -19,6 +19,7 @@ Start here if you want to govern a repository rather than develop RepoPact itsel
 - [Author records](guides/author-records.md) — work items, evidence, decisions, and policies.
 - [Check documentation freshness](guides/documentation-freshness.md) — opt-in source/documentation mappings, drift review, and generated-output freshness boundaries.
 - [Local-first verification and release](guides/local-ci-cd.md) — repository-defined verification, evidence recording, release build/inspection, and optional hosted adapters.
+- [Experimental pre-completion self-audit](guides/pre-completion-assurance.md) — WI079 candidate-bound self-report freshness, opt-in checks, and assurance limits.
 
 ## Understand RepoPact
 
