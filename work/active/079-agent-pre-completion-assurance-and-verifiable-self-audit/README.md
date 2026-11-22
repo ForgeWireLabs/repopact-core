@@ -6,11 +6,11 @@
 
 ## Intent and observed gap
 
-A coordinated 2026-11-22 draft-PR rollout adds a bounded adversarial self-audit instruction to the root `AGENTS.md` of 20 active repositories. That immediately improves guidance, but **an agent's `Self-Audit: PASS` statement does not establish that an audit happened, that its candidate is current, or that its review is correct.** Instructions do not provide a process or merge boundary.
+A coordinated 2026-11-22 set of draft PRs proposes a bounded adversarial self-audit instruction to the root `AGENTS.md` of 20 active repositories. That immediately improves guidance, but **an agent's `Self-Audit: PASS` statement does not establish that an audit happened, that its candidate is current, or that its review is correct.** Instructions do not provide a process or merge boundary.
 
 RepoPact already has work-item acceptance criteria, evidence runs, local verification profiles, canonical Rust semantics, audits, and optional admission. This item investigates and, following an explicit design decision, implements the *smallest optional generic mechanism* that allows adopter policies to require current, attributable pre-completion review evidence for supported operations. Do not build a second validator, force every adopter to install an agent framework, or confuse review evidence with approval.
 
-This is **not** a rewrite of [WI044](../044-typed-capability-completion-and-replacement-cutover-evidence-contracts/README.md) (typed product-completion and cutover claims) or H14 (admission checkpoint coverage, invocation, effectiveness). These are adjacent models to reconcile, not silently absorb. WI078 is separately reserved for agent workspace/build cleanup on `codex/wi078-govern-agent-workspace-cleanup`.
+This is **not** a rewrite of [WI044](../../proposed/044-typed-capability-completion-and-replacement-cutover-evidence-contracts/README.md) (typed product-completion and cutover claims) or H14 (admission checkpoint coverage, invocation, effectiveness). These are adjacent models to reconcile, not silently absorb. WI078 is separately reserved for agent workspace/build cleanup on `codex/wi078-govern-agent-workspace-cleanup`.
 
 ## Review contract to evaluate
 
@@ -24,7 +24,7 @@ This is **not** a rewrite of [WI044](../044-typed-capability-completion-and-repl
 
 **Phase A — baseline and architecture.** Audit current RepoPact schema/CLI/verification/evidence behavior; review the root-contract draft rollout; evaluate at least three placements (template only, typed evidence + existing verify, optional completion policy). Record why a candidate does or does not warrant a new schema/semantic check. Compare against WI044 and H14. Make policy versioning and old-adopter compatibility explicit before implementation.
 
-**Phase B — bounded implementation, if selected.** Implement approved behavior once in Core's canonical Rust semantics and exposed supported CLI surface. Prefer existing evidence runs and verification-profile steps over additional state. If introducing a record or policy, make it opt-in, versioned, portable, schema-backed, and honest about dirty worktrees and unavailable environments. Do not widen mutation authorization or require a model vendor.
+**Phase B — bounded pilot and integration.** The selected opt-in pilot uses a read-only Python/Git candidate helper and RepoPact's existing verification profiles without adding canonical semantics. A future **binding completion-policy rule**, if justified, requires an explicit design/authority decision and canonical Rust implementation with compatibility/conformance. Do not widen mutation authorization or require a model vendor.
 
 **Phase C — adversarial tests and proof.** Run positive and negative cases: no-findings review; defect fixed and retested; stale candidate; unknown base; untracked/staged omission; altered file after inspection; fabricated or absent review; missing/failed required checks; out-of-scope or frozen change; attempted self-approval; and release-gate bypass. Explicitly demonstrate where a supported adapter actually intercepts completion and where same-principal bypass remains possible. Compare instruction-only and opt-in behavior.
 
@@ -46,6 +46,15 @@ This is **not** a rewrite of [WI044](../044-typed-capability-completion-and-repl
 - No retroactive rewriting of completed work/evidence or required migration of legacy adopters.
 - No immediate universal enforcement by merely adding `AGENTS.md` text.
 
+## Current branch implementation and evidence (2026-11-22)
+
+The operator authorized WI079 engineering after initial proposal. The current draft branch contains a **read-only, opt-in Python candidate fingerprint helper**, top-level `repopact self-audit` CLI dispatch, 23 isolated test cases, an [adopter guide](../../../docs/guides/pre-completion-assurance.md), a [design reconciliation](design-reconciliation.md), and a [preregistered comparison protocol](../../../research/wi079-self-audit-benchmark-protocol.md).
+
+- Exact GitHub blobs for `repopact/self_audit.py` and `tests/test_self_audit.py` were reproduced in an isolated Linux container. **22 of 22 executable isolated tests passed**, plus Python compilation checks. The full CLI-dispatch test is **NOT RUN** in that isolated mirror. Evidence: `20261122-wi079-isolated-self-audit-22` (partial, concrete). Earlier `20261122-wi079-isolated-self-audit-19` is retained as historical evidence.
+- The prototype returns only `self-report-current` at `instruction-only` assurance and rejects missing, stale, malformed, or approval-laundered self-reports. It does not independently verify that the reviewing agent reasoned adequately, or that a host actually invoked it before completion.
+- The full Python package/CLI integration, canonical Rust validation/conformance, semantic identity regeneration, dashboard regeneration, Windows/macOS behavior, protected admission gate, and comparative benchmark are **NOT RUN/NOT PROVEN**. No release or integration claims are made.
+- All ten acceptance criteria remain pending. The work item is active; this branch must not be merged or closed until the remaining required checks and a supported completion-boundary decision are reconciled.
+
 ## Closeout requirements
 
-The ten criteria in `work-item.json` remain pending. Before implementation, record architecture and scope approval in the existing governance workflow. Completion requires criterion-linked concrete evidence, documented limits and negative cases, resolved documentation-impact state, canonical RepoPact validation, and generator-produced dashboard/spec updates (never hand-edited). A draft work item alone is not an executable assurance feature.
+The ten criteria in `work-item.json` remain pending. Before any canonical schema, binding completion-policy, or other protected semantic change, record architectural approval in the existing governance workflow. Completion requires criterion-linked concrete evidence, documented limits and negative cases, resolved documentation-impact state, canonical RepoPact validation, and generator-produced dashboard/spec updates (never hand-edited). A draft work item alone is not an executable assurance feature.
