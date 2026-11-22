@@ -50,6 +50,10 @@ copying development-only commands from `main`.
 | `assurance` | Print a read-only assurance mapping snapshot | `snapshot`; see the assurance and governance records |
 | `approval` | Create, inspect, approve, or deny operator requests | Interactive signing is an explicit operator action; see the admission guide |
 
+## Experimental development-only command (WI079)
+
+The **unreleased** WI079 branch adds `repopact self-audit capture --root PATH --base REF` and `repopact self-audit check --root PATH --report FILE`. These commands are not part of the published 3.1.3 command table above. They only compare a self-reported review to a Git candidate and never approve, validate, or complete a work item. See [pre-completion self-audit](guides/pre-completion-assurance.md).
+
 ## Common options
 
 - `--root PATH` points repository-scoped commands at a repository other than
