@@ -13,6 +13,7 @@ import os
 import stat
 import subprocess
 import sys
+import threading
 from pathlib import Path, PurePosixPath
 from typing import Any
 
@@ -28,26 +29,57 @@ class SelfAuditError(RuntimeError):
 
 
 def _git(root: Path, *args: str) -> bytes:
+    """Run Git with a hard stdout budget and a portable process timeout."""
     try:
-        result = subprocess.run(
+        process = subprocess.Popen(
             ["git", "--no-pager", *args],
             cwd=root,
             stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            timeout=_TIMEOUT_SECONDS,
-            check=False,
+            stderr=subprocess.DEVNULL,
             env={**os.environ, "GIT_TERMINAL_PROMPT": "0", "GIT_OPTIONAL_LOCKS": "0"},
         )
-    except (OSError, subprocess.TimeoutExpired) as exc:
+    except OSError as exc:
         raise SelfAuditError(f"Git operation unavailable: {args[0]}") from exc
-    if result.returncode != 0:
-        raise SelfAuditError(
-            f"Git operation failed: {args[0]} (exit {result.returncode})"
-        )
-    if len(result.stdout) > _MAX_COMMAND_OUTPUT:
-        raise SelfAuditError(f"Git output exceeded bounded capture: {args[0]}")
-    return result.stdout
+    chunks: list[bytes] = []
+    used = 0
+    overflow = False
+    reader_error: OSError | None = None
 
+    def read_stdout() -> None:
+        nonlocal used, overflow, reader_error
+        try:
+            assert process.stdout is not None
+            while chunk := process.stdout.read(65536):
+                used += len(chunk)
+                if used > _MAX_COMMAND_OUTPUT:
+                    overflow = True
+                    process.kill()
+                    break
+                chunks.append(chunk)
+        except (OSError, ProcessLookupError) as exc:
+            reader_error = exc
+
+    reader = threading.Thread(target=read_stdout, daemon=True)
+    reader.start()
+    timed_out = False
+    try:
+        process.wait(timeout=_TIMEOUT_SECONDS)
+    except subprocess.TimeoutExpired:
+        timed_out = True
+        process.kill()
+        process.wait()
+    reader.join(timeout=5)
+    if process.stdout is not None:
+        process.stdout.close()
+    if reader.is_alive() or timed_out:
+        raise SelfAuditError(f"Git operation timed out: {args[0]}")
+    if overflow:
+        raise SelfAuditError(f"Git output exceeded bounded capture: {args[0]}")
+    if reader_error is not None:
+        raise SelfAuditError(f"Git output unreadable: {args[0]}") from reader_error
+    if process.returncode != 0:
+        raise SelfAuditError(f"Git operation failed: {args[0]} (exit {process.returncode})")
+    return b"".join(chunks)
 
 def _sha(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
