@@ -2,7 +2,7 @@
   "$schema": "../../../repopact/schemas/work-item.schema.json",
   "id": "079",
   "title": "Agent Pre-Completion Assurance and Verifiable Self-Audit Evidence",
-  "status": "proposed",
+  "status": "active",
   "owner_scope": "governance",
   "affected_scopes": [
     "governance",
@@ -16,7 +16,7 @@
   "preflight": {
     "created_before_work_started": true,
     "created_at": "2026-11-22T20:43:26Z",
-    "note": "Prospective operator-requested design item after the separate 2026-11-22 instruction-only AGENTS.md draft rollout. No RepoPact enforcement implementation is claimed. WI078 already exists on a separate workspace-cleanup branch."
+    "note": "Prospective operator-requested design item after the separate 2026-11-22 instruction-only AGENTS.md draft rollout. No RepoPact enforcement implementation is claimed. WI078 already exists on a separate workspace-cleanup branch. On 2026-11-22, the operator subsequently authorized engineering execution in the WI079 conversation; implementation work is now active, without operator permission to modify protected surfaces or release."
   },
   "acceptance_criteria": [
     {

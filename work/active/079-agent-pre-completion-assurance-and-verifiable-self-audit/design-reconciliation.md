@@ -1,6 +1,6 @@
 # WI079 — Architecture and assurance boundary reconciliation
 
-Date: 2026-11-22. This is the design baseline for the WI079 prototype, **not** a ratified change to the canonical RepoPact semantic contract. It does not authorize closure of the proposed work item.
+Date: 2026-11-22. This is the design baseline for the WI079 prototype, **not** a ratified change to the canonical RepoPact semantic contract. The operator has authorized engineering work; the item remains active and is not ready for completion.
 
 ## Existing machinery and what it actually proves
 
