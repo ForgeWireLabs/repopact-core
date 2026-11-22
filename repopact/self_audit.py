@@ -171,6 +171,8 @@ def inspect_report(root: Path, record: dict[str, Any]) -> dict[str, Any]:
     """Reject stale/incomplete self-reports, never certify review quality."""
     if record.get("format_version") != 1 or record.get("kind") != "agent-self-review-claim":
         raise SelfAuditError("Unsupported self-audit report format")
+    if set(record) != {"format_version", "kind", "candidate", "review"}:
+        raise SelfAuditError("Unsupported report fields; self-review cannot convey approval authority")
     expected = record.get("candidate")
     if not isinstance(expected, dict) or not isinstance(expected.get("base_ref"), str):
         raise SelfAuditError("Report lacks candidate identity")
@@ -180,6 +182,12 @@ def inspect_report(root: Path, record: dict[str, Any]) -> dict[str, Any]:
     review = record.get("review")
     if not isinstance(review, dict) or review.get("outcome") != "pass":
         raise SelfAuditError("INCOMPLETE: no passing self-review claim")
+    if set(review) != {"outcome", "actor", "reviewed_paths", "findings", "limitations"}:
+        raise SelfAuditError("INCOMPLETE: invalid self-review fields or approval assertion")
+    if not isinstance(review["limitations"], list) or any(
+        not isinstance(value, str) for value in review["limitations"]
+    ):
+        raise SelfAuditError("INCOMPLETE: invalid limitation disclosure")
     if not isinstance(review.get("actor"), str) or not review["actor"].strip():
         raise SelfAuditError("INCOMPLETE: reviewer identity missing")
     covered = review.get("reviewed_paths")
