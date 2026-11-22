@@ -4,6 +4,10 @@
 
 RepoPact can store evidence about actual local verification commands, but it cannot determine whether a coding agent thought critically about a diff. The WI079 helper adds a **read-only structural freshness check for a self-reported review**. It is opt-in, Git-based, provider-neutral, and does not alter canonical work-item completion semantics. It is not equivalent to a protected merge gate or a sandbox.
 
+## Shared instruction template and nested contracts
+
+The [versioned opt-in AGENTS.md block](../../repopact/templates/agent-self-audit.md) is available for repositories that want a consistent advisory review protocol. The template is not installed automatically by `repopact init` or `adopt` and does not change a repository's enforcement class by itself. Read the root contract and each applicable nested `AGENTS.md`; deeper rules may specialize or strengthen but must not weaken the parent. Copy the block only once into the appropriate root contract, and reconcile future template changes against local ownership, frozen paths, tests, and approvals rather than overwriting tailored instructions.
+
 ## When and why to use it
 
 Use it after implementation and relevant tests, but before claiming a review of the final candidate. It covers a specific comparison base, HEAD, Git index, nonignored untracked files, and working-tree content changed relative to that base. It detects changes after the snapshot, including a newly added untracked file or a staged edit. It does **not** inspect ignored files, unrelated generated assets excluded by Git, or the quality of an agent's reasoning.
