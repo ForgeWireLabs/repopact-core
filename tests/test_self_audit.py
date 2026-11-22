@@ -143,6 +143,26 @@ class CandidateAuditTests(unittest.TestCase):
         with self.assertRaisesRegex(self_audit.SelfAuditError, "invalid reviewed-path"):
             self_audit.inspect_report(self.root, report)
 
+    def test_self_report_cannot_assert_independent_approval(self):
+        report = self_audit.report_template(self.root, self.base)
+        report["review"].update(outcome="pass", actor="agent", reviewed_paths=[])
+        report["review"]["independent_approval"] = True
+        with self.assertRaisesRegex(self_audit.SelfAuditError, "approval"):
+            self_audit.inspect_report(self.root, report)
+        del report["review"]["independent_approval"]
+        report["approved"] = True
+        with self.assertRaisesRegex(self_audit.SelfAuditError, "approval"):
+            self_audit.inspect_report(self.root, report)
+
+    def test_invalid_limitations_declared_incomplete(self):
+        report = self_audit.report_template(self.root, self.base)
+        report["review"].update(
+            outcome="pass", actor="agent", reviewed_paths=[],
+            limitations="none",
+        )
+        with self.assertRaisesRegex(self_audit.SelfAuditError, "limitation"):
+            self_audit.inspect_report(self.root, report)
+
     def test_non_git_root_and_nested_root_fail(self):
         nested = self.root / "nested"
         nested.mkdir()
