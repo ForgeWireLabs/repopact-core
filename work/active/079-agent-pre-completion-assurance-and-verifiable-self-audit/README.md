@@ -48,12 +48,16 @@ This is **not** a rewrite of [WI044](../../proposed/044-typed-capability-complet
 
 ## Current branch implementation and evidence (2026-11-22)
 
-The operator authorized WI079 engineering after initial proposal. The current draft branch contains a **read-only, opt-in Python candidate fingerprint helper**, top-level `repopact self-audit` CLI dispatch, 23 isolated test cases, an [adopter guide](../../../docs/guides/pre-completion-assurance.md), a [design reconciliation](design-reconciliation.md), and a [preregistered comparison protocol](../../../research/wi079-self-audit-benchmark-protocol.md).
+The operator authorized WI079 engineering after initial proposal. The current draft branch contains a **read-only, opt-in Python candidate fingerprint helper**, top-level `repopact self-audit` CLI dispatch, 24 isolated test cases, an [adopter guide](../../../docs/guides/pre-completion-assurance.md), a [design reconciliation](design-reconciliation.md), and a [preregistered comparison protocol](../../../research/wi079-self-audit-benchmark-protocol.md).
 
-- Exact GitHub blobs for `repopact/self_audit.py` and `tests/test_self_audit.py` were reproduced in an isolated Linux container. **22 of 22 executable isolated tests passed**, plus Python compilation checks. The full CLI-dispatch test is **NOT RUN** in that isolated mirror. Evidence: `20261122-wi079-isolated-self-audit-22` (partial, concrete). Earlier `20261122-wi079-isolated-self-audit-19` is retained as historical evidence.
+- Exact GitHub blobs for `repopact/self_audit.py` and `tests/test_self_audit.py` were reproduced in an isolated Linux container. **23 of 23 executable isolated tests passed**, plus Python compilation checks. The full CLI-dispatch test is **NOT RUN** in that isolated mirror. Evidence: `20261122-wi079-isolated-self-audit-23` (partial, concrete). Earlier `20261122-wi079-isolated-self-audit-19` and `20261122-wi079-isolated-self-audit-22` remain intact as historical evidence.
 - The prototype returns only `self-report-current` at `instruction-only` assurance and rejects missing, stale, malformed, or approval-laundered self-reports. It does not independently verify that the reviewing agent reasoned adequately, or that a host actually invoked it before completion.
 - The full Python package/CLI integration, canonical Rust validation/conformance, semantic identity regeneration, dashboard regeneration, Windows/macOS behavior, protected admission gate, and comparative benchmark are **NOT RUN/NOT PROVEN**. No release or integration claims are made.
 - All ten acceptance criteria remain pending. The work item is active; this branch must not be merged or closed until the remaining required checks and a supported completion-boundary decision are reconciled.
+
+## Known process deviation and outstanding approval
+
+The initial exploratory helper was committed before the complete option comparison/design reconciliation was written. The order is preserved here instead of being backdated or represented as a preregistered implementation decision. AC-2 therefore remains pending and requires explicit technical review of the selected minimal pilot before any binding Rust/schema contract is implemented. Existing source experiments do not authorize new protected-surface changes.
 
 ## Closeout requirements
 
