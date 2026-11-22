@@ -213,6 +213,19 @@ class CandidateAuditTests(unittest.TestCase):
             ]),
         )
 
+    def test_cli_reports_blocking_finding_as_failure(self):
+        (self.root / "alpha.txt").write_text("modified\\n", encoding="utf-8")
+        report = self_audit.report_template(self.root, self.base)
+        report["review"].update(
+            outcome="pass", actor="agent", reviewed_paths=["alpha.txt"],
+            findings=[{"path": "alpha.txt", "status": "open_blocker", "scenario": "unsafe"}],
+        )
+        path = Path(self.temp.name) / "review.json"
+        path.write_text(json.dumps(report), encoding="utf-8")
+        self.assertEqual(1, self_audit.main([
+            "check", "--root", str(self.root), "--report", str(path),
+        ]))
+
     def test_cli_reports_current_self_claim_without_pretending_independence(self):
         report = self_audit.report_template(self.root, self.base)
         report["review"].update(outcome="pass", actor="agent", reviewed_paths=[])
