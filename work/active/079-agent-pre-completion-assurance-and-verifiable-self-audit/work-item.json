@@ -35,7 +35,9 @@
       "id": "AC-3",
       "text": "Define an exact review candidate identity covering review base, HEAD, staged/unstaged/untracked and renamed/deleted paths and worktrees. Detect stale evidence after changes, and honestly distinguish clean committed-tree from dirty-tree evidence.",
       "state": "pending",
-      "evidence": []
+      "evidence": [
+        "20261122-wi079-isolated-self-audit-22"
+      ]
     },
     {
       "id": "AC-4",
@@ -59,7 +61,9 @@
       "id": "AC-7",
       "text": "Add positive/negative regression and conformance fixtures for clean passes, repaired defects, forged/missing/stale evidence, changed working trees, omitted untracked files, failed or unavailable checks, frozen/scope violations, and false independent-approval claims.",
       "state": "pending",
-      "evidence": []
+      "evidence": [
+        "20261122-wi079-isolated-self-audit-22"
+      ]
     },
     {
       "id": "AC-8",
