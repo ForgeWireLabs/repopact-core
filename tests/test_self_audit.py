@@ -187,6 +187,22 @@ class CandidateAuditTests(unittest.TestCase):
         entry = next(x for x in self.candidate()["content_states"] if x["path"] == "link")
         self.assertEqual("symlink", entry["kind"])
 
+    def test_top_level_cli_exposes_experimental_capture(self):
+        from contextlib import redirect_stdout
+        from io import StringIO
+        from repopact import cli
+
+        output = StringIO()
+        with redirect_stdout(output):
+            result = cli.main([
+                "self-audit", "capture", "--root", str(self.root),
+                "--base", self.base,
+            ])
+        self.assertEqual(0, result)
+        record = json.loads(output.getvalue())
+        self.assertEqual("incomplete", record["review"]["outcome"])
+        self.assertEqual(self.base, record["candidate"]["head_commit"])
+
     def test_cli_rejects_report_inside_worktree(self):
         report = self_audit.report_template(self.root, self.base)
         path = self.root / "review.json"
