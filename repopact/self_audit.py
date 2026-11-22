@@ -18,6 +18,8 @@ from typing import Any
 
 _MAX_COMMAND_OUTPUT = 16 * 1024 * 1024
 _MAX_CONTENT_BYTES = 256 * 1024 * 1024
+_MAX_TOTAL_CONTENT_BYTES = 512 * 1024 * 1024
+_MAX_CHANGED_PATHS = 10000
 _TIMEOUT_SECONDS = 30
 
 
@@ -64,6 +66,8 @@ def _file_state(root: Path, rel: str) -> dict[str, Any]:
         info = path.lstat()
     except FileNotFoundError:
         return {"path": rel, "kind": "deleted"}
+    except OSError as exc:
+        raise SelfAuditError(f"Changed path inaccessible: {rel}") from exc
     if stat.S_ISLNK(info.st_mode):
         target = os.readlink(path)
         return {
@@ -85,6 +89,9 @@ def _file_state(root: Path, rel: str) -> dict[str, Any]:
                 digest.update(data)
     except OSError as exc:
         raise SelfAuditError(f"Changed file unreadable: {rel}") from exc
+    after = path.stat(follow_symlinks=False)
+    if (after.st_size, after.st_mtime_ns, after.st_ino) != (info.st_size, info.st_mtime_ns, info.st_ino):
+        raise SelfAuditError(f"Changed file moved or mutated during capture: {rel}")
     return {"path": rel, "kind": "file", "bytes": total, "sha256": digest.hexdigest()}
 
 
@@ -111,7 +118,22 @@ def snapshot(root: Path, base_ref: str) -> dict[str, Any]:
     ))
     untracked = _paths(_git(root, "ls-files", "--others", "--exclude-standard", "-z"))
     status = _git(root, "status", "--porcelain=v1", "-z", "--untracked-files=all", "--ignore-submodules=none")
-    states = [_file_state(root, p) for p in sorted(tracked | untracked)]
+    changed = sorted(tracked | untracked)
+    if len(changed) > _MAX_CHANGED_PATHS:
+        raise SelfAuditError("Changed-path count exceeds bounded capture")
+    states = []
+    total = 0
+    for rel in changed:
+        state = _file_state(root, rel)
+        total += state.get("bytes", 0)
+        if total > _MAX_TOTAL_CONTENT_BYTES:
+            raise SelfAuditError("Changed-file content exceeds aggregate capture budget")
+        states.append(state)
+    # Reject a visibly concurrent change rather than binding an inconsistent snapshot.
+    if (index != _git(root, "ls-files", "--stage", "-z")
+            or status != _git(root, "status", "--porcelain=v1", "-z", "--untracked-files=all", "--ignore-submodules=none")
+            or head != _git(root, "rev-parse", "--verify", "HEAD^{commit}").strip().decode("ascii")):
+        raise SelfAuditError("Candidate changed during capture")
     payload = {
         "format_version": 1,
         "base_ref": base_ref,
@@ -161,7 +183,9 @@ def inspect_report(root: Path, record: dict[str, Any]) -> dict[str, Any]:
     if not isinstance(review.get("actor"), str) or not review["actor"].strip():
         raise SelfAuditError("INCOMPLETE: reviewer identity missing")
     covered = review.get("reviewed_paths")
-    if not isinstance(covered, list) or len(covered) != len(set(map(str, covered))):
+    if (not isinstance(covered, list)
+            or any(not isinstance(path, str) for path in covered)
+            or len(covered) != len(set(covered))):
         raise SelfAuditError("INCOMPLETE: invalid reviewed-path coverage")
     if set(covered) != set(current["changed_paths"]):
         raise SelfAuditError("INCOMPLETE: reviewed paths do not match candidate")
