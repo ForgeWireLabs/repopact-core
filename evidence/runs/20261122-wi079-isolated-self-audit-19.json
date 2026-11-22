@@ -1,0 +1,38 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261122-wi079-isolated-self-audit-19",
+  "timestamp": "2026-11-22T21:27:34Z",
+  "work_item": "079",
+  "result": "partial",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "python -m py_compile /mnt/data/wi079_validation/repopact/self_audit.py /mnt/data/wi079_validation/tests/test_self_audit.py",
+      "exit_code": 0,
+      "summary": "PASS; GitHub source blobs were reproduced byte-for-byte in the isolated container."
+    },
+    {
+      "command": "PYTHONPATH=/mnt/data/wi079_validation python - [unittest.TestLoader().loadTestsFromTestCase(CandidateAuditTests), excluding only test_top_level_cli_exposes_experimental_capture]",
+      "exit_code": 0,
+      "summary": "PASS: 19 tests executed, 0 failed, 0 errored, 0 skipped, 0.906 seconds. Full RepoPact CLI dispatch test NOT RUN without original repository checkout."
+    }
+  ],
+  "artifacts": [
+    "repopact/self_audit.py",
+    "tests/test_self_audit.py"
+  ],
+  "environment": {
+    "platform": "linux",
+    "executor": "isolated-container-reproduction",
+    "recorded_from": "GitHub draft PR #18 branch work/079-pre-completion-assurance-20261122",
+    "source_git_blob_sha1": "da0ec1852d81082aa52dbf4117e4fac1d09a4264",
+    "tests_git_blob_sha1": "1a36aa8afa071cfa3d28b29d3dc9ec28874811a7",
+    "validation_scope": "standalone Python helper, staged/unstaged/untracked candidate fingerprinting, review structure and freshness",
+    "excluded_test": "test_top_level_cli_exposes_experimental_capture",
+    "caveats": [
+      "This execution does not invoke canonical RepoPact validate/dashboard, full CLI dispatch, Rust engine, generated semantic-identity checks, or platform-specific packaging.",
+      "The source mirrored the two exact GitHub blobs, not the entire repository. No implementation approval or release claims are implied.",
+      "This evidence supports only 19 isolated test executions and Python syntax compilation, not WI079 closeout."
+    ]
+  }
+}
