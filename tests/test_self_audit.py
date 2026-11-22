@@ -121,6 +121,28 @@ class CandidateAuditTests(unittest.TestCase):
         with self.assertRaisesRegex(self_audit.SelfAuditError, "scenario"):
             self_audit.inspect_report(self.root, report)
 
+    def test_malformed_review_coverage_fails_cleanly(self):
+        report = self_audit.report_template(self.root, self.base)
+        report["review"].update(
+            outcome="pass", actor="agent", reviewed_paths=[{"not": "a path"}],
+        )
+        with self.assertRaisesRegex(self_audit.SelfAuditError, "invalid reviewed-path"):
+            self_audit.inspect_report(self.root, report)
+
+    def test_report_without_attestation_does_not_pass(self):
+        report = self_audit.report_template(self.root, self.base)
+        with self.assertRaisesRegex(self_audit.SelfAuditError, "no passing"):
+            self_audit.inspect_report(self.root, report)
+
+    def test_report_rejects_duplicate_path_claims(self):
+        (self.root / "alpha.txt").write_text("modified\\n", encoding="utf-8")
+        report = self_audit.report_template(self.root, self.base)
+        report["review"].update(
+            outcome="pass", actor="agent", reviewed_paths=["alpha.txt", "alpha.txt"],
+        )
+        with self.assertRaisesRegex(self_audit.SelfAuditError, "invalid reviewed-path"):
+            self_audit.inspect_report(self.root, report)
+
     def test_non_git_root_and_nested_root_fail(self):
         nested = self.root / "nested"
         nested.mkdir()
