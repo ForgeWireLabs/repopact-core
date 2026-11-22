@@ -208,6 +208,18 @@ class CandidateAuditTests(unittest.TestCase):
         with self.assertRaisesRegex(self_audit.SelfAuditError, "exceeds bounded capture"):
             self.candidate()
 
+    def test_symlink_parent_escape_is_rejected(self):
+        outside = Path(self.temp.name) / "outside"
+        outside.mkdir()
+        (outside / "data.txt").write_text("unrelated", encoding="utf-8")
+        link = self.root / "linkdir"
+        try:
+            link.symlink_to(outside, target_is_directory=True)
+        except (OSError, NotImplementedError):
+            self.skipTest("directory symlink creation unavailable")
+        with self.assertRaisesRegex(self_audit.SelfAuditError, "escapes worktree"):
+            self_audit._file_state(self.root, "linkdir/data.txt")
+
     def test_symlink_target_is_hashed_not_followed(self):
         link = self.root / "link"
         try:
