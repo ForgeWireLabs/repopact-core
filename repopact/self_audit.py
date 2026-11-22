@@ -94,6 +94,12 @@ def _file_state(root: Path, rel: str) -> dict[str, Any]:
         raise SelfAuditError("Unsafe Git path in candidate")
     path = root.joinpath(*name.parts)
     try:
+        parent = path.parent.resolve()
+    except OSError as exc:
+        raise SelfAuditError(f"Changed path parent inaccessible: {rel}") from exc
+    if not parent.is_relative_to(root):
+        raise SelfAuditError(f"Changed path escapes worktree through parent symlink: {rel}")
+    try:
         info = path.lstat()
     except FileNotFoundError:
         return {"path": rel, "kind": "deleted"}
