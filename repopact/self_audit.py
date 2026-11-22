@@ -230,8 +230,8 @@ def main(argv: list[str] | None = None) -> int:
         if args.action == "capture":
             result = report_template(args.root, args.base)
         else:
-            path = args.report.resolve()
             root = args.root.resolve()
+            path = (args.report if args.report.is_absolute() else root / args.report).resolve()
             if path.is_relative_to(root):
                 raise SelfAuditError("Report must be stored outside the candidate working tree to avoid self-reference")
             try:
@@ -240,8 +240,9 @@ def main(argv: list[str] | None = None) -> int:
                 raise SelfAuditError("Review report missing or invalid") from exc
             result = inspect_report(root, value)
     except (SelfAuditError, UnicodeError) as exc:
-        print(json.dumps({"result": "incomplete", "message": str(exc)}, sort_keys=True))
-        return 2
+        failed = str(exc).startswith("FAIL:")
+        print(json.dumps({"result": "fail" if failed else "incomplete", "message": str(exc)}, sort_keys=True))
+        return 1 if failed else 2
     print(json.dumps(result, indent=2, sort_keys=True))
     return 0
 
