@@ -163,6 +163,16 @@ class CandidateAuditTests(unittest.TestCase):
         with self.assertRaisesRegex(self_audit.SelfAuditError, "limitation"):
             self_audit.inspect_report(self.root, report)
 
+    def test_linked_worktree_uses_distinct_identity(self):
+        linked = Path(self.temp.name) / "other-worktree"
+        self.git("worktree", "add", "--detach", str(linked), self.base)
+        self.addCleanup(lambda: self.git("worktree", "remove", "--force", str(linked)))
+        other = self_audit.snapshot(linked, self.base)
+        original = self.candidate()
+        self.assertEqual(original["head_commit"], other["head_commit"])
+        self.assertNotEqual(original["worktree_key"], other["worktree_key"])
+        self.assertNotEqual(original["fingerprint"], other["fingerprint"])
+
     def test_git_rename_exposes_both_source_and_destination(self):
         self.git("mv", "alpha.txt", "renamed.txt")
         candidate = self.candidate()
