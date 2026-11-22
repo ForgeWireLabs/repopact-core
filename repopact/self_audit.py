@@ -12,7 +12,6 @@ import json
 import os
 import stat
 import subprocess
-import sys
 import threading
 from pathlib import Path, PurePosixPath
 from typing import Any
@@ -101,7 +100,10 @@ def _file_state(root: Path, rel: str) -> dict[str, Any]:
     except OSError as exc:
         raise SelfAuditError(f"Changed path inaccessible: {rel}") from exc
     if stat.S_ISLNK(info.st_mode):
-        target = os.readlink(path)
+        try:
+            target = os.readlink(path)
+        except OSError as exc:
+            raise SelfAuditError(f"Symlink changed during capture: {rel}") from exc
         return {
             "path": rel, "kind": "symlink",
             "sha256": _sha(os.fsencode(target)),
@@ -121,7 +123,10 @@ def _file_state(root: Path, rel: str) -> dict[str, Any]:
                 digest.update(data)
     except OSError as exc:
         raise SelfAuditError(f"Changed file unreadable: {rel}") from exc
-    after = path.stat(follow_symlinks=False)
+    try:
+        after = path.stat(follow_symlinks=False)
+    except OSError as exc:
+        raise SelfAuditError(f"Changed file disappeared during capture: {rel}") from exc
     if (after.st_size, after.st_mtime_ns, after.st_ino) != (info.st_size, info.st_mtime_ns, info.st_ino):
         raise SelfAuditError(f"Changed file moved or mutated during capture: {rel}")
     return {"path": rel, "kind": "file", "bytes": total, "sha256": digest.hexdigest()}
