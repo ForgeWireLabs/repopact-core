@@ -1,0 +1,98 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261123-080-pr-reconciliation",
+  "timestamp": "2026-11-23T18:40:17Z",
+  "work_item": "080",
+  "result": "passed",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "Update draft PR #19 body with exact WI080 head/tree, local validation results, failure dispositions, and open gates",
+      "exit_code": 0,
+      "summary": "Updated PR #19 without changing its branch or draft state; body records the exact-head local CI pass and the unresolved Rust blocker."
+    },
+    {
+      "command": "Update draft PR #18 body with WI080 baseline reconciliation and the rebase prerequisite",
+      "exit_code": 0,
+      "summary": "Appended a dated update that supersedes the stale baseline-failed wording, preserves prior historical results, records the blocked Rust gate, and documents that WI079 must be rebased only after WI080 baseline acceptance."
+    },
+    {
+      "command": "Review the fifteenth WI079 protocol at PR #18 head 0562293d1f4a789055f6035204a60550ff29fd9e",
+      "exit_code": 0,
+      "summary": "Fetched the remote branch file and confirmed its content exactly matches the preserved WI079 worktree copy. It remains planned/NOT RUN and is excluded from the 14-document freshness update."
+    },
+    {
+      "command": "Fetch pull-request-triggered workflow runs for WI080 commit e815cd68ac0ad6857cb4c8db31de0010cdcc14a0",
+      "exit_code": 0,
+      "summary": "The GitHub API returned an empty workflow_runs list. No hosted verification workflow ran for the pushed WI080 commit."
+    },
+    {
+      "command": "python -m repopact.cli dashboard --root .",
+      "exit_code": 0,
+      "summary": "Canonical dashboard was regenerated after linking the PR reconciliation evidence and marking AC-9 satisfied."
+    },
+    {
+      "command": "python -m repopact.cli validate --root .",
+      "exit_code": 0,
+      "summary": "Final repository validation passed with WI080 blocked and AC-9 linked to concrete PR evidence."
+    },
+    {
+      "command": "python -m repopact.validate_research --root .",
+      "exit_code": 0,
+      "summary": "Final canonical research metadata validation passed."
+    },
+    {
+      "command": "python scripts/validate_docs.py --root .",
+      "exit_code": 0,
+      "summary": "347 Markdown source files passed; 40 external GitHub links were unchecked."
+    },
+    {
+      "command": "python -m repopact.cli check-frozen --root . --base origin/main",
+      "exit_code": 0,
+      "summary": "No frozen-surface changes were detected."
+    },
+    {
+      "command": "python scripts/generate_engine_semantic_identity.py --check --root .",
+      "exit_code": 0,
+      "summary": "The canonical semantic identity is current."
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "summary": "No whitespace errors were detected."
+    }
+  ],
+  "artifacts": [
+    "evidence/runs/20261123-080-final-closeout.json",
+    "evidence/runs/20261123-080-rust-blocker-disposition.json",
+    "evidence/runs/20261123-080-wi079-protocol-review.json",
+    "evidence/runs/20261123-182000-636282-verify-ci.json"
+  ],
+  "environment": {
+    "repository": "ForgeWireLabs/repopact-core",
+    "pr19": {
+      "url": "https://github.com/ForgeWireLabs/repopact-core/pull/19",
+      "head": "e815cd68ac0ad6857cb4c8db31de0010cdcc14a0",
+      "tree": "b5f3c8f8047603ce51d79f9dde2fadbe33acecc6",
+      "state": "open",
+      "draft": true,
+      "merged": false
+    },
+    "pr18": {
+      "url": "https://github.com/ForgeWireLabs/repopact-core/pull/18",
+      "head": "0562293d1f4a789055f6035204a60550ff29fd9e",
+      "state": "open",
+      "draft": true,
+      "merged": false,
+      "branch_rebased": false
+    },
+    "pr18_preserved_worktree": {
+      "path": "C:\\Projects\\repopact-wi079-local",
+      "head": "b1be600e6292c150b9fff79000c7ef6bd8ce9f0a",
+      "modified_by_this_reconciliation": false
+    },
+    "integration_prerequisite": "After WI080 baseline acceptance/merge, rebase WI079 onto that accepted baseline and rerun WI079 exact-head gates; no branch rebase or merge occurred here.",
+    "hosted_ci_cd": "REPOPACT_GITHUB_CI and REPOPACT_GITHUB_CD remain disabled; no hosted workflow run was found for the WI080 push.",
+    "human_gates": "WI080 remains blocked on the Rust root cause and independent operator acceptance. No release or publication occurred."
+  }
+}

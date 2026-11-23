@@ -89,9 +89,10 @@
     {
       "id": "AC-9",
       "text": "Reconcile WI079 draft PR #18 against the remediated baseline and document any rebase/merge prerequisite without silently folding unrelated maintenance into WI079. Preserve local-only CI policy through 2026-12-01 inclusive; reassess hosted CI after 2026-12-01 only by explicit operator decision.",
-      "state": "pending",
+      "state": "satisfied",
       "evidence": [
-        "20261123-080-wi079-protocol-review"
+        "20261123-080-wi079-protocol-review",
+        "20261123-080-pr-reconciliation"
       ]
     },
     {
