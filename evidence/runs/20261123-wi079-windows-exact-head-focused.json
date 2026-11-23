@@ -1,0 +1,70 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261123-wi079-windows-exact-head-focused",
+  "timestamp": "2026-11-23T14:59:29Z",
+  "work_item": "079",
+  "result": "partial",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "python -m py_compile repopact/self_audit.py tests/test_self_audit.py",
+      "exit_code": 0,
+      "summary": "Focused implementation and test sources compiled on clean-at-start candidate c9ba39ed345a6598b7f2111f019115a55aa8d164 (tree 785f161733347f3322ca9ef5b2849b0a838eb0d2). Log: C:\\Projects\\repopact-wi079-focused-final-head-compile.log."
+    },
+    {
+      "command": "python -m unittest discover -s tests -p test_self_audit.py -v",
+      "exit_code": 0,
+      "summary": "31 focused tests passed, 0 failures, 0 errors, in 33.296 seconds on candidate c9ba39e. All 23 inherited GIT_* variables were removed. Log: C:\\Projects\\repopact-wi079-focused-final-head.log."
+    },
+    {
+      "command": "python C:\\Projects\\repopact-wi079-bom-smoke.py C:\\Projects\\repopact-wi079-local origin/main C:\\Projects\\repopact-wi079-bom-smoke.json",
+      "exit_code": 0,
+      "summary": "Top-level capture/check passed on candidate c9ba39e with a UTF-8 BOM synthetic report and 31 changed paths; output was self-report-current with assurance=instruction-only. The fixture was not a review attestation or approval. Log: C:\\Projects\\repopact-wi079-bom-smoke-final-head.log."
+    },
+    {
+      "command": "python scripts/generate_engine_semantic_identity.py --check",
+      "exit_code": 0,
+      "summary": "Generated semantic input manifest and identity matched current source. Log: C:\\Projects\\repopact-wi079-focused-final-head-identity.log."
+    },
+    {
+      "command": "python -m repopact.cli check-frozen --base origin/main",
+      "exit_code": 0,
+      "summary": "No frozen-surface changes detected. Log: C:\\Projects\\repopact-wi079-focused-final-head-frozen.log."
+    },
+    {
+      "command": "python -m repopact.cli validate (REPOPACT_ENGINE=C:\\Projects\\repopact-wi079-head-conformance\\rust\\target\\release\\repopact-engine.exe, engine source revision 81690fd3385487545cd78bac05dff976432bee27)",
+      "exit_code": 1,
+      "summary": "Canonical validation reported exactly one error: research claim freshness expired on 2026-11-21. No review date was advanced. Log: C:\\Projects\\repopact-wi079-focused-final-head-validate-exact-engine.log."
+    }
+  ],
+  "artifacts": [
+    "repopact/self_audit.py",
+    "tests/test_self_audit.py",
+    "C:\\Projects\\repopact-wi079-focused-final-head.log",
+    "C:\\Projects\\repopact-wi079-bom-smoke-final-head.log",
+    "C:\\Projects\\repopact-wi079-bom-smoke.json",
+    "C:\\Projects\\repopact-wi079-focused-final-head-identity.log",
+    "C:\\Projects\\repopact-wi079-focused-final-head-frozen.log",
+    "C:\\Projects\\repopact-wi079-focused-final-head-validate-exact-engine.log"
+  ],
+  "environment": {
+    "executor": "local-Windows-worktree",
+    "platform": "windows",
+    "python": "3.12.4",
+    "git": "2.53.0.windows.3",
+    "candidate": {
+      "commit": "c9ba39ed345a6598b7f2111f019115a55aa8d164",
+      "tree": "785f161733347f3322ca9ef5b2849b0a838eb0d2",
+      "clean_at_start": true
+    },
+    "git_environment": {
+      "inherited_name_count": 23,
+      "sanitized": "All inherited variables with names starting GIT_ were removed before focused validation processes. Values were not recorded."
+    },
+    "limitations": [
+      "The UTF-8 BOM smoke report was synthetic and does not represent a real review or approval.",
+      "Canonical validation remains failed on the pre-existing research freshness condition.",
+      "This focused run does not convert the full local CI profile into a pass."
+    ]
+  }
+}

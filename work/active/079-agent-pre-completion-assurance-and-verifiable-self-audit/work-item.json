@@ -37,7 +37,8 @@
       "state": "pending",
       "evidence": [
         "20261122-wi079-isolated-self-audit-24",
-        "20261122-wi079-windows-focused-regression"
+        "20261122-wi079-windows-focused-regression",
+        "20261123-wi079-windows-exact-head-focused"
       ]
     },
     {
@@ -45,7 +46,8 @@
       "text": "Separate self-reported inspection, executed tools/tests, independent review, and operator approval. A self-audit PASS must never imply defect-free code, independent approval, authorization, admission closure, or release readiness.",
       "state": "pending",
       "evidence": [
-        "20261122-wi079-windows-focused-regression"
+        "20261122-wi079-windows-focused-regression",
+        "20261123-wi079-windows-exact-head-focused"
       ]
     },
     {
@@ -53,7 +55,8 @@
       "text": "Define concrete finding criteria, bounded surgical repairs, reverification, stop conditions, and truthful PASS/FAIL/INCOMPLETE outcomes; disallow speculative refactor churn, weakening tests, and unapproved scope expansion.",
       "state": "pending",
       "evidence": [
-        "20261122-wi079-windows-focused-regression"
+        "20261122-wi079-windows-focused-regression",
+        "20261123-wi079-windows-exact-head-focused"
       ]
     },
     {
@@ -67,7 +70,8 @@
         "20261123-021446-176011-verify-ci",
         "20261123-wi079-windows-final-focused",
         "20261123-143717-209916-verify-ci",
-        "20261123-wi079-exact-head-isolation"
+        "20261123-wi079-exact-head-isolation",
+        "20261123-wi079-windows-exact-head-focused"
       ]
     },
     {
@@ -80,7 +84,8 @@
         "20261123-021446-176011-verify-ci",
         "20261123-wi079-windows-final-focused",
         "20261123-143717-209916-verify-ci",
-        "20261123-wi079-exact-head-isolation"
+        "20261123-wi079-exact-head-isolation",
+        "20261123-wi079-windows-exact-head-focused"
       ]
     },
     {
@@ -105,5 +110,5 @@
     }
   ],
   "created": "2026-11-22",
-  "updated": "2026-11-22"
+  "updated": "2026-11-23"
 }
