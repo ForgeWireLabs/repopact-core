@@ -65,7 +65,9 @@
         "20261122-220456-383942-verify-ci",
         "20261122-wi079-baseline-isolation",
         "20261123-021446-176011-verify-ci",
-        "20261123-wi079-windows-final-focused"
+        "20261123-wi079-windows-final-focused",
+        "20261123-143717-209916-verify-ci",
+        "20261123-wi079-exact-head-isolation"
       ]
     },
     {
@@ -76,7 +78,9 @@
         "20261122-wi079-isolated-self-audit-24",
         "20261122-wi079-windows-focused-regression",
         "20261123-021446-176011-verify-ci",
-        "20261123-wi079-windows-final-focused"
+        "20261123-wi079-windows-final-focused",
+        "20261123-143717-209916-verify-ci",
+        "20261123-wi079-exact-head-isolation"
       ]
     },
     {

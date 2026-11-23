@@ -1,0 +1,110 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261123-wi079-exact-head-isolation",
+  "timestamp": "2026-11-23T14:49:33Z",
+  "work_item": "079",
+  "result": "partial",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "python -m repopact.verify_cli ci --root . --evidence-work-item 079 --json (clean-at-start detached worktree at 81690fd3385487545cd78bac05dff976432bee27)",
+      "exit_code": 1,
+      "summary": "Run 20261123-143717-209916-verify-ci took 1706.031 seconds; 1/5 required steps passed and 4/5 failed. Validation and the 479-test Python suite (11 failures, 5 skips) reported the expired 2026-11-21 research freshness. Conformance cases passed 43/43 plus 8/8 WI050 vectors, but provenance was incomplete because the external release engine reported source_revision=0065c5b44aea09e2c09cb69cd0a3bcf509ef556b while the checkout was 81690fd3385487545cd78bac05dff976432bee27. Rust workspace exited 101 on tests::consumed_work_record_drift_is_stale (29 passed, 1 failed). SPEC freshness and optional frozen-surface report passed. The generated profile manifest is preserved unchanged in this repository. Log: C:\\Projects\\repopact-wi079-head-ci-sanitized.log."
+    },
+    {
+      "command": "python -m repopact.cli validate --root . (clean detached candidate 81690fd with release engine built from that exact head)",
+      "exit_code": 1,
+      "summary": "Validation reported exactly one error: research claim freshness expired on 2026-11-21. Log: C:\\Projects\\repopact-wi079-head-validate-exact.log."
+    },
+    {
+      "command": "python -m repopact.run_conformance (clean detached candidate 81690fd with release engine built from that exact head)",
+      "exit_code": 0,
+      "summary": "Complete provenance; 43/43 canonical cases and 8/8 WI050 vectors passed. It emitted 20261123T144821740088Z-wi076-ac6-engine-conformance.json with internal ID wi076-ac6-engine-conformance-20261123T144821.583837Z. The filename/internal-ID mismatch remains; the artifact was not renamed. The report remains in the disposable worktree at C:\\Projects\\repopact-wi079-head-conformance\\evidence\\runs\\20261123T144821740088Z-wi076-ac6-engine-conformance.json. Log: C:\\Projects\\repopact-wi079-head-conformance-clean.log."
+    },
+    {
+      "command": "cargo test --workspace --locked --manifest-path rust/Cargo.toml consumed_work_record_drift_is_stale (main 0ac343a)",
+      "exit_code": 0,
+      "summary": "The exact filtered test passed. Log: C:\\Projects\\repopact-wi079-rust-exact-recheck-main.log."
+    },
+    {
+      "command": "cargo test --workspace --locked --manifest-path rust/Cargo.toml consumed_work_record_drift_is_stale (candidate 81690fd)",
+      "exit_code": 0,
+      "summary": "The exact filtered test passed. Log: C:\\Projects\\repopact-wi079-rust-exact-recheck-candidate.log."
+    },
+    {
+      "command": "cargo test -p repopact-mutation --locked --manifest-path rust/Cargo.toml (main 0ac343a)",
+      "exit_code": 0,
+      "summary": "All 30 mutation-package tests passed. Log: C:\\Projects\\repopact-wi079-rust-package-recheck-main.log."
+    },
+    {
+      "command": "cargo test -p repopact-mutation --locked --manifest-path rust/Cargo.toml (candidate 81690fd)",
+      "exit_code": 0,
+      "summary": "All 30 mutation-package tests passed. Log: C:\\Projects\\repopact-wi079-rust-package-recheck-candidate.log."
+    },
+    {
+      "command": "cargo test --workspace --locked --manifest-path rust/Cargo.toml (main 0ac343a, sanitized recheck)",
+      "exit_code": 0,
+      "summary": "Full workspace passed. Log: C:\\Projects\\repopact-wi079-rust-workspace-recheck-main.log."
+    },
+    {
+      "command": "cargo test --workspace --locked --manifest-path rust/Cargo.toml (candidate 81690fd, sanitized recheck)",
+      "exit_code": 0,
+      "summary": "Full workspace passed after the exact-head CI profile's exit 101. The root cause of that profile-only failure is not established. Log: C:\\Projects\\repopact-wi079-rust-workspace-recheck-candidate.log."
+    },
+    {
+      "command": "git diff --exit-code 0ac343a2bf25f56a47e8f42798eca938844199fa 81690fd3385487545cd78bac05dff976432bee27 -- rust/crates/repopact-mutation/src/lib.rs conformance/fixtures/valid",
+      "exit_code": 0,
+      "summary": "The Rust mutation source and valid conformance fixture are identical between main and WI079 candidate. No Rust behavior was changed under WI079."
+    }
+  ],
+  "artifacts": [
+    "evidence/runs/20261123-143717-209916-verify-ci.json",
+    "evidence/runs/20261122-220456-383942-verify-ci.json",
+    "evidence/runs/20261122-wi079-baseline-isolation.json",
+    "C:\\Projects\\repopact-wi079-head-conformance\\evidence\\runs\\20261123T144821740088Z-wi076-ac6-engine-conformance.json",
+    "C:\\Projects\\repopact-wi079-wi076-ac6-engine-conformance.json"
+  ],
+  "environment": {
+    "executor": "local-Windows-disposable-worktrees",
+    "platform": "windows",
+    "main": {
+      "commit": "0ac343a2bf25f56a47e8f42798eca938844199fa",
+      "worktree": "C:\\Projects\\repopact-wi079-baseline-main"
+    },
+    "candidate": {
+      "commit": "81690fd3385487545cd78bac05dff976432bee27",
+      "tree": "47a339a6676738ad3769dd0ceb408d85ab248e2f",
+      "worktree": "C:\\Projects\\repopact-wi079-head-verify",
+      "clean_before_ci_profile": true,
+      "dirty_after_ci_profile": true
+    },
+    "clean_conformance_candidate": {
+      "commit": "81690fd3385487545cd78bac05dff976432bee27",
+      "worktree": "C:\\Projects\\repopact-wi079-head-conformance",
+      "engine_path": "C:\\Projects\\repopact-wi079-head-conformance\\rust\\target\\release\\repopact-engine.exe",
+      "engine_source_revision": "81690fd3385487545cd78bac05dff976432bee27"
+    },
+    "toolchain": {
+      "python": "3.12.4",
+      "git": "2.53.0.windows.3",
+      "cargo": "1.96.0",
+      "rustc": "1.96.0"
+    },
+    "git_environment": {
+      "inherited_name_count": 23,
+      "sanitized": "All inherited variables with names starting GIT_ were removed before CI, Rust, validation, and conformance processes. Values were not copied into evidence."
+    },
+    "failure_classifications": {
+      "research_freshness": "confirmed-pre-existing-baseline-defect",
+      "wi076_filename_internal_id_mismatch": "confirmed-pre-existing-wi076-evidence-writer-defect",
+      "exact_head_ci_conformance_provenance": "environmental-test-harness-contamination: engine source revision 0065c5b did not match candidate 81690fd",
+      "rust_consumed_work_record_drift_is_stale": "unresolved: failed in two full CI profiles but passed in exact filtered, mutation-package, and full-workspace reruns on both main and candidate"
+    },
+    "limitations": [
+      "The exact-head full CI profile remains failed and is preserved as failed; the clean same-head conformance rerun used an engine built from the exact commit.",
+      "The cause of the intermittent Rust workspace test failure is not established; no Rust files were changed.",
+      "No expired research date was advanced without reviewing the registered documents.",
+      "The original WI076 report and all disposable-worktree conformance reports were left unchanged; none was renamed."
+    ]
+  }
+}
