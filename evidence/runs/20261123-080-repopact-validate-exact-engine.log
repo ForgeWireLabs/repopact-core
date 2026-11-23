@@ -1,0 +1,3 @@
+ERROR [documentation.mapping-stale] governance/documentation-mappings.json: mapping 'engine-semantic-compatibility': mapped source changed while related documentation stayed at its reviewed bytes; use `repopact documentation snapshot engine-semantic-compatibility` after review/regeneration and merge the returned hashes into the mapping record
+
+Validation failed with 1 error(s).

@@ -2553,15 +2553,15 @@ mod tests {
 
     #[test]
     fn candidate_copy_includes_only_governed_semantic_build_inputs() {
-        let root = std::env::temp_dir().join(format!(
-            "repopact-build-input-copy-{}-{}",
-            std::process::id(),
-            TEST_ROOT_COUNTER.fetch_add(1, Ordering::Relaxed)
-        ));
+        let root = create_fixture_root_under(
+            &std::env::temp_dir(),
+            "repopact-build-input-copy",
+            &TEST_ROOT_COUNTER,
+        )
+        .expect("create a fresh, exclusive candidate-copy test root");
         let destination = root.join("candidate");
         let source = root.join("source");
         let build = source.join("build");
-        let _ = fs::remove_dir_all(&root);
         fs::create_dir_all(build.join("target")).unwrap();
         fs::write(build.join("semantic-input-manifest.json"), "manifest\n").unwrap();
         fs::write(build.join("semantic-input-policy.json"), "policy\n").unwrap();
@@ -2583,13 +2583,47 @@ mod tests {
         fs::remove_dir_all(root).unwrap();
     }
 
+    const FIXTURE_ROOT_COLLISION_LIMIT: usize = 64;
+
+    fn create_fixture_root_under(
+        parent: &Path,
+        prefix: &str,
+        counter: &AtomicU64,
+    ) -> std::io::Result<PathBuf> {
+        let mut last_collision = None;
+        for _ in 0..FIXTURE_ROOT_COLLISION_LIMIT {
+            let sequence = counter.fetch_add(1, Ordering::Relaxed);
+            let candidate = parent.join(format!("{prefix}-{}-{sequence}", std::process::id()));
+            match fs::create_dir(&candidate) {
+                Ok(()) => return Ok(candidate),
+                Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists => {
+                    last_collision = Some(candidate);
+                }
+                Err(error) => {
+                    return Err(std::io::Error::new(
+                        error.kind(),
+                        format!(
+                            "cannot exclusively create fixture directory {candidate:?}: {error}"
+                        ),
+                    ));
+                }
+            }
+        }
+        Err(std::io::Error::new(
+            std::io::ErrorKind::AlreadyExists,
+            format!(
+                "fixture directory allocation exhausted {FIXTURE_ROOT_COLLISION_LIMIT} collision attempts; last existing path: {last_collision:?}"
+            ),
+        ))
+    }
+
     fn fixture() -> (PathBuf, RepositorySnapshot) {
-        let root = std::env::temp_dir().join(format!(
-            "repopact-mutation-test-{}-{}",
-            std::process::id(),
-            TEST_ROOT_COUNTER.fetch_add(1, Ordering::Relaxed)
-        ));
-        let _ = fs::remove_dir_all(&root);
+        let root = create_fixture_root_under(
+            &std::env::temp_dir(),
+            "repopact-mutation-test",
+            &TEST_ROOT_COUNTER,
+        )
+        .expect("create a fresh, exclusive mutation test fixture root");
         let valid =
             PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../../conformance/fixtures/valid");
         copy_tree(&valid, &root).unwrap();
@@ -2605,6 +2639,57 @@ mod tests {
         fs::write(root.join("audits/reports/dashboard.md"), "old\n").unwrap();
         let snapshot = RepositorySession::open(&root).snapshot();
         (root, snapshot)
+    }
+
+    #[test]
+    fn fixture_root_collision_skips_existing_nonempty_directory() {
+        let counter = AtomicU64::new(0);
+        let scratch = create_fixture_root_under(
+            &std::env::temp_dir(),
+            "repopact-mutation-collision-test",
+            &counter,
+        )
+        .unwrap();
+        let first_fixture_sequence = counter.load(Ordering::Relaxed);
+        let collision = scratch.join(format!(
+            "repopact-mutation-test-{}-{first_fixture_sequence}",
+            std::process::id()
+        ));
+        fs::create_dir(&collision).unwrap();
+        let marker = collision.join("preexisting-collision-marker.txt");
+        fs::write(&marker, "owned by fixture collision regression\n").unwrap();
+
+        let root = create_fixture_root_under(&scratch, "repopact-mutation-test", &counter).unwrap();
+        let marker_preserved = marker.is_file();
+        let allocated_root_is_empty = fs::read_dir(&root).unwrap().next().is_none();
+        let root_is_distinct = root != collision;
+        let exhaustion_start = counter.load(Ordering::Relaxed);
+        for sequence in exhaustion_start..exhaustion_start + FIXTURE_ROOT_COLLISION_LIMIT as u64 {
+            fs::create_dir(scratch.join(format!(
+                "repopact-mutation-test-{}-{sequence}",
+                std::process::id()
+            )))
+            .unwrap();
+        }
+        let exhaustion =
+            create_fixture_root_under(&scratch, "repopact-mutation-test", &counter).unwrap_err();
+        let attempts = counter.load(Ordering::Relaxed) - exhaustion_start;
+        let exhausted_as_collision = exhaustion.kind() == std::io::ErrorKind::AlreadyExists;
+        let exhaustion_diagnostic = exhaustion.to_string().contains("64 collision attempts");
+        fs::remove_dir_all(&scratch).unwrap();
+
+        assert!(
+            root_is_distinct,
+            "must never reuse an existing fixture path"
+        );
+        assert!(marker_preserved, "must preserve unknown collision contents");
+        assert!(allocated_root_is_empty, "fresh fixture root must be empty");
+        assert_eq!(attempts, FIXTURE_ROOT_COLLISION_LIMIT as u64);
+        assert!(
+            exhausted_as_collision,
+            "exhaustion must return AlreadyExists"
+        );
+        assert!(exhaustion_diagnostic, "exhaustion must report its bound");
     }
 
     fn create_request(title: &str, date: &str) -> CreateWorkItem {

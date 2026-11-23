@@ -1,0 +1,21 @@
+   Compiling repopact-mutation v0.1.0 (C:\Projects\repopact-wi080-local\rust\crates\repopact-mutation)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.88s
+     Running unittests src\lib.rs (target\debug\deps\repopact_mutation-6b33946978be6321.exe)
+
+running 1 test
+legacy remove_dir_all outcome: Err(Os { code: 32, kind: Uncategorized, message: "The process cannot access the file because it is being used by another process." })
+legacy fixture proceeded: root="%TEMP%\\repopact-fixture-repro-7036-0\\repopact-mutation-test-7036-0"; marker_still_present=true; expected_item_indexed=true; baseline_applicable=false; diagnostics=[MutationDiagnostic { code: "mutation.dashboard-render", message: "unable to render dashboard from malformed work-item records", path: None, blocking: true, related_records: [] }]
+
+thread 'tests::legacy_fixture_cleanup_failure_reuses_nonempty_collision' (18240) panicked at crates\repopact-mutation\src\lib.rs:2624:9:
+baseline plan must be applicable before injected drift; fixture root="%TEMP%\\repopact-fixture-repro-7036-0\\repopact-mutation-test-7036-0"; diagnostics=[MutationDiagnostic { code: "mutation.dashboard-render", message: "unable to render dashboard from malformed work-item records", path: None, blocking: true, related_records: [] }]
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test tests::legacy_fixture_cleanup_failure_reuses_nonempty_collision ... FAILED
+
+failures:
+
+failures:
+    tests::legacy_fixture_cleanup_failure_reuses_nonempty_collision
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 30 filtered out; finished in 0.13s
+
+error: test failed, to rerun pass `-p repopact-mutation --lib`

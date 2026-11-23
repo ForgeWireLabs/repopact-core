@@ -1,0 +1,570 @@
+   Compiling repopact-engine v0.1.0 (C:\Projects\repopact-wi080-local\rust\apps\repopact-engine)
+   Compiling repopact-mutation v0.1.0 (C:\Projects\repopact-wi080-local\rust\crates\repopact-mutation)
+   Compiling repopact-core v0.1.0 (C:\Projects\repopact-wi080-local\rust\crates\repopact-core)
+   Compiling repopact-cli v0.1.0 (C:\Projects\repopact-wi080-local\rust\apps\repopact-cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 5.72s
+     Running unittests src\lib.rs (rust\target\debug\deps\repopact_analysis-d89a01ef3120c5e5.exe)
+
+running 1 test
+test tests::findings_are_classified_and_source_backed ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running unittests src\main.rs (rust\target\debug\deps\repopact_cli-4cd51590a2be6dde.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src\lib.rs (rust\target\debug\deps\repopact_confinement-3b59cafcb3745be7.exe)
+
+running 4 tests
+test tests::accepts_disjoint_leaf_roots_and_deduplicates_descendants ... ok
+test tests::launcher_can_construct_typed_errors_across_crate_boundary ... ok
+test tests::rejects_broad_root_containing_frozen_subtree_without_approval ... ok
+test tests::rejects_symlinked_authorized_component ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running unittests src\lib.rs (rust\target\debug\deps\repopact_core-7e77d858334e142c.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src\bin\repopact.rs (rust\target\debug\deps\repopact-8dd4baab72b428f0.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src\main.rs (rust\target\debug\deps\repopact_engine-f2c1c73e715e389a.exe)
+
+running 7 tests
+test tests::handshake_is_structured_and_echoes_request_identity ... ok
+test tests::invalid_repository_is_a_semantic_result ... ok
+test tests::malformed_request_is_rejected_before_semantic_dispatch ... ok
+test tests::mismatched_admission_keeps_all_operations_before_dispatch ... ok
+test tests::operations_are_refused_before_same_process_admission ... ok
+test tests::protocol_major_mismatch_is_transport_failure ... ok
+test tests::unsupported_operation_is_explicit ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running unittests src\lib.rs (rust\target\debug\deps\repopact_graph-4906c7ad00bb7416.exe)
+
+running 251 tests
+test authority_boundary_tests::a_synthetic_authority_like_node_is_reported_as_an_ordinary_fact_never_specially_trusted ... ok
+test authority_boundary_tests::a_tampered_shard_with_an_authority_like_fact_is_detected_as_corrupt ... ok
+test capability::tests::binding_matches_the_five_state_table ... ok
+test capability::tests::malformed_record_is_an_error_not_none ... ok
+test capability::tests::no_record_reads_as_none ... ok
+test capability::tests::only_enabled_missing_is_invalid_by_itself ... ok
+test capability::tests::state_resolution_matrix ... ok
+test capability::tests::write_then_read_round_trips ... ok
+test capability::tests::written_record_matches_the_committed_schema_shape ... ok
+test clean_clone_tests::a_gitignored_rog_directory_never_survives_to_a_clone ... ok
+test clean_clone_tests::clean_clone_answers_bounded_queries_from_the_committed_graph ... ok
+test clean_clone_tests::clean_clone_carries_capability_and_durable_graph_byte_identical ... ok
+test clean_clone_tests::clean_clone_queries_invoke_no_additional_git ... ok
+test clean_clone_tests::clean_clone_validates_and_reports_fresh_without_a_rebuild ... ok
+test clean_clone_tests::damaged_clone_with_rog_removed_is_a_hard_failure_not_absent ... ok
+test durable::tests::a_nested_closed_enum_field_carries_the_identical_hazard_as_a_top_level_kind ... ok
+test durable::tests::a_reader_cannot_deserialize_an_unrecognized_edge_kind_string ... ok
+test durable::tests::a_reader_cannot_deserialize_an_unrecognized_node_kind_string ... ok
+test durable::tests::an_isolated_source_mutation_touches_only_a_bounded_shard_subset ... ok
+test durable::tests::an_old_v3_reader_shape_still_deserializes_a_node_edge_carrying_new_role_metadata ... ok
+test durable::tests::two_independent_mutations_map_to_mostly_disjoint_shard_subsets ... ok
+test incremental::tests::a_metadata_only_change_does_not_reparse_unrelated_source_files ... ok
+test incremental::tests::a_true_no_op_reports_zero_reparses_on_a_hundred_file_fixture ... ok
+test incremental::tests::addition_is_equivalent_to_full_rebuild ... ok
+test incremental::tests::cargo_bin_target_addition_is_equivalent_to_full_rebuild ... ok
+test incremental::tests::cargo_dependency_change_is_equivalent_to_full_rebuild ... ok
+test incremental::tests::cargo_workspace_member_change_is_equivalent_to_full_rebuild ... ok
+test incremental::tests::ci_workflow_job_change_is_equivalent_to_full_rebuild ... ok
+test incremental::tests::compatibility_mismatch_forces_a_full_semantic_rebuild ... ok
+test incremental::tests::corrupt_baseline_is_never_reused_and_triggers_a_full_rebuild ... ok
+test incremental::tests::declaration_edit_is_equivalent_to_full_rebuild ... ok
+test incremental::tests::delete_is_equivalent_to_full_rebuild_and_removes_symbols ... ok
+test incremental::tests::delete_removes_the_files_symbols_and_edges_from_the_durable_graph ... ok
+test incremental::tests::durable_write_survives_a_failed_final_rename_without_losing_the_old_graph ... ok
+test incremental::tests::excluded_tree_mutation_causes_no_source_delta ... ok
+test incremental::tests::generated_marker_addition_is_equivalent_to_full_rebuild ... ok
+test incremental::tests::governance_change_updates_without_mass_semantic_reparsing ... ok
+test incremental::tests::manifest_change_converges_through_the_global_physical_rebuild ... ok
+test incremental::tests::markdown_link_change_is_equivalent_to_full_rebuild ... ok
+test incremental::tests::no_baseline_at_all_is_a_full_fallback_not_an_error ... ok
+test incremental::tests::nonsemantic_edit_reparses_but_keeps_stable_symbol_ids ... ok
+test incremental::tests::npm_workspace_glob_addition_is_equivalent_to_full_rebuild ... ok
+test incremental::tests::observable_reuse_proof_on_a_hundred_file_fixture ... ok
+test incremental::tests::old_v2_baseline_without_incremental_metadata_forces_full_rebuild ... ok
+test incremental::tests::package_json_script_change_is_equivalent_to_full_rebuild ... ok
+test incremental::tests::parser_failure_introduction_isolates_only_the_broken_file ... ok
+test incremental::tests::parser_recovery_clears_partial_and_matches_a_clean_rebuild ... ok
+test incremental::tests::policy_transition_normal_to_binary_and_back_leaves_no_stale_contribution ... ok
+test incremental::tests::python_dependency_change_is_equivalent_to_full_rebuild ... ok
+test incremental::tests::relationship_change_replaces_the_old_import_fact_with_the_new_one ... ok
+test incremental::tests::rename_is_delete_plus_add_with_no_fabricated_identity ... ok
+test incremental::tests::rog_only_change_between_calls_causes_no_further_semantic_reparse ... ok
+test incremental::tests::schema_v1_baseline_forces_a_full_v2_rebuild ... ok
+test incremental::tests::true_no_op_never_rewrites_rog ... ok
+test incremental::tests::tsconfig_reference_change_is_equivalent_to_full_rebuild ... ok
+test incremental::tests::unsupported_file_addition_and_deletion_keeps_truthful_coverage ... ok
+test incremental::tests::unsupported_schema_baseline_fails_closed_without_touching_disk ... ok
+test incremental::tests::update_does_not_exceed_the_wi057_bounded_git_invocation_count ... ok
+test merge_reconcile::tests::authoritative_source_conflict_blocks_repair ... ok
+test merge_reconcile::tests::capability_conflict_blocks_repair ... ok
+test merge_reconcile::tests::derived_only_conflict_is_repaired_by_regeneration ... ok
+test merge_reconcile::tests::disabled_capability_removes_derived_conflicts_without_reenabling ... ok
+test merge_reconcile::tests::no_unresolved_paths_reports_nothing_to_reconcile ... ok
+test metadata::json_adapter::tests::an_unrecognized_json_file_is_skipped_not_fabricated ... ok
+test metadata::json_adapter::tests::malformed_json_yields_partial_not_a_crash ... ok
+test metadata::json_adapter::tests::package_json_workspaces_are_recorded_as_raw_unresolved_facts ... ok
+test metadata::json_adapter::tests::package_json_yields_identity_dependency_and_script_facts ... ok
+test metadata::json_adapter::tests::tauri_conf_json_is_tagged_installer_surface ... ok
+test metadata::json_adapter::tests::tsconfig_json_yields_extends_and_reference_facts ... ok
+test metadata::markdown_adapter::tests::code_inside_a_fence_is_not_scanned_for_headings ... ok
+test metadata::markdown_adapter::tests::external_urls_and_anchors_are_not_recorded_as_reference_facts ... ok
+test metadata::markdown_adapter::tests::front_matter_presence_is_detected ... ok
+test metadata::markdown_adapter::tests::headings_links_and_fences_are_extracted ... ok
+test metadata::markdown_adapter::tests::no_prose_body_is_stored_only_structural_facts ... ok
+test metadata::policy::tests::a_generator_marker_outside_the_scan_window_is_not_detected ... ok
+test metadata::policy::tests::a_large_file_with_long_average_lines_is_classified_minified ... ok
+test metadata::policy::tests::a_large_single_line_file_is_classified_minified ... ok
+test metadata::policy::tests::a_recognized_generator_header_is_classified_generated ... ok
+test metadata::policy::tests::ordinary_multi_line_source_is_not_classified_minified ... ok
+test metadata::policy::tests::ordinary_prose_mentioning_generate_is_not_classified_generated ... ok
+test metadata::policy::tests::small_single_line_content_is_not_classified_minified ... ok
+test metadata::toml_adapter::tests::an_unrecognized_toml_file_is_skipped_not_fabricated ... ok
+test metadata::toml_adapter::tests::cargo_bin_and_test_targets_are_tagged_with_operational_roles ... ok
+test metadata::toml_adapter::tests::cargo_toml_yields_package_workspace_and_dependency_facts ... ok
+test metadata::toml_adapter::tests::malformed_toml_yields_partial_not_a_crash ... ok
+test metadata::toml_adapter::tests::pyproject_scripts_and_maturin_config_are_tagged_with_operational_roles ... ok
+test metadata::toml_adapter::tests::pyproject_toml_yields_project_dependency_and_script_facts ... ok
+test metadata::yaml_adapter::tests::a_file_outside_github_workflows_is_skipped ... ok
+test metadata::yaml_adapter::tests::expressions_are_recorded_symbolically_not_evaluated ... ok
+test metadata::yaml_adapter::tests::malformed_yaml_bytes_do_not_crash_the_scanner ... ok
+test metadata::yaml_adapter::tests::workflow_job_uses_and_run_facts_are_extracted ... ok
+test overlay::tests::a_burst_above_the_threshold_falls_back_to_full_reconcile ... ok
+test overlay::tests::addition_appears_and_deletion_disappears_from_the_overlay ... ok
+test overlay::tests::directory_level_watcher_event_falls_back_to_full_reconcile ... ok
+test overlay::tests::duplicate_watcher_event_does_not_reparse_or_bump_generation ... ok
+test overlay::tests::explicit_refresh_reconciles_paths_the_watcher_never_reported ... ok
+test overlay::tests::hundred_file_overlay_burst_reparses_only_the_changed_file ... ok
+test overlay::tests::metadata_mutation_updates_the_graph_and_reuses_unrelated_source_contributions ... ok
+test overlay::tests::only_touched_files_reparse_in_a_multi_file_burst ... ok
+test overlay::tests::overlay_operations_never_write_the_durable_graph ... ok
+test overlay::tests::parser_failure_becomes_partial_without_destroying_unrelated_contributions ... ok
+test overlay::tests::pre_existing_dirty_state_at_session_open_is_detected_not_silently_fresh ... ok
+test overlay::tests::recovery_clears_partial_coverage ... ok
+test overlay::tests::refresh_surfaces_a_new_operational_role_fact_without_a_durable_write ... ok
+test overlay::tests::rename_is_delete_plus_add_in_the_overlay ... ok
+test overlay::tests::single_semantic_edit_reparses_one_file_and_becomes_working_overlay ... ok
+test overlay::tests::targeted_reconcile_does_not_yet_surface_a_new_operational_role_fact ... ok
+test overlay::tests::unsupported_file_change_updates_inventory_without_fabricating_semantics ... ok
+test physical::tests::ancestors_are_root_most_first ... ok
+test physical::tests::frozen_glob_prefix_matches ... ok
+test query::cursor::tests::base64url_round_trips_arbitrary_bytes ... ok
+test query::cursor::tests::cursor_rejects_mismatched_context ... ok
+test query::cursor::tests::cursor_round_trips_and_validates ... ok
+test query::cursor::tests::malformed_and_oversized_cursors_are_rejected ... ok
+test query::selector::tests::absolute_host_paths_are_rejected ... ok
+test query::selector::tests::empty_and_malformed_paths_are_rejected ... ok
+test query::selector::tests::ordinary_relative_paths_are_accepted ... ok
+test query::selector::tests::parent_escapes_are_rejected ... ok
+test query::tests::absent_durable_graph_is_a_typed_error_with_guidance ... ok
+test query::tests::compact_mode_materially_reduces_output_size ... ok
+test query::tests::cursor_rejects_a_different_graph_fingerprint ... ok
+test query::tests::cursor_rejects_a_different_operation ... ok
+test query::tests::cursor_rejects_a_different_target ... ok
+test query::tests::cursor_rejects_different_filters ... ok
+test query::tests::cyclical_governance_graph_terminates_deterministically ... ok
+test query::tests::direct_dependency_is_reported ... ok
+test query::tests::disconnected_targets_report_no_path_not_truncation ... ok
+test query::tests::enabled_but_missing_graph_fails_closed_never_absent ... ok
+test query::tests::fresh_durable_graph_opens_normally_and_queries_succeed ... ok
+test query::tests::governance_surfaces_applicable_relations ... ok
+test query::tests::known_connected_path_is_found ... ok
+test query::tests::malformed_and_oversized_cursors_are_rejected_by_operations ... ok
+test query::tests::max_depth_bound_is_hard_on_transitive_dependencies ... ok
+test query::tests::max_depth_truncation_is_distinct_from_no_path ... ok
+test query::tests::max_edges_bound_is_hard ... ok
+test query::tests::max_nodes_bound_is_hard_on_ambiguous_resolution ... ok
+test query::tests::orient_ambiguous_symbol_is_disclosed_not_guessed ... ok
+test query::tests::orient_package_returns_runtime_and_test_surfaces ... ok
+test query::tests::orient_work_item_returns_only_facts_backed_by_the_graph ... ok
+test query::tests::output_byte_budget_estimate_is_available_and_documented ... ok
+test query::tests::overlay_query_discloses_working_overlay_basis ... ok
+test query::tests::page_size_bound_is_hard ... ok
+test query::tests::pages_reconstruct_the_bounded_result_with_no_duplicates_or_gaps ... ok
+test query::tests::queries_succeed_after_source_files_are_deleted_post_build ... ok
+test query::tests::query_kernel_exposes_no_mutation_surface ... ok
+test query::tests::query_latency_evidence_cold_load_vs_warm_query ... ok
+test query::tests::query_operations_never_invoke_git ... ok
+test query::tests::relation_filter_exclusion_prevents_a_path_that_otherwise_exists ... ok
+test query::tests::relation_filters_restrict_traversal ... ok
+test query::tests::resolve_ambiguous_symbol_returns_bounded_candidates_never_a_guess ... ok
+test query::tests::resolve_exact_node_id ... ok
+test query::tests::resolve_exact_repository_path ... ok
+test query::tests::resolve_module_by_symbol_kind ... ok
+test query::tests::resolve_not_found_is_distinct_from_ambiguous ... ok
+test query::tests::resolve_package_by_manifest_identity ... ok
+test query::tests::resolve_rejects_a_traversal_path_selector_as_not_found_not_a_crash ... ok
+test query::tests::resolve_unique_symbol ... ok
+test query::tests::resolve_work_item_id ... ok
+test query::tests::reverse_dependency_via_incoming_depends_on_and_persisted_reverse_dependency ... ok
+test query::tests::search_empty_text_matches_nothing_and_warns ... ok
+test query::tests::search_exact_stable_id_ranks_first ... ok
+test query::tests::search_is_case_insensitive_normalized_exact ... ok
+test query::tests::search_matches_repository_relative_path ... ok
+test query::tests::search_never_reads_source_or_invokes_git ... ok
+test query::tests::search_no_match_returns_empty_not_an_error ... ok
+test query::tests::search_pagination_uses_the_shared_cursor_contract ... ok
+test query::tests::search_prefix_and_substring_are_ranked_below_exact ... ok
+test query::tests::search_rejects_a_cursor_from_a_different_query ... ok
+test query::tests::search_respects_layer_filter ... ok
+test query::tests::search_result_order_is_deterministic_across_repeated_calls ... ok
+test query::tests::stale_durable_graph_is_refused_by_default_and_allowed_with_flag ... ok
+test query::tests::target_with_known_tests_reports_them ... ok
+test query::tests::target_with_no_known_tests_discloses_uncertainty_not_zero_proof ... ok
+test query::tests::transitive_dependency_bounded_by_depth ... ok
+test semantic::javascript_adapter::tests::covers_js_function_class_and_method ... ok
+test semantic::javascript_adapter::tests::imports_are_facts_not_resolved_targets ... ok
+test semantic::javascript_adapter::tests::jsx_file_uses_the_javascript_grammar_and_parses_jsx_syntax ... ok
+test semantic::javascript_adapter::tests::malformed_js_still_yields_partial_coverage ... ok
+test semantic::javascript_adapter::tests::test_named_functions_are_tagged_test_target ... ok
+test semantic::javascript_adapter::tests::ts_and_tsx_are_treated_as_distinct_grammars ... ok
+test semantic::operational::tests::a_file_with_a_generated_marker_is_tagged_generated_surface ... ok
+test semantic::operational::tests::an_ordinary_file_carries_no_generated_role ... ok
+test semantic::operational::tests::cargo_crate_with_explicit_bin_target_is_not_double_tagged_as_implicit ... ok
+test semantic::operational::tests::cargo_crate_without_explicit_bin_but_with_sibling_main_rs_is_tagged_runtime_entrypoint ... ok
+test semantic::operational::tests::cargo_sibling_tests_directory_rs_files_are_tagged_test_target ... ok
+test semantic::operational::tests::frontend_and_python_test_naming_conventions_are_tagged_test_target ... ok
+test semantic::operational::tests::known_generator_contract_emits_no_edge_when_only_one_side_exists ... ok
+test semantic::operational::tests::npm_workspace_glob_never_matches_an_unrelated_directory ... ok
+test semantic::operational::tests::npm_workspace_members_matching_a_wildcard_glob_are_linked_to_the_root ... ok
+test semantic::python_adapter::tests::covers_class_function_async_function_and_methods ... ok
+test semantic::python_adapter::tests::imports_are_facts_not_resolved_targets ... ok
+test semantic::python_adapter::tests::malformed_python_still_yields_partial_coverage ... ok
+test semantic::python_adapter::tests::non_test_symbols_carry_no_test_target_role ... ok
+test semantic::python_adapter::tests::pytest_convention_functions_are_test_symbols ... ok
+test semantic::rust_adapter::tests::a_test_function_never_emits_an_exports_edge_even_if_marked_pub ... ok
+test semantic::rust_adapter::tests::bare_pub_items_emit_exports_edges_pub_crate_and_private_do_not ... ok
+test semantic::rust_adapter::tests::covers_module_function_struct_enum_trait_type_alias_impl_macro ... ok
+test semantic::rust_adapter::tests::detects_test_attribute_functions_as_test_symbols ... ok
+test semantic::rust_adapter::tests::every_semantic_edge_carries_layer_derivation_and_location ... ok
+test semantic::rust_adapter::tests::malformed_syntax_still_yields_partial_coverage_not_a_crash ... ok
+test semantic::rust_adapter::tests::parse_deadline_is_enforced_via_progress_callback_not_deprecated_timeout ... ok
+test semantic::rust_adapter::tests::parser_is_reusable_after_a_cancelled_parse ... ok
+test semantic::rust_adapter::tests::recursion_depth_guard_truncates_pathologically_nested_input_instead_of_overflowing ... ok
+test semantic::rust_adapter::tests::stable_id_is_unaffected_by_leading_blank_lines_and_comments ... ok
+test semantic::rust_adapter::tests::use_declaration_becomes_an_import_fact_not_a_resolved_target ... ok
+test semantic::tests::a_corrected_full_rebuild_clears_a_prior_partial_coverage_gap ... ok
+test semantic::tests::binary_content_with_a_source_extension_is_skipped_not_parsed ... ok
+test semantic::tests::freshness_becomes_partial_on_a_genuine_supported_file_coverage_gap ... ok
+test semantic::tests::one_malformed_file_does_not_destroy_valid_output_from_unrelated_files ... ok
+test semantic::tests::oversized_file_is_skipped_by_policy_not_parsed ... ok
+test semantic::tests::unsupported_language_is_a_distinct_coverage_state_not_silently_skipped ... ok
+test semantic::tests::unsupported_language_or_policy_exclusion_alone_does_not_make_the_graph_partial ... ok
+test status::tests::enabled_but_missing_is_a_hard_failure_never_absent ... ok
+test status::tests::enabled_with_corrupt_graph_is_still_capability_enabled ... ok
+test status::tests::enabled_with_stale_graph_is_still_capability_enabled ... ok
+test status::tests::enabled_with_unsupported_schema_is_still_capability_enabled ... ok
+test status::tests::explicit_disabled_is_valid_without_a_graph ... ok
+test status::tests::explicit_enabled_with_a_fresh_graph_is_valid ... ok
+test status::tests::legacy_absent_is_valid_and_disabled ... ok
+test status::tests::legacy_enabled_stays_binding_with_no_capability_record ... ok
+test status::tests::malformed_capability_declaration_is_reported_not_silently_ignored ... ok
+test tests::a_fixture_boundary_is_a_bounded_graph_fact_never_a_content_dump ... ok
+test tests::a_genuine_v1_physical_only_graph_remains_readable_and_valid ... ok
+test tests::a_genuine_v2_semantic_graph_remains_readable_and_valid ... ok
+test tests::a_nested_repository_is_classified_and_its_contents_are_bounded ... ok
+test tests::a_secret_looking_file_is_never_content_ingested_into_a_fact ... ok
+test tests::a_symlink_pointing_outside_the_repository_is_not_traversed ... ok
+test tests::a_v1_graph_rebuilds_deterministically_into_a_valid_v2_graph ... ok
+test tests::a_v2_graph_rebuilds_deterministically_into_a_valid_v3_graph ... ok
+test tests::adding_a_fixture_boundary_changes_the_fingerprint_editing_its_content_does_not ... ok
+test tests::build_disable_rebuild_re_enables ... ok
+test tests::build_persists_explicit_enabled_capability ... ok
+test tests::corrupted_shard_hash_is_detected ... ok
+test tests::dangling_edge_endpoint_is_rejected ... ok
+test tests::disable_is_idempotent ... ok
+test tests::disable_removes_graph_and_persists_explicit_disabled ... ok
+test tests::duplicate_node_id_across_shards_is_rejected ... ok
+test tests::durable_round_trip_and_repeated_full_build_are_byte_identical ... ok
+test tests::excluded_build_dependency_and_venv_trees_produce_no_graph_nodes ... ok
+test tests::fixture_boundary_full_incremental_and_overlay_converge_on_add_remove_rename ... ok
+test tests::git_internals_are_never_indexed_as_source ... ok
+test tests::graph_disabled_repository_reports_absent_not_error ... ok
+test tests::graph_is_deterministic_and_keeps_source_context ... ok
+test tests::ignored_durable_graph_refuses_to_report_enablement_success ... ok
+test tests::legacy_graph_migrates_to_explicit_enabled_on_next_build_with_no_manual_step ... ok
+test tests::no_absolute_path_leaks_into_physical_nodes ... ok
+test tests::physical_node_ids_are_stable_and_platform_independent ... ok
+test tests::randomized_git_invocation_count_is_still_bounded_after_graph_build ... ok
+test tests::stale_fingerprint_is_detected_after_source_change ... ok
+test tests::unknown_major_schema_version_is_rejected_not_interpreted ... ok
+test tests::workspace_and_configuration_file_are_classified ... ok
+
+test result: ok. 251 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 42.12s
+
+     Running unittests src\bin\rog-benchmark.rs (rust\target\debug\deps\rog_benchmark-7a16fd11091bb490.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\no_network_dependency_audit.rs (rust\target\debug\deps\no_network_dependency_audit-a2549fd84005cd72.exe)
+
+running 2 tests
+test deterministic_core_dependency_graph_contains_no_network_llm_or_cloud_crate ... ok
+test deterministic_core_manifests_declare_no_network_llm_or_cloud_dependency ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.58s
+
+     Running unittests src\lib.rs (rust\target\debug\deps\repopact_mutation-05f86d4cbd445b13.exe)
+
+running 31 tests
+test tests::a_tampered_durable_graph_claiming_approval_cannot_remove_canonical_lifecycle_blockers ... ok
+test tests::candidate_copy_includes_only_governed_semantic_build_inputs ... ok
+test tests::canonical_edit_fixture_matches_exact_after_state ... ok
+test tests::canonical_transition_fixture_matches_exact_after_state ... ok
+test tests::canonical_work_item_status_always_comes_from_the_work_item_record_never_the_graph ... ok
+test tests::consumed_owner_and_dashboard_inputs_are_stale ... ok
+test tests::consumed_work_record_drift_is_stale ... ok
+test tests::create_requires_explicit_preflight_confirmation ... ok
+test tests::drift_during_apply_is_rejected_and_rolled_back ... ok
+test tests::expected_absent_target_makes_plan_stale ... ok
+test tests::failed_staged_proposal_leaves_no_work_item_or_receipt_and_can_be_retried ... ok
+test tests::fixture_root_collision_skips_existing_nonempty_directory ... ok
+test tests::injected_failure_restores_complete_transition_directory ... ok
+test tests::malformed_historical_receipt_fails_closed_when_its_key_cannot_be_identified ... ok
+test tests::malformed_legacy_evidence_blocks_a_create_plan_before_approval ... ok
+test tests::matching_corrupt_receipt_fails_closed_but_valid_unrelated_receipt_does_not_couple_lookup ... ok
+test tests::missing_receipt_is_absent_even_when_a_historical_item_remains ... ok
+test tests::nonproposal_mutation_waits_for_proposal_publish_then_rejects_its_stale_id_plan ... ok
+test tests::parallel_proposals_allocate_unique_ids_and_keep_receipts_resolvable ... ok
+test tests::pending_completion_is_blocked_by_candidate_validation_before_apply ... ok
+test tests::planning_is_deterministic_and_does_not_write ... ok
+test tests::post_publish_dashboard_failure_does_not_misreport_or_undo_the_commit ... ok
+test tests::preflight_timestamp_uses_the_actual_injected_utc_instant_and_readme_has_no_template_placeholders ... ok
+test tests::production_plan_timestamp_is_current_utc_not_midnight_from_the_requested_date ... ok
+test tests::proposal_idempotency_key_cannot_be_reused_for_a_different_payload ... ok
+test tests::proposal_receipt_lookup_follows_the_item_through_lifecycle_transitions ... ok
+test tests::proposal_rejects_authority_drift_after_validation_and_during_staging ... ok
+test tests::proposal_rejects_candidate_scope_violation_and_preserves_global_reference_blockers ... ok
+test tests::proposal_reports_stale_dashboard_and_expired_review_as_warnings_then_refreshes_dashboard ... ok
+test tests::typed_edit_updates_only_allowed_fields_and_validates ... ok
+test tests::unrelated_file_not_in_read_set_does_not_stale_plan ... ok
+
+test result: ok. 31 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 4.17s
+
+     Running tests\remote_provider_governance_boundary.rs (rust\target\debug\deps\remote_provider_governance_boundary-6ea2e07a7cefc8df.exe)
+
+running 3 tests
+test core_crate_never_depends_on_remote_provider_or_mobile_acquisition ... ok
+test graph_crate_never_depends_on_remote_provider_or_mobile_acquisition ... ok
+test mutation_crate_never_depends_on_remote_provider_or_mobile_acquisition ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\verification_post_validation.rs (rust\target\debug\deps\verification_post_validation-f2b7601b775429cf.exe)
+
+running 1 test
+test mutation_post_validation_includes_shared_verification_contract_diagnostics ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running unittests src\lib.rs (rust\target\debug\deps\repopact_protocol-2c6926a39d427447.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src\lib.rs (rust\target\debug\deps\repopact_repository-ed6b72a6d341fb2d.exe)
+
+running 18 tests
+test git::tests::native_runner_terminates_and_reaps_a_timed_out_child ... ok
+test git::tests::production_timeout_path_uses_process_containment ... ok
+test tests::a_fixture_boundary_is_classified_without_traversing_its_contents ... ok
+test tests::a_worktree_roots_own_git_pointer_file_is_excluded_from_files_under ... ok
+test tests::adopter_overlay_escaping_via_absolute_path_is_not_ingested ... ok
+test tests::adopter_overlay_escaping_via_relative_traversal_is_not_ingested ... ok
+test tests::adopter_overlay_escaping_via_symlink_is_not_ingested ... ok
+test tests::editing_fixture_content_does_not_change_the_observed_boundary ... ok
+test tests::ignored_paths_and_contract_order_are_deterministic ... ok
+test tests::production_git_spawning_is_centralized_in_the_approved_helper ... ok
+test tests::references_are_resolved_from_the_declaring_record ... ok
+test tests::registered_nonconventional_linked_worktree_is_excluded_and_identity_is_shared ... ok
+test tests::research_reference_escaping_via_absolute_path_is_not_ingested ... ok
+test tests::research_reference_escaping_via_relative_traversal_is_not_ingested ... ok
+test tests::snapshot_git_invocation_count_is_bounded_independent_of_work_items ... ok
+test tests::stale_linked_worktree_git_file_is_structurally_excluded ... ok
+test tests::valid_relative_adopter_overlay_is_ingested ... ok
+test tests::valid_relative_research_reference_is_ingested ... ok
+
+test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.39s
+
+     Running unittests src\main.rs (rust\target\debug\deps\repopact_sandbox-a26966b86b3dd3c7.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src\lib.rs (rust\target\debug\deps\repopact_schema-9e67da13fdd8d3ac.exe)
+
+running 1 test
+test tests::embedded_schema_is_the_checked_in_canonical_bytes ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src\lib.rs (rust\target\debug\deps\repopact_types-ab45c028b458419a.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src\lib.rs (rust\target\debug\deps\repopact_validation-5be07472f7d7e977.exe)
+
+running 79 tests
+test adopters::tests::absent_manifest_is_silent ... ok
+test adopters::tests::duplicate_adopter_id_is_rejected ... ok
+test adopters::tests::duplicate_normalized_repository_identity_is_rejected ... ok
+test adopters::tests::invalid_overlay_checksum_is_rejected ... ok
+test adopters::tests::missing_overlay_is_rejected ... ok
+test adopters::tests::overlay_path_escaping_repository_is_rejected ... ok
+test adopters::tests::schema_invalid_manifest_is_rejected ... ok
+test adopters::tests::valid_manifest_is_silent ... ok
+test adopters::tests::valid_overlay_checksum_is_accepted ... ok
+test assurance::tests::canonical_digest_is_stable_regardless_of_source_key_order ... ok
+test assurance::tests::canonical_projection_excludes_snapshot_and_timestamps ... ok
+test assurance::tests::credential_in_uri_requires_userinfo_colon ... ok
+test assurance::tests::identity_markers_require_assignment_shape ... ok
+test assurance::tests::luhn_detects_a_valid_test_card_number ... ok
+test assurance::tests::luhn_ignores_short_digit_runs ... ok
+test assurance::tests::luhn_rejects_an_arbitrary_16_digit_number ... ok
+test assurance::tests::private_key_marker_is_detected ... ok
+test assurance::tests::secret_assignment_pattern_matches_common_forms ... ok
+test assurance::tests::secret_query_param_is_detected ... ok
+test documentation::tests::changed_pair_requires_review_then_new_snapshot_restores_validity ... ok
+test documentation::tests::mapping_path_escape_is_rejected ... ok
+test documentation::tests::reviewed_mapping_accepts_matching_source_and_documentation_bytes ... ok
+test documentation::tests::source_only_change_is_blocking_for_manual_and_generated_mappings ... ok
+test graph::tests::corrupt_durable_graph_is_surfaced_by_canonical_validate ... ok
+test graph::tests::graph_absent_repository_reports_no_graph_diagnostics ... ok
+test graph::tests::valid_durable_graph_reports_no_graph_diagnostics ... ok
+test research::tests::escaping_reference_is_rejected_and_never_read_as_valid ... ok
+test research::tests::expired_freshness_with_injected_date_is_rejected ... ok
+test research::tests::hypothesis_range_drift_is_rejected ... ok
+test research::tests::incomplete_top_level_document_registration_is_rejected ... ok
+test research::tests::lifecycle_representation_drift_is_rejected ... ok
+test research::tests::missing_threat_identifier_is_rejected ... ok
+test research::tests::missing_trace_target_is_rejected ... ok
+test research::tests::missing_trace_token_is_rejected ... ok
+test research::tests::no_research_surface_is_silent ... ok
+test research::tests::pactbench_count_drift_is_rejected ... ok
+test research::tests::provenance_figure_regressing_to_future_work_is_rejected ... ok
+test research::tests::repeated_threat_identifier_is_rejected ... ok
+test research::tests::study_mapping_drift_is_rejected ... ok
+test research::tests::upstream_convention_without_metadata_reports_missing ... ok
+test research::tests::valid_current_metadata_is_silent ... ok
+test tests::assurance_mapping_absent_directory_produces_no_diagnostics ... ok
+test tests::assurance_mapping_minimal_record_is_accepted ... ok
+test tests::assurance_mapping_unknown_decision_reference_is_rejected ... ok
+test tests::binary_artifact_is_skipped_with_a_coverage_diagnostic ... ok
+test tests::checkbox_checked_pending_mismatches ... ok
+test tests::checkbox_checked_satisfied_matches ... ok
+test tests::checkbox_explanatory_suffix_still_activates_convention ... ok
+test tests::checkbox_prose_readme_does_not_activate_convention ... ok
+test tests::checkbox_unchecked_pending_matches ... ok
+test tests::checkbox_unchecked_satisfied_mismatches ... ok
+test tests::checkbox_waived_matches_either_state ... ok
+test tests::credential_bearing_external_uri_is_a_blocking_error ... ok
+test tests::dashboard_validation_is_read_only ... ok
+test tests::decision_0014_id_accepts_multi_letter_prefix ... ok
+test tests::decision_0014_id_recognizes_explanatory_suffix ... ok
+test tests::decision_0014_id_recognizes_plain_canonical_id ... ok
+test tests::decision_0014_id_recognizes_wi036_exact_shape ... ok
+test tests::decision_0014_id_rejects_malformed_attached_suffix ... ok
+test tests::decision_0014_id_rejects_prose_without_convention ... ok
+test tests::documentation_claim_basis_with_support_is_accepted ... ok
+test tests::documentation_claim_basis_without_support_is_an_error ... ok
+test tests::framework_version_stale_is_a_warning ... ok
+test tests::oversized_artifact_is_a_coverage_info_not_a_scan ... ok
+test tests::private_key_material_in_evidence_artifact_is_a_blocking_error ... ok
+test tests::release_labels_are_pinned_to_the_core_version ... ok
+test tests::restricted_repository_artifact_warns_but_does_not_block ... ok
+test tests::review_mapping_drift_is_detected_after_an_edit ... ok
+test tests::review_overdue_is_a_warning ... ok
+test tests::review_reference_drift_is_detected_for_a_changed_implementation_file ... ok
+test tests::review_reference_missing_after_deletion_is_distinct_from_drift ... ok
+test tests::snapshot_is_byte_identical_across_repeated_runs ... ok
+test tests::timestamp_parser_normalizes_offsets ... ok
+test tests::validate_snapshot_reuses_supplied_git_facts_without_new_queries ... ok
+test verification::tests::complete_coverage_with_required_platforms_is_silent ... ok
+test verification::tests::complete_coverage_without_required_platforms_is_rejected ... ok
+test verification::tests::invalid_contract_is_seen_without_adopter_manifest ... ok
+test verification::tests::malformed_contract_is_reported ... ok
+test verification::tests::valid_contract_is_silent_without_adopter_manifest ... ok
+
+test result: ok. 79 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.78s
+
+   Doc-tests repopact_analysis
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests repopact_confinement
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests repopact_core
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests repopact_graph
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests repopact_mutation
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests repopact_protocol
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests repopact_repository
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests repopact_schema
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests repopact_types
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests repopact_validation
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
