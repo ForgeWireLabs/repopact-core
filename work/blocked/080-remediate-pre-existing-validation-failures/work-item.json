@@ -58,7 +58,8 @@
       "text": "Reproduce or sufficiently isolate intermittent repopact-mutation::tests::consumed_work_record_drift_is_stale failures under repeated sanitized and inherited-Git-environment runs, serial and concurrent, including Windows. Record causality or bounded unresolved hypotheses; do not classify as fixed solely because individual reruns pass.",
       "state": "satisfied",
       "evidence": [
-        "20261123-080-rust-drift-diagnostic-campaign"
+        "20261123-080-rust-drift-diagnostic-campaign",
+        "20261123-080-rust-fixture-collision-disposition"
       ]
     },
     {
@@ -67,7 +68,8 @@
       "state": "pending",
       "evidence": [
         "20261123-080-rust-drift-diagnostic-campaign",
-        "20261123-080-rust-blocker-disposition"
+        "20261123-080-rust-blocker-disposition",
+        "20261123-080-rust-fixture-collision-disposition"
       ]
     },
     {
@@ -75,7 +77,8 @@
       "text": "Re-run the complete local repopact verify ci profile from a clean, exact-head checkout with matching canonical Rust engine and sanitized external Git configuration. Record all five required-step outcomes, full Python results and Rust workspace results. Aim for an entirely green baseline, not an exception list.",
       "state": "satisfied",
       "evidence": [
-        "20261123-182000-636282-verify-ci"
+        "20261123-182000-636282-verify-ci",
+        "20261123-080-rust-fixture-local-ci"
       ]
     },
     {
@@ -83,7 +86,9 @@
       "text": "Produce generated semantic identity, repository dashboard, governance/documentation mappings and relevant evidence with canonical tools only, and pass repopact validate, Git diff checks, frozen-surface checks and required conformance. Preserve source and evidence integrity.",
       "state": "satisfied",
       "evidence": [
-        "20261123-080-final-closeout"
+        "20261123-080-final-closeout",
+        "20261123-080-rust-fixture-collision-disposition",
+        "20261123-080-rust-fixture-local-ci"
       ]
     },
     {
@@ -101,7 +106,9 @@
       "state": "pending",
       "evidence": [
         "20261123-080-rust-drift-diagnostic-campaign",
-        "20261123-080-rust-blocker-disposition"
+        "20261123-080-rust-blocker-disposition",
+        "20261123-080-rust-fixture-collision-disposition",
+        "20261123-080-rust-fixture-local-ci"
       ]
     }
   ],
