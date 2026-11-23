@@ -1,6 +1,6 @@
 # WI080 — Local repair, verification and stop conditions
 
-**State:** implementation started, validation pending. This file is a handoff, not evidence that checks passed.
+**State:** blocked after validation. The handoff below records the required lanes; the dated execution record at the end links the actual outcomes. The intermittent Rust root cause remains unresolved.
 
 ## Execution authority
 
@@ -39,3 +39,15 @@ Fix all three inherited failure classes; do not stop at proving they reproduce o
 ## Failure dispositions
 
 `PRE-EXISTING` is a **cause label**, not a final state. Final disposition must be `FIXED` with regression and complete evidence, or `BLOCKED` with an accountable open work item, explicit owner and a concrete next diagnostic. A green status must represent checks actually run against the same source and environment.
+
+
+## Latest execution record — 2026-11-23
+
+- Isolated worktree: `C:\Projects\repopact-wi080-local`; original WI079 worktree preserved and read-only during this work.
+- Exact local CI source snapshot: commit `7f007d75fb393f6d68f22b96ecaabd78bccee9ce`, tree `c08acfb4bb6b368c4de134aed501a1f2cb03c1f0`, clean before the profile. Canonical report: `evidence/runs/20261123-182000-636282-verify-ci.json`; profile exit 0 in 1663.734 seconds. Five required steps passed, optional frozen-surface report passed. Python discovery counted 454 cases; profile step exit 0. The report's `dirty=true` is after-run state from conformance evidence and dashboard generation; the only changed tracked file was `audits/reports/dashboard.md`, with the conformance and verify-ci reports newly created.
+- Environment: Windows x86_64, Python 3.12.4, Cargo/rustc 1.96.0. The conformance engine was built from that exact source revision; engine SHA-256 `776a5fa3bc1c67a55229379c6b02197ab203b809f439b211c09c941ea96407dc`, semantic identity `repopact-semantic-v1:sha256:4c6581205fea24be2d56a88f6efa5da00b226a783ef407a665203d0d10f2f157`. All inherited `GIT_*` variables were removed from the profile process; `REPOPACT_GITHUB_CI` and `REPOPACT_GITHUB_CD` were unset.
+- WI079 fifteenth-document review: `20261123-080-wi079-protocol-review`. The new candidate protocol is still unregistered, planned/not run, and excluded from the 14-document verification-date update; before a separately authorized run, freeze fixture hashes, model/toolchain pins, adjudication rubric, and telemetry in its manifest.
+- Conformance report: `evidence/runs/20261123T181925821732Z-wi076-ac6-engine-conformance.json`; 43/43 canonical and 8/8 WI050 passed, provenance complete, source revision matches engine revision, generated filename and embedded ID match.
+- Rust controlled campaign: 80 focused passes across sanitized/inherited and serial/parallel modes; three separate full workspace runs passed 397/397 each. The canonical CI Rust workspace step also exited 0. The original failure did not recur, so its cause remains unresolved; AC-6 remains pending and WI080 is blocked under `tooling-owner` pending the diagnostic plan above and independent operator acceptance.
+- Research and provenance evidence: `20261123-080-research-freshness-review`, `20261123-080-wi076-provenance-validation`, `20261123-080-rust-drift-diagnostic-campaign`.
+- Hosted CI/CD remained disabled. PR #19 and PR #18 remain drafts; neither was merged and no release was published.

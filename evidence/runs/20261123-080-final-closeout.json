@@ -1,0 +1,124 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261123-080-final-closeout",
+  "timestamp": "2026-11-23T18:35:20Z",
+  "work_item": "080",
+  "result": "partial",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "python -m repopact.verify_cli ci --root . --evidence-work-item 080 --json (clean-at-start exact source commit)",
+      "exit_code": 0,
+      "summary": "Run 20261123-182000-636282-verify-ci: 1663.734 seconds; all 5 required steps passed and optional frozen-surface report passed. Python suite passed; 454 test cases were discovered. The profile's exact Rust workspace step and real conformance step both passed."
+    },
+    {
+      "command": "python -m repopact.cli validate --root . (after correcting the AC-5 evidence reference)",
+      "exit_code": 0,
+      "summary": "Repository governance validation passed."
+    },
+    {
+      "command": "python -m repopact.validate_research --root .",
+      "exit_code": 0,
+      "summary": "Canonical research metadata validation passed after substantive review; verified_on=2026-11-23 and review_by=2026-12-23."
+    },
+    {
+      "command": "python -m unittest tests.test_research_metadata -v",
+      "exit_code": 0,
+      "summary": "15 research metadata tests passed."
+    },
+    {
+      "command": "python -m unittest discover -s tests -p test_conformance_provenance_identity.py -v",
+      "exit_code": 0,
+      "summary": "All six WI076 provenance identity regression tests passed; output preserved in 20261123-080-provenance-tests.log."
+    },
+    {
+      "command": "python -m repopact.run_conformance (engine built from source commit 7f007d75fb393f6d68f22b96ecaabd78bccee9ce)",
+      "exit_code": 0,
+      "summary": "43/43 canonical cases and 8/8 WI050 cases passed. Current report filename stem equals its embedded evidence ID; source is clean and engine source revision matches. Process-image SHA-256 remained stable."
+    },
+    {
+      "command": "80 controlled runs of consumed_work_record_drift_is_stale; three additional full Rust workspace profiles",
+      "exit_code": 0,
+      "summary": "All 80 focused runs passed. All three workspace profiles passed 397 tests each, in sanitized parallel, sanitized serial, and inherited-Git parallel modes. Exact verify-ci locked workspace also passed. Original intermittent cause remains unresolved."
+    },
+    {
+      "command": "python -m repopact.validate_research --root . (final state)",
+      "exit_code": 0,
+      "summary": "Final canonical research validation passed."
+    },
+    {
+      "command": "python scripts/generate_engine_semantic_identity.py --update --root .",
+      "exit_code": 0,
+      "summary": "Canonical generator refreshed the semantic input manifest and semantic identity; the resulting identity remained repopact-semantic-v1:sha256:4c6581205fea24be2d56a88f6efa5da00b226a783ef407a665203d0d10f2f157."
+    },
+    {
+      "command": "python -m repopact.cli dashboard --root .",
+      "exit_code": 0,
+      "summary": "Canonical Rust engine regenerated audits/reports/dashboard.md for the blocked WI080 state and current evidence inventory."
+    },
+    {
+      "command": "python scripts/validate_docs.py --root .",
+      "exit_code": 0,
+      "summary": "347 Markdown source files passed; 40 external GitHub links were unchecked by the checker."
+    },
+    {
+      "command": "python scripts/generate_engine_semantic_identity.py --check --root .",
+      "exit_code": 0,
+      "summary": "Semantic input manifest is current at repopact-semantic-v1:sha256:4c6581205fea24be2d56a88f6efa5da00b226a783ef407a665203d0d10f2f157."
+    },
+    {
+      "command": "python -m repopact.cli check-frozen --root . --base origin/main",
+      "exit_code": 0,
+      "summary": "No frozen-surface changes detected."
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "summary": "No whitespace errors detected in the checked diff."
+    }
+  ],
+  "artifacts": [
+    "evidence/runs/20261123-080-research-freshness-review.json",
+    "evidence/runs/20261123-080-wi076-provenance-validation.json",
+    "evidence/runs/20261123T181925821732Z-wi076-ac6-engine-conformance.json",
+    "evidence/runs/20261123-080-rust-drift-diagnostic-campaign.json",
+    "evidence/runs/20261123-080-rust-blocker-disposition.json",
+    "evidence/runs/20261123-080-wi079-protocol-review.json",
+    "evidence/runs/20261123-182000-636282-verify-ci.json",
+    "evidence/runs/20261123-080-final-validate.log",
+    "evidence/runs/20261123-080-final-research-validation.log",
+    "evidence/runs/20261123-080-final-research-tests.log",
+    "evidence/runs/20261123-080-final-doc-validation.log",
+    "evidence/runs/20261123-080-final-semantic-identity.log",
+    "evidence/runs/20261123-080-final-frozen-surface.log"
+  ],
+  "environment": {
+    "branch": "work/080-repair-inherited-validation-failures-20261123",
+    "ci_source_commit": "7f007d75fb393f6d68f22b96ecaabd78bccee9ce",
+    "ci_source_tree": "c08acfb4bb6b368c4de134aed501a1f2cb03c1f0",
+    "ci_worktree_clean_before_profile": true,
+    "ci_worktree_dirty_after_profile": true,
+    "post_profile_generated_changes": [
+      "audits/reports/dashboard.md",
+      "evidence/runs/20261123T181925821732Z-wi076-ac6-engine-conformance.json",
+      "evidence/runs/20261123-182000-636282-verify-ci.json"
+    ],
+    "platform": "Windows x86_64-pc-windows-msvc",
+    "python": "3.12.4",
+    "cargo": "1.96.0",
+    "rustc": "1.96.0",
+    "engine_source_revision": "7f007d75fb393f6d68f22b96ecaabd78bccee9ce",
+    "engine_sha256": "776a5fa3bc1c67a55229379c6b02197ab203b809f439b211c09c941ea96407dc",
+    "semantic_identity": "repopact-semantic-v1:sha256:4c6581205fea24be2d56a88f6efa5da00b226a783ef407a665203d0d10f2f157",
+    "git_environment": "All inherited GIT_* variables were removed for exact local verify-ci; the controlled Rust campaign also records 23 inherited variable names without copying secret values.",
+    "hosted_ci_cd": "REPOPACT_GITHUB_CI and REPOPACT_GITHUB_CD were unset; no hosted verification or publication was triggered.",
+    "failure_dispositions": {
+      "research_freshness": "confirmed pre-existing baseline defect, corrected after review",
+      "wi076_provenance": "confirmed pre-existing writer defect, fixed and validated",
+      "rust_consumed_work_record_drift_is_stale": "unresolved; no cause established and no root-cause repair proven"
+    },
+    "blocking_owner": "tooling-owner",
+    "next_diagnostic": "If the Rust failure recurs, capture baseline plan applicability/diagnostics, repository identity, exact fixture path, matching read-fact membership and hashes before/after drift, complete MutationResult, process/thread IDs, and fixture cleanup from the same failing invocation.",
+    "human_gate": "Independent operator acceptance of the Rust remediation remains outstanding; no waiver was inferred."
+  }
+}

@@ -1,6 +1,6 @@
 # WI080 — Remediate Pre-Existing Validation Failures and Restore Green Local Baseline
 
-**Status:** active; operator-authorized on 2026-11-23. **Lead:** governance-owner; tooling/evidence/docs/work affected. **Depends on:** none.
+**Current status:** blocked on the unresolved intermittent Rust mutation failure; the exact-head local CI profile passed. **Lead:** governance-owner; tooling/evidence/docs/work affected. **Blocking implementation owner:** tooling-owner. **Human gate:** independent operator acceptance remains open.
 
 ## Decision and source evidence
 
@@ -33,3 +33,20 @@ CI runs **locally through 2026-12-01 inclusive**; do not enable `REPOPACT_GITHUB
 ## Completion
 
 All ten `work-item.json` criteria require concrete, linked evidence; no claim of closure from the draft plan or preliminary fixed source. Preserve RepoPact source records, generated semantic identity, dashboard, research review dates and prior failure logs without fabricated timestamps. Operator and frozen-surface policy remain binding.
+
+
+## Closeout checkpoint — 2026-11-23
+
+The authorization-time observations and plan above are historical. This checkpoint records the current outcome and supersedes the earlier “unvalidated” status.
+
+| Lane | Outcome | Evidence |
+| --- | --- | --- |
+| Research freshness | Reviewed all 14 registered documents and their cited evidence. Corrected F-015's stale status and dated current-state text; left unsupported or external claims bounded. Only after that review, set `verified_on=2026-11-23` and `review_by=2026-12-23`, the maximum 30-day window. The research validator passed. A PyPI description still points to the archived source URL; that external package metadata remains follow-up, not a reason to claim it was changed. | `20261123-080-research-freshness-review` |
+| WI076 evidence provenance | The six regression tests pass. Real conformance passed 43/43 canonical cases and 8/8 WI050 vectors with a release engine whose embedded source revision is `7f007d75fb393f6d68f22b96ecaabd78bccee9ce`; source and engine revisions match. The generated filename stem equals its embedded record ID. Existing evidence remained create-only and unchanged. | `20261123-080-wi076-provenance-validation`; `20261123T181925821732Z-wi076-ac6-engine-conformance`; `20261123-080-wi076-overwrite-denial.log` |
+| Rust mutation intermittency | The original failed run only records the missing `mutation.plan-stale` diagnostic; it omits the baseline plan state, fixture root, and `MutationResult`. The bounded campaign ran the focused test 80 times across sanitized/inherited Git environments and serial/parallel modes, plus three full workspace profiles (397 passed in each); no failure reproduced. The exact local CI profile also passed. Diagnostic-only assertions now prove the baseline plan is applicable and print the fixture root and full mutation result if it fails again. No production Rust behavior was changed, and the original root cause remains unresolved. | `20261123-080-rust-drift-diagnostic-campaign`; `20261123-wi079-exact-head-isolation`; `20261123-182000-636282-verify-ci` |
+| WI079 fifteenth research document | Reviewed separately from the 14-document freshness update. The prospective protocol is explicitly planned/not run; it makes no result or reviewer-equivalence claim. Its pilot is low-power/descriptive, and its task hashes, model/toolchain pins, adjudication rubric, and telemetry must be frozen in a benchmark manifest before any separately authorized execution. No run, spend, or production integration was initiated. | `20261123-080-wi079-protocol-review` |
+| Exact local CI | From a clean-at-start Windows checkout at commit `7f007d75fb393f6d68f22b96ecaabd78bccee9ce`, tree `c08acfb4bb6b368c4de134aed501a1f2cb03c1f0`, the canonical `ci` profile returned 0 after 1663.734 seconds. All five required steps passed; the optional frozen-surface report passed. The Python step discovered 454 test cases and returned 0. The CI run generated the conformance report, verify-ci manifest, and dashboard update; those generated changes explain its after-run dirty flag. All inherited `GIT_*` variables were removed for the run; hosted CI/CD variables were unset. | `20261123-182000-636282-verify-ci` |
+
+The current disposition is: research freshness corrected; WI076 provenance writer fixed and validated; Rust intermittency **blocked/unresolved**. A green exact profile is recorded truthfully, but passing reruns do not prove the original intermittent defect fixed. AC-6 remains pending. `tooling-owner` owns the next diagnostic: if the failure recurs, preserve the exact Cargo command and process environment, then capture plan applicability/diagnostics, repository identity, fixture path, matching read-fact paths and before/after hashes, full `MutationResult`, thread/process IDs, and cleanup state from the same failed invocation. The human operator retains independent acceptance authority; no risk waiver was requested or inferred.
+
+CI remains local-only through 2026-12-01 inclusive. PR #19 and PR #18 remain drafts; no hosted verification, merge, release, or publication is authorized.
