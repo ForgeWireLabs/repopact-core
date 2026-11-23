@@ -36,33 +36,47 @@
       "text": "Define an exact review candidate identity covering review base, HEAD, staged/unstaged/untracked and renamed/deleted paths and worktrees. Detect stale evidence after changes, and honestly distinguish clean committed-tree from dirty-tree evidence.",
       "state": "pending",
       "evidence": [
-        "20261122-wi079-isolated-self-audit-24"
+        "20261122-wi079-isolated-self-audit-24",
+        "20261122-wi079-windows-focused-regression"
       ]
     },
     {
       "id": "AC-4",
       "text": "Separate self-reported inspection, executed tools/tests, independent review, and operator approval. A self-audit PASS must never imply defect-free code, independent approval, authorization, admission closure, or release readiness.",
       "state": "pending",
-      "evidence": []
+      "evidence": [
+        "20261122-wi079-windows-focused-regression"
+      ]
     },
     {
       "id": "AC-5",
       "text": "Define concrete finding criteria, bounded surgical repairs, reverification, stop conditions, and truthful PASS/FAIL/INCOMPLETE outcomes; disallow speculative refactor churn, weakening tests, and unapproved scope expansion.",
       "state": "pending",
-      "evidence": []
+      "evidence": [
+        "20261122-wi079-windows-focused-regression"
+      ]
     },
     {
       "id": "AC-6",
       "text": "Implement the approved minimal, optional integration using canonical Rust semantics and existing evidence/verification primitives where possible; preserve legacy record validity and do not require a specific agent provider, cloud service, or always-on daemon.",
       "state": "pending",
-      "evidence": []
+      "evidence": [
+        "20261122-wi079-windows-focused-regression",
+        "20261122-220456-383942-verify-ci",
+        "20261122-wi079-baseline-isolation",
+        "20261123-021446-176011-verify-ci",
+        "20261123-wi079-windows-final-focused"
+      ]
     },
     {
       "id": "AC-7",
       "text": "Add positive/negative regression and conformance fixtures for clean passes, repaired defects, forged/missing/stale evidence, changed working trees, omitted untracked files, failed or unavailable checks, frozen/scope violations, and false independent-approval claims.",
       "state": "pending",
       "evidence": [
-        "20261122-wi079-isolated-self-audit-24"
+        "20261122-wi079-isolated-self-audit-24",
+        "20261122-wi079-windows-focused-regression",
+        "20261123-021446-176011-verify-ci",
+        "20261123-wi079-windows-final-focused"
       ]
     },
     {
@@ -81,7 +95,9 @@
       "id": "AC-10",
       "text": "Document adopter and nested-AGENTS.md guidance; link the 2026-11-22 draft rollout, reconcile documentation impacts and generated artifacts, and close only with criterion-linked concrete evidence.",
       "state": "pending",
-      "evidence": []
+      "evidence": [
+        "20261122-wi079-windows-focused-regression"
+      ]
     }
   ],
   "created": "2026-11-22",

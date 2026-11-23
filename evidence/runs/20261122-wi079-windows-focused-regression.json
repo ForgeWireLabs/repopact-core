@@ -1,0 +1,95 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261122-wi079-windows-focused-regression",
+  "timestamp": "2026-11-22T22:58:29Z",
+  "work_item": "079",
+  "result": "partial",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "python -m pip install -e \".[dev]\"",
+      "exit_code": 0,
+      "summary": "Editable development install succeeded using the local Python 3.12.4 environment."
+    },
+    {
+      "command": "python -m py_compile repopact/self_audit.py tests/test_self_audit.py",
+      "exit_code": 0,
+      "summary": "Python source and focused regression tests compiled successfully."
+    },
+    {
+      "command": "python -m unittest discover -s tests -p test_self_audit.py -v",
+      "exit_code": 0,
+      "summary": "31 tests passed, 0 failures, 0 errors, in 31.021 seconds; inherited GIT_CONFIG_* variables were removed from the test process."
+    },
+    {
+      "command": "repopact self-audit capture --root C:\\Projects\\repopact-wi079-local --base origin/main | Set-Content -LiteralPath C:\\Projects\\repopact-wi079-synthetic-cli-smoke-not-review.json -Encoding utf8",
+      "exit_code": 0,
+      "summary": "Top-level capture emitted an incomplete template; PowerShell wrote a UTF-8 BOM."
+    },
+    {
+      "command": "repopact self-audit check --root C:\\Projects\\repopact-wi079-local --report C:\\Projects\\repopact-wi079-synthetic-cli-smoke-not-review.json",
+      "exit_code": 0,
+      "summary": "Top-level check accepted the BOM and returned self-report-current with assurance=instruction-only over 25 changed paths. The report was a synthetic CLI smoke fixture, not an actual review attestation."
+    },
+    {
+      "command": "python -m unittest discover -s tests -v",
+      "exit_code": 1,
+      "summary": "Sanitized full run: 479 tests in 1542.028 seconds, 11 failures, 4 skips. The failures trace to expired research freshness and the temporary unregistered WI076 conformance report with an internal-ID/filename mismatch; that report was preserved outside the worktree after the run. Log: C:\\Projects\\repopact-wi079-full-python-sanitized.log."
+    },
+    {
+      "command": "python scripts/generate_engine_semantic_identity.py --check",
+      "exit_code": 0,
+      "summary": "Semantic input manifest is current; identity repopact-semantic-v1:sha256:7cb50a1ea5bc4c0c1deb0de5eca31ff4f0e4b32def08513d401b5d1a5e9fbda7."
+    },
+    {
+      "command": "repopact dashboard",
+      "exit_code": 0,
+      "summary": "Generated audits/reports/dashboard.md after final work-item and evidence updates using the worktree engine."
+    },
+    {
+      "command": "repopact validate",
+      "exit_code": 1,
+      "summary": "Canonical validation reports one error: research claim freshness expired on 2026-11-21; the 15 registered documents require re-verification before advancing the contract."
+    },
+    {
+      "command": "repopact check-frozen --base origin/main",
+      "exit_code": 0,
+      "summary": "No frozen-surface changes detected."
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "summary": "No whitespace errors; Git printed only CRLF-to-LF normalization warnings for governed JSON files."
+    }
+  ],
+  "artifacts": [
+    "repopact/self_audit.py",
+    "tests/test_self_audit.py",
+    "docs/guides/pre-completion-assurance.md",
+    "audits/reports/dashboard.md",
+    "work/active/079-agent-pre-completion-assurance-and-verifiable-self-audit/README.md",
+    "work/active/079-agent-pre-completion-assurance-and-verifiable-self-audit/LOCAL-VALIDATION.md",
+    "work/active/079-agent-pre-completion-assurance-and-verifiable-self-audit/work-item.json"
+  ],
+  "environment": {
+    "executor": "local-Windows-worktree",
+    "python": "3.12.4",
+    "git": "2.53.0.windows.3",
+    "cargo": "1.96.0 (30a34c682 2026-05-25)",
+    "rustc": "1.96.0 (ac68faa20 2026-05-25)",
+    "candidate": {
+      "commit": "0065c5b44aea09e2c09cb69cd0a3bcf509ef556b",
+      "tree": "a41b9397d626f924feaf79f5a0cc327abf0a05f1",
+      "dirty": true
+    },
+    "engine_override": "rust/target/release/repopact-engine.exe",
+    "git_config_environment": "GIT_CONFIG_* credential-injection variables removed from test processes after they caused order-dependent Git initialization failures",
+    "canonical_ci_evidence_id": "20261122-220456-383942-verify-ci",
+    "limitations": [
+      "This is focused local evidence only; it does not close any acceptance criterion.",
+      "The full Python suite and canonical CI profile have separate failed evidence with repository freshness and unrelated Rust/conformance limitations.",
+      "A passing synthetic self-report demonstrates structural parsing only, not review quality, test execution, independent approval, or a protected completion boundary.",
+      "No macOS execution, protected completion-boundary proof, matched-agent benchmark, release, or operator approval was performed."
+    ]
+  }
+}

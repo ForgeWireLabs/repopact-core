@@ -1,0 +1,126 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261122-wi079-baseline-isolation",
+  "timestamp": "2026-11-23T01:56:18Z",
+  "work_item": "079",
+  "result": "partial",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "python -m repopact.cli validate --root . (detached main and detached WI079 candidate, separately)",
+      "exit_code": 1,
+      "summary": "Both snapshots produced the same sole research.freshness-expired diagnostic for the shared claim_freshness contract: verified_on=2026-10-22 and review_by=2026-11-21. Main registered 14 research documents; candidate registered 15, including the WI079 protocol. Logs: C:\\Projects\\repopact-wi079-validate-main.log and C:\\Projects\\repopact-wi079-validate-candidate.log."
+    },
+    {
+      "command": "python -m repopact.run_conformance (detached main)",
+      "exit_code": 0,
+      "summary": "43/43 canonical cases and 8/8 WI050 vectors passed with complete provenance; the emitted report nevertheless had a filename/internal-ID mismatch from unchanged repopact/run_conformance.py. Log: C:\\Projects\\repopact-wi079-conformance-main.log."
+    },
+    {
+      "command": "python -m repopact.run_conformance (detached WI079 candidate)",
+      "exit_code": 1,
+      "summary": "43/43 canonical cases and 8/8 WI050 vectors passed; exit 1 was due to incomplete dirty-tree provenance. The emitted report had the same filename/internal-ID mismatch. Log: C:\\Projects\\repopact-wi079-conformance-candidate.log. Original failed report is preserved unchanged at C:\\Projects\\repopact-wi079-wi076-ac6-engine-conformance.json."
+    },
+    {
+      "command": "cargo test --workspace --locked --manifest-path rust/Cargo.toml consumed_work_record_drift_is_stale (main and candidate)",
+      "exit_code": 0,
+      "summary": "The exact test passed on both snapshots. Logs: C:\\Projects\\repopact-wi079-rust-main.log and C:\\Projects\\repopact-wi079-rust-candidate.log."
+    },
+    {
+      "command": "cargo test -p repopact-mutation --locked --manifest-path rust/Cargo.toml (main and candidate)",
+      "exit_code": 0,
+      "summary": "All 30 mutation-package tests passed on both snapshots. Logs: C:\\Projects\\repopact-wi079-rust-mutation-main.log and C:\\Projects\\repopact-wi079-rust-mutation-candidate.log."
+    },
+    {
+      "command": "cargo test --workspace --locked --manifest-path rust/Cargo.toml (main and candidate with GIT_* removed; candidate replay with inherited Git environment)",
+      "exit_code": 0,
+      "summary": "The full Rust workspace passed on both snapshots in sanitized runs and on the candidate with inherited GIT_CONFIG_COUNT=10. Logs: C:\\Projects\\repopact-wi079-rust-workspace-main.log, C:\\Projects\\repopact-wi079-rust-workspace-candidate.log, and C:\\Projects\\repopact-wi079-rust-workspace-candidate-inherited-git.log. The original exit 101 remains unresolved and non-reproduced."
+    },
+    {
+      "command": "Local 55-test order-sensitive Git-subprocess diagnostic sequence with inherited GIT_CONFIG_*",
+      "exit_code": 1,
+      "summary": "The sequence failed during git init with missing config value GIT_CONFIG_VALUE_0. Log: C:\\Projects\\repopact-wi079-test-order.log."
+    },
+    {
+      "command": "Local 55-test order-sensitive Git-subprocess diagnostic sequence after removing GIT_CONFIG_*",
+      "exit_code": 0,
+      "summary": "The sanitized sequence passed 55/55, reproducing environmental/test-harness contamination for the Git initialization cascade. Log: C:\\Projects\\repopact-wi079-test-order-sanitized.log."
+    }
+  ],
+  "artifacts": [
+    "work/active/079-agent-pre-completion-assurance-and-verifiable-self-audit/LOCAL-VALIDATION.md",
+    "work/active/079-agent-pre-completion-assurance-and-verifiable-self-audit/README.md",
+    "evidence/runs/20261122-220456-383942-verify-ci.json",
+    "C:\\Projects\\repopact-wi079-wi076-ac6-engine-conformance.json",
+    "C:\\Projects\\repopact-wi079-test-order.log",
+    "C:\\Projects\\repopact-wi079-test-order-sanitized.log",
+    "C:\\Projects\\repopact-wi079-rust-workspace-main.log",
+    "C:\\Projects\\repopact-wi079-rust-workspace-candidate.log",
+    "C:\\Projects\\repopact-wi079-rust-workspace-candidate-inherited-git.log"
+  ],
+  "environment": {
+    "executor": "local-Windows-disposable-worktrees",
+    "platform": "windows",
+    "main": {
+      "commit": "0ac343a2bf25f56a47e8f42798eca938844199fa",
+      "worktree": "C:\\Projects\\repopact-wi079-baseline-main",
+      "clean_before_comparison": true
+    },
+    "candidate": {
+      "commit": "0065c5b44aea09e2c09cb69cd0a3bcf509ef556b",
+      "worktree": "C:\\Projects\\repopact-wi079-candidate-snapshot",
+      "patch_source": "C:\\Projects\\repopact-wi079-preserved-changes.patch",
+      "self_audit_sha256": "F977634BAA4555956CF64EECE0A8F15C049F3F5ED4D994FD2084D1766F5D2FF7",
+      "focused_test_sha256": "D3C37BA0A9AC837D3E618DF65054F1E1104E3790BE25DC2F67AC3A4AF8667F30"
+    },
+    "toolchain": {
+      "python": "3.12.4",
+      "git": "2.53.0.windows.3",
+      "cargo": "1.96.0",
+      "rustc": "1.96.0"
+    },
+    "git_environment": {
+      "inherited_variable_names": [
+        "GIT_CONFIG_COUNT",
+        "GIT_CONFIG_KEY_0",
+        "GIT_CONFIG_KEY_1",
+        "GIT_CONFIG_KEY_2",
+        "GIT_CONFIG_KEY_3",
+        "GIT_CONFIG_KEY_4",
+        "GIT_CONFIG_KEY_5",
+        "GIT_CONFIG_KEY_6",
+        "GIT_CONFIG_KEY_7",
+        "GIT_CONFIG_KEY_8",
+        "GIT_CONFIG_KEY_9",
+        "GIT_CONFIG_VALUE_0",
+        "GIT_CONFIG_VALUE_1",
+        "GIT_CONFIG_VALUE_2",
+        "GIT_CONFIG_VALUE_3",
+        "GIT_CONFIG_VALUE_4",
+        "GIT_CONFIG_VALUE_5",
+        "GIT_CONFIG_VALUE_6",
+        "GIT_CONFIG_VALUE_7",
+        "GIT_CONFIG_VALUE_8",
+        "GIT_CONFIG_VALUE_9",
+        "GIT_INSTALL_ROOT",
+        "GIT_PAGER"
+      ],
+      "inherited_name_count": 23,
+      "sanitized_comparison": "All inherited environment variables with names starting GIT_ were removed before the sanitized Python and Cargo processes. Variable values were not copied into evidence.",
+      "candidate_inherited_replay": "The candidate full-workspace Rust replay also passed with inherited GIT_CONFIG_COUNT=10.",
+      "git_initialization_diagnostic": "The 55-test diagnostic sequence failed with inherited GIT_CONFIG_* and passed after those variables were removed."
+    },
+    "failure_classifications": {
+      "research_freshness": "confirmed-pre-existing-baseline-defect",
+      "wi076_filename_internal_id_mismatch": "confirmed-pre-existing-wi076-evidence-writer-defect",
+      "rust_consumed_work_record_drift_is_stale": "unresolved-non-reproduced",
+      "git_initialization_cascade": "environmental-test-harness-contamination"
+    },
+    "limitations": [
+      "The cause of the original Rust exit 101 is not established despite exact-test, mutation-package, and full-workspace passes on both snapshots.",
+      "No expired research review date was advanced; the underlying documents were not all re-reviewed.",
+      "No unrelated Rust behavior or WI076 evidence filename was changed.",
+      "The original failed local CI evidence remains failed and unchanged."
+    ]
+  }
+}

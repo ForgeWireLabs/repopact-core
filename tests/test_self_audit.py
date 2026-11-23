@@ -153,6 +153,90 @@ class CandidateAuditTests(unittest.TestCase):
         with self.assertRaisesRegex(self_audit.SelfAuditError, "approval"):
             self_audit.inspect_report(self.root, report)
 
+    def test_finding_cannot_assert_independent_approval(self):
+        (self.root / "alpha.txt").write_text("changed\n", encoding="utf-8")
+        report = self_audit.report_template(self.root, self.base)
+        report["review"].update(
+            outcome="pass", actor="agent", reviewed_paths=["alpha.txt"],
+            findings=[{
+                "path": "alpha.txt", "status": "nonblocking",
+                "scenario": "example", "independent_approval": True,
+            }],
+        )
+        with self.assertRaisesRegex(self_audit.SelfAuditError, "finding fields"):
+            self_audit.inspect_report(self.root, report)
+
+    def test_cli_rejects_non_object_report_without_traceback(self):
+        from contextlib import redirect_stdout
+        from io import StringIO
+
+        path = Path(self.temp.name) / "review.json"
+        path.write_text("[]", encoding="utf-8")
+        output = StringIO()
+        with redirect_stdout(output):
+            result = self_audit.main([
+                "check", "--root", str(self.root), "--report", str(path),
+            ])
+        self.assertEqual(2, result)
+        self.assertEqual("incomplete", json.loads(output.getvalue())["result"])
+
+    def test_cli_rejects_missing_and_malformed_reports_cleanly(self):
+        from contextlib import redirect_stdout
+        from io import StringIO
+
+        missing = Path(self.temp.name) / "missing.json"
+        malformed = Path(self.temp.name) / "malformed.json"
+        malformed.write_text("{invalid", encoding="utf-8")
+        for path in (missing, malformed):
+            with self.subTest(path=path.name):
+                output = StringIO()
+                with redirect_stdout(output):
+                    result = self_audit.main([
+                        "check", "--root", str(self.root), "--report", str(path),
+                    ])
+                self.assertEqual(2, result)
+                self.assertEqual("incomplete", json.loads(output.getvalue())["result"])
+
+    def test_cli_accepts_utf8_bom_report(self):
+        from contextlib import redirect_stdout
+        from io import StringIO
+
+        report = self_audit.report_template(self.root, self.base)
+        path = Path(self.temp.name) / "review-bom.json"
+        path.write_bytes(b"\xef\xbb\xbf" + json.dumps(report).encode("utf-8"))
+        output = StringIO()
+        with redirect_stdout(output):
+            result = self_audit.main([
+                "check", "--root", str(self.root), "--report", str(path),
+            ])
+        self.assertEqual(2, result)
+        self.assertIn("no passing self-review claim", json.loads(output.getvalue())["message"])
+
+    def test_cli_rejects_oversized_report(self):
+        from contextlib import redirect_stdout
+        from io import StringIO
+        from unittest.mock import patch
+
+        path = Path(self.temp.name) / "review.json"
+        path.write_text(" " * 17, encoding="utf-8")
+        output = StringIO()
+        with patch.object(self_audit, "_MAX_REPORT_BYTES", 16):
+            with redirect_stdout(output):
+                result = self_audit.main([
+                    "check", "--root", str(self.root), "--report", str(path),
+                ])
+        self.assertEqual(2, result)
+        self.assertIn("bounded size", json.loads(output.getvalue())["message"])
+
+    def test_symlink_parent_cycle_fails_as_incomplete(self):
+        cycle = self.root / "cycle"
+        try:
+            cycle.symlink_to("cycle", target_is_directory=True)
+        except (OSError, NotImplementedError):
+            self.skipTest("symlink creation unavailable")
+        with self.assertRaisesRegex(self_audit.SelfAuditError, "parent inaccessible"):
+            self_audit._file_state(self.root, "cycle/child.txt")
+
     def test_invalid_limitations_declared_incomplete(self):
         report = self_audit.report_template(self.root, self.base)
         report["review"].update(

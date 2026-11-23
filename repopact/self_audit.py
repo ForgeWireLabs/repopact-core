@@ -19,6 +19,7 @@ from typing import Any
 _MAX_COMMAND_OUTPUT = 16 * 1024 * 1024
 _MAX_CONTENT_BYTES = 256 * 1024 * 1024
 _MAX_TOTAL_CONTENT_BYTES = 512 * 1024 * 1024
+_MAX_REPORT_BYTES = 1024 * 1024
 _MAX_CHANGED_PATHS = 10000
 _TIMEOUT_SECONDS = 30
 
@@ -95,7 +96,7 @@ def _file_state(root: Path, rel: str) -> dict[str, Any]:
     path = root.joinpath(*name.parts)
     try:
         parent = path.parent.resolve()
-    except OSError as exc:
+    except (OSError, RuntimeError) as exc:
         raise SelfAuditError(f"Changed path parent inaccessible: {rel}") from exc
     if not parent.is_relative_to(root):
         raise SelfAuditError(f"Changed path escapes worktree through parent symlink: {rel}")
@@ -145,10 +146,16 @@ def snapshot(root: Path, base_ref: str) -> dict[str, Any]:
     changed relative to base, plus nonignored untracked files, are content-hashed.
     Ignored files are outside this contract and must not be claimed reviewed.
     """
-    root = root.resolve()
+    try:
+        root = root.resolve()
+    except (OSError, RuntimeError) as exc:
+        raise SelfAuditError("Repository root is inaccessible") from exc
     if not root.is_dir() or not base_ref or base_ref.startswith("-"):
         raise SelfAuditError("A repository root and explicit Git base are required")
-    actual_root = Path(os.fsdecode(_git(root, "rev-parse", "--show-toplevel").strip())).resolve()
+    try:
+        actual_root = Path(os.fsdecode(_git(root, "rev-parse", "--show-toplevel").strip())).resolve()
+    except (OSError, RuntimeError) as exc:
+        raise SelfAuditError("Git worktree root is inaccessible") from exc
     if actual_root != root:
         raise SelfAuditError("Root must be the top-level Git working tree")
     base = _git(root, "rev-parse", "--verify", f"{base_ref}^{{commit}}").strip().decode("ascii")
@@ -212,6 +219,8 @@ def report_template(root: Path, base_ref: str) -> dict[str, Any]:
 
 def inspect_report(root: Path, record: dict[str, Any]) -> dict[str, Any]:
     """Reject stale/incomplete self-reports, never certify review quality."""
+    if not isinstance(record, dict):
+        raise SelfAuditError("Review report must be a JSON object")
     if record.get("format_version") != 1 or record.get("kind") != "agent-self-review-claim":
         raise SelfAuditError("Unsupported self-audit report format")
     if set(record) != {"format_version", "kind", "candidate", "review"}:
@@ -244,7 +253,11 @@ def inspect_report(root: Path, record: dict[str, Any]) -> dict[str, Any]:
     if not isinstance(findings, list):
         raise SelfAuditError("INCOMPLETE: findings declaration missing")
     for item in findings:
-        if not isinstance(item, dict) or item.get("status") not in {"fixed", "nonblocking"}:
+        if not isinstance(item, dict):
+            raise SelfAuditError("FAIL: unresolved or invalid finding")
+        if set(item) != {"path", "status", "scenario"}:
+            raise SelfAuditError("INCOMPLETE: finding fields cannot carry approval assertions")
+        if item.get("status") not in {"fixed", "nonblocking"}:
             raise SelfAuditError("FAIL: unresolved or invalid finding")
         if not isinstance(item.get("path"), str) or item["path"] not in covered:
             raise SelfAuditError("INCOMPLETE: finding location not in reviewed paths")
@@ -257,6 +270,25 @@ def inspect_report(root: Path, record: dict[str, Any]) -> dict[str, Any]:
         "changed_paths": len(current["changed_paths"]),
         "caveat": "Structural match only: not independent approval, tool-execution proof, or a protected completion boundary.",
     }
+
+
+def _read_report(path: Path) -> Any:
+    """Read a bounded UTF-8 JSON report and normalize malformed inputs."""
+    try:
+        if not path.is_file():
+            raise SelfAuditError("Review report missing or not a regular file")
+        with path.open("rb") as handle:
+            raw = handle.read(_MAX_REPORT_BYTES + 1)
+    except SelfAuditError:
+        raise
+    except OSError as exc:
+        raise SelfAuditError("Review report missing or unreadable") from exc
+    if len(raw) > _MAX_REPORT_BYTES:
+        raise SelfAuditError("Review report exceeds bounded size")
+    try:
+        return json.loads(raw.decode("utf-8-sig"))
+    except (ValueError, UnicodeError, RecursionError) as exc:
+        raise SelfAuditError("Review report missing or invalid") from exc
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -273,14 +305,14 @@ def main(argv: list[str] | None = None) -> int:
         if args.action == "capture":
             result = report_template(args.root, args.base)
         else:
-            root = args.root.resolve()
-            path = (args.report if args.report.is_absolute() else root / args.report).resolve()
+            try:
+                root = args.root.resolve()
+                path = (args.report if args.report.is_absolute() else root / args.report).resolve()
+            except (OSError, RuntimeError) as exc:
+                raise SelfAuditError("Review report path or repository root is inaccessible") from exc
             if path.is_relative_to(root):
                 raise SelfAuditError("Report must be stored outside the candidate working tree to avoid self-reference")
-            try:
-                value = json.loads(path.read_text(encoding="utf-8"))
-            except (OSError, ValueError) as exc:
-                raise SelfAuditError("Review report missing or invalid") from exc
+            value = _read_report(path)
             result = inspect_report(root, value)
     except (SelfAuditError, UnicodeError) as exc:
         failed = str(exc).startswith("FAIL:")
