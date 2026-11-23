@@ -45,19 +45,26 @@ retain their original dates and claims. S7/H14 and S8/H15 have since been added
 to the research registry; those registrations do not mean the corresponding
 comparative experiments are complete. The September 14 manuscript remains the
 3.1.0 implementation/evidence snapshot and was not rebuilt by this review.
-PyPI and the GitHub Releases page were rechecked on 2026-10-22; both identify
-3.1.3, published on 2026-09-18, as the current stable release. PyPI distributes
-a Windows x64 wheel and source distribution, while the separate v3.1.3 GitHub
-release carries Windows NSIS/MSI, Linux .deb, and Android APK Workbench
-installers. The 14 registered top-level research documents received a
-substantive freshness review under policy 002 on 2026-10-22; the next review is
-due 2026-11-21. The review corrected the manuscript's release-baseline wording
-and the SWE-EVO author order, and recorded the adopter commit's loss of public
-availability while preserving its exact hash and the historical capture. The
-manuscript's pinned 3.1.0 snapshot SHA is also not retrievable from the current
-public archive; the public `v3.1.0` tag points to a different SHA, and no
-equivalence was established. It did not rerun experiments, rebuild the
-manuscript, or change experimental results;
-see [`release-runbook.md`](release-runbook.md) for the distribution distinction
-and the [dated evidence run](../evidence/runs/20261022-074-research-freshness-review.json)
-for checked sources and validation.
+PyPI and the GitHub Releases page were rechecked on 2026-11-23; both still
+identify 3.1.3, published on 2026-09-18, as the current/latest stable release.
+PyPI distributes a Windows x64 wheel and source distribution, while the
+separate v3.1.3 GitHub release carries Windows NSIS/MSI, Linux .deb, and Android
+APK Workbench installers. The canonical `ForgeWireLabs/repopact` URL currently
+redirects to `JeremyShows/repopact`, which GitHub marks archived on 2026-10-09;
+the historical release page remains readable. The published PyPI description
+still points readers to that archived source URL and says `main` is the newest
+development tree. That external description cannot be corrected in this source
+review; record it for the next authorized package-metadata update.
+
+The 14 registered top-level research documents received a substantive
+freshness review under policy 002 on 2026-11-23; the next review is due
+2026-12-23. This review corrected F-015's stale current-status paragraph,
+confirmed the SWE-EVO author order and the manuscript's frozen 3.1.0 snapshot
+limits, and rechecked the recorded adopter commit's public unavailability while
+preserving its exact hash and historical capture. The manuscript's pinned
+3.1.0 snapshot SHA remains unavailable from the public archive; the public
+`v3.1.0` tag points to a different SHA, and no equivalence was established. No
+experiment was rerun and the manuscript/results were not rebuilt or changed.
+See [`release-runbook.md`](release-runbook.md) for the distribution distinction
+and the [dated WI080 review evidence](../evidence/runs/20261123-080-research-freshness-review.json)
+for the per-document matrix and checked sources.

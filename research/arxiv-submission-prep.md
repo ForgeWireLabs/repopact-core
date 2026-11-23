@@ -2,11 +2,16 @@
 
 **Status:** preparation only — **ARXIV NOT SUBMITTED**.
 
-**Editorial status — 2026-10-22.** The compiled-manuscript record below remains
+**Editorial status — 2026-11-23.** The compiled-manuscript record below remains
 the September 14 preparation against the frozen 3.1.0 snapshot. PyPI and the
-GitHub Releases page still identify 3.1.3 as the current stable release,
-published on 2026-09-18. This review did not rebuild or submit the manuscript or
-change its recorded page count.
+GitHub Releases page still identify 3.1.3 as the current/latest stable release,
+published on 2026-09-18. The canonical `ForgeWireLabs/repopact` URL now redirects
+to the archived `JeremyShows/repopact` repository (archived 2026-10-09); the
+v3.1.3 release page remains readable. The published PyPI description still
+points to the archived source URL, so align the source destination in any future
+authorized package-metadata update. This review did not rebuild or submit the
+manuscript or change its recorded page count.
+
 The cited 3.1.0 snapshot SHA is not retrievable from the current public archive;
 the public `v3.1.0` tag points to a different commit, whose equivalence was not
 established. Resolve or explicitly disclose this source-availability limit

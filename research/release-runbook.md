@@ -1,14 +1,21 @@
 # Release runbook
 
-## 3.1.3 stable release — current status reviewed 2026-09-24
+## 3.1.3 stable release — current status reviewed 2026-11-23
 
-As of 2026-09-24, RepoPact 3.1.3 is the current stable, backwards-compatible
-packaging/distribution release (decision 0066, work item 070). WI062 proved that a real Windows NSIS
-installer, Linux .deb, and Android APK build, install, launch, and uninstall
-correctly. As verified on 2026-09-24, the PyPI `repopact==3.1.3` distribution
-contains a Windows x64 wheel and an sdist; the separate public
+As of 2026-11-23, RepoPact 3.1.3 remains the current stable,
+backwards-compatible packaging/distribution release (decision 0066, work item
+070); PyPI and the public GitHub Releases page still show 3.1.3 as latest,
+published on 2026-09-18. WI062 proved that a real Windows NSIS installer,
+Linux .deb, and Android APK build, install, launch, and uninstall correctly.
+The PyPI project still distributes a Windows x64 wheel and an sdist; the
+separate public
 [v3.1.3 GitHub Release](https://github.com/JeremyShows/repopact/releases/tag/v3.1.3)
 contains Windows NSIS/MSI, Linux .deb, and Android APK Workbench installers.
+On this review date the canonical `ForgeWireLabs/repopact` source URL redirected
+to `JeremyShows/repopact`, archived by GitHub on 2026-10-09. The v3.1.3 release
+page remains readable, but the archived source URL and its package-description
+clone instructions need an owner-confirmed destination before any future
+release-metadata update.
 These are distinct distribution surfaces. This review established no equivalent
 macOS/iOS release evidence. The v3.1.3 release URL above refers to the existing
 personal-account monorepo release and remains historical; this standalone Core

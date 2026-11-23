@@ -2971,6 +2971,11 @@ mod tests {
             &snapshot,
             MutationRequest::create_work_item(create_request("A New Thing", "2026-01-02")),
         );
+        assert!(
+            plan.is_applicable(),
+            "baseline plan must be applicable before injected drift; fixture root={root:?}; diagnostics={:?}",
+            plan.diagnostics
+        );
         fs::write(
             root.join("work/active/001-one/work-item.json"),
             br#"{"id":"001","title":"Changed","status":"active","owner_scope":"governance","affected_scopes":[],"depends_on":[],"acceptance_criteria":[{"id":"AC-1","text":"prove","state":"pending","evidence":[]}],"created":"2026-01-01","updated":"2026-01-01"}"#,
@@ -2978,10 +2983,13 @@ mod tests {
         .unwrap();
         let result = plan.apply();
         assert!(!result.success);
-        assert!(result
-            .diagnostics
-            .iter()
-            .any(|diagnostic| diagnostic.code == "mutation.plan-stale"));
+        assert!(
+            result
+                .diagnostics
+                .iter()
+                .any(|diagnostic| diagnostic.code == "mutation.plan-stale"),
+            "expected mutation.plan-stale after consumed work-record drift; fixture root={root:?}; got {result:?}"
+        );
         fs::remove_dir_all(root).unwrap();
     }
 
