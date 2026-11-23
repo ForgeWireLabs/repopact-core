@@ -1,0 +1,59 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261123-080-wi076-provenance-validation",
+  "timestamp": "2026-11-23T11:36:06-06:00",
+  "work_item": "080",
+  "result": "passed",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "python -m py_compile repopact/run_conformance.py tests/test_conformance_provenance_identity.py",
+      "exit_code": 0,
+      "summary": "Both touched Python modules compiled."
+    },
+    {
+      "command": "python -m unittest discover -s tests -p test_conformance_provenance_identity.py -v",
+      "exit_code": 0,
+      "summary": "All 6 regression tests passed: default stem/embedded ID, second-resolution timestamps, explicit destination semantics, create-only explicit output, UTC/malformed timestamp handling, and existing evidence preservation."
+    },
+    {
+      "command": "cargo build --release -p repopact-engine --locked --manifest-path rust/Cargo.toml",
+      "exit_code": 0,
+      "summary": "Release engine built from clean source commit b8d55da6c033b6561c90b2be69fc56aaeb2a0aff, tree 67f7c51f91a344f719108218007c6af36ced84cc."
+    },
+    {
+      "command": "python -m repopact.run_conformance",
+      "exit_code": 0,
+      "summary": "Canonical Rust conformance 43/43 and WI050 admission corpus 8/8 passed; complete process-image provenance was recorded."
+    },
+    {
+      "command": "Validate generated evidence schema, filename/ID/timestamp identity, clean source revision, matching engine source revision and stable process-image hash",
+      "exit_code": 0,
+      "summary": "All checks passed. Filename stem and embedded ID are 20261123T172948700529Z-wi076-ac6-engine-conformance; timestamp maps exactly to the filename instant; source and engine revision match; engine SHA-256 stayed 7c040ae180d3d3813a1e1fb6ef2cac5b668ad320ac1ea17dab8441037349e5ab."
+    },
+    {
+      "command": "python -m repopact.run_conformance --provenance-out <existing generated artifact>",
+      "exit_code": 1,
+      "summary": "Expected create-only refusal: FileExistsError. SHA-256 before and after was 56B1169E0E1CDC0FE042B80D2573B61B4D1BC6AD8720360A723C9914E46D2E2C; existing artifact was unchanged."
+    }
+  ],
+  "artifacts": [
+    "evidence/runs/20261123T172948700529Z-wi076-ac6-engine-conformance.json",
+    "evidence/runs/20261123-080-provenance-tests.log",
+    "evidence/runs/20261123-080-wi076-overwrite-denial.log",
+    "evidence/runs/20261123-080-engine-exact-build.log"
+  ],
+  "environment": {
+    "platform": "Windows x86_64-pc-windows-msvc",
+    "python": "3.12.4",
+    "rustc": "1.96.0",
+    "source_revision": "b8d55da6c033b6561c90b2be69fc56aaeb2a0aff",
+    "source_tree": "67f7c51f91a344f719108218007c6af36ced84cc",
+    "source_clean_before_conformance": true,
+    "engine_path": "rust/target/release/repopact-engine.exe",
+    "engine_sha256": "7c040ae180d3d3813a1e1fb6ef2cac5b668ad320ac1ea17dab8441037349e5ab",
+    "semantic_identity": "repopact-semantic-v1:sha256:4c6581205fea24be2d56a88f6efa5da00b226a783ef407a665203d0d10f2f157",
+    "git_environment": "All inherited GIT_* variables removed from focused regression, engine build and real conformance processes.",
+    "hosted_ci_cd": "REPOPACT_GITHUB_CI and REPOPACT_GITHUB_CD were unset."
+  }
+}
