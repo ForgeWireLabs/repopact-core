@@ -288,19 +288,30 @@ def run_canonical_suite(manifest_path: Path = MANIFEST) -> tuple[list[CaseResult
     return results, payload
 
 
+def _conformance_evidence_id(timestamp: str) -> str:
+    """Create one canonical ID from the run's existing UTC record timestamp."""
+    try:
+        instant = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
+    except ValueError as exc:
+        raise ValueError("Conformance recorded_at must be ISO 8601 UTC") from exc
+    if instant.tzinfo is None or instant.utcoffset() != timezone.utc.utcoffset(instant):
+        raise ValueError("Conformance recorded_at must be timezone-aware UTC")
+    return instant.strftime("%Y%m%dT%H%M%S%fZ") + "-wi076-ac6-engine-conformance"
+
+
 def _write_provenance(payload: dict[str, object], requested: Path | None) -> Path:
+    timestamp = str(payload["recorded_at"])
+    evidence_id = _conformance_evidence_id(timestamp)
     if requested is None:
-        stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
-        destination = ROOT / "evidence" / "runs" / f"{stamp}-wi076-ac6-engine-conformance.json"
+        destination = ROOT / "evidence" / "runs" / f"{evidence_id}.json"
     else:
         destination = requested if requested.is_absolute() else Path.cwd() / requested
-    timestamp = str(payload["recorded_at"])
     evidence = {
         "$schema": Path(os.path.relpath(
             ROOT / "repopact" / "schemas" / "evidence-run.schema.json",
             destination.parent.resolve(),
         )).as_posix(),
-        "id": "wi076-ac6-engine-conformance-" + timestamp.replace(":", "").replace("-", ""),
+        "id": evidence_id,
         "timestamp": timestamp,
         "work_item": "076",
         "result": payload["result"],
@@ -329,7 +340,9 @@ def _write_provenance(payload: dict[str, object], requested: Path | None) -> Pat
     )
     jsonschema.Draft202012Validator(schema).validate(evidence)
     destination.parent.mkdir(parents=True, exist_ok=True)
-    destination.write_text(json.dumps(evidence, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    # Never rewrite earlier conformance evidence, including explicit output paths.
+    with destination.open("x", encoding="utf-8", newline="\n") as output:
+        output.write(json.dumps(evidence, indent=2, sort_keys=True) + "\n")
     return destination
 
 
