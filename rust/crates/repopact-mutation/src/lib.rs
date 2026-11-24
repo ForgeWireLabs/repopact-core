@@ -2,6 +2,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::fs::{self, File, OpenOptions};
 use std::io::Write;
 use std::path::{Path, PathBuf};
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Condvar, Mutex, OnceLock};
 use std::thread;
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
@@ -1443,18 +1444,47 @@ fn create_readme(request: &CreateWorkItem, id: &str, status: &str) -> String {
     ))
 }
 
+// Candidate plan trees are private to each invocation. Do not reuse a path
+// merely because another thread/process observed the same Windows clock tick.
+static CANDIDATE_TEMP_COUNTER: AtomicU64 = AtomicU64::new(0);
+const CANDIDATE_TEMP_COLLISION_LIMIT: usize = 64;
+
+fn create_candidate_temp_under(
+    parent: &Path,
+    stamp: u128,
+    counter: &AtomicU64,
+) -> Result<PathBuf, String> {
+    for _ in 0..CANDIDATE_TEMP_COLLISION_LIMIT {
+        let sequence = counter.fetch_add(1, Ordering::Relaxed);
+        let candidate = parent.join(format!(
+            "repopact-mutation-plan-{}-{stamp}-{sequence}",
+            std::process::id()
+        ));
+        match fs::create_dir(&candidate) {
+            Ok(()) => return Ok(candidate),
+            Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists => continue,
+            Err(error) => {
+                return Err(format!(
+                    "cannot exclusively create candidate directory {candidate:?}: {error}"
+                ));
+            }
+        }
+    }
+    Err(format!(
+        "candidate directory allocation exhausted {CANDIDATE_TEMP_COLLISION_LIMIT} attempts"
+    ))
+}
+
 fn validate_candidate(
     root: &Path,
     operations: &[PathOperation],
 ) -> Result<(String, Vec<MutationDiagnostic>), String> {
-    let temporary = std::env::temp_dir().join(format!(
-        "repopact-mutation-plan-{}",
-        SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .unwrap_or_default()
-            .as_nanos()
-    ));
-    fs::create_dir_all(&temporary).map_err(|error| error.to_string())?;
+    let stamp = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map_err(|error| format!("cannot timestamp validation candidate: {error}"))?
+        .as_nanos();
+    let temporary =
+        create_candidate_temp_under(&std::env::temp_dir(), stamp, &CANDIDATE_TEMP_COUNTER)?;
     let result = (|| {
         copy_tree(root, &temporary)?;
         for operation in operations {
@@ -1477,8 +1507,20 @@ fn validate_candidate(
             .collect();
         Ok((dashboard, diagnostics))
     })();
-    let _ = fs::remove_dir_all(&temporary);
-    result
+
+    // A cleanup failure is a real failure, even after successful validation.
+    // Do not report success while leaving a live candidate tree behind.
+    match fs::remove_dir_all(&temporary) {
+        Ok(()) => result,
+        Err(error) => match result {
+            Ok(_) => Err(format!(
+                "unable to remove validation candidate {temporary:?}: {error}"
+            )),
+            Err(cause) => Err(format!(
+                "{cause}; unable to remove validation candidate {temporary:?}: {error}"
+            )),
+        },
+    }
 }
 
 fn format_utc_timestamp(time: SystemTime) -> Result<String, String> {
@@ -2639,6 +2681,51 @@ mod tests {
         fs::write(root.join("audits/reports/dashboard.md"), "old\n").unwrap();
         let snapshot = RepositorySession::open(&root).snapshot();
         (root, snapshot)
+    }
+
+    #[test]
+    fn candidate_temp_allocation_is_exclusive_and_preserves_collisions() {
+        let scratch_counter = AtomicU64::new(0);
+        let scratch = create_fixture_root_under(
+            &std::env::temp_dir(),
+            "repopact-candidate-temp-regression",
+            &scratch_counter,
+        )
+        .unwrap();
+        let sequence = AtomicU64::new(0);
+        let stamp = 17_u128;
+        let collision = scratch.join(format!(
+            "repopact-mutation-plan-{}-{stamp}-0",
+            std::process::id()
+        ));
+        fs::create_dir(&collision).unwrap();
+        let marker = collision.join("preexisting-marker");
+        fs::write(&marker, b"must not be deleted or reused").unwrap();
+
+        let first = create_candidate_temp_under(&scratch, stamp, &sequence).unwrap();
+        let second = create_candidate_temp_under(&scratch, stamp, &sequence).unwrap();
+        assert_ne!(first, second, "concurrent same-tick candidates must differ");
+        assert_ne!(first, collision, "existing directory cannot be reused");
+        assert_ne!(second, collision, "existing directory cannot be reused");
+        assert!(marker.is_file(), "collision contents must be untouched");
+        assert_eq!(fs::read_dir(&first).unwrap().count(), 0);
+        assert_eq!(fs::read_dir(&second).unwrap().count(), 0);
+
+        let start = sequence.load(Ordering::Relaxed);
+        for candidate in start..start + CANDIDATE_TEMP_COLLISION_LIMIT as u64 {
+            fs::create_dir(scratch.join(format!(
+                "repopact-mutation-plan-{}-{stamp}-{candidate}",
+                std::process::id()
+            )))
+            .unwrap();
+        }
+        let exhausted = create_candidate_temp_under(&scratch, stamp, &sequence).unwrap_err();
+        assert!(exhausted.contains("exhausted 64 attempts"), "{exhausted}");
+        assert!(
+            marker.is_file(),
+            "allocation exhaustion cannot destroy prior evidence"
+        );
+        fs::remove_dir_all(&scratch).unwrap();
     }
 
     #[test]

@@ -1,0 +1,31 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261124-080-pr21-candidate-temp-repro",
+  "timestamp": "2026-11-24T03:39:29.483Z",
+  "work_item": "080",
+  "result": "passed",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "cargo test --manifest-path rust/Cargo.toml -p repopact-mutation tests::timestamp_only_candidate_reuse_and_cleanup_can_report_scope_missing -- --exact --nocapture (temporary test-only probe in disposable checkout at PR #20 base)",
+      "exit_code": 0,
+      "summary": "Deterministic old-path reuse succeeded on an occupied nonempty directory; modeled cleanup after snapshot creation produced audit-registry.scope-missing in the actual validator. This proves the mechanism can emit the diagnostic, not historical causality."
+    }
+  ],
+  "artifacts": [
+    "evidence/WI080-PR21-candidate-temp-reproduction.md",
+    "rust/crates/repopact-mutation/src/lib.rs"
+  ],
+  "environment": {
+    "platform": "windows",
+    "windows_build": "10.0.19045.0",
+    "rustc": "1.96.0 (ac68faa20 2026-05-25)",
+    "cargo": "1.96.0 (30a34c682 2026-05-25)",
+    "pre_fix_source_revision": "94924281c929e7a4ec5da42c42638624c6259725",
+    "execution": "detached disposable worktree; temporary source probe restored after test",
+    "scratch_and_cargo_target": "inside the disposable worktree; no user-owned temp paths used",
+    "fixed_stamp": "424242",
+    "actual_validate_candidate_concurrency": "not exercised; the old allocation primitive and cleanup interleaving were modeled deterministically",
+    "historical_consumed_work_record_causality": "not established"
+  }
+}
