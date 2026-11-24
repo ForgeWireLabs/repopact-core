@@ -1,0 +1,8 @@
+SOURCE_HEAD=ae5fe1686a91d4a05d41430ed40493a19039aec7
+SOURCE_TREE=
+c4e58109a974a21dca7046f174e3a5abb88f33d3
+CARGO_TARGET_DIR=unset (default rust/target)
+REMOVED_ENV_NAMES=
+   Compiling repopact-engine v0.1.0 (C:\Projects\repopact-wi081-20261124\rust\apps\repopact-engine)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 4.09s
+CARGO_BUILD_EXIT=0

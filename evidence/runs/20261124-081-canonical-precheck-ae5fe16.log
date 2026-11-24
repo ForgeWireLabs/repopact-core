@@ -1,0 +1,15 @@
+SOURCE_HEAD=ae5fe1686a91d4a05d41430ed40493a19039aec7
+SOURCE_TREE=
+c4e58109a974a21dca7046f174e3a5abb88f33d3
+ENGINE=C:\Projects\repopact-wi081-20261124\rust\target\debug\repopact-engine.exe
+REMOVED_ENV_NAMES=
+Semantic input manifest is current.
+{
+  "documentation_digest": "1fc2acdea4d2217eb53a8e8c23388bed705be45b26b56ae90a203d4807491ace",
+  "source_digest": "e3ca0ac3d55fbdfe41ee7acd36815a06766996f4c6b7d77dc2f45e0e4cbadd91"
+}
+ERROR [dashboard.stale] audits/reports/dashboard.md: generated dashboard is stale; run `repopact dashboard --root .` and commit the result
+
+Validation failed with 1 error(s).
+No frozen-surface changes detected.
+SEMANTIC_EXIT=0; SNAPSHOT_EXIT=0; VALIDATE_EXIT=1; FROZEN_EXIT=0
