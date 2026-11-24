@@ -18,6 +18,32 @@ Reference: [PR #21](https://github.com/ForgeWireLabs/repopact-core/pull/21) and 
 
 **D. Canonical local verification.** Run focused negatives and positives followed by Python suite, locked Rust workspace, matching-source conformance, canonical `repopact verify ci`, `repopact validate`, semantic identity check, documentation mappings, frozen-surface and `git diff --check`. Preserve both original and new evidence and clearly identify exact tested source SHA/tree.
 
+## Local storage tooling
+
+`python scripts/local_validation_storage.py --root . inventory` measures the
+known Cargo targets, Python build/venv directories, immutable evidence and Git
+registered worktrees with bounded traversal. `preflight` checks the repository
+and active Cargo target volumes before CI; the default minimum is 12 GiB free
+per volume. The command records no file contents beyond exact hashes when a
+new tool-owned Cargo target is explicitly sealed.
+
+Cleanup commands are dry-run by default. `create-target` and `create-worktree`
+only register paths they create themselves in a repository-common-dir
+ownership manifest under `.git`. `seal-target` captures a bounded exact file
+inventory. `cleanup-target` requires that inventory to remain exact;
+`cleanup-worktree` requires the registered detached commit, a clean checkout,
+no ignored/untracked user files, and a bounded size. Pass `--apply` only for a
+path shown by the ownership registry and a successful dry-run. Unknown paths,
+symlinks/junctions, dirty checkouts, changed build outputs and all paths under
+`evidence/` are refused. No automatic deletion or host-wide temporary cleanup
+is performed.
+
+Evidence-backed `repopact verify ci` writes a fixed-size in-progress marker
+before starting and bounded completed-step tails as the profile runs. An
+interruption, storage failure, short output write or failed evidence write
+returns exit code 2 and leaves status incomplete. Immutable prior run records
+are not rewritten.
+
 ## Boundaries
 
 Local CI mandatory through December 1, 2026 inclusive; no automatic hosted enablement, no release, no publication. WI079 draft PR #18 requires a separate conflict-aware rebase against newly merged `main`; avoid touching that branch as part of WI081. No claim that historical WI080 intermittency was explained by a newly identified environmental or storage issue.

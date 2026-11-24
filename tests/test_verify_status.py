@@ -17,6 +17,52 @@ class VerifyStatusTests(unittest.TestCase):
         self.assertTrue(status["local_verification"]["contract_present"])
         self.assertEqual(status["local_verification"]["default_profile"], "quick")
 
+    def test_unfinished_capture_overrides_effective_status_to_incomplete(self) -> None:
+        progress = self.root / "evidence" / "runs" / ".in-progress"
+        progress.mkdir(parents=True)
+        (progress / "20261124-test.state.json").write_text(
+            json.dumps(
+                {
+                    "id": "20261124-test",
+                    "work_item": "081",
+                    "profile": "ci",
+                    "status": "partial",
+                    "phase": "running",
+                    "diagnostic": "run was interrupted",
+                    "capture_log": "evidence/runs/.in-progress/20261124-test.steps.jsonl.partial",
+                }
+            ),
+            encoding="utf-8",
+        )
+        status = verify_status.build_status(self.root)
+        local = status["local_verification"]
+        self.assertEqual("incomplete", local["effective_status"])
+        self.assertEqual(1, len(local["incomplete_captures"]))
+        self.assertEqual("running", local["incomplete_captures"][0]["phase"])
+
+    def test_unfinished_capture_overrides_effective_status_to_incomplete(self) -> None:
+        progress = self.root / "evidence" / "runs" / ".in-progress"
+        progress.mkdir(parents=True)
+        (progress / "20261124-test.state.json").write_text(
+            json.dumps(
+                {
+                    "id": "20261124-test",
+                    "work_item": "081",
+                    "profile": "ci",
+                    "status": "partial",
+                    "phase": "running",
+                    "diagnostic": "run was interrupted",
+                    "capture_log": "evidence/runs/.in-progress/20261124-test.steps.jsonl.partial",
+                }
+            ),
+            encoding="utf-8",
+        )
+        status = verify_status.build_status(self.root)
+        local = status["local_verification"]
+        self.assertEqual("incomplete", local["effective_status"])
+        self.assertEqual(1, len(local["incomplete_captures"]))
+        self.assertEqual("running", local["incomplete_captures"][0]["phase"])
+
     def test_no_remote_call_is_ever_made_and_hosted_state_is_unknown(self) -> None:
         status = verify_status.build_status(self.root)
         for section in ("hosted_ci", "hosted_cd"):

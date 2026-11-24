@@ -1,0 +1,21 @@
+GIT_ENV_NAMES_REMOVED=GIT_CONFIG_COUNT,GIT_CONFIG_KEY_0,GIT_CONFIG_KEY_1,GIT_CONFIG_KEY_2,GIT_CONFIG_KEY_3,GIT_CONFIG_KEY_4,GIT_CONFIG_KEY_5,GIT_CONFIG_KEY_6,GIT_CONFIG_KEY_7,GIT_CONFIG_KEY_8,GIT_CONFIG_KEY_9,GIT_CONFIG_VALUE_0,GIT_CONFIG_VALUE_1,GIT_CONFIG_VALUE_2,GIT_CONFIG_VALUE_3,GIT_CONFIG_VALUE_4,GIT_CONFIG_VALUE_5,GIT_CONFIG_VALUE_6,GIT_CONFIG_VALUE_7,GIT_CONFIG_VALUE_8,GIT_CONFIG_VALUE_9,GIT_INSTALL_ROOT,GIT_PAGER
+CARGO_TARGET_DIR=C:\Projects\repopact-wi081-external-target-repro-20261124
+test_sdist_accepts_maturin_pruned_workspace_manifest_projection (tests.test_engine_package_identity.SyntheticPackageArchiveTests.test_sdist_accepts_maturin_pruned_workspace_manifest_projection) ... ok
+test_sdist_rejects_missing_and_modified_source_members (tests.test_engine_package_identity.SyntheticPackageArchiveTests.test_sdist_rejects_missing_and_modified_source_members) ... ok
+test_sdist_rejects_unexpected_paths_collisions_and_links (tests.test_engine_package_identity.SyntheticPackageArchiveTests.test_sdist_rejects_unexpected_paths_collisions_and_links) ... ok
+test_source_accepts_matching_external_cargo_target_dir (tests.test_engine_package_identity.SyntheticPackageArchiveTests.test_source_accepts_matching_external_cargo_target_dir) ... ok
+test_source_anchors_current_version_protocol_and_identity (tests.test_engine_package_identity.SyntheticPackageArchiveTests.test_source_anchors_current_version_protocol_and_identity) ... ok
+test_source_rejects_mismatched_external_cargo_target_dir (tests.test_engine_package_identity.SyntheticPackageArchiveTests.test_source_rejects_mismatched_external_cargo_target_dir) ... ok
+test_wheel_accepts_complete_closed_inventory_and_record (tests.test_engine_package_identity.SyntheticPackageArchiveTests.test_wheel_accepts_complete_closed_inventory_and_record) ... ok
+test_wheel_checks_both_executable_digests_before_probe (tests.test_engine_package_identity.SyntheticPackageArchiveTests.test_wheel_checks_both_executable_digests_before_probe) ... ok
+test_wheel_rejects_extra_installation_files_and_unsafe_names (tests.test_engine_package_identity.SyntheticPackageArchiveTests.test_wheel_rejects_extra_installation_files_and_unsafe_names) ... C:\Program Files\Python312\Lib\zipfile\__init__.py:1607: UserWarning: Duplicate name: 'repopact/engine_client.py'
+  return self._open_to_write(zinfo, force_zip64=force_zip64)
+ok
+test_wheel_rejects_missing_or_changed_manifest_and_metadata_members (tests.test_engine_package_identity.SyntheticPackageArchiveTests.test_wheel_rejects_missing_or_changed_manifest_and_metadata_members) ... ok
+test_wheel_rejects_protocol_and_semantic_handshake_mismatch (tests.test_engine_package_identity.SyntheticPackageArchiveTests.test_wheel_rejects_protocol_and_semantic_handshake_mismatch) ... ok
+
+----------------------------------------------------------------------
+Ran 11 tests in 2.895s
+
+OK
+PYTHON_TEST_EXIT=0

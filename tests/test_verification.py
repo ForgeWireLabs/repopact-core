@@ -83,6 +83,55 @@ class VerificationRunnerTests(unittest.TestCase):
         self.assertTrue(report.coverage.satisfied)
         self.assertTrue(report.coverage.all_declared_executed)
 
+    def test_output_capture_failure_changes_result_to_error(self):
+        root = self.make_root(
+            self.config(
+                [
+                    {
+                        "id": "probe",
+                        "argv": ["{python}", "-c", "print('verified')"],
+                        "required": True,
+                    }
+                ]
+            )
+        )
+
+        def fail_capture(_step):
+            raise OSError("simulated disk full")
+
+        report = verification.run_profile(root, "test", progress_callback=fail_capture)
+        self.assertEqual("error", report.status)
+        self.assertEqual(2, report.exit_code)
+        self.assertEqual("passed", report.steps[0].status)
+        self.assertEqual("output-capture", report.steps[1].id)
+        self.assertEqual("error", report.steps[1].status)
+        self.assertIn("simulated disk full", report.steps[1].summary)
+
+    def test_ci_storage_preflight_marks_every_step_incomplete_without_running(self):
+        config = self.config(
+            [
+                {
+                    "id": "must-not-run",
+                    "argv": ["{python}", "-c", "raise SystemExit(99)"],
+                    "required": True,
+                }
+            ]
+        )
+        config["profiles"]["ci"] = config["profiles"].pop("test")
+        config["default_profile"] = "ci"
+        root = self.make_root(config)
+        with unittest.mock.patch(
+            "repopact.local_storage.disk_preflight",
+            return_value={"ready": False, "diagnostic": "fixture has insufficient space", "volumes": []},
+        ):
+            report = verification.run_profile(root, "ci")
+        self.assertEqual("incomplete", report.status)
+        self.assertEqual(2, report.exit_code)
+        self.assertEqual("unavailable", report.steps[0].status)
+        self.assertIn("fixture has insufficient space", report.steps[0].summary)
+        self.assertEqual(1, report.coverage.required_unavailable)
+        self.assertFalse(report.coverage.satisfied)
+
     def test_required_nonzero_is_failure(self):
         root = self.make_root(
             self.config(
@@ -353,6 +402,7 @@ class VerificationRunnerTests(unittest.TestCase):
         self.assertEqual("test", record["environment"]["verification"]["profile"])
         self.assertTrue(record["environment"]["verification"]["coverage"]["satisfied"])
         self.assertIn("candidate", record["environment"])
+        self.assertIn("candidate_at_start", record["environment"])
         self.assertEqual(1, len(record["commands"]))
 
     def test_record_evidence_is_immutable_and_does_not_invent_missing_work(self):
@@ -367,6 +417,7 @@ class VerificationRunnerTests(unittest.TestCase):
                 "046",
                 evidence_id="20260912-missing-work",
                 refresh_dashboard=False,
+                client=unittest.mock.Mock(),
             )
         self.add_work_item(root)
         path = verification.record_evidence(
@@ -375,6 +426,7 @@ class VerificationRunnerTests(unittest.TestCase):
             "046",
             evidence_id="20260912-local-profile",
             refresh_dashboard=False,
+            client=unittest.mock.Mock(),
         )
         self.assertEqual("evidence/runs/20260912-local-profile.json", path)
         with self.assertRaises(verification.VerificationConfigError):
@@ -384,6 +436,7 @@ class VerificationRunnerTests(unittest.TestCase):
                 "046",
                 evidence_id="20260912-local-profile",
                 refresh_dashboard=False,
+                client=unittest.mock.Mock(),
             )
 
     def test_dashboard_refresh_failure_rolls_back_new_evidence(self):
@@ -406,6 +459,7 @@ class VerificationRunnerTests(unittest.TestCase):
                     "046",
                     evidence_id="20260912-rollback-case",
                     refresh_dashboard=True,
+                    client=unittest.mock.Mock(),
                 )
         self.assertFalse((root / "evidence" / "runs" / "20260912-rollback-case.json").exists())
         self.assertEqual(b"prior dashboard content\n", dashboard.read_bytes())

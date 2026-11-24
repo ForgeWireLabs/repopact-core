@@ -1,0 +1,140 @@
+test_sdist_accepts_maturin_pruned_workspace_manifest_projection (tests.test_engine_package_identity.SyntheticPackageArchiveTests.test_sdist_accepts_maturin_pruned_workspace_manifest_projection) ... ERROR
+test_sdist_rejects_missing_and_modified_source_members (tests.test_engine_package_identity.SyntheticPackageArchiveTests.test_sdist_rejects_missing_and_modified_source_members) ... ERROR
+test_sdist_rejects_unexpected_paths_collisions_and_links (tests.test_engine_package_identity.SyntheticPackageArchiveTests.test_sdist_rejects_unexpected_paths_collisions_and_links) ... ERROR
+test_source_anchors_current_version_protocol_and_identity (tests.test_engine_package_identity.SyntheticPackageArchiveTests.test_source_anchors_current_version_protocol_and_identity) ... ERROR
+test_wheel_accepts_complete_closed_inventory_and_record (tests.test_engine_package_identity.SyntheticPackageArchiveTests.test_wheel_accepts_complete_closed_inventory_and_record) ... ERROR
+test_wheel_checks_both_executable_digests_before_probe (tests.test_engine_package_identity.SyntheticPackageArchiveTests.test_wheel_checks_both_executable_digests_before_probe) ... ERROR
+test_wheel_rejects_extra_installation_files_and_unsafe_names (tests.test_engine_package_identity.SyntheticPackageArchiveTests.test_wheel_rejects_extra_installation_files_and_unsafe_names) ... ERROR
+test_wheel_rejects_missing_or_changed_manifest_and_metadata_members (tests.test_engine_package_identity.SyntheticPackageArchiveTests.test_wheel_rejects_missing_or_changed_manifest_and_metadata_members) ... ERROR
+test_wheel_rejects_protocol_and_semantic_handshake_mismatch (tests.test_engine_package_identity.SyntheticPackageArchiveTests.test_wheel_rejects_protocol_and_semantic_handshake_mismatch) ... ERROR
+
+======================================================================
+ERROR: test_sdist_accepts_maturin_pruned_workspace_manifest_projection (tests.test_engine_package_identity.SyntheticPackageArchiveTests.test_sdist_accepts_maturin_pruned_workspace_manifest_projection)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Projects\repopact-wi081-pr21-failure-repro-20261124\tests\test_engine_package_identity.py", line 213, in setUp
+    self.source = _source_package(self.root, metadata_path, SOURCE_REVISION)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Projects\repopact-wi081-pr21-failure-repro-20261124\scripts\verify_engine_package_identity.py", line 474, in _source_package
+    ) = _cargo_model(root, cargo_metadata, project["tool"]["maturin"]["manifest-path"])
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Projects\repopact-wi081-pr21-failure-repro-20261124\scripts\verify_engine_package_identity.py", line 432, in _cargo_model
+    raise ArchiveIdentityError(
+verify_engine_package_identity.ArchiveIdentityError: Cargo metadata target directory differs from the active CARGO_TARGET_DIR
+
+======================================================================
+ERROR: test_sdist_rejects_missing_and_modified_source_members (tests.test_engine_package_identity.SyntheticPackageArchiveTests.test_sdist_rejects_missing_and_modified_source_members)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Projects\repopact-wi081-pr21-failure-repro-20261124\tests\test_engine_package_identity.py", line 213, in setUp
+    self.source = _source_package(self.root, metadata_path, SOURCE_REVISION)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Projects\repopact-wi081-pr21-failure-repro-20261124\scripts\verify_engine_package_identity.py", line 474, in _source_package
+    ) = _cargo_model(root, cargo_metadata, project["tool"]["maturin"]["manifest-path"])
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Projects\repopact-wi081-pr21-failure-repro-20261124\scripts\verify_engine_package_identity.py", line 432, in _cargo_model
+    raise ArchiveIdentityError(
+verify_engine_package_identity.ArchiveIdentityError: Cargo metadata target directory differs from the active CARGO_TARGET_DIR
+
+======================================================================
+ERROR: test_sdist_rejects_unexpected_paths_collisions_and_links (tests.test_engine_package_identity.SyntheticPackageArchiveTests.test_sdist_rejects_unexpected_paths_collisions_and_links)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Projects\repopact-wi081-pr21-failure-repro-20261124\tests\test_engine_package_identity.py", line 213, in setUp
+    self.source = _source_package(self.root, metadata_path, SOURCE_REVISION)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Projects\repopact-wi081-pr21-failure-repro-20261124\scripts\verify_engine_package_identity.py", line 474, in _source_package
+    ) = _cargo_model(root, cargo_metadata, project["tool"]["maturin"]["manifest-path"])
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Projects\repopact-wi081-pr21-failure-repro-20261124\scripts\verify_engine_package_identity.py", line 432, in _cargo_model
+    raise ArchiveIdentityError(
+verify_engine_package_identity.ArchiveIdentityError: Cargo metadata target directory differs from the active CARGO_TARGET_DIR
+
+======================================================================
+ERROR: test_source_anchors_current_version_protocol_and_identity (tests.test_engine_package_identity.SyntheticPackageArchiveTests.test_source_anchors_current_version_protocol_and_identity)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Projects\repopact-wi081-pr21-failure-repro-20261124\tests\test_engine_package_identity.py", line 213, in setUp
+    self.source = _source_package(self.root, metadata_path, SOURCE_REVISION)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Projects\repopact-wi081-pr21-failure-repro-20261124\scripts\verify_engine_package_identity.py", line 474, in _source_package
+    ) = _cargo_model(root, cargo_metadata, project["tool"]["maturin"]["manifest-path"])
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Projects\repopact-wi081-pr21-failure-repro-20261124\scripts\verify_engine_package_identity.py", line 432, in _cargo_model
+    raise ArchiveIdentityError(
+verify_engine_package_identity.ArchiveIdentityError: Cargo metadata target directory differs from the active CARGO_TARGET_DIR
+
+======================================================================
+ERROR: test_wheel_accepts_complete_closed_inventory_and_record (tests.test_engine_package_identity.SyntheticPackageArchiveTests.test_wheel_accepts_complete_closed_inventory_and_record)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Projects\repopact-wi081-pr21-failure-repro-20261124\tests\test_engine_package_identity.py", line 213, in setUp
+    self.source = _source_package(self.root, metadata_path, SOURCE_REVISION)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Projects\repopact-wi081-pr21-failure-repro-20261124\scripts\verify_engine_package_identity.py", line 474, in _source_package
+    ) = _cargo_model(root, cargo_metadata, project["tool"]["maturin"]["manifest-path"])
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Projects\repopact-wi081-pr21-failure-repro-20261124\scripts\verify_engine_package_identity.py", line 432, in _cargo_model
+    raise ArchiveIdentityError(
+verify_engine_package_identity.ArchiveIdentityError: Cargo metadata target directory differs from the active CARGO_TARGET_DIR
+
+======================================================================
+ERROR: test_wheel_checks_both_executable_digests_before_probe (tests.test_engine_package_identity.SyntheticPackageArchiveTests.test_wheel_checks_both_executable_digests_before_probe)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Projects\repopact-wi081-pr21-failure-repro-20261124\tests\test_engine_package_identity.py", line 213, in setUp
+    self.source = _source_package(self.root, metadata_path, SOURCE_REVISION)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Projects\repopact-wi081-pr21-failure-repro-20261124\scripts\verify_engine_package_identity.py", line 474, in _source_package
+    ) = _cargo_model(root, cargo_metadata, project["tool"]["maturin"]["manifest-path"])
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Projects\repopact-wi081-pr21-failure-repro-20261124\scripts\verify_engine_package_identity.py", line 432, in _cargo_model
+    raise ArchiveIdentityError(
+verify_engine_package_identity.ArchiveIdentityError: Cargo metadata target directory differs from the active CARGO_TARGET_DIR
+
+======================================================================
+ERROR: test_wheel_rejects_extra_installation_files_and_unsafe_names (tests.test_engine_package_identity.SyntheticPackageArchiveTests.test_wheel_rejects_extra_installation_files_and_unsafe_names)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Projects\repopact-wi081-pr21-failure-repro-20261124\tests\test_engine_package_identity.py", line 213, in setUp
+    self.source = _source_package(self.root, metadata_path, SOURCE_REVISION)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Projects\repopact-wi081-pr21-failure-repro-20261124\scripts\verify_engine_package_identity.py", line 474, in _source_package
+    ) = _cargo_model(root, cargo_metadata, project["tool"]["maturin"]["manifest-path"])
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Projects\repopact-wi081-pr21-failure-repro-20261124\scripts\verify_engine_package_identity.py", line 432, in _cargo_model
+    raise ArchiveIdentityError(
+verify_engine_package_identity.ArchiveIdentityError: Cargo metadata target directory differs from the active CARGO_TARGET_DIR
+
+======================================================================
+ERROR: test_wheel_rejects_missing_or_changed_manifest_and_metadata_members (tests.test_engine_package_identity.SyntheticPackageArchiveTests.test_wheel_rejects_missing_or_changed_manifest_and_metadata_members)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Projects\repopact-wi081-pr21-failure-repro-20261124\tests\test_engine_package_identity.py", line 213, in setUp
+    self.source = _source_package(self.root, metadata_path, SOURCE_REVISION)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Projects\repopact-wi081-pr21-failure-repro-20261124\scripts\verify_engine_package_identity.py", line 474, in _source_package
+    ) = _cargo_model(root, cargo_metadata, project["tool"]["maturin"]["manifest-path"])
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Projects\repopact-wi081-pr21-failure-repro-20261124\scripts\verify_engine_package_identity.py", line 432, in _cargo_model
+    raise ArchiveIdentityError(
+verify_engine_package_identity.ArchiveIdentityError: Cargo metadata target directory differs from the active CARGO_TARGET_DIR
+
+======================================================================
+ERROR: test_wheel_rejects_protocol_and_semantic_handshake_mismatch (tests.test_engine_package_identity.SyntheticPackageArchiveTests.test_wheel_rejects_protocol_and_semantic_handshake_mismatch)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Projects\repopact-wi081-pr21-failure-repro-20261124\tests\test_engine_package_identity.py", line 213, in setUp
+    self.source = _source_package(self.root, metadata_path, SOURCE_REVISION)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Projects\repopact-wi081-pr21-failure-repro-20261124\scripts\verify_engine_package_identity.py", line 474, in _source_package
+    ) = _cargo_model(root, cargo_metadata, project["tool"]["maturin"]["manifest-path"])
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Projects\repopact-wi081-pr21-failure-repro-20261124\scripts\verify_engine_package_identity.py", line 432, in _cargo_model
+    raise ArchiveIdentityError(
+verify_engine_package_identity.ArchiveIdentityError: Cargo metadata target directory differs from the active CARGO_TARGET_DIR
+
+----------------------------------------------------------------------
+Ran 9 tests in 1.616s
+
+FAILED (errors=9)

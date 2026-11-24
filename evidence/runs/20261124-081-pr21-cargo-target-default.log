@@ -1,0 +1,16 @@
+test_sdist_accepts_maturin_pruned_workspace_manifest_projection (tests.test_engine_package_identity.SyntheticPackageArchiveTests.test_sdist_accepts_maturin_pruned_workspace_manifest_projection) ... ok
+test_sdist_rejects_missing_and_modified_source_members (tests.test_engine_package_identity.SyntheticPackageArchiveTests.test_sdist_rejects_missing_and_modified_source_members) ... ok
+test_sdist_rejects_unexpected_paths_collisions_and_links (tests.test_engine_package_identity.SyntheticPackageArchiveTests.test_sdist_rejects_unexpected_paths_collisions_and_links) ... ok
+test_source_anchors_current_version_protocol_and_identity (tests.test_engine_package_identity.SyntheticPackageArchiveTests.test_source_anchors_current_version_protocol_and_identity) ... ok
+test_wheel_accepts_complete_closed_inventory_and_record (tests.test_engine_package_identity.SyntheticPackageArchiveTests.test_wheel_accepts_complete_closed_inventory_and_record) ... ok
+test_wheel_checks_both_executable_digests_before_probe (tests.test_engine_package_identity.SyntheticPackageArchiveTests.test_wheel_checks_both_executable_digests_before_probe) ... ok
+test_wheel_rejects_extra_installation_files_and_unsafe_names (tests.test_engine_package_identity.SyntheticPackageArchiveTests.test_wheel_rejects_extra_installation_files_and_unsafe_names) ... C:\Program Files\Python312\Lib\zipfile\__init__.py:1607: UserWarning: Duplicate name: 'repopact/engine_client.py'
+  return self._open_to_write(zinfo, force_zip64=force_zip64)
+ok
+test_wheel_rejects_missing_or_changed_manifest_and_metadata_members (tests.test_engine_package_identity.SyntheticPackageArchiveTests.test_wheel_rejects_missing_or_changed_manifest_and_metadata_members) ... ok
+test_wheel_rejects_protocol_and_semantic_handshake_mismatch (tests.test_engine_package_identity.SyntheticPackageArchiveTests.test_wheel_rejects_protocol_and_semantic_handshake_mismatch) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 2.526s
+
+OK
