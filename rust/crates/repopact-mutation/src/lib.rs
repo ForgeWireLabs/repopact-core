@@ -1483,11 +1483,8 @@ fn validate_candidate(
         .duration_since(UNIX_EPOCH)
         .map_err(|error| format!("cannot timestamp validation candidate: {error}"))?
         .as_nanos();
-    let temporary = create_candidate_temp_under(
-        &std::env::temp_dir(),
-        stamp,
-        &CANDIDATE_TEMP_COUNTER,
-    )?;
+    let temporary =
+        create_candidate_temp_under(&std::env::temp_dir(), stamp, &CANDIDATE_TEMP_COUNTER)?;
     let result = (|| {
         copy_tree(root, &temporary)?;
         for operation in operations {
@@ -2724,7 +2721,10 @@ mod tests {
         }
         let exhausted = create_candidate_temp_under(&scratch, stamp, &sequence).unwrap_err();
         assert!(exhausted.contains("exhausted 64 attempts"), "{exhausted}");
-        assert!(marker.is_file(), "allocation exhaustion cannot destroy prior evidence");
+        assert!(
+            marker.is_file(),
+            "allocation exhaustion cannot destroy prior evidence"
+        );
         fs::remove_dir_all(&scratch).unwrap();
     }
 

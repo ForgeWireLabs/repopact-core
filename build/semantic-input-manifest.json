@@ -932,7 +932,7 @@
     },
     {
       "path": "rust/crates/repopact-mutation/src/lib.rs",
-      "sha256": "608ce135033b116c931befa8bbdf1344ae20d5ddaff9e3ff898cf2d31aefd8e3"
+      "sha256": "f7f71455172430c18cb1e7083e550b3244a78bf7d6e6f9b60dcbddbbf825856c"
     },
     {
       "path": "rust/crates/repopact-mutation/tests/fixtures/edit/after/work-item.json",
@@ -1035,5 +1035,5 @@
       "sha256": "568ee233f91fcfc6afad4dfdb4fd6cbadd2761f0b795d91a089030c3b0b0bbb3"
     }
   ],
-  "semantic_identity": "repopact-semantic-v1:sha256:a9963fca3a41d1d67ea85aae1188ba8afecb1382a43d84e08e86d547490cd826"
+  "semantic_identity": "repopact-semantic-v1:sha256:e2db06591d5cd1f82839cfa136a31e1fbc3870d88034fc1b0fd24e5708544cc3"
 }
