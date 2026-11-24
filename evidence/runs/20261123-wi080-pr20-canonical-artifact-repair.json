@@ -1,0 +1,50 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261123-wi080-pr20-canonical-artifact-repair",
+  "timestamp": "2026-11-24T01:50:09Z",
+  "work_item": "080",
+  "result": "partial",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "python -m repopact.cli validate --root . (before generated-state repair)",
+      "exit_code": 1,
+      "summary": "Canonical validation reported dashboard.stale and documentation.mapping-stale for engine-semantic-compatibility. The guide docs/guides/packaging-and-engine.md was reviewed and remains accurate; the mapped source digest changed because the semantic identity manifests now include the PR source."
+    },
+    {
+      "command": "python -m repopact.cli documentation snapshot engine-semantic-compatibility --root .",
+      "exit_code": 0,
+      "summary": "After reviewing the mapped guide, the canonical snapshot returned documentation_digest 1fc2acdea4d2217eb53a8e8c23388bed705be45b26b56ae90a203d4807491ace and source_digest f2d47bdcbf5c568f627f443bd943fc253a73fb7c395d04f5832fb7526a661617. Only the source digest required updating."
+    },
+    {
+      "command": "python -m repopact.cli dashboard --root .",
+      "exit_code": 0,
+      "summary": "Regenerated audits/reports/dashboard.md with the canonical engine."
+    },
+    {
+      "command": "python scripts/generate_engine_semantic_identity.py --check; python -m repopact.cli validate --root .",
+      "exit_code": 0,
+      "summary": "Semantic input manifest is current and canonical RepoPact validation passed. Engine build metadata reports source_revision 59f70aee4ec455f4f7ce3b97d9a929eca9b1661f, target x86_64-pc-windows-msvc, profile release, and matching semantic identity."
+    }
+  ],
+  "artifacts": [
+    "governance/documentation-mappings.json",
+    "audits/reports/dashboard.md",
+    "build/semantic-input-manifest.json",
+    "repopact/_semantic-input-manifest.json",
+    "repopact/_semantic_identity.json"
+  ],
+  "environment": {
+    "platform": "Windows x86_64-pc-windows-msvc",
+    "source_revision": "59f70aee4ec455f4f7ce3b97d9a929eca9b1661f",
+    "engine_sha256": "f5dcae537eff24b8dc182fec80943472dc78be52fa939162bc006a25e9ca4621",
+    "engine_profile": "release",
+    "rustc_version": "rustc 1.96.0 (ac68faa20 2026-05-25)",
+    "python_version": "3.12.4",
+    "hosted_ci_cd": "unset",
+    "inherited_git_variables": "23 names removed from subprocess; values not recorded",
+    "dashboard_regenerated": true,
+    "documentation_review": "docs/guides/packaging-and-engine.md reviewed; no prose change was warranted because the changed input was test-only diagnostics plus semantic identity refresh; mapping now records canonical current digests.",
+    "remaining_wi080_disposition": "AC-6 and AC-10 remain blocked on unresolved intermittent mutation failure; this artifact repair does not close them."
+  }
+}
