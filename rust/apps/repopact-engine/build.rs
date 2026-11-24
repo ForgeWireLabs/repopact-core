@@ -162,10 +162,16 @@ fn check_semantic_manifest(root: &PathBuf, manifest_path: &PathBuf, identity_pat
             if let Some(path) = entry["path"].as_str() {
                 match path {
                     "@projection/pyproject-semantic-build-config.json" => {
-                        println!("cargo:rerun-if-changed={}", root.join("pyproject.toml").display());
+                        println!(
+                            "cargo:rerun-if-changed={}",
+                            root.join("pyproject.toml").display()
+                        );
                     }
                     "@projection/rust-workspace-manifest.json" => {
-                        println!("cargo:rerun-if-changed={}", root.join("rust/Cargo.toml").display());
+                        println!(
+                            "cargo:rerun-if-changed={}",
+                            root.join("rust/Cargo.toml").display()
+                        );
                     }
                     projection if projection.starts_with('@') => {
                         panic!("unsupported semantic input projection: {projection}");
