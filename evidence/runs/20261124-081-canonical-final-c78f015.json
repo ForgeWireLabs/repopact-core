@@ -1,0 +1,76 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261124-081-canonical-final-c78f015",
+  "timestamp": "2026-11-24T22:44:47.542796Z",
+  "work_item": "081",
+  "result": "passed",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "exit_code": 0,
+      "summary": "semantic input manifest current",
+      "command": "python scripts/generate_engine_semantic_identity.py --check"
+    },
+    {
+      "exit_code": 0,
+      "summary": "documentation source and content digests match reviewed mapping",
+      "command": "python -m repopact.cli documentation snapshot engine-semantic-compatibility --root ."
+    },
+    {
+      "exit_code": 0,
+      "summary": "dashboard generated canonically",
+      "command": "python -m repopact.cli dashboard --root ."
+    },
+    {
+      "exit_code": 0,
+      "summary": "repository governance validation passed",
+      "command": "python -m repopact.cli validate --root ."
+    },
+    {
+      "exit_code": 0,
+      "summary": "no frozen-surface changes detected",
+      "command": "python -m repopact.cli check-frozen --root . --base origin/main"
+    },
+    {
+      "exit_code": 0,
+      "summary": "Rust formatting passed",
+      "command": "cargo fmt --all --manifest-path rust/Cargo.toml -- --check"
+    },
+    {
+      "exit_code": 0,
+      "summary": "no whitespace errors",
+      "command": "git diff --check"
+    },
+    {
+      "summary": "final dashboard reflects satisfied AC-7 and registered evidence record",
+      "exit_code": 0,
+      "command": "python -m repopact.cli dashboard --root . (after AC-7 evidence reconciliation)"
+    },
+    {
+      "summary": "final governance validation passed",
+      "exit_code": 0,
+      "command": "python -m repopact.cli validate --root . (after final dashboard regeneration)"
+    }
+  ],
+  "artifacts": [
+    "evidence/runs/20261124-081-canonical-reconcile-c78f015.log",
+    "build/semantic-input-manifest.json",
+    "repopact/_semantic-input-manifest.json",
+    "repopact/_semantic_identity.json",
+    "governance/documentation-mappings.json",
+    "audits/reports/dashboard.md",
+    "evidence/runs/20261124-081-canonical-final-status-c78f015.log"
+  ],
+  "environment": {
+    "hosted_ci": "disabled",
+    "platform": "windows",
+    "hosted_cd": "disabled",
+    "candidate": {
+      "commit": "c78f0159a13effe84623d4be4296c079af19a95b",
+      "tree": "e42775414a41db90b69000813a31aa8edd4b04b4",
+      "dirty": true
+    },
+    "engine": "rust/target/debug/repopact-engine.exe",
+    "executor": "local"
+  }
+}

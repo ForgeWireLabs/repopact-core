@@ -58,4 +58,4 @@ Local CI mandatory through December 1, 2026 inclusive; no automatic hosted enabl
 
 ## Completion
 
-All eight acceptance criteria in `work-item.json` require linked concrete evidence, review and operator decision. Do not mark completed based on work-item registration or a subsequent passing rerun.
+AC-1 through AC-7 have linked concrete evidence. AC-8 remains pending the operator's explicit Workbench/Fabric integration decision. Keep WI081 active until that human-only gate is resolved; the passing local profiles do not waive the original failed run or close WI080's historical Rust uncertainty.

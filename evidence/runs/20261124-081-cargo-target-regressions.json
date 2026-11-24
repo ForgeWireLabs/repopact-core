@@ -1,0 +1,33 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261124-081-cargo-target-regressions",
+  "timestamp": "2026-11-24T22:43:14.2888013Z",
+  "work_item": "081",
+  "result": "passed",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "summary": "Eleven tests passed, including matching and mismatched external target regressions.",
+      "command": "python -m unittest tests.test_engine_package_identity -v (sanitized default target)",
+      "exit_code": 0
+    },
+    {
+      "summary": "Eleven tests passed under a controlled external Cargo target.",
+      "command": "python -m unittest tests.test_engine_package_identity -v (sanitized external target)",
+      "exit_code": 0
+    }
+  ],
+  "artifacts": [
+    "tests/test_engine_package_identity.py",
+    "evidence/runs/20261124-081-cargo-target-tests-sanitized-default.log",
+    "evidence/runs/20261124-081-cargo-target-tests-sanitized-external.log"
+  ],
+  "environment": {
+    "platform": "windows",
+    "executor": "local",
+    "source_revision": "c78f0159a13effe84623d4be4296c079af19a95b",
+    "source_tree": "e42775414a41db90b69000813a31aa8edd4b04b4",
+    "git_environment": "GIT_* removed by-name; values not logged",
+    "test_assertions": "preserved"
+  }
+}

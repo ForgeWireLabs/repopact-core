@@ -1,0 +1,15 @@
+SOURCE_HEAD=c78f0159a13effe84623d4be4296c079af19a95b
+SOURCE_TREE=e42775414a41db90b69000813a31aa8edd4b04b4
+CARGO_TARGET_DIR=unset (default rust/target)
+REMOVED_ENV_NAMES=
+   Compiling repopact-engine v0.1.0 (C:\Projects\repopact-wi081-20261124\rust\apps\repopact-engine)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 3.89s
+CARGO_BUILD_EXIT=0
+Semantic input manifest is current.
+{
+  "documentation_digest": "1fc2acdea4d2217eb53a8e8c23388bed705be45b26b56ae90a203d4807491ace",
+  "source_digest": "e3ca0ac3d55fbdfe41ee7acd36815a06766996f4c6b7d77dc2f45e0e4cbadd91"
+}
+Repository governance validation passed.
+No frozen-surface changes detected.
+SEMANTIC_EXIT=0; SNAPSHOT_EXIT=0; VALIDATE_EXIT=0; FROZEN_EXIT=0; DIFF_CHECK_EXIT=0

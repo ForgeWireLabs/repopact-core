@@ -22,44 +22,67 @@
     {
       "id": "AC-1",
       "text": "Reproduce and diagnose the Python synthetic Cargo metadata test failures under inherited CARGO_TARGET_DIR, with exact tests, environment names (never secret values), fixture paths and source revision; distinguish test defect, runner defect and external host configuration. Preserve the original failed WI080 PR21 record.",
-      "state": "pending",
-      "evidence": []
+      "state": "satisfied",
+      "evidence": [
+        "20261124-080-pr21-local-ci",
+        "20261124-081-pr21-cargo-target-investigation"
+      ]
     },
     {
       "id": "AC-2",
       "text": "Repair the confirmed CARGO_TARGET_DIR sensitivity in the relevant tests/fixtures or verifier using isolated environment/target paths and truthful Cargo metadata. Prove standard and non-default target locations pass without weakening assertions, excluding tests, or requiring global host environment mutation.",
-      "state": "pending",
-      "evidence": []
+      "state": "satisfied",
+      "evidence": [
+        "20261124-081-cargo-target-regressions",
+        "20261124-081-final-ci-default-c78f015",
+        "20261124-081-final-ci-external-c78f015"
+      ]
     },
     {
       "id": "AC-3",
       "text": "Measure and document host-local validation storage consumption, including Cargo target trees, Python environments, temporary candidate worktrees, reports and logs; establish a bounded local-run disk preflight and evidence retention policy suitable for low-storage hosts.",
-      "state": "pending",
-      "evidence": []
+      "state": "satisfied",
+      "evidence": [
+        "20261124-081-final-storage-inventory-c78f015",
+        "20261124-081-final-storage-external-target-inventory-c78f015",
+        "20261124-081-final-storage-preflight-c78f015"
+      ]
     },
     {
       "id": "AC-4",
       "text": "Implement and validate safe reclamation of exclusively tool-owned disposable builds and worktrees, preserving user changes, dirty checkouts, external caches, immutable evidence and reproducibility records. Cleanup must be dry-run/opt-in or tied to explicit owned manifests, with no arbitrary directory deletion or silent failures.",
-      "state": "pending",
-      "evidence": []
+      "state": "satisfied",
+      "evidence": [
+        "20261124-081-storage-cleanup-regressions",
+        "20261124-081-final-storage-external-target-inventory-c78f015"
+      ]
     },
     {
       "id": "AC-5",
       "text": "Handle disk exhaustion in local evidence/output capture with explicit failure and bounded diagnostics; preserve partial logs and completed evidence. Demonstrate the previous interrupted PR21 output-capture scenario cannot be silently misreported as a passed complete CI run.",
-      "state": "pending",
-      "evidence": []
+      "state": "satisfied",
+      "evidence": [
+        "20261124-081-failure-capture-regressions",
+        "20261124-081-final-ci-default-e"
+      ]
     },
     {
       "id": "AC-6",
       "text": "Run focused regressions, complete Python suite, locked Rust workspace, canonical conformance and exact-head local verify ci both under the default environment and a controlled external CARGO_TARGET_DIR configuration; preserve failure evidence and record all required-step results.",
-      "state": "pending",
-      "evidence": []
+      "state": "satisfied",
+      "evidence": [
+        "20261124-081-final-ci-default-c78f015",
+        "20261124-081-final-ci-external-c78f015",
+        "20261124T215623940062Z-wi076-ac6-engine-conformance",
+        "20261124T222939451985Z-wi076-ac6-engine-conformance",
+        "20261124-081-cargo-target-regressions"
+      ]
     },
     {
       "id": "AC-7",
       "text": "Regenerate canonical semantic identity, governance/documentation mappings and dashboard as needed; pass canonical validate, frozen-surface verification and git diff --check without inventing green status for the historical Rust incident.",
-      "state": "pending",
-      "evidence": []
+      "state": "satisfied",
+      "evidence": ["20261124-081-canonical-final-c78f015"]
     },
     {
       "id": "AC-8",
