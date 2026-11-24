@@ -65,6 +65,17 @@ class LocalValidationStorageTests(unittest.TestCase):
         self.assertEqual("never-auto-delete-immutable-evidence", paths["evidence-runs-immutable"]["cleanup_policy"])
         self.assertTrue(evidence.exists())
 
+    def test_inventory_reports_active_unsealed_owned_target(self) -> None:
+        target = self.root / "rust" / "target"
+        create_owned_target(self.root, target)
+        report = inventory(self.root)
+        artifact = next(
+            row for row in report["registered_artifacts"] if row["path"] == str(target)
+        )
+        self.assertEqual("active", artifact["state"])
+        self.assertIsNone(artifact["snapshot_bytes"])
+        self.assertEqual(0, artifact["snapshot_files"])
+
     def test_inventory_does_not_traverse_symlinked_build_output(self) -> None:
         external = self.workspace / "external-user-data"
         external.mkdir()

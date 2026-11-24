@@ -552,7 +552,7 @@
     },
     {
       "path": "repopact/local_storage.py",
-      "sha256": "8f69bb2f7e1c047f4326cc5fdc23416a14feaa124749406dc6446e6d076eec89"
+      "sha256": "0b3059e4b8bcefdfe49561a07c30df285a7cda5e2fdb49c6c9d38679e4b75a0d"
     },
     {
       "path": "repopact/new.py",
@@ -1043,5 +1043,5 @@
       "sha256": "568ee233f91fcfc6afad4dfdb4fd6cbadd2761f0b795d91a089030c3b0b0bbb3"
     }
   ],
-  "semantic_identity": "repopact-semantic-v1:sha256:682111b4189b4215346e02a1f85f0e58f36a83d5dcb77ff6a66304dfe1186717"
+  "semantic_identity": "repopact-semantic-v1:sha256:f680a5cb54c5c7a851f0c36fbd7b47092c12198f7dc586df3444839e9db2e06f"
 }

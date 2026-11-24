@@ -628,17 +628,18 @@ def inventory(root: Path) -> dict[str, Any]:
         "known_paths": paths,
         "worktrees": worktrees,
         "ownership_registry": str(registry_path),
-        "registered_artifacts": [
-            {
-                key: value
-                for key, value in item.items()
-                if key not in {"snapshot"}
-            }
-            | {
-                "snapshot_files": len(item.get("snapshot", {}).get("files", [])),
-                "snapshot_bytes": item.get("snapshot", {}).get("total_bytes"),
-            }
-            for item in document["artifacts"]
-        ],
+        "registered_artifacts": [_registered_artifact_summary(item) for item in document["artifacts"]],
         "immutable_evidence_paths_are_excluded_from_cleanup": True,
+    }
+
+
+def _registered_artifact_summary(item: dict[str, Any]) -> dict[str, Any]:
+    snapshot = item.get("snapshot")
+    if not isinstance(snapshot, dict):
+        snapshot = {}
+    return {
+        key: value for key, value in item.items() if key != "snapshot"
+    } | {
+        "snapshot_files": len(snapshot.get("files", [])),
+        "snapshot_bytes": snapshot.get("total_bytes"),
     }
