@@ -1,0 +1,73 @@
+{
+  "$schema": "../../../repopact/schemas/work-item.schema.json",
+  "id": "081",
+  "title": "Repair Local CI Environment Sensitivity and Validation Storage Hygiene",
+  "status": "active",
+  "owner_scope": "tooling",
+  "affected_scopes": [
+    "tooling",
+    "governance",
+    "docs",
+    "evidence",
+    "work"
+  ],
+  "depends_on": [],
+  "provenance": "concrete",
+  "preflight": {
+    "created_before_work_started": true,
+    "created_at": "2026-11-24T16:07:45.720Z",
+    "note": "Operator previously directed that encountered pre-existing failures be repaired rather than waived. After WI080 PR21 local validation reported inherited CARGO_TARGET_DIR-induced Python test failures and a disk-exhausted output-capture attempt, this work item was opened before new implementation. Full PR21 evidence is preserved; successful subsequent rerun is not a waiver."
+  },
+  "acceptance_criteria": [
+    {
+      "id": "AC-1",
+      "text": "Reproduce and diagnose the Python synthetic Cargo metadata test failures under inherited CARGO_TARGET_DIR, with exact tests, environment names (never secret values), fixture paths and source revision; distinguish test defect, runner defect and external host configuration. Preserve the original failed WI080 PR21 record.",
+      "state": "pending",
+      "evidence": []
+    },
+    {
+      "id": "AC-2",
+      "text": "Repair the confirmed CARGO_TARGET_DIR sensitivity in the relevant tests/fixtures or verifier using isolated environment/target paths and truthful Cargo metadata. Prove standard and non-default target locations pass without weakening assertions, excluding tests, or requiring global host environment mutation.",
+      "state": "pending",
+      "evidence": []
+    },
+    {
+      "id": "AC-3",
+      "text": "Measure and document host-local validation storage consumption, including Cargo target trees, Python environments, temporary candidate worktrees, reports and logs; establish a bounded local-run disk preflight and evidence retention policy suitable for low-storage hosts.",
+      "state": "pending",
+      "evidence": []
+    },
+    {
+      "id": "AC-4",
+      "text": "Implement and validate safe reclamation of exclusively tool-owned disposable builds and worktrees, preserving user changes, dirty checkouts, external caches, immutable evidence and reproducibility records. Cleanup must be dry-run/opt-in or tied to explicit owned manifests, with no arbitrary directory deletion or silent failures.",
+      "state": "pending",
+      "evidence": []
+    },
+    {
+      "id": "AC-5",
+      "text": "Handle disk exhaustion in local evidence/output capture with explicit failure and bounded diagnostics; preserve partial logs and completed evidence. Demonstrate the previous interrupted PR21 output-capture scenario cannot be silently misreported as a passed complete CI run.",
+      "state": "pending",
+      "evidence": []
+    },
+    {
+      "id": "AC-6",
+      "text": "Run focused regressions, complete Python suite, locked Rust workspace, canonical conformance and exact-head local verify ci both under the default environment and a controlled external CARGO_TARGET_DIR configuration; preserve failure evidence and record all required-step results.",
+      "state": "pending",
+      "evidence": []
+    },
+    {
+      "id": "AC-7",
+      "text": "Regenerate canonical semantic identity, governance/documentation mappings and dashboard as needed; pass canonical validate, frozen-surface verification and git diff --check without inventing green status for the historical Rust incident.",
+      "state": "pending",
+      "evidence": []
+    },
+    {
+      "id": "AC-8",
+      "text": "Reconcile cleanup ownership with any existing RepoPact Workbench/Fabric worktree-maintenance plans without broadening to unowned files; document independent review, actual code and evidence hashes, residual risks, and explicit operator integration decision. Maintain local-only CI through 2026-12-01 inclusive.",
+      "state": "pending",
+      "evidence": []
+    }
+  ],
+  "created": "2026-11-24",
+  "updated": "2026-11-24"
+}
