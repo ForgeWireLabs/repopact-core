@@ -311,11 +311,22 @@ checked out under an arbitrary name — but it does mean this specific
 adopter's specific layout is not, in principle, an unsolved case, only an
 unreleased one.
 
-**Status:** open (general class — arbitrary-named worktree discovery has no
-structural solution). The conventionally-named `worktrees/` instance is
-fixed on upstream `main` but was not present in the `3.0.0` public release
-and, as of this finding's last update, has not shipped in any released
-package version an adopter can install.
+**Status at the WI 238 observation (2026-08-21).** At that point, the
+convention-name fallback had not shipped in the then-current `3.0.0` package,
+and the arbitrary-name linked-worktree class remained open. That release-lag
+statement describes the state at the time; it is not the current disposition.
+
+**Review and status (2026-11-23).** WI042 completed on 2026-09-02. Its accepted
+evidence covers a real linked worktree renamed to `scratch agent/feature x` and
+preserves discovery of an independent nested repository. The PyPI 3.0.2 wheel,
+uploaded 2026-09-03, has SHA-256
+`d7781495977a686ab791d4ce97467a3714474c7682253d9d81f4edcfe4a2fa77`, matching
+the PyPI JSON digest; its `repopact/repo_model.py` contains
+`discover_embedded_worktree_roots`. The v3.0.2 GitHub release is also present.
+The convention-name release lag and the tested structural linked-worktree
+discovery defect are therefore fixed in 3.0.2; 3.1.3 remains the current
+stable package. The original 2.2.0 and 3.0.0 observations remain valid as
+historical evidence.
 
 ## F-016 — a work-item README can silently disagree with its own manifest
 

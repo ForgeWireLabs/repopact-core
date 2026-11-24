@@ -1,0 +1,12 @@
+test_default_filename_is_exact_embedded_id (test_conformance_provenance_identity.ConformanceProvenanceIdentityTests.test_default_filename_is_exact_embedded_id) ... ok
+test_default_timestamp_in_seconds_still_has_single_id (test_conformance_provenance_identity.ConformanceProvenanceIdentityTests.test_default_timestamp_in_seconds_still_has_single_id) ... ok
+test_explicit_destination_is_also_create_only (test_conformance_provenance_identity.ConformanceProvenanceIdentityTests.test_explicit_destination_is_also_create_only) ... ok
+test_explicit_destination_keeps_caller_filename_and_canonical_record_id (test_conformance_provenance_identity.ConformanceProvenanceIdentityTests.test_explicit_destination_keeps_caller_filename_and_canonical_record_id) ... ok
+test_naive_or_non_utc_timestamps_rejected (test_conformance_provenance_identity.ConformanceProvenanceIdentityTests.test_naive_or_non_utc_timestamps_rejected) ... ok
+test_previous_evidence_is_never_overwritten (test_conformance_provenance_identity.ConformanceProvenanceIdentityTests.test_previous_evidence_is_never_overwritten) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.071s
+
+OK
+SIX_REGRESSIONS_EXIT=0

@@ -1,0 +1,4 @@
+   Compiling repopact-engine v0.1.0 (C:\Projects\repopact-wi080-local\rust\apps\repopact-engine)
+   Compiling repopact-mutation v0.1.0 (C:\Projects\repopact-wi080-local\rust\crates\repopact-mutation)
+   Compiling repopact-core v0.1.0 (C:\Projects\repopact-wi080-local\rust\crates\repopact-core)
+    Finished `release` profile [optimized] target(s) in 14.61s

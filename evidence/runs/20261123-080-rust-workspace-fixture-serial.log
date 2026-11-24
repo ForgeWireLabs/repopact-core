@@ -1,0 +1,30 @@
+   Compiling repopact-engine v0.1.0 (C:\Projects\repopact-wi080-local\rust\apps\repopact-engine)
+   Compiling repopact-mutation v0.1.0 (C:\Projects\repopact-wi080-local\rust\crates\repopact-mutation)
+   Compiling repopact-core v0.1.0 (C:\Projects\repopact-wi080-local\rust\crates\repopact-core)
+   Compiling repopact-cli v0.1.0 (C:\Projects\repopact-wi080-local\rust\apps\repopact-cli)
+error: failed to run custom build command for `repopact-engine v0.1.0 (C:\Projects\repopact-wi080-local\rust\apps\repopact-engine)`
+
+Caused by:
+  process didn't exit successfully: `C:\Projects\repopact-wi080-local\rust\target\debug\build\repopact-engine-5d4d16b8e52a1c16\build-script-build` (exit code: 101)
+  --- stdout
+  cargo:rerun-if-changed=C:\Projects\repopact-wi080-local\rust\apps\repopact-engine\../../..\VERSION
+  cargo:rerun-if-changed=C:\Projects\repopact-wi080-local\rust\apps\repopact-engine\../../..\RELEASE_LABEL
+  cargo:rerun-if-changed=C:\Projects\repopact-wi080-local\rust\apps\repopact-engine\../../..\repopact/_semantic_identity.json
+  cargo:rerun-if-changed=C:\Projects\repopact-wi080-local\rust\apps\repopact-engine\../../..\build/semantic-input-manifest.json
+  cargo:rerun-if-changed=C:\Projects\repopact-wi080-local\rust\apps\repopact-engine\../../..\build/semantic-input-policy.json
+  cargo:rerun-if-changed=C:\Projects\repopact-wi080-local\rust\apps\repopact-engine\../../..\scripts/generate_engine_semantic_identity.py
+  cargo:rerun-if-changed=C:\Projects\repopact-wi080-local\rust\apps\repopact-engine\../../..\repopact
+  cargo:rerun-if-changed=C:\Projects\repopact-wi080-local\rust\apps\repopact-engine\../../..\conformance
+  cargo:rerun-if-changed=C:\Projects\repopact-wi080-local\rust\apps\repopact-engine\../../..\rust/Cargo.toml
+  cargo:rerun-if-changed=C:\Projects\repopact-wi080-local\rust\apps\repopact-engine\../../..\pyproject.toml
+  cargo:rerun-if-changed=C:\Projects\repopact-wi080-local\rust\apps\repopact-engine\../../..\rust\crates
+  cargo:rerun-if-changed=C:\Projects\repopact-wi080-local\rust\apps\repopact-engine\../../..\rust\apps
+
+  --- stderr
+
+  thread 'main' (7408) panicked at apps\repopact-engine\build.rs:127:9:
+  RepoPact semantic input manifest is stale or incomplete; run the explicit reviewed generator update first. checker output:
+  semantic identity error: semantic identity is stale: build/semantic-input-manifest.json; inspect inputs and run the explicit --update command to propose a baseline change
+
+  note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+warning: build failed, waiting for other jobs to finish...

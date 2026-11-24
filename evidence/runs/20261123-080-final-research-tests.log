@@ -1,0 +1,20 @@
+test_benchmark_source_escaping_repository_is_rejected (tests.test_research_metadata.ResearchMetadataTests.test_benchmark_source_escaping_repository_is_rejected) ... ok
+test_canonical_research_records_validate (tests.test_research_metadata.ResearchMetadataTests.test_canonical_research_records_validate) ... ok
+test_current_governance_continuity_publication_shape_validates (tests.test_research_metadata.ResearchMetadataTests.test_current_governance_continuity_publication_shape_validates) ... ok
+test_expired_research_claim_contract_is_rejected (tests.test_research_metadata.ResearchMetadataTests.test_expired_research_claim_contract_is_rejected) ... ok
+test_freshness_policy_escaping_repository_is_rejected (tests.test_research_metadata.ResearchMetadataTests.test_freshness_policy_escaping_repository_is_rejected) ... ok
+test_future_provenance_wording_is_rejected (tests.test_research_metadata.ResearchMetadataTests.test_future_provenance_wording_is_rejected) ... ok
+test_lifecycle_figure_without_proposed_is_rejected (tests.test_research_metadata.ResearchMetadataTests.test_lifecycle_figure_without_proposed_is_rejected) ... ok
+test_missing_s8_mapping_is_rejected (tests.test_research_metadata.ResearchMetadataTests.test_missing_s8_mapping_is_rejected) ... ok
+test_missing_threat_identifier_is_rejected (tests.test_research_metadata.ResearchMetadataTests.test_missing_threat_identifier_is_rejected) ... ok
+test_repeated_threat_identifier_is_rejected_by_repo_gate (tests.test_research_metadata.ResearchMetadataTests.test_repeated_threat_identifier_is_rejected_by_repo_gate) ... ok
+test_stale_hypothesis_range_is_rejected (tests.test_research_metadata.ResearchMetadataTests.test_stale_hypothesis_range_is_rejected) ... ok
+test_stale_pactbench_task_count_is_rejected (tests.test_research_metadata.ResearchMetadataTests.test_stale_pactbench_task_count_is_rejected) ... ok
+test_trace_target_escaping_repository_is_rejected (tests.test_research_metadata.ResearchMetadataTests.test_trace_target_escaping_repository_is_rejected) ... ok
+test_unregistered_research_claim_document_is_rejected (tests.test_research_metadata.ResearchMetadataTests.test_unregistered_research_claim_document_is_rejected) ... ok
+test_wrong_s8_mapping_is_rejected (tests.test_research_metadata.ResearchMetadataTests.test_wrong_s8_mapping_is_rejected) ... ok
+
+----------------------------------------------------------------------
+Ran 15 tests in 33.343s
+
+OK

@@ -1,0 +1,63 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261123-080-rust-blocker-disposition",
+  "timestamp": "2026-11-23T18:28:07Z",
+  "work_item": "080",
+  "result": "partial",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "80 controlled runs of repopact-mutation::tests::consumed_work_record_drift_is_stale across sanitized/inherited GIT_* environments and serial/parallel execution",
+      "exit_code": 0,
+      "summary": "All 80 passed with unique PID-scoped fixture roots and cleanup verified. The assertion was not weakened."
+    },
+    {
+      "command": "cargo test --workspace --locked --manifest-path rust/Cargo.toml (sanitized parallel, sanitized serial, inherited-Git parallel)",
+      "exit_code": 0,
+      "summary": "All three workspace profiles passed 397 tests each; the target test passed in each profile."
+    },
+    {
+      "command": "Inspect original failed Rust workspace diagnostics in WI079 exact-head verify-ci evidence",
+      "exit_code": 0,
+      "summary": "Original output shows the missing mutation.plan-stale assertion only; it does not contain plan applicability, fixture path, or MutationResult. Root cause cannot be determined from that run."
+    },
+    {
+      "command": "Inspect exact-head WI080 verify ci profile",
+      "exit_code": 0,
+      "summary": "The locked Rust workspace step passed in the full Windows local profile. A later green run does not establish why the earlier intermittent failure occurred."
+    }
+  ],
+  "artifacts": [
+    "evidence/runs/20261123-080-rust-drift-diagnostic-campaign.json",
+    "evidence/runs/20261123-080-rust-workspace-sanitized-parallel.log",
+    "evidence/runs/20261123-080-rust-workspace-sanitized-serial.log",
+    "evidence/runs/20261123-080-rust-workspace-inherited-parallel.log",
+    "evidence/runs/20261123-182000-636282-verify-ci.json"
+  ],
+  "environment": {
+    "platform": "Windows x86_64-pc-windows-msvc",
+    "source_head": "7f007d75fb393f6d68f22b96ecaabd78bccee9ce",
+    "source_tree": "c08acfb4bb6b368c4de134aed501a1f2cb03c1f0",
+    "candidate_was_clean_before_full_ci": true,
+    "inherited_git_environment_campaign": {
+      "variable_count": 23,
+      "names": [
+        "GIT_CONFIG_COUNT",
+        "GIT_CONFIG_KEY_0..9",
+        "GIT_CONFIG_VALUE_0..9",
+        "GIT_INSTALL_ROOT",
+        "GIT_PAGER"
+      ],
+      "values": "Not copied into evidence; helper executable path redacted."
+    },
+    "exact_ci_environment": "All inherited GIT_* variables removed; REPOPACT_GITHUB_CI and REPOPACT_GITHUB_CD unset.",
+    "root_cause": "unresolved",
+    "classification": "unresolved",
+    "production_rust_behavior_changed": false,
+    "test_diagnostic_change": "Assert baseline plan applicability before injecting drift; on recurrence print fixture root, plan diagnostics, and full MutationResult. This improves diagnosis and is not represented as a root-cause repair.",
+    "blocking_owner": "tooling-owner",
+    "next_diagnostic": "On recurrence, preserve the exact failing Cargo process and environment; capture plan applicability/diagnostics, repository identity, fixture path, read-fact membership and before/after hashes for work/active/001-one/work-item.json, full MutationResult, process/thread IDs, and cleanup state from the same failing invocation. Compare sanitized and inherited-Git runs on the same exact source snapshot.",
+    "independent_acceptance": "Pending human operator decision after a demonstrated root-cause repair. No risk waiver or acceptance was inferred.",
+    "historical_failure_source": "WI079 PR #18 evidence 20261123-wi079-exact-head-isolation; retained unchanged in the preserved WI079 worktree/branch."
+  }
+}

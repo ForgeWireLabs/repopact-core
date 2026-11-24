@@ -1,0 +1,106 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261123-080-rust-fixture-collision-disposition",
+  "timestamp": "2026-11-23T21:47:17Z",
+  "work_item": "080",
+  "result": "partial",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "Controlled Windows reproduction of legacy fixture initialization with a private test-owned collision root, locked marker, stale malformed work record, and the target baseline-applicability assertion",
+      "exit_code": 101,
+      "summary": "Expected reproduction failure. remove_dir_all returned Win32 error 32; the ignored error let copy_tree and RepositorySession::snapshot proceed with the nonempty root; the target assertion failed with mutation.dashboard-render: unable to render dashboard from malformed work-item records. Full output is retained in the reproduction log."
+    },
+    {
+      "command": "cargo test -p repopact-mutation --locked --manifest-path rust/Cargo.toml",
+      "exit_code": 0,
+      "summary": "Final mutation package passed: 31 unit tests, 3 remote-provider boundary tests, 1 post-validation integration test, and doc tests; includes collision preservation and bounded-exhaustion regression coverage plus consumed_work_record_drift_is_stale."
+    },
+    {
+      "command": "cargo test --workspace --locked --manifest-path rust/Cargo.toml -- --test-threads=1",
+      "exit_code": 0,
+      "summary": "Final-source serial workspace run passed 398 tests with zero failures."
+    },
+    {
+      "command": "cargo test --workspace --locked --manifest-path rust/Cargo.toml",
+      "exit_code": 0,
+      "summary": "Final-source default-parallel workspace run passed 398 tests with zero failures."
+    },
+    {
+      "command": "python -m repopact.verify_cli ci --root . --evidence-work-item 080 --evidence-id 20261123-080-rust-fixture-local-ci --json",
+      "exit_code": 0,
+      "summary": "Canonical local CI passed all 5 required steps and the optional frozen-surface step in 1684.844 seconds. The exact commit/tree was ec97b77e7496f52c4383e714af759c9dea32b08b / d2a51c1692c1b6393b73267c8d20a995d0e9a79c. The runner reports dirty-after because canonical conformance evidence and the dashboard were generated during the invocation."
+    },
+    {
+      "command": "repopact validate --root . (exact-source local Rust engine)",
+      "exit_code": 0,
+      "summary": "Repository governance validation passed after refreshing the reviewed semantic-compatibility source digest."
+    },
+    {
+      "command": "repopact check-frozen --root . --base origin/main (exact-source local Rust engine)",
+      "exit_code": 0,
+      "summary": "No frozen-surface changes detected."
+    },
+    {
+      "command": "python scripts/generate_engine_semantic_identity.py --check",
+      "exit_code": 0,
+      "summary": "Canonical semantic-input manifest is current; generated identity is repopact-semantic-v1:sha256:51f80d963f09c9acb59aff3a78959113f18158ce3524cd2356f39ffe0101b0ca."
+    },
+    {
+      "command": "repopact documentation snapshot engine-semantic-compatibility --root . (after reviewing mapped packaging guide)",
+      "exit_code": 0,
+      "summary": "Reviewed documentation digest remained 1fc2acdea4d2217eb53a8e8c23388bed705be45b26b56ae90a203d4807491ace; updated the source digest to 322dc953c54365ec89aba3743fbc6beccce5a597a21001b72f2c66426fc65cab."
+    },
+    {
+      "command": "cargo fmt --manifest-path rust/Cargo.toml -p repopact-mutation -- --check; git diff --check",
+      "exit_code": 0,
+      "summary": "Rust formatting and whitespace checks passed."
+    }
+  ],
+  "artifacts": [
+    "evidence/runs/20261123-080-rust-fixture-collision-reproduction.log",
+    "evidence/runs/20261123-080-rust-mutation-package-final.log",
+    "evidence/runs/20261123-080-rust-workspace-fixture-serial-final.log",
+    "evidence/runs/20261123-080-rust-workspace-fixture-parallel-final.log",
+    "evidence/runs/20261123-080-rust-fixture-local-ci.json",
+    "evidence/runs/20261123T214506542694Z-wi076-ac6-engine-conformance.json",
+    "evidence/runs/20261123-080-semantic-identity-regeneration-final.log",
+    "evidence/runs/20261123-080-engine-doc-snapshot-final.log",
+    "evidence/runs/20261123-080-repopact-validate-final.log",
+    "evidence/runs/20261123-080-frozen-surface-final.log",
+    "evidence/runs/20261123-080-rust-drift-diagnostic-campaign.json",
+    "evidence/runs/20261123-080-rust-blocker-disposition.json",
+    "evidence/runs/20261123-182000-636282-verify-ci.json"
+  ],
+  "environment": {
+    "platform": "Windows x86_64-pc-windows-msvc",
+    "python": "3.12.4",
+    "rustc": "1.96.0",
+    "cargo": "1.96.0",
+    "source_revision": "ec97b77e7496f52c4383e714af759c9dea32b08b",
+    "source_tree": "d2a51c1692c1b6393b73267c8d20a995d0e9a79c",
+    "canonical_ci_started_clean": true,
+    "canonical_ci_dirty_after": true,
+    "canonical_ci_dirty_after_reason": "Conformance generated an immutable exact-engine record and verification evidence refreshed audits/reports/dashboard.md.",
+    "inherited_git_environment": "23 inherited GIT_* variables were removed for targeted and canonical validation processes; values were not copied into evidence.",
+    "hosted_ci_cd": "REPOPACT_GITHUB_CI and REPOPACT_GITHUB_CD were absent; no hosted verification or publication was triggered.",
+    "fixture_defect": "fixed",
+    "intermittent_rust_failure": "unresolved",
+    "historical_causality": "The original intermittent CI failure lacks same-invocation fixture-root and baseline-plan diagnostics. The deterministic reproduction establishes a mechanism that causes the target baseline-applicability assertion to fail, but does not prove that the historical intermittent occurrence used this mechanism.",
+    "controlled_reproduction": {
+      "private_test_owned_temp_root": true,
+      "cleanup_error": "Win32 error 32: the process cannot access the file because it is being used by another process",
+      "legacy_fixture_continued_after_cleanup_error": true,
+      "stale_collision_content": "Malformed work/active/002-stale/work-item.json",
+      "baseline_plan_applicable": false,
+      "diagnostic": "mutation.dashboard-render: unable to render dashboard from malformed work-item records"
+    },
+    "acceptance_disposition": {
+      "AC-5": "satisfied; bounded investigation and concrete reproduction recorded",
+      "AC-6": "pending; fixture repair is implemented, but the historical intermittent cause remains unproven",
+      "AC-7": "satisfied; exact-commit local CI passed",
+      "AC-10": "pending; request independent review of fixture repair and unresolved historical causality"
+    },
+    "disposition": "FIXTURE DEFECT: FIXED; INTERMITTENT RUST FAILURE: UNRESOLVED"
+  }
+}

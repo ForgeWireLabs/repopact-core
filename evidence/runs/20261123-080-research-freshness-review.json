@@ -1,0 +1,303 @@
+{
+  "$schema": "../../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261123-080-research-freshness-review",
+  "timestamp": "2026-11-23T10:45:57-06:00",
+  "work_item": "080",
+  "result": "partial",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "GET https://pypi.org/pypi/repopact/3.0.2/json; download the published wheel and inspect repopact/repo_model.py",
+      "exit_code": 0,
+      "summary": "The 3.0.2 wheel downloaded; SHA-256 matched PyPI digest d7781495977a686ab791d4ce97467a3714474c7682253d9d81f4edcfe4a2fa77; module contains discover_embedded_worktree_roots."
+    },
+    {
+      "command": "Open official PyPI project/release pages and GitHub repository, Releases, v3.0.2 and v3.1.3 pages",
+      "exit_code": 0,
+      "summary": "PyPI and GitHub show 3.1.3 as current/latest stable (published 2026-09-18); the v3.0.2 release exists; ForgeWireLabs/repopact redirects to the JeremyShows repository archived 2026-10-09."
+    },
+    {
+      "command": "Open https://arxiv.org/abs/2512.18470 and verify the current revision metadata",
+      "exit_code": 0,
+      "summary": "Official arXiv record is v6, last revised 2026-05-22; title and author order checked against the submission-preparation references."
+    },
+    {
+      "command": "Open the recorded manuscript snapshot and Moto One Hyper adopter commit URLs",
+      "exit_code": 0,
+      "summary": "Both public commit URLs returned 404; exact SHAs and the historical capture remain preserved, and no replacement URL was inferred."
+    },
+    {
+      "command": "Read all 14 documents registered in research/metadata.json and cross-check their linked research, work-item, decision, source, and evidence claims",
+      "exit_code": 0,
+      "summary": "Completed the per-document matrix below. Corrected the stale F-015 disposition and dated current-status notes; experimental results and historical records were not rewritten."
+    }
+  ],
+  "artifacts": [
+    "research/README.md",
+    "research/findings.md",
+    "research/arxiv-submission-prep.md",
+    "research/release-runbook.md",
+    "research/metadata.json",
+    "research/metadata.json#claim_freshness",
+    "evidence/runs/20261123-080-research-freshness-review.json",
+    "C:\\Projects\\repopact-wi080-pypi-3.0.2.whl",
+    "evidence/runs/20261022-074-research-freshness-review.json",
+    "evidence/runs/20260902-042-structural-worktree-awareness.json"
+  ],
+  "environment": {
+    "executor": "local-Windows research review",
+    "platform": "windows",
+    "python": "3.12.4",
+    "repository": "ForgeWireLabs/repopact-core",
+    "worktree": "C:\\Projects\\repopact-wi080-local",
+    "reviewed_at": "2026-11-23T10:45:57-06:00",
+    "baseline_revision": "5f817f3efc98d74d15ac4c17970acac716db7fda",
+    "freshness_before": {
+      "verified_on": "2026-10-22",
+      "review_by": "2026-11-21",
+      "registered_document_count": 14
+    },
+    "freshness_after_review": "Advance only after this evidence record is written; proposed verified_on 2026-11-23 and review_by 2026-12-23 (30-day maximum).",
+    "external_follow_up": "The published PyPI description points at the archived monorepo source URL. This local review recorded the discrepancy; no package was published or modified.",
+    "review_matrix": [
+      {
+        "path": "research/README.md",
+        "claims": "Research scope and evidence boundary; S7/H14 and S8/H15 are registrations rather than completed experiments; stable release and frozen-manuscript status.",
+        "supporting_sources": [
+          "research/metadata.json",
+          "work/active/022-benchmark-suite/work-item.json",
+          "PyPI https://pypi.org/project/repopact/",
+          "GitHub https://github.com/JeremyShows/repopact/releases",
+          "GitHub https://github.com/ForgeWireLabs/repopact (redirects to archived repository)",
+          "arXiv https://arxiv.org/abs/2512.18470",
+          "evidence/runs/20261022-074-research-freshness-review.json"
+        ],
+        "currentness": "Release 3.1.3 remains latest; manuscript remains a frozen 3.1.0 snapshot; repository redirect/archive status verified 2026-11-23.",
+        "discrepancies": "The 2026-10-22 review date had expired. Published PyPI description still points to the archived monorepo source and calls main the newest development tree.",
+        "required_edits": "Refresh dated status and review deadline; record archived source redirect and external metadata follow-up; link this review evidence.",
+        "verified_by": "WI080 local review (Codex)",
+        "review_outcome": "corrected; current claims bounded; external published metadata follow-up recorded",
+        "reviewed_sha256": "a9d62a620d32b0a36ec2e382446054a1e76bd20c28f6b3e0b904b7c0a1ee5e86"
+      },
+      {
+        "path": "research/benchmark-protocol.md",
+        "claims": "S1-S8 and H8-H15 remain preregistered protocols; S8 R0/B0 and R1 execution gates and metrics; amended AC-3 family is not result evidence.",
+        "supporting_sources": [
+          "research/protocol.md",
+          "work/active/022-benchmark-suite/work-item.json (AC-3 pending)",
+          "work/active/063-durable-repository-orientation-graph-and-incremental-semantic-index/implementation-progress.md",
+          "work/proposed/071-repopact-3-1-4-paper-submission-and-research-closeout/README.md",
+          "evidence/runs/20260915-wi022-ac3-whole-program-preflight-v3.json"
+        ],
+        "currentness": "Registration and execution gates remain in force; no comparative result is asserted. WI022 AC-3 remains pending; R1 work remains prospective.",
+        "discrepancies": "None found in the claims reviewed. Protocol text distinguishes preregistration, deterministic harness checks, smoke runs, and reportable comparative outcomes.",
+        "required_edits": "None. Retain amendments as dated history.",
+        "verified_by": "WI080 local review (Codex)",
+        "review_outcome": "verified; no experimental completion inferred",
+        "reviewed_sha256": "3e18f82744dc10a8eaf6f7cb90da7bd0f60ce8f83d29ad106332e121b0888bd6"
+      },
+      {
+        "path": "research/figures.md",
+        "claims": "Figures 4-6 are explicitly illustrative/mock; PactBench task count is 24; figures are not empirical results.",
+        "supporting_sources": [
+          "research/metadata.json benchmark.pactbench",
+          "work/active/022-benchmark-suite/README.md",
+          "evidence/runs/20260718-repopact-2-2-0-adopter-rollout.json",
+          "work/active/022-benchmark-suite/work-item.json AC-3 pending"
+        ],
+        "currentness": "Task count and mock labels remain aligned with the registry and pending comparative work.",
+        "discrepancies": "None found.",
+        "required_edits": "None.",
+        "verified_by": "WI080 local review (Codex)",
+        "review_outcome": "verified; mock data remains clearly labeled",
+        "reviewed_sha256": "3e45d815d844af4c6272c8f8877bcb531a6c320eb2cc165298d0df856fc51ef1"
+      },
+      {
+        "path": "research/findings.md",
+        "claims": "F-001-F-019 summaries and status; F-015 worktree false-positive/release lag; F-016 remains open; F-019 platform-specific admission limits.",
+        "supporting_sources": [
+          "research/captures/016-forgewire-wi238-3-0-0-field-evidence.md",
+          "work/completed/042-structural-git-worktree-awareness-in-contract-discovery/README.md",
+          "work/completed/042-structural-git-worktree-awareness-in-contract-discovery/work-item.json",
+          "evidence/runs/20260902-042-structural-worktree-awareness.json",
+          "PyPI 3.0.2 wheel JSON and downloaded wheel SHA-256 d7781495977a686ab791d4ce97467a3714474c7682253d9d81f4edcfe4a2fa77",
+          "GitHub https://github.com/JeremyShows/repopact/releases/tag/v3.0.2",
+          "evidence/runs/20261022-075-forgelink-core-full-rereview.json"
+        ],
+        "currentness": "The 2.2.0 and 3.0.0 observations are historical. WI042’s structural linked-worktree fix shipped in the 3.0.2 wheel. Current F-016 and F-019 open/partial dispositions are retained.",
+        "discrepancies": "The F-015 table said fixed in 3.0.2 while its detailed closing paragraph still called the structural gap open and unreleased.",
+        "required_edits": "Replace the current-status paragraph with a dated review disposition, preserving the earlier observation as history.",
+        "verified_by": "WI080 local review (Codex)",
+        "review_outcome": "corrected; release artifact digest and embedded implementation independently checked",
+        "reviewed_sha256": "b4666d62bee0937276354552b1170b950eb860a358bc18cc827f7c05d999fccb"
+      },
+      {
+        "path": "research/formal-model.md",
+        "claims": "Kernel/lifecycle/invariant model, derived-view boundaries, governance continuity, and explicit boundaries on H14/H15 claims.",
+        "supporting_sources": [
+          "governance/invariants.json",
+          "governance/charter.md",
+          "repopact/repo_model.py",
+          "repopact/validate_research.py",
+          "research/protocol.md",
+          "research/metadata.json lifecycle and threat mappings"
+        ],
+        "currentness": "Model definitions and source mappings remain aligned; text calls H14/S7 prospective and says field case did not confirm H14.",
+        "discrepancies": "None found in reviewed source/model mappings.",
+        "required_edits": "None.",
+        "verified_by": "WI080 local review (Codex)",
+        "review_outcome": "verified; conceptual claims remain bounded",
+        "reviewed_sha256": "128fe34b914b1a1e82a77531216dd68345b8a1d1a808e4d2a8e0970c6cd10873"
+      },
+      {
+        "path": "research/gap-audit-2026-07.md",
+        "claims": "July 15 audit and July 26 disposition are time-bounded historical state, not a November status report.",
+        "supporting_sources": [
+          "dated headings and explicit re-verification caveat in this document",
+          "evidence/runs/20260726-semantic-ledger-freshness-reconciliation.json",
+          "research/README.md current editorial status"
+        ],
+        "currentness": "Historical date and caveat remain accurate; no July disposition was reused as current without a later source.",
+        "discrepancies": "None found.",
+        "required_edits": "None; retain the audit as a dated artifact.",
+        "verified_by": "WI080 local review (Codex)",
+        "review_outcome": "verified as historical; no status rewrite",
+        "reviewed_sha256": "8d231a9b5f2e7c5edcb9c35b168d36f45bd28fbaf7416f90d6b12476131034ab"
+      },
+      {
+        "path": "research/paper-outline.md",
+        "claims": "Working outline and prospective results plan; current stable release line; H14/H15 protocol references without claiming results.",
+        "supporting_sources": [
+          "research/paper.md frozen snapshot",
+          "research/benchmark-protocol.md",
+          "research/metadata.json",
+          "PyPI https://pypi.org/project/repopact/"
+        ],
+        "currentness": "3.1.3 remains latest stable; outline still labels itself a working outline and has no comparative results.",
+        "discrepancies": "None found.",
+        "required_edits": "None; next manuscript reconciliation is separately gated.",
+        "verified_by": "WI080 local review (Codex)",
+        "review_outcome": "verified as planning material",
+        "reviewed_sha256": "be324f7ed0a5b0afee00c75dbb5b97dfb8c24f97b64c575aad27554aaac7c4b0"
+      },
+      {
+        "path": "research/paper.md",
+        "claims": "Frozen September 14 manuscript with explicit 3.1.0 implementation/evidence snapshot; experimental limitations and references.",
+        "supporting_sources": [
+          "research/paper.md editorial status and exact snapshot SHA",
+          "evidence/runs/20261022-074-research-freshness-review.json",
+          "GitHub commit URL https://github.com/JeremyShows/repopact/commit/6d782116fc9762da00439cf079d0f50585fea52 (404)",
+          "GitHub public v3.1.0 tag check recorded in the October review",
+          "arXiv SWE-EVO record https://arxiv.org/abs/2512.18470"
+        ],
+        "currentness": "The manuscript remains a frozen historical 3.1.0 snapshot, not a description of all current 3.1.3/development behavior. The missing commit and non-equivalent tag remain disclosed.",
+        "discrepancies": "No new discrepancy.",
+        "required_edits": "None in the manuscript; preserve snapshot and results until separately authorized reconciliation.",
+        "verified_by": "WI080 local review (Codex)",
+        "review_outcome": "verified as frozen artifact; no claims promoted to current",
+        "reviewed_sha256": "cfbb18de31a5bf129180fedd4a5264204436b24741970c2e649dd57070cd1d98"
+      },
+      {
+        "path": "research/paper-reconciliation-2026-09-13.md",
+        "claims": "A dated reconciliation plan records then-current 3.0.2 stable package, later development features, no comparative results, and prerequisites for a future manuscript.",
+        "supporting_sources": [
+          "research/paper.md",
+          "research/README.md",
+          "research/benchmark-protocol.md",
+          "research/release-runbook.md",
+          "work/active/022-benchmark-suite/work-item.json AC-3 pending"
+        ],
+        "currentness": "Historical claims are scoped to 2026-09-13. The plan remains applicable because the manuscript is still frozen and unreconciled.",
+        "discrepancies": "None that justify rewriting this dated plan; its 3.0.2 statement is historical, not a current release claim.",
+        "required_edits": "None; keep the dated plan intact.",
+        "verified_by": "WI080 local review (Codex)",
+        "review_outcome": "verified as a historical reconciliation plan",
+        "reviewed_sha256": "4f11b354acc5f3d93376f5a00d4ce77d34df6077ca45b565d2c0a09d2c215d10"
+      },
+      {
+        "path": "research/protocol.md",
+        "claims": "H1-H15 hypotheses and dated preregistration amendments; H14/S7 and H15/S8 are prospective and not confirmed by prior field evidence.",
+        "supporting_sources": [
+          "research/benchmark-protocol.md",
+          "work/active/022-benchmark-suite/work-item.json",
+          "work/active/063-durable-repository-orientation-graph-and-incremental-semantic-index/implementation-progress.md",
+          "evidence/runs/20260915-wi022-ac3-whole-program-preflight-v3.json",
+          "work/proposed/071-repopact-3-1-4-paper-submission-and-research-closeout/work-item.json"
+        ],
+        "currentness": "Hypotheses remain unconfirmed; registrations and no-result boundaries are preserved. No empirical result is claimed in this review.",
+        "discrepancies": "None found in the registered wording.",
+        "required_edits": "None; do not alter preregistration based on implementation progress.",
+        "verified_by": "WI080 local review (Codex)",
+        "review_outcome": "verified; preregistration preserved",
+        "reviewed_sha256": "03e2e20c63025bb87d71119009266cfcd59a7ae442d73aee911ca0d995952768"
+      },
+      {
+        "path": "research/arxiv-submission-prep.md",
+        "claims": "Submission remains unsubmitted; candidate title/author metadata; frozen snapshot; current release and public source availability.",
+        "supporting_sources": [
+          "research/paper.md",
+          "PyPI https://pypi.org/project/repopact/",
+          "GitHub releases https://github.com/JeremyShows/repopact/releases",
+          "GitHub source redirect/archive status https://github.com/ForgeWireLabs/repopact",
+          "GitHub commit URL https://github.com/JeremyShows/repopact/commit/6d782116fc9762da00439cf079d0f50585fea52 (404)",
+          "arXiv record https://arxiv.org/abs/2512.18470"
+        ],
+        "currentness": "No submission or manuscript rebuild occurred. Current stable release remains 3.1.3; archive/source URL caveat was refreshed.",
+        "discrepancies": "Editorial check date was stale and did not mention source repository archival.",
+        "required_edits": "Refresh dated editorial status; flag next authorized package metadata/source destination update.",
+        "verified_by": "WI080 local review (Codex)",
+        "review_outcome": "corrected; publication gate remains untouched",
+        "reviewed_sha256": "4b5b94754c5ca13193f1e341e5e54e76ab04e5f1df828e36fd79e8670d06f1c7"
+      },
+      {
+        "path": "research/release-runbook.md",
+        "claims": "3.1.3 remains latest stable; distinct PyPI and installer distribution surfaces; 3.1.3 release and signing history; instructions are historical, not republish authorization.",
+        "supporting_sources": [
+          "PyPI https://pypi.org/project/repopact/",
+          "GitHub release https://github.com/JeremyShows/repopact/releases/tag/v3.1.3",
+          "GitHub releases https://github.com/JeremyShows/repopact/releases",
+          "GitHub source redirect/archive https://github.com/ForgeWireLabs/repopact",
+          "evidence/runs/20260918-070-publication.json"
+        ],
+        "currentness": "Latest release claim remains correct; release page is readable. The source repository is archived as of 2026-10-09.",
+        "discrepancies": "The review date in the current-status heading was stale; source URL archival was unrecorded.",
+        "required_edits": "Refresh current-status review date and record archive/source-destination caveat; preserve historical release instructions and gates.",
+        "verified_by": "WI080 local review (Codex)",
+        "review_outcome": "corrected; no release/publishing action taken",
+        "reviewed_sha256": "3557e53ca75336a6e8c56737384365438c21dbebb9cb1a3c0690d2624805d3e8"
+      },
+      {
+        "path": "research/run-log.md",
+        "claims": "Historical dated run entries link to captured evidence and preserve outcomes, including partial/failed runs.",
+        "supporting_sources": [
+          "all referenced evidence/runs files checked for path existence by the local repository inventory",
+          "research/captures/",
+          "evidence/runs/"
+        ],
+        "currentness": "Run log is historical; no entry is presented as a current release, benchmark, or validation status.",
+        "discrepancies": "None found in the reviewed run/evidence references.",
+        "required_edits": "None; new WI080 review evidence is linked from the research index instead of rewriting old runs.",
+        "verified_by": "WI080 local review (Codex)",
+        "review_outcome": "verified as a historical evidence index",
+        "reviewed_sha256": "2b70ffedd37ee5776bb9d5b27f0423fd600d593d535d80f4455556d39d2550ee"
+      },
+      {
+        "path": "research/threats-to-validity.md",
+        "claims": "T1-T12 limitations on reflexivity, evaluator effects, scale, benchmark curation/fairness, measurement, security realism, provenance, implementation coupling, Workbench maturity, and orientation bias.",
+        "supporting_sources": [
+          "research/protocol.md",
+          "research/benchmark-protocol.md",
+          "research/formal-model.md",
+          "research/metadata.json threat identifiers",
+          "work/active/022-benchmark-suite/work-item.json AC-3 pending"
+        ],
+        "currentness": "Threat list matches registered T1-T12 mapping; no threat is treated as resolved by this review or by implementation alone.",
+        "discrepancies": "None found.",
+        "required_edits": "None.",
+        "verified_by": "WI080 local review (Codex)",
+        "review_outcome": "verified; uncertainty and non-results remain explicit",
+        "reviewed_sha256": "5b3456c0d5ce2d63bc157df0e8d1eb854776f4d0e10ec74876b72a827eb2cd5a"
+      }
+    ]
+  }
+}

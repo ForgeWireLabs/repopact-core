@@ -1,0 +1,117 @@
+{
+  "$schema": "../../../repopact/schemas/work-item.schema.json",
+  "id": "080",
+  "title": "Remediate Pre-Existing Validation Failures and Restore Green Local Baseline",
+  "status": "blocked",
+  "owner_scope": "governance",
+  "affected_scopes": [
+    "governance",
+    "tooling",
+    "evidence",
+    "docs",
+    "work"
+  ],
+  "depends_on": [],
+  "provenance": "concrete",
+  "preflight": {
+    "created_before_work_started": true,
+    "created_at": "2026-11-23T15:16:47.694Z",
+    "note": "Operator explicitly directed repair rather than waiving confirmed pre-existing failures on 2026-11-23. Work item created before implementing the research freshness, WI076 writer, or intermittent Rust test repairs. Existing WI079 investigations and evidence are retained rather than relabeled."
+  },
+  "acceptance_criteria": [
+    {
+      "id": "AC-1",
+      "text": "Review all research documents registered in research/metadata.json against their underlying evidence and current claims. Record document-by-document disposition, discrepancies, unresolved dependencies, actual verification commands and operator-review limitations. Do not advance verified_on or review_by without substantive verification.",
+      "state": "satisfied",
+      "evidence": [
+        "20261123-080-research-freshness-review"
+      ]
+    },
+    {
+      "id": "AC-2",
+      "text": "Resolve the expired research claim freshness by correcting actual claim drift or clearly marking unsupported statements, creating dated concrete review evidence and then advancing the review window by no more than the 30 days permitted by policy 002. Prove canonical validation no longer rejects it solely on expiry; no disabling validator or false verification timestamp.",
+      "state": "satisfied",
+      "evidence": [
+        "20261123-080-research-freshness-review",
+        "20261123-080-final-closeout"
+      ]
+    },
+    {
+      "id": "AC-3",
+      "text": "Repair WI076 conformance provenance filename/record-ID drift by deriving both from one validated UTC recorded_at instant for default generated paths, while preserving explicit-output-path semantics and the original failed evidence. Add deterministic regression tests covering fractional seconds, UTC and malformed input.",
+      "state": "satisfied",
+      "evidence": [
+        "20261123-080-wi076-provenance-validation"
+      ]
+    },
+    {
+      "id": "AC-4",
+      "text": "Prove the WI076 provenance fix in the actual conformance runner at an exact matching engine and source revision, with complete, immutable artifact identity and regression tests; never rename, delete, or overwrite older mismatching evidence.",
+      "state": "satisfied",
+      "evidence": [
+        "20261123-080-wi076-provenance-validation",
+        "20261123T181925821732Z-wi076-ac6-engine-conformance"
+      ]
+    },
+    {
+      "id": "AC-5",
+      "text": "Reproduce or sufficiently isolate intermittent repopact-mutation::tests::consumed_work_record_drift_is_stale failures under repeated sanitized and inherited-Git-environment runs, serial and concurrent, including Windows. Record causality or bounded unresolved hypotheses; do not classify as fixed solely because individual reruns pass.",
+      "state": "satisfied",
+      "evidence": [
+        "20261123-080-rust-drift-diagnostic-campaign",
+        "20261123-080-rust-fixture-collision-disposition"
+      ]
+    },
+    {
+      "id": "AC-6",
+      "text": "Implement a minimal, legitimate Rust code/test-harness fix for any confirmed race, filesystem cleanup collision, timing dependency or false test assumption. Re-run targeted, package, and full workspace tests repeatedly; add negative regression protection without weakening the assertion.",
+      "state": "pending",
+      "evidence": [
+        "20261123-080-rust-drift-diagnostic-campaign",
+        "20261123-080-rust-blocker-disposition",
+        "20261123-080-rust-fixture-collision-disposition"
+      ]
+    },
+    {
+      "id": "AC-7",
+      "text": "Re-run the complete local repopact verify ci profile from a clean, exact-head checkout with matching canonical Rust engine and sanitized external Git configuration. Record all five required-step outcomes, full Python results and Rust workspace results. Aim for an entirely green baseline, not an exception list.",
+      "state": "satisfied",
+      "evidence": [
+        "20261123-182000-636282-verify-ci",
+        "20261123-080-rust-fixture-local-ci"
+      ]
+    },
+    {
+      "id": "AC-8",
+      "text": "Produce generated semantic identity, repository dashboard, governance/documentation mappings and relevant evidence with canonical tools only, and pass repopact validate, Git diff checks, frozen-surface checks and required conformance. Preserve source and evidence integrity.",
+      "state": "satisfied",
+      "evidence": [
+        "20261123-080-final-closeout",
+        "20261123-080-rust-fixture-collision-disposition",
+        "20261123-080-rust-fixture-local-ci"
+      ]
+    },
+    {
+      "id": "AC-9",
+      "text": "Reconcile WI079 draft PR #18 against the remediated baseline and document any rebase/merge prerequisite without silently folding unrelated maintenance into WI079. Preserve local-only CI policy through 2026-12-01 inclusive; reassess hosted CI after 2026-12-01 only by explicit operator decision.",
+      "state": "satisfied",
+      "evidence": [
+        "20261123-080-wi079-protocol-review",
+        "20261123-080-pr-reconciliation"
+      ]
+    },
+    {
+      "id": "AC-10",
+      "text": "Record final finding dispositions with concrete evidence, exact reviewed commits and residual risks. Leave a repair unresolved only with an explicit blocking owner, investigation plan and independent acceptance decision; pre-existing status is never a waiver.",
+      "state": "pending",
+      "evidence": [
+        "20261123-080-rust-drift-diagnostic-campaign",
+        "20261123-080-rust-blocker-disposition",
+        "20261123-080-rust-fixture-collision-disposition",
+        "20261123-080-rust-fixture-local-ci"
+      ]
+    }
+  ],
+  "created": "2026-11-23",
+  "updated": "2026-11-23"
+}
