@@ -3051,30 +3051,63 @@ mod tests {
 
     #[test]
     fn consumed_work_record_drift_is_stale() {
+        const WORK_RECORD: &str = "work/active/001-one/work-item.json";
         let (root, snapshot) = fixture();
         let plan = plan(
             &snapshot,
             MutationRequest::create_work_item(create_request("A New Thing", "2026-01-02")),
         );
-        assert!(
-            plan.is_applicable(),
-            "baseline plan must be applicable before injected drift; fixture root={root:?}; diagnostics={:?}",
-            plan.diagnostics
-        );
+        if !plan.is_applicable() {
+            // Failure-only forensics. Never print an inherited environment value.
+            let repository = Repository::open(&root);
+            let observed = repository.path_state(&root.join(WORK_RECORD));
+            let read_fact = plan
+                .read_set
+                .facts
+                .iter()
+                .find(|fact| fact.path == WORK_RECORD);
+            panic!(
+                "baseline plan must be applicable before injected drift; fixture root={root:?}; pid={}; thread={:?}; planned_identity={:?}; live_identity={:?}; read_fact_count={}; work_record_read_fact={read_fact:?}; work_record_before={observed:?}; diagnostics={:?}; cleanup=fixture retained after panic for inspection",
+                std::process::id(),
+                std::thread::current().id(),
+                plan.repository_identity,
+                repository.identity(),
+                plan.read_set.facts.len(),
+                plan.diagnostics
+            );
+        }
+        let repository = Repository::open(&root);
+        let work_record = root.join(WORK_RECORD);
+        let before = repository.path_state(&work_record);
         fs::write(
-            root.join("work/active/001-one/work-item.json"),
+            &work_record,
             br#"{"id":"001","title":"Changed","status":"active","owner_scope":"governance","affected_scopes":[],"depends_on":[],"acceptance_criteria":[{"id":"AC-1","text":"prove","state":"pending","evidence":[]}],"created":"2026-01-01","updated":"2026-01-01"}"#,
         )
         .unwrap();
+        let after_write = repository.path_state(&work_record);
         let result = plan.apply();
-        assert!(!result.success);
-        assert!(
-            result
-                .diagnostics
+        let stale = result
+            .diagnostics
+            .iter()
+            .any(|diagnostic| diagnostic.code == "mutation.plan-stale");
+        if result.success || !stale {
+            // Includes the exact read fact used by the plan and three live states.
+            // Hashes are PathState digests, not raw work-record contents.
+            let read_fact = plan
+                .read_set
+                .facts
                 .iter()
-                .any(|diagnostic| diagnostic.code == "mutation.plan-stale"),
-            "expected mutation.plan-stale after consumed work-record drift; fixture root={root:?}; got {result:?}"
-        );
+                .find(|fact| fact.path == WORK_RECORD);
+            let after_apply = repository.path_state(&work_record);
+            panic!(
+                "expected failed apply with mutation.plan-stale after consumed record drift; fixture root={root:?}; pid={}; thread={:?}; planned_identity={:?}; live_identity={:?}; read_fact_count={}; work_record_read_fact={read_fact:?}; before={before:?}; after_write={after_write:?}; after_apply={after_apply:?}; result={result:?}; cleanup=fixture retained after panic for inspection",
+                std::process::id(),
+                std::thread::current().id(),
+                plan.repository_identity,
+                repository.identity(),
+                plan.read_set.facts.len()
+            );
+        }
         fs::remove_dir_all(root).unwrap();
     }
 
