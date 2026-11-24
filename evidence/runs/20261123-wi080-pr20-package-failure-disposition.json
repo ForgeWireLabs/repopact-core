@@ -1,0 +1,52 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261123-wi080-pr20-package-failure-disposition",
+  "timestamp": "2026-11-24T01:43:36Z",
+  "work_item": "080",
+  "result": "partial",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "cargo test --locked --manifest-path rust/Cargo.toml -p repopact-mutation",
+      "exit_code": 101,
+      "summary": "One parallel package run failed expected_absent_target_makes_plan_stale. MutationResult reported audit-registry.scope-missing for scope '.', preserved in 20261123-wi080-pr20-rust-focused-and-package.log."
+    },
+    {
+      "command": "cargo test --locked --manifest-path rust/Cargo.toml -p repopact-mutation expected_absent_target_makes_plan_stale -- --nocapture",
+      "exit_code": 0,
+      "summary": "The exact test passed in isolation."
+    },
+    {
+      "command": "cargo test --locked --manifest-path rust/Cargo.toml -p repopact-mutation -- --test-threads=1",
+      "exit_code": 0,
+      "summary": "The complete mutation package passed serially: 31 unit tests, 3 governance-boundary tests, and 1 verification test."
+    },
+    {
+      "command": "cargo test --workspace --locked --manifest-path rust/Cargo.toml -- --test-threads=1",
+      "exit_code": 0,
+      "summary": "The complete locked workspace passed in serial mode after canonical semantic identity regeneration."
+    },
+    {
+      "command": "cargo test --workspace --locked --manifest-path rust/Cargo.toml",
+      "exit_code": 0,
+      "summary": "The complete locked workspace passed in default parallel mode after canonical semantic identity regeneration."
+    }
+  ],
+  "artifacts": [
+    "evidence/runs/20261123-wi080-pr20-rust-focused-and-package.log",
+    "evidence/runs/20261123-wi080-pr20-expected-absent-diagnostic.log",
+    "evidence/runs/20261123-wi080-pr20-rust-serial-after-identity.log",
+    "evidence/runs/20261123-wi080-pr20-rust-parallel-after-identity.log"
+  ],
+  "environment": {
+    "platform": "Windows x86_64-pc-windows-msvc",
+    "source_head": "cc586de4a4591a6ffee550095fd97f0334badb3d",
+    "source_tree_before_local_evidence": "6b245e9955e614bcab6698d45d27f274ebb0ec25",
+    "semantic_identity_after_canonical_regeneration": "repopact-semantic-v1:sha256:f6d33ab1b0dca2b1e984e96a394bd1ed4879764e04fee653ffde712d405089cf",
+    "root_cause": "unresolved",
+    "classification": "unresolved",
+    "candidate_hypothesis": "validate_candidate uses a temp directory name based only on a nanosecond SystemTime value, creates it with create_dir_all, and ignores cleanup errors. Concurrent planning could collide if the Windows clock yields the same value, allowing one validation to remove another's candidate tree. The observed missing-scope diagnostic is consistent with this, but no collision was captured and causality is unproven.",
+    "production_behavior_changed": false,
+    "disposition": "Keep WI080 AC-6 and AC-10 blocked. Do not treat isolated or later passing runs as proof that this separate package failure or the historical consumed-work-record failure is fixed."
+  }
+}

@@ -1,0 +1,35 @@
+WI080 PR #20 failure-only diagnostics controlled negative-case probe
+Source HEAD: cc586de4a4591a6ffee550095fd97f0334badb3d
+Source tree: 6b245e9955e614bcab6698d45d27f274ebb0ec25
+Disposable checkout: C:\Projects\repopact-wi080-pr20-faultprobe-20261123
+Temporary test-only fault: changed post-drift guard to unconditional true; no production or committed assertion changed.
+Command: cargo test --locked --manifest-path rust/Cargo.toml -p repopact-mutation consumed_work_record_drift_is_stale -- --nocapture
+Expected: deliberate panic prints full diagnostic payload, with nonzero test exit.
+warning: unused variable: `stale`
+    --> crates\repopact-mutation\src\lib.rs:3089:13
+     |
+3089 |         let stale = result
+     |             ^^^^^ help: if this is intentional, prefix it with an underscore: `_stale`
+     |
+     = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: `repopact-mutation` (lib test) generated 1 warning (run `cargo fix --lib -p repopact-mutation --tests` to apply 1 suggestion)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.33s
+     Running unittests src\lib.rs (C:\Projects\repopact-wi080-pr20-forensics-20261123\rust\target\debug\deps\repopact_mutation-6b33946978be6321.exe)
+
+running 1 test
+
+thread 'tests::consumed_work_record_drift_is_stale' (4616) panicked at crates\repopact-mutation\src\lib.rs:3102:13:
+expected failed apply with mutation.plan-stale after consumed record drift; fixture root="%USERPROFILE%\\AppData\\Local\\Temp\\repopact-mutation-test-19084-0"; pid=19084; thread=ThreadId(2); planned_identity=RepositoryIdentity { root: "//?/%USERPROFILE%/AppData/Local/Temp/repopact-mutation-test-19084-0", git_common_dir: None, git_worktree_root: None, linked_worktree: false }; live_identity=RepositoryIdentity { root: "//?/%USERPROFILE%/AppData/Local/Temp/repopact-mutation-test-19084-0", git_common_dir: None, git_worktree_root: None, linked_worktree: false }; read_fact_count=19; work_record_read_fact=Some(ReadFact { path: "work/active/001-one/work-item.json", expected: Present { digest: "0a089f9265fc88e27c2adfd5cab2ee2a6acb3982c1e1f19360f9ddbd911262a8", kind: "file" } }); before=Present { digest: "0a089f9265fc88e27c2adfd5cab2ee2a6acb3982c1e1f19360f9ddbd911262a8", kind: "file" }; after_write=Present { digest: "980b9f17c58b7e285101cafeb1eda85f7ab180490df9e15337d263e0d827ff5a", kind: "file" }; after_apply=Present { digest: "980b9f17c58b7e285101cafeb1eda85f7ab180490df9e15337d263e0d827ff5a", kind: "file" }; result=MutationResult { success: false, rolled_back: false, plan_token: "037dd0ab23fed2e41d393d964b01d5062b6e7c41c57fbb635df39b6e1520bc03", changed_paths: [], diagnostics: [MutationDiagnostic { code: "mutation.plan-stale", message: "plan read fact for 'work/active' no longer matches; re-plan before apply", path: Some("work/active"), blocking: true, related_records: [] }], replayed: false, metrics: MutationMetrics { snapshot_ms: 0, planning_ms: 0, engine_execution_ms: 0, proposal_lock_wait_ms: 0, idempotency_lookup_ms: 0, stale_check_ms: 0, critical_validation_ms: 0, authority_checks_ms: 0, work_schema_ms: 0, dependency_graph_ms: 0, maintenance_diagnostics_ms: 0, filesystem_staging_ms: 0, atomic_commit_ms: 0, dashboard_regeneration_ms: 0, records_examined: 0, source_files_read: 0, external_integrations_ms: 0 } }; cleanup=fixture retained after panic for inspection
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test tests::consumed_work_record_drift_is_stale ... FAILED
+
+failures:
+
+failures:
+    tests::consumed_work_record_drift_is_stale
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 30 filtered out; finished in 0.17s
+
+error: test failed, to rerun pass `-p repopact-mutation --lib`
+Observed cargo exit code: 101

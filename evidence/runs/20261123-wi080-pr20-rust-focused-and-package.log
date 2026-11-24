@@ -1,0 +1,109 @@
+WI080 PR #20 focused and complete mutation package tests
+Code revision: cc586de4a4591a6ffee550095fd97f0334badb3d
+Canonical semantic identity: repopact-semantic-v1:sha256:f6d33ab1b0dca2b1e984e96a394bd1ed4879764e04fee653ffde712d405089cf
+Inherited GIT variable names cleared: GIT_CONFIG_COUNT, GIT_CONFIG_KEY_0, GIT_CONFIG_KEY_1, GIT_CONFIG_KEY_2, GIT_CONFIG_KEY_3, GIT_CONFIG_KEY_4, GIT_CONFIG_KEY_5, GIT_CONFIG_KEY_6, GIT_CONFIG_KEY_7, GIT_CONFIG_KEY_8, GIT_CONFIG_KEY_9, GIT_CONFIG_VALUE_0, GIT_CONFIG_VALUE_1, GIT_CONFIG_VALUE_2, GIT_CONFIG_VALUE_3, GIT_CONFIG_VALUE_4, GIT_CONFIG_VALUE_5, GIT_CONFIG_VALUE_6, GIT_CONFIG_VALUE_7, GIT_CONFIG_VALUE_8, GIT_CONFIG_VALUE_9, GIT_INSTALL_ROOT, GIT_PAGER
+Hosted CI/CD variables cleared: none
+No variable values recorded.
+
+=== Focused consumed-work-record test ===
+Command: cargo test --locked --manifest-path rust/Cargo.toml -p repopact-mutation consumed_work_record_drift_is_stale -- --nocapture
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.29s
+     Running unittests src\lib.rs (rust\target\debug\deps\repopact_mutation-6b33946978be6321.exe)
+
+running 1 test
+test tests::consumed_work_record_drift_is_stale ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 30 filtered out; finished in 0.18s
+
+     Running tests\remote_provider_governance_boundary.rs (rust\target\debug\deps\remote_provider_governance_boundary-a5fa40ce039d7d42.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 3 filtered out; finished in 0.00s
+
+     Running tests\verification_post_validation.rs (rust\target\debug\deps\verification_post_validation-b58ce280b47863ea.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s
+
+Exit code: 0
+
+=== Fixture collision regression ===
+Command: cargo test --locked --manifest-path rust/Cargo.toml -p repopact-mutation fixture_root_collision_skips_existing_nonempty_directory -- --nocapture
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.30s
+     Running unittests src\lib.rs (rust\target\debug\deps\repopact_mutation-6b33946978be6321.exe)
+
+running 1 test
+test tests::fixture_root_collision_skips_existing_nonempty_directory ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 30 filtered out; finished in 0.06s
+
+     Running tests\remote_provider_governance_boundary.rs (rust\target\debug\deps\remote_provider_governance_boundary-a5fa40ce039d7d42.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 3 filtered out; finished in 0.00s
+
+     Running tests\verification_post_validation.rs (rust\target\debug\deps\verification_post_validation-b58ce280b47863ea.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s
+
+Exit code: 0
+
+=== Complete mutation package ===
+Command: cargo test --locked --manifest-path rust/Cargo.toml -p repopact-mutation
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.30s
+     Running unittests src\lib.rs (rust\target\debug\deps\repopact_mutation-6b33946978be6321.exe)
+
+running 31 tests
+test tests::canonical_transition_fixture_matches_exact_after_state ... ok
+test tests::canonical_edit_fixture_matches_exact_after_state ... ok
+test tests::candidate_copy_includes_only_governed_semantic_build_inputs ... ok
+test tests::create_requires_explicit_preflight_confirmation ... ok
+test tests::fixture_root_collision_skips_existing_nonempty_directory ... ok
+test tests::expected_absent_target_makes_plan_stale ... FAILED
+test tests::drift_during_apply_is_rejected_and_rolled_back ... ok
+test tests::consumed_work_record_drift_is_stale ... ok
+test tests::malformed_historical_receipt_fails_closed_when_its_key_cannot_be_identified ... ok
+test tests::failed_staged_proposal_leaves_no_work_item_or_receipt_and_can_be_retried ... ok
+test tests::canonical_work_item_status_always_comes_from_the_work_item_record_never_the_graph ... ok
+test tests::injected_failure_restores_complete_transition_directory ... ok
+test tests::consumed_owner_and_dashboard_inputs_are_stale ... ok
+test tests::missing_receipt_is_absent_even_when_a_historical_item_remains ... ok
+test tests::matching_corrupt_receipt_fails_closed_but_valid_unrelated_receipt_does_not_couple_lookup ... ok
+test tests::malformed_legacy_evidence_blocks_a_create_plan_before_approval ... ok
+test tests::post_publish_dashboard_failure_does_not_misreport_or_undo_the_commit ... ok
+test tests::preflight_timestamp_uses_the_actual_injected_utc_instant_and_readme_has_no_template_placeholders ... ok
+test tests::pending_completion_is_blocked_by_candidate_validation_before_apply ... ok
+test tests::proposal_idempotency_key_cannot_be_reused_for_a_different_payload ... ok
+test tests::parallel_proposals_allocate_unique_ids_and_keep_receipts_resolvable ... ok
+test tests::nonproposal_mutation_waits_for_proposal_publish_then_rejects_its_stale_id_plan ... ok
+test tests::production_plan_timestamp_is_current_utc_not_midnight_from_the_requested_date ... ok
+test tests::planning_is_deterministic_and_does_not_write ... ok
+test tests::proposal_rejects_authority_drift_after_validation_and_during_staging ... ok
+test tests::a_tampered_durable_graph_claiming_approval_cannot_remove_canonical_lifecycle_blockers ... ok
+test tests::typed_edit_updates_only_allowed_fields_and_validates ... ok
+test tests::proposal_reports_stale_dashboard_and_expired_review_as_warnings_then_refreshes_dashboard ... ok
+test tests::proposal_rejects_candidate_scope_violation_and_preserves_global_reference_blockers ... ok
+test tests::proposal_receipt_lookup_follows_the_item_through_lifecycle_transitions ... ok
+test tests::unrelated_file_not_in_read_set_does_not_stale_plan ... ok
+
+failures:
+
+---- tests::expected_absent_target_makes_plan_stale stdout ----
+
+thread 'tests::expected_absent_target_makes_plan_stale' (6280) panicked at crates\repopact-mutation\src\lib.rs:2951:9:
+MutationResult { success: false, rolled_back: false, plan_token: "54bf39342e0110681a695e7d1a63e0b81cbbed16ebf975109611e1f6416fcad1", changed_paths: [], diagnostics: [MutationDiagnostic { code: "audit-registry.scope-missing", message: "audit scope does not exist: .", path: Some("audits/registry.json"), blocking: true, related_records: [] }], replayed: false, metrics: MutationMetrics { snapshot_ms: 0, planning_ms: 0, engine_execution_ms: 0, proposal_lock_wait_ms: 0, idempotency_lookup_ms: 0, stale_check_ms: 0, critical_validation_ms: 0, authority_checks_ms: 0, work_schema_ms: 0, dependency_graph_ms: 0, maintenance_diagnostics_ms: 0, filesystem_staging_ms: 0, atomic_commit_ms: 0, dashboard_regeneration_ms: 0, records_examined: 0, source_files_read: 0, external_integrations_ms: 0 } }
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    tests::expected_absent_target_makes_plan_stale
+
+test result: FAILED. 30 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.26s
+
+error: test failed, to rerun pass `-p repopact-mutation --lib`
+Exit code: 101

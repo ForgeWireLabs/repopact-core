@@ -1,0 +1,27 @@
+WI080 PR #20 Rust formatting and compile checks
+Source HEAD: cc586de4a4591a6ffee550095fd97f0334badb3d
+Source tree: 6b245e9955e614bcab6698d45d27f274ebb0ec25
+Commands and individual exit codes follow.
+Diff in \\?\C:\Projects\repopact-wi080-pr20-forensics-20261123\rust\apps\repopact-engine\build.rs:162:
+             if let Some(path) = entry["path"].as_str() {
+                 match path {
+                     "@projection/pyproject-semantic-build-config.json" => {
+-                        println!("cargo:rerun-if-changed={}", root.join("pyproject.toml").display());
++                        println!(
++                            "cargo:rerun-if-changed={}",
++                            root.join("pyproject.toml").display()
++                        );
+                     }
+                     "@projection/rust-workspace-manifest.json" => {
+-                        println!("cargo:rerun-if-changed={}", root.join("rust/Cargo.toml").display());
++                        println!(
++                            "cargo:rerun-if-changed={}",
++                            root.join("rust/Cargo.toml").display()
++                        );
+                     }
+                     projection if projection.starts_with('@') => {
+                         panic!("unsupported semantic input projection: {projection}");
+cargo fmt --all --check exit code: 1
+rustfmt touched PR source exit code: 0
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.33s
+cargo check mutation package exit code: 0

@@ -1,0 +1,51 @@
+WI080 PR #20 locked Rust workspace — serial test threads
+Source HEAD: cc586de4a4591a6ffee550095fd97f0334badb3d
+Source tree: 6b245e9955e614bcab6698d45d27f274ebb0ec25
+Command: cargo test --workspace --locked --manifest-path rust/Cargo.toml -- --test-threads=1
+Inherited GIT variable names cleared: GIT_CONFIG_COUNT, GIT_CONFIG_KEY_0, GIT_CONFIG_KEY_1, GIT_CONFIG_KEY_2, GIT_CONFIG_KEY_3, GIT_CONFIG_KEY_4, GIT_CONFIG_KEY_5, GIT_CONFIG_KEY_6, GIT_CONFIG_KEY_7, GIT_CONFIG_KEY_8, GIT_CONFIG_KEY_9, GIT_CONFIG_VALUE_0, GIT_CONFIG_VALUE_1, GIT_CONFIG_VALUE_2, GIT_CONFIG_VALUE_3, GIT_CONFIG_VALUE_4, GIT_CONFIG_VALUE_5, GIT_CONFIG_VALUE_6, GIT_CONFIG_VALUE_7, GIT_CONFIG_VALUE_8, GIT_CONFIG_VALUE_9, GIT_INSTALL_ROOT, GIT_PAGER
+Hosted CI/CD variables cleared: none
+No variable values recorded.
+   Compiling once_cell v1.21.4
+   Compiling repopact-analysis v0.1.0 (C:\Projects\repopact-wi080-pr20-forensics-20261123\rust\crates\repopact-analysis)
+   Compiling libc v0.2.189
+   Compiling getrandom v0.4.3
+   Compiling repopact-engine v0.1.0 (C:\Projects\repopact-wi080-pr20-forensics-20261123\rust\apps\repopact-engine)
+   Compiling repopact-protocol v0.1.0 (C:\Projects\repopact-wi080-pr20-forensics-20261123\rust\crates\repopact-protocol)
+   Compiling fastrand v2.5.0
+   Compiling repopact-graph v0.1.0 (C:\Projects\repopact-wi080-pr20-forensics-20261123\rust\crates\repopact-graph)
+   Compiling ahash v0.8.12
+   Compiling referencing v0.55.1
+   Compiling jsonschema-value v0.55.1
+   Compiling tempfile v3.27.0
+   Compiling repopact-confinement v0.1.0 (C:\Projects\repopact-wi080-pr20-forensics-20261123\rust\crates\repopact-confinement)
+   Compiling jsonschema v0.55.1
+   Compiling repopact-sandbox v0.1.0 (C:\Projects\repopact-wi080-pr20-forensics-20261123\rust\apps\repopact-sandbox)
+   Compiling repopact-repository v0.1.0 (C:\Projects\repopact-wi080-pr20-forensics-20261123\rust\crates\repopact-repository)
+   Compiling repopact-types v0.1.0 (C:\Projects\repopact-wi080-pr20-forensics-20261123\rust\crates\repopact-types)
+error: failed to run custom build command for `repopact-engine v0.1.0 (C:\Projects\repopact-wi080-pr20-forensics-20261123\rust\apps\repopact-engine)`
+
+Caused by:
+  process didn't exit successfully: `C:\Projects\repopact-wi080-pr20-forensics-20261123\rust\target\debug\build\repopact-engine-5d4d16b8e52a1c16\build-script-build` (exit code: 101)
+  --- stdout
+  cargo:rerun-if-changed=C:\Projects\repopact-wi080-pr20-forensics-20261123\rust\apps\repopact-engine\../../..\VERSION
+  cargo:rerun-if-changed=C:\Projects\repopact-wi080-pr20-forensics-20261123\rust\apps\repopact-engine\../../..\RELEASE_LABEL
+  cargo:rerun-if-changed=C:\Projects\repopact-wi080-pr20-forensics-20261123\rust\apps\repopact-engine\../../..\repopact/_semantic_identity.json
+  cargo:rerun-if-changed=C:\Projects\repopact-wi080-pr20-forensics-20261123\rust\apps\repopact-engine\../../..\build/semantic-input-manifest.json
+  cargo:rerun-if-changed=C:\Projects\repopact-wi080-pr20-forensics-20261123\rust\apps\repopact-engine\../../..\build/semantic-input-policy.json
+  cargo:rerun-if-changed=C:\Projects\repopact-wi080-pr20-forensics-20261123\rust\apps\repopact-engine\../../..\scripts/generate_engine_semantic_identity.py
+  cargo:rerun-if-changed=C:\Projects\repopact-wi080-pr20-forensics-20261123\rust\apps\repopact-engine\../../..\repopact
+  cargo:rerun-if-changed=C:\Projects\repopact-wi080-pr20-forensics-20261123\rust\apps\repopact-engine\../../..\conformance
+  cargo:rerun-if-changed=C:\Projects\repopact-wi080-pr20-forensics-20261123\rust\apps\repopact-engine\../../..\rust/Cargo.toml
+  cargo:rerun-if-changed=C:\Projects\repopact-wi080-pr20-forensics-20261123\rust\apps\repopact-engine\../../..\pyproject.toml
+  cargo:rerun-if-changed=C:\Projects\repopact-wi080-pr20-forensics-20261123\rust\apps\repopact-engine\../../..\rust\crates
+  cargo:rerun-if-changed=C:\Projects\repopact-wi080-pr20-forensics-20261123\rust\apps\repopact-engine\../../..\rust\apps
+
+  --- stderr
+
+  thread 'main' (2568) panicked at apps\repopact-engine\build.rs:127:9:
+  RepoPact semantic input manifest is stale or incomplete; run the explicit reviewed generator update first. checker output:
+  semantic identity error: semantic identity is stale: build/semantic-input-manifest.json; inspect inputs and run the explicit --update command to propose a baseline change
+
+  note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+warning: build failed, waiting for other jobs to finish...
+Observed cargo exit code: 101
