@@ -22,7 +22,7 @@
 | Status | Count |
 | --- | ---: |
 | proposed | 3 |
-| active | 9 |
+| active | 10 |
 | blocked | 2 |
 | deferred | 1 |
 | completed | 64 |
@@ -42,5 +42,6 @@ All audit scopes are within their review cadence.
 - 067: GitHub Repository Provider, Secure User Authorization, and Remote Repository Import (active)
 - 074: Extract RepoPact Core and Independent Workbench (active)
 - 077: Verify RepoPact proposal reliability on the ForgeWire proving ground (active)
+- 081: Repair Local CI Environment Sensitivity and Validation Storage Hygiene (active)
 - 032: Restore remote cross-platform governance enforcement (blocked)
 - 080: Remediate Pre-Existing Validation Failures and Restore Green Local Baseline (blocked)
