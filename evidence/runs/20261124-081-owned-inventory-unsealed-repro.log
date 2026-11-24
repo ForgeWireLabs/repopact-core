@@ -1,0 +1,14 @@
+SOURCE_HEAD=284e5c9109260d88a2ec1cdea231f50e96475b21
+REMOVED_ENV_NAMES=GIT_CONFIG_COUNT,GIT_CONFIG_KEY_0,GIT_CONFIG_KEY_1,GIT_CONFIG_KEY_2,GIT_CONFIG_KEY_3,GIT_CONFIG_KEY_4,GIT_CONFIG_KEY_5,GIT_CONFIG_KEY_6,GIT_CONFIG_KEY_7,GIT_CONFIG_KEY_8,GIT_CONFIG_KEY_9,GIT_CONFIG_VALUE_0,GIT_CONFIG_VALUE_1,GIT_CONFIG_VALUE_2,GIT_CONFIG_VALUE_3,GIT_CONFIG_VALUE_4,GIT_CONFIG_VALUE_5,GIT_CONFIG_VALUE_6,GIT_CONFIG_VALUE_7,GIT_CONFIG_VALUE_8,GIT_CONFIG_VALUE_9,GIT_INSTALL_ROOT,GIT_PAGER
+Traceback (most recent call last):
+  File "C:\Projects\repopact-wi081-ci-default-20261124\scripts\local_validation_storage.py", line 90, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "C:\Projects\repopact-wi081-ci-default-20261124\scripts\local_validation_storage.py", line 64, in main
+    result = inventory(root)
+             ^^^^^^^^^^^^^^^
+  File "C:\Projects\repopact-wi081-ci-default-20261124\repopact\local_storage.py", line 638, in inventory
+    "snapshot_files": len(item.get("snapshot", {}).get("files", [])),
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'get'
+INVENTORY_EXIT=1

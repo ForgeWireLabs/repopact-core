@@ -8,7 +8,9 @@ import subprocess
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
+from repopact.verification_capture import ACTIVE_CAPTURE_ID_ENV
 from repopact.dev_fixtures import (
     FixtureRepo,
     default_source_root,
@@ -49,6 +51,20 @@ def _init_synthetic_source(root: Path) -> None:
     # still participate, same as a file the developer just created.
     (root / "untracked_new_file.py").write_text("new = True\n", encoding="utf-8")
 
+    # A live RepoPact verification capture is operational state, not fixture
+    # source. It must not leak into copied repositories while the full suite is
+    # running from an evidence-backed CI invocation.
+    progress = root / "evidence" / "runs" / ".in-progress"
+    progress.mkdir(parents=True)
+    (progress / "20261124-fixture.state.json").write_text(
+        '{"format":"repopact-local-verification-capture-v1","id":"20261124-fixture",'
+        '"status":"partial","phase":"running",'
+        '"capture_log":"evidence/runs/.in-progress/20261124-fixture.steps.jsonl.partial"}\n',
+        encoding="utf-8",
+    )
+    (progress / "20261124-fixture.steps.jsonl.partial").write_text("", encoding="utf-8")
+    (root / "evidence" / "runs" / "local-note.json").write_text("{}\n", encoding="utf-8")
+
 
 class DevFixturesTests(unittest.TestCase):
     def setUp(self) -> None:
@@ -69,6 +85,13 @@ class DevFixturesTests(unittest.TestCase):
         dest = self.source.parent / "dest-untracked"
         materialize_source_tree(self.source, dest)
         self.assertTrue((dest / "untracked_new_file.py").is_file())
+
+    def test_live_capture_markers_are_excluded_but_other_evidence_participates(self) -> None:
+        dest = self.source.parent / "dest-capture-state"
+        with patch.dict("os.environ", {ACTIVE_CAPTURE_ID_ENV: "20261124-fixture"}):
+            materialize_source_tree(self.source, dest)
+        self.assertFalse((dest / "evidence" / "runs" / ".in-progress").exists())
+        self.assertTrue((dest / "evidence" / "runs" / "local-note.json").is_file())
 
     def test_git_directory_is_never_copied(self) -> None:
         dest = self.source.parent / "dest-no-git"

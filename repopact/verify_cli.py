@@ -8,6 +8,7 @@ of maintaining a second semantic command list.
 from __future__ import annotations
 
 import argparse
+import os
 import sys
 from pathlib import Path
 
@@ -22,7 +23,11 @@ from .verification import (
     render_json,
     run_profile,
 )
-from .verification_capture import CaptureJournal, CaptureStateError
+from .verification_capture import (
+    ACTIVE_CAPTURE_ID_ENV,
+    CaptureJournal,
+    CaptureStateError,
+)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -78,12 +83,22 @@ def main(argv: list[str] | None = None) -> int:
         elif args.evidence_id:
             raise VerificationConfigError("--evidence-id requires --evidence-work-item")
 
-        report = run_profile(
-            root,
-            profile_name,
-            progress_callback=journal.record_step if journal else None,
-            candidate_at_start=candidate_at_start,
-        )
+        previous_capture_id = os.environ.get(ACTIVE_CAPTURE_ID_ENV)
+        try:
+            if journal:
+                os.environ[ACTIVE_CAPTURE_ID_ENV] = evidence_id
+            report = run_profile(
+                root,
+                profile_name,
+                progress_callback=journal.record_step if journal else None,
+                candidate_at_start=candidate_at_start,
+            )
+        finally:
+            if journal:
+                if previous_capture_id is None:
+                    os.environ.pop(ACTIVE_CAPTURE_ID_ENV, None)
+                else:
+                    os.environ[ACTIVE_CAPTURE_ID_ENV] = previous_capture_id
         output_report = report
         expected_evidence_path = None
         if journal:

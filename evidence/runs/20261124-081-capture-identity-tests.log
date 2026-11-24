@@ -1,0 +1,110 @@
+test_addcleanup_helper_removes_fixture_after_test_case_tears_down (tests.test_dev_fixtures.DevFixturesTests.test_addcleanup_helper_removes_fixture_after_test_case_tears_down) ... ok
+test_cleanup_runs_even_when_materialization_fails (tests.test_dev_fixtures.DevFixturesTests.test_cleanup_runs_even_when_materialization_fails) ... ok
+test_fixture_cannot_be_materialized_from_another_fixture (tests.test_dev_fixtures.DevFixturesTests.test_fixture_cannot_be_materialized_from_another_fixture) ... ok
+test_fixture_cleanup_removes_the_temp_directory_on_close (tests.test_dev_fixtures.DevFixturesTests.test_fixture_cleanup_removes_the_temp_directory_on_close) ... ok
+test_fixture_disables_automatic_git_maintenance (tests.test_dev_fixtures.DevFixturesTests.test_fixture_disables_automatic_git_maintenance) ... ok
+test_fixture_is_usable_as_a_disposable_git_repository (tests.test_dev_fixtures.DevFixturesTests.test_fixture_is_usable_as_a_disposable_git_repository) ... ok
+test_git_directory_is_never_copied (tests.test_dev_fixtures.DevFixturesTests.test_git_directory_is_never_copied) ... ok
+test_ignored_build_output_is_excluded (tests.test_dev_fixtures.DevFixturesTests.test_ignored_build_output_is_excluded) ... ok
+test_live_capture_markers_are_excluded_but_other_evidence_participates (tests.test_dev_fixtures.DevFixturesTests.test_live_capture_markers_are_excluded_but_other_evidence_participates) ... ok
+test_python_bytecode_cache_is_excluded (tests.test_dev_fixtures.DevFixturesTests.test_python_bytecode_cache_is_excluded) ... ok
+test_real_checkout_fixture_excludes_rust_target_when_present (tests.test_dev_fixtures.DevFixturesTests.test_real_checkout_fixture_excludes_rust_target_when_present) ... ok
+test_repeated_materialization_does_not_inflate (tests.test_dev_fixtures.DevFixturesTests.test_repeated_materialization_does_not_inflate) ... ok
+test_tracked_source_is_included_with_current_working_tree_content (tests.test_dev_fixtures.DevFixturesTests.test_tracked_source_is_included_with_current_working_tree_content) ... ok
+test_untracked_non_ignored_file_participates (tests.test_dev_fixtures.DevFixturesTests.test_untracked_non_ignored_file_participates) ... ok
+test_admission_policy_present_still_does_not_claim_enforcement (tests.test_verify_status.VerifyStatusTests.test_admission_policy_present_still_does_not_claim_enforcement) ... ok
+test_admission_state_never_claims_effectiveness_or_enforcement_without_evidence (tests.test_verify_status.VerifyStatusTests.test_admission_state_never_claims_effectiveness_or_enforcement_without_evidence) ... ok
+test_cli_status_subcommand_never_invokes_a_profile_named_status (tests.test_verify_status.VerifyStatusTests.test_cli_status_subcommand_never_invokes_a_profile_named_status) ... ok
+test_local_verification_section_reflects_contract (tests.test_verify_status.VerifyStatusTests.test_local_verification_section_reflects_contract) ... ok
+test_no_remote_call_is_ever_made_and_hosted_state_is_unknown (tests.test_verify_status.VerifyStatusTests.test_no_remote_call_is_ever_made_and_hosted_state_is_unknown) ... ok
+test_release_section_folds_in_supplied_readiness_evidence (tests.test_verify_status.VerifyStatusTests.test_release_section_folds_in_supplied_readiness_evidence) ... ok
+test_release_section_without_evidence_reports_not_evidenced (tests.test_verify_status.VerifyStatusTests.test_release_section_without_evidence_reports_not_evidenced) ... ok
+test_render_json_and_human_do_not_crash_and_stay_consistent (tests.test_verify_status.VerifyStatusTests.test_render_json_and_human_do_not_crash_and_stay_consistent) ... ok
+test_unfinished_capture_overrides_effective_status_to_incomplete (tests.test_verify_status.VerifyStatusTests.test_unfinished_capture_overrides_effective_status_to_incomplete) ... ok
+test_default_filename_is_exact_embedded_id (tests.test_conformance_provenance_identity.ConformanceProvenanceIdentityTests.test_default_filename_is_exact_embedded_id) ... ok
+test_default_timestamp_in_seconds_still_has_single_id (tests.test_conformance_provenance_identity.ConformanceProvenanceIdentityTests.test_default_timestamp_in_seconds_still_has_single_id) ... ok
+test_explicit_destination_is_also_create_only (tests.test_conformance_provenance_identity.ConformanceProvenanceIdentityTests.test_explicit_destination_is_also_create_only) ... ok
+test_explicit_destination_keeps_caller_filename_and_canonical_record_id (tests.test_conformance_provenance_identity.ConformanceProvenanceIdentityTests.test_explicit_destination_keeps_caller_filename_and_canonical_record_id) ... ok
+test_naive_or_non_utc_timestamps_rejected (tests.test_conformance_provenance_identity.ConformanceProvenanceIdentityTests.test_naive_or_non_utc_timestamps_rejected) ... ok
+test_previous_evidence_is_never_overwritten (tests.test_conformance_provenance_identity.ConformanceProvenanceIdentityTests.test_previous_evidence_is_never_overwritten) ... ok
+test_source_identity_ignores_only_complete_live_capture_pairs (tests.test_conformance_provenance_identity.ConformanceProvenanceIdentityTests.test_source_identity_ignores_only_complete_live_capture_pairs) ... ok
+test_capture_refuses_symlinked_evidence_directory (tests.test_verify_capture.VerificationCaptureTests.test_capture_refuses_symlinked_evidence_directory) ... ok
+test_disk_full_output_capture_returns_incomplete_and_keeps_marker (tests.test_verify_capture.VerificationCaptureTests.test_disk_full_output_capture_returns_incomplete_and_keeps_marker) ... RepoPact verification output capture failed; result is INCOMPLETE: [Errno 28] simulated disk full during output capture
+ok
+test_evidence_storage_failure_never_emits_a_pass_report (tests.test_verify_capture.VerificationCaptureTests.test_evidence_storage_failure_never_emits_a_pass_report) ... ok
+test_interrupted_profile_remains_incomplete_and_not_a_pass (tests.test_verify_capture.VerificationCaptureTests.test_interrupted_profile_remains_incomplete_and_not_a_pass) ... RepoPact verification was interrupted; result is INCOMPLETE
+ok
+test_short_output_write_is_incomplete (tests.test_verify_capture.VerificationCaptureTests.test_short_output_write_is_incomplete) ... RepoPact verification output capture failed; result is INCOMPLETE: short verification output write: 1255 of 1256 characters
+ok
+
+----------------------------------------------------------------------
+Ran 35 tests in 99.634s
+
+OK
+{
+  "admission_enforcement": {
+    "coverage": "not configured",
+    "effectiveness": "not-proven",
+    "enforcement_closure": "not-proven",
+    "invocation": "unknown"
+  },
+  "candidate": {
+    "commit": "8467d44754e5b7297d89cf7e77eb5f89383dd671",
+    "dirty": false,
+    "tree": "776c6095b108ac12f9f3077385beafc8c579e343"
+  },
+  "format": "repopact-verify-status-v1",
+  "hosted_cd": {
+    "actual_remote_state": "unknown; the gating repository variable's live value cannot be read without a remote API call, which this local status view never makes",
+    "adapter_workflow_present": true,
+    "gate_variable": "REPOPACT_GITHUB_CD",
+    "policy_default_enabled": false
+  },
+  "hosted_ci": {
+    "actual_remote_state": "unknown; the gating repository variable's live value cannot be read without a remote API call, which this local status view never makes",
+    "adapter_workflow_present": true,
+    "gate_variable": "REPOPACT_GITHUB_CI",
+    "policy_default_enabled": false
+  },
+  "local_verification": {
+    "contract_present": true,
+    "default_profile": "quick",
+    "effective_status": "fail",
+    "incomplete_captures": [],
+    "latest_evidence": {
+      "candidate": {
+        "commit": "8d1bc9771847a00feabd41bba7138606abaa4044",
+        "dirty": true,
+        "tree": "1872b961fbefd3bfc8aa84ea958ef1c53a90dd7d"
+      },
+      "evidence_id": "20261124-081-final-ci-default-e",
+      "path": "evidence/runs/20261124-081-final-ci-default-e.json",
+      "profile": "ci",
+      "status": "fail",
+      "timestamp": "2026-11-24T21:10:46Z"
+    },
+    "profiles": [
+      "ci",
+      "quick",
+      "release"
+    ]
+  },
+  "release": {
+    "aggregate_ready": false,
+    "failed_platforms": [],
+    "host_preparation": "not evidenced; no release-readiness.json supplied to this status view",
+    "missing_platforms": [
+      "linux",
+      "macos",
+      "windows"
+    ],
+    "platforms_with_evidence": [],
+    "required_platforms": [
+      "linux",
+      "macos",
+      "windows"
+    ],
+    "wrong_candidate_platforms": []
+  }
+}
+FOCUSED_EXIT=0

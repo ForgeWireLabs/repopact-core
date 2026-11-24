@@ -13,6 +13,49 @@ from typing import Any
 MAX_CAPTURE_LOG_BYTES = 128 * 1024
 _STATE_BYTES = 4096
 _EVIDENCE_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,159}$")
+ACTIVE_CAPTURE_ID_ENV = "REPOPACT_ACTIVE_VERIFICATION_CAPTURE_ID"
+
+
+def active_capture_artifact_paths(root: Path) -> set[str]:
+    """Return the current invocation's validated journal paths, if any.
+
+    The marker is intentionally ignored only by source/fixture identity checks
+    in the process that owns this exact evidence-backed invocation. Stale,
+    malformed, partial, and other run markers remain visible as local files.
+    """
+    capture_id = os.environ.get(ACTIVE_CAPTURE_ID_ENV, "")
+    if not _EVIDENCE_ID.fullmatch(capture_id):
+        return set()
+
+    repository_root = root.resolve()
+    progress_dir = repository_root / "evidence" / "runs" / ".in-progress"
+    state_path = progress_dir / f"{capture_id}.state.json"
+    log_path = progress_dir / f"{capture_id}.steps.jsonl.partial"
+    try:
+        is_junction = getattr(progress_dir, "is_junction", lambda: False)
+        if progress_dir.is_symlink() or is_junction() or state_path.is_symlink() or log_path.is_symlink():
+            return set()
+        progress_dir.resolve(strict=True).relative_to(repository_root)
+        state = json.loads(state_path.read_text(encoding="utf-8"))
+        if (
+            not isinstance(state, dict)
+            or state.get("format") != "repopact-local-verification-capture-v1"
+            or state.get("id") != capture_id
+            or state.get("status") != "partial"
+            or state.get("phase") != "running"
+            or state.get("capture_log")
+            != f"evidence/runs/.in-progress/{capture_id}.steps.jsonl.partial"
+            or not log_path.is_file()
+            or log_path.stat().st_size > MAX_CAPTURE_LOG_BYTES
+        ):
+            return set()
+    except (OSError, ValueError, json.JSONDecodeError):
+        return set()
+
+    return {
+        f"evidence/runs/.in-progress/{capture_id}.state.json",
+        f"evidence/runs/.in-progress/{capture_id}.steps.jsonl.partial",
+    }
 
 
 class CaptureStateError(RuntimeError):

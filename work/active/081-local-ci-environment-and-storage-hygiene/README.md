@@ -44,6 +44,14 @@ interruption, storage failure, short output write or failed evidence write
 returns exit code 2 and leaves status incomplete. Immutable prior run records
 are not rewritten.
 
+The active evidence ID is passed only to that invocation's child processes.
+Fixture materialization excludes only its validated state/log marker pair, and
+canonical conformance provenance reports that pair separately from source
+changes. Stale or malformed markers and unrelated untracked files remain part
+of the dirty-source result. This prevents an evidence-backed CI invocation
+from copying its own journal into test fixtures or making its exact source
+revision appear dirty.
+
 ## Boundaries
 
 Local CI mandatory through December 1, 2026 inclusive; no automatic hosted enablement, no release, no publication. WI079 draft PR #18 requires a separate conflict-aware rebase against newly merged `main`; avoid touching that branch as part of WI081. No claim that historical WI080 intermittency was explained by a newly identified environmental or storage issue.

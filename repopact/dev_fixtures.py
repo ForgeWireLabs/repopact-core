@@ -37,6 +37,7 @@ import subprocess
 import tempfile
 import unittest
 from pathlib import Path
+from .verification_capture import active_capture_artifact_paths
 
 # Local-only (git config --local) settings applied inside every disposable
 # fixture repository to prevent automatic maintenance/gc/repack activity that
@@ -80,16 +81,33 @@ def _guard_not_a_fixture(source_root: Path) -> None:
 def repository_source_files(source_root: Path) -> list[str]:
     """Repo-relative paths that belong in a fixture: tracked files (current
     working-tree content) plus untracked-but-not-ignored files. Ignored/generated
-    output and ``.git`` are excluded because git itself excludes them from this
-    listing.
+    output, transient local verification capture markers, and ``.git`` are
+    excluded. Capture markers are runtime state created by a verification run;
+    copying them into a fixture can make tests observe another invocation's
+    incomplete state.
     """
-    result = subprocess.run(
-        ["git", "ls-files", "--cached", "--others", "--exclude-standard", "-z"],
+    tracked = subprocess.run(
+        ["git", "ls-files", "--cached", "-z"],
         cwd=source_root,
         check=True,
         capture_output=True,
     )
-    return [p.decode("utf-8") for p in result.stdout.split(b"\0") if p]
+    untracked = subprocess.run(
+        ["git", "ls-files", "--others", "--exclude-standard", "-z"],
+        cwd=source_root,
+        check=True,
+        capture_output=True,
+    )
+    paths = {p.decode("utf-8") for p in tracked.stdout.split(b"\0") if p}
+    current_capture_paths = active_capture_artifact_paths(source_root)
+    paths.update(
+        path
+        for raw in untracked.stdout.split(b"\0")
+        if raw
+        for path in (raw.decode("utf-8"),)
+        if path.replace("\\", "/") not in current_capture_paths
+    )
+    return sorted(paths)
 
 
 def materialize_source_tree(source_root: Path, dest_root: Path) -> Path:

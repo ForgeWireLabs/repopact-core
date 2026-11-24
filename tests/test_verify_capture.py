@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import sys
 import tempfile
 import unittest
@@ -8,6 +9,10 @@ from pathlib import Path
 from unittest.mock import patch
 
 from repopact import verification, verify_cli, verify_status
+from repopact.verification_capture import (
+    ACTIVE_CAPTURE_ID_ENV,
+    active_capture_artifact_paths,
+)
 
 
 class _BrokenOutput:
@@ -57,8 +62,27 @@ class VerificationCaptureTests(unittest.TestCase):
         )
 
     def test_interrupted_profile_remains_incomplete_and_not_a_pass(self) -> None:
+        previous_capture_id = os.environ.get(ACTIVE_CAPTURE_ID_ENV)
+
+        def interrupt_after_capture_starts(*_args, **_kwargs):
+            self.assertEqual(
+                "20261124-interrupted-capture",
+                os.environ.get(ACTIVE_CAPTURE_ID_ENV),
+            )
+            self.assertEqual(
+                {
+                    "evidence/runs/.in-progress/20261124-interrupted-capture.state.json",
+                    "evidence/runs/.in-progress/20261124-interrupted-capture.steps.jsonl.partial",
+                },
+                active_capture_artifact_paths(self.root),
+            )
+            raise KeyboardInterrupt
+
         with patch("repopact.local_storage.disk_preflight", return_value={"ready": True, "volumes": []}):
-            with patch("repopact.verify_cli.run_profile", side_effect=KeyboardInterrupt):
+            with patch(
+                "repopact.verify_cli.run_profile",
+                side_effect=interrupt_after_capture_starts,
+            ):
                 result = verify_cli.main(
                     [
                         "ci",
@@ -71,6 +95,7 @@ class VerificationCaptureTests(unittest.TestCase):
                         "20261124-interrupted-capture",
                     ]
                 )
+        self.assertEqual(previous_capture_id, os.environ.get(ACTIVE_CAPTURE_ID_ENV))
         self.assertEqual(2, result)
         state_path = (
             self.root
