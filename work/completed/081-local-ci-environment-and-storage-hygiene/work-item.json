@@ -77,6 +77,7 @@
       "evidence": [
         "20261124-081-final-ci-default-c78f015",
         "20261124-081-final-ci-external-c78f015",
+        "20261125-081-pr23-final-ci-76b713b",
         "20261124T215623940062Z-wi076-ac6-engine-conformance",
         "20261124T222939451985Z-wi076-ac6-engine-conformance",
         "20261124-081-cargo-target-regressions"
@@ -87,7 +88,8 @@
       "text": "Regenerate canonical semantic identity, governance/documentation mappings and dashboard as needed; pass canonical validate, frozen-surface verification and git diff --check without inventing green status for the historical Rust incident.",
       "state": "satisfied",
       "evidence": [
-        "20261124-081-canonical-final-c78f015"
+        "20261124-081-canonical-final-c78f015",
+        "20261125-081-pr23-final-ci-76b713b"
       ]
     },
     {
