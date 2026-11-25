@@ -95,7 +95,10 @@
       "id": "AC-8",
       "text": "Prove the actual invocation, coverage, and effectiveness of any claimed completion check on supported integration boundaries, including attempted completion without current evidence. Treat instruction-only integrations and same-principal bypass risks accurately.",
       "state": "pending",
-      "evidence": []
+      "evidence": [
+        "20261125-079-pr26-optional-boundary-focused",
+        "20261125-079-pr26-clean-exact-head-ci"
+      ]
     },
     {
       "id": "AC-9",
@@ -116,6 +119,6 @@
     }
   ],
   "created": "2026-11-22",
-  "updated": "2026-11-24",
+  "updated": "2026-11-25",
   "lead": "governance-owner"
 }

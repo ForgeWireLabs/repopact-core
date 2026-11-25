@@ -1,0 +1,93 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261125-079-pr26-optional-boundary-focused",
+  "timestamp": "2026-11-25T16:05:54Z",
+  "work_item": "079",
+  "result": "passed",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "C:\\Projects\\repopact-pr26-wi079-validation-20261125\\.venv\\Scripts\\python.exe -m unittest tests.test_self_audit_verification_boundary -v",
+      "exit_code": 0,
+      "summary": "6/6 optional verification-boundary tests passed"
+    },
+    {
+      "command": "C:\\Projects\\repopact-pr26-wi079-validation-20261125\\.venv\\Scripts\\python.exe -m unittest tests.test_self_audit -v",
+      "exit_code": 0,
+      "summary": "32/32 original self-audit regression tests passed"
+    }
+  ],
+  "artifacts": [
+    "evidence/runs/20261125-079-pr26-optional-boundary-focused.log",
+    "evidence/runs/20261125-079-pr26-self-audit-32.log",
+    "evidence/runs/20261125-079-pr26-inherited-git-variable-names.txt"
+  ],
+  "environment": {
+    "platform": "windows",
+    "executor": "local",
+    "candidate_at_start": {
+      "commit": "78569dc029f557f54870abb918ecafd3a68ad635",
+      "tree": "33e042101d27587ae4b1acc47502ce11f804e4c8",
+      "dirty": false
+    },
+    "python": "3.12.4",
+    "inherited_environment": {
+      "GIT_variable_names": [
+        "GIT_CONFIG_COUNT",
+        "GIT_CONFIG_KEY_0",
+        "GIT_CONFIG_KEY_1",
+        "GIT_CONFIG_KEY_2",
+        "GIT_CONFIG_KEY_3",
+        "GIT_CONFIG_KEY_4",
+        "GIT_CONFIG_KEY_5",
+        "GIT_CONFIG_KEY_6",
+        "GIT_CONFIG_KEY_7",
+        "GIT_CONFIG_KEY_8",
+        "GIT_CONFIG_KEY_9",
+        "GIT_CONFIG_VALUE_0",
+        "GIT_CONFIG_VALUE_1",
+        "GIT_CONFIG_VALUE_2",
+        "GIT_CONFIG_VALUE_3",
+        "GIT_CONFIG_VALUE_4",
+        "GIT_CONFIG_VALUE_5",
+        "GIT_CONFIG_VALUE_6",
+        "GIT_CONFIG_VALUE_7",
+        "GIT_CONFIG_VALUE_8",
+        "GIT_CONFIG_VALUE_9",
+        "GIT_INSTALL_ROOT",
+        "GIT_PAGER"
+      ],
+      "CARGO_TARGET_DIR": "unset",
+      "REPOPACT_GITHUB_CI": "unset",
+      "REPOPACT_GITHUB_CD": "unset"
+    },
+    "boundary_cases": [
+      {
+        "test": "test_missing_report_is_actually_invoked_and_denied",
+        "outcome": "helper exit 2; actual required local profile fail exit 1; coverage reports the required step was executed"
+      },
+      {
+        "test": "test_incomplete_self_report_is_denied_by_actual_profile",
+        "outcome": "helper exit 2; actual required local profile fail exit 1; coverage reports the required step was executed"
+      },
+      {
+        "test": "test_stale_report_after_untracked_change_is_denied",
+        "outcome": "current report initially accepted, then stale helper exit 2 and actual required local profile fail exit 1"
+      },
+      {
+        "test": "test_independent_approval_assertion_cannot_be_laundered",
+        "outcome": "self-report with extra independent_approval assertion denied; actual required local profile fail exit 1"
+      },
+      {
+        "test": "test_structurally_current_self_report_passes_only_local_profile",
+        "outcome": "helper and actual local profile pass exit 0; assurance remains instruction-only"
+      },
+      {
+        "test": "test_git_completion_marker_without_profile_is_not_intercepted",
+        "outcome": "plain Git commit succeeds without invoking the required profile; subsequent profile run fails on missing evidence"
+      }
+    ],
+    "coverage_semantics": "coverage.satisfied means the applicable required step executed; a passing coverage result does not mean the step passed. Step status and coverage remain separate.",
+    "enforcement_limits": "Evidence proves only the opt-in local profile boundary. It does not prove canonical work-item transition interception, protected GitHub merge enforcement, or H14 checkpoint coverage/effectiveness. AC-8 remains pending."
+  }
+}
