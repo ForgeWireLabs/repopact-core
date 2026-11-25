@@ -1,0 +1,47 @@
+test_cli_accepts_utf8_bom_report (test_self_audit.CandidateAuditTests.test_cli_accepts_utf8_bom_report) ... ok
+test_cli_rejects_missing_and_malformed_reports_cleanly (test_self_audit.CandidateAuditTests.test_cli_rejects_missing_and_malformed_reports_cleanly) ... ok
+test_cli_rejects_non_object_report_without_traceback (test_self_audit.CandidateAuditTests.test_cli_rejects_non_object_report_without_traceback) ... ok
+test_cli_rejects_oversized_report (test_self_audit.CandidateAuditTests.test_cli_rejects_oversized_report) ... ok
+test_cli_rejects_report_inside_worktree (test_self_audit.CandidateAuditTests.test_cli_rejects_report_inside_worktree) ... ok
+test_cli_reports_blocking_finding_as_failure (test_self_audit.CandidateAuditTests.test_cli_reports_blocking_finding_as_failure) ... ok
+test_cli_reports_current_self_claim_without_pretending_independence (test_self_audit.CandidateAuditTests.test_cli_reports_current_self_claim_without_pretending_independence) ... ok
+test_committed_change_updates_head_and_diff (test_self_audit.CandidateAuditTests.test_committed_change_updates_head_and_diff) ... ok
+test_covers_staged_unstaged_untracked_and_deleted (test_self_audit.CandidateAuditTests.test_covers_staged_unstaged_untracked_and_deleted) ... ok
+test_dirty_content_and_index_drift_invalidate_report (test_self_audit.CandidateAuditTests.test_dirty_content_and_index_drift_invalidate_report) ... ok
+test_empty_working_tree_is_bound_to_head_and_base (test_self_audit.CandidateAuditTests.test_empty_working_tree_is_bound_to_head_and_base) ... ok
+test_finding_cannot_assert_independent_approval (test_self_audit.CandidateAuditTests.test_finding_cannot_assert_independent_approval) ... ok
+test_git_ignored_files_are_explicitly_not_covered (test_self_audit.CandidateAuditTests.test_git_ignored_files_are_explicitly_not_covered) ... ok
+test_git_rename_exposes_both_source_and_destination (test_self_audit.CandidateAuditTests.test_git_rename_exposes_both_source_and_destination) ... ok
+test_git_stdout_budget_fails_instead_of_truncating (test_self_audit.CandidateAuditTests.test_git_stdout_budget_fails_instead_of_truncating) ... ok
+test_inherited_git_overrides_cannot_redirect_candidate (test_self_audit.CandidateAuditTests.test_inherited_git_overrides_cannot_redirect_candidate) ... ok
+test_invalid_limitations_declared_incomplete (test_self_audit.CandidateAuditTests.test_invalid_limitations_declared_incomplete) ... ok
+test_linked_worktree_uses_distinct_identity (test_self_audit.CandidateAuditTests.test_linked_worktree_uses_distinct_identity) ... Preparing worktree (detached HEAD 5b8a10c)
+ok
+test_malformed_review_coverage_fails_cleanly (test_self_audit.CandidateAuditTests.test_malformed_review_coverage_fails_cleanly) ... ok
+test_non_git_root_and_nested_root_fail (test_self_audit.CandidateAuditTests.test_non_git_root_and_nested_root_fail) ... ok
+test_oversized_untracked_file_does_not_silently_skip (test_self_audit.CandidateAuditTests.test_oversized_untracked_file_does_not_silently_skip) ... ok
+test_report_rejects_duplicate_path_claims (test_self_audit.CandidateAuditTests.test_report_rejects_duplicate_path_claims) ... ok
+test_report_requires_exhaustive_path_declaration (test_self_audit.CandidateAuditTests.test_report_requires_exhaustive_path_declaration) ... ok
+test_report_without_attestation_does_not_pass (test_self_audit.CandidateAuditTests.test_report_without_attestation_does_not_pass) ... ok
+test_self_report_cannot_assert_independent_approval (test_self_audit.CandidateAuditTests.test_self_report_cannot_assert_independent_approval) ... ok
+test_staged_index_drift_invalidates_prior_report (test_self_audit.CandidateAuditTests.test_staged_index_drift_invalidates_prior_report) ... ok
+test_symlink_parent_cycle_fails_as_incomplete (test_self_audit.CandidateAuditTests.test_symlink_parent_cycle_fails_as_incomplete) ... ok
+test_symlink_parent_escape_is_rejected (test_self_audit.CandidateAuditTests.test_symlink_parent_escape_is_rejected) ... ok
+test_symlink_target_is_hashed_not_followed (test_self_audit.CandidateAuditTests.test_symlink_target_is_hashed_not_followed) ... ok
+test_top_level_cli_exposes_experimental_capture (test_self_audit.CandidateAuditTests.test_top_level_cli_exposes_experimental_capture) ... ok
+test_unresolved_findings_fail_and_fixed_findings_need_scenario (test_self_audit.CandidateAuditTests.test_unresolved_findings_fail_and_fixed_findings_need_scenario) ... ok
+test_untracked_addition_invalidates_prior_report (test_self_audit.CandidateAuditTests.test_untracked_addition_invalidates_prior_report) ... ok
+
+----------------------------------------------------------------------
+Ran 32 tests in 37.203s
+
+OK
+{"message": "Report must be stored outside the candidate working tree to avoid self-reference", "result": "incomplete"}
+{"message": "FAIL: unresolved or invalid finding", "result": "fail"}
+{
+  "assurance": "instruction-only",
+  "candidate_fingerprint": "d6d732cdbd647be7b4e7f6039ecd6b6f67cc627ec4a15a50b488bf552b5a91fe",
+  "caveat": "Structural match only: not independent approval, tool-execution proof, or a protected completion boundary.",
+  "changed_paths": 0,
+  "result": "self-report-current"
+}

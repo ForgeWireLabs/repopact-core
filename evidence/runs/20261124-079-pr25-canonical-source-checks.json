@@ -1,0 +1,59 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261124-079-pr25-canonical-source-checks",
+  "timestamp": "2026-11-25T03:40:35Z",
+  "timestamp_basis": "git-recording",
+  "work_item": "079",
+  "result": "passed",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "cargo fmt --all --manifest-path rust/Cargo.toml -- --check",
+      "exit_code": 0,
+      "summary": "Rust formatting check passed."
+    },
+    {
+      "command": "python scripts/generate_engine_semantic_identity.py --check",
+      "exit_code": 0,
+      "summary": "Semantic input manifest current."
+    },
+    {
+      "command": "python -m repopact.cli check-frozen --root . --base efa051525cf3c7c4621b695044dbeda38bf3530b",
+      "exit_code": 0,
+      "summary": "No frozen-surface changes detected against exact main."
+    },
+    {
+      "command": "python -m repopact.cli validate --root .",
+      "exit_code": 0,
+      "summary": "Canonical RepoPact validation passed."
+    },
+    {
+      "command": "python -m repopact.run_conformance",
+      "exit_code": 0,
+      "summary": "Canonical Rust conformance passed: 43/43 cases; WI050 admission corpus 8/8; provenance complete."
+    }
+  ],
+  "artifacts": [
+    "evidence/runs/20261124-079-pr25-canonical-source-checks.log",
+    "evidence/runs/20261124-079-pr25-exact-source-identity.log",
+    "evidence/runs/20261124-079-pr25-exact-engine-handshake.log",
+    "evidence/runs/20261125-079-pr25-dev-install-failure.raw.zip",
+    "evidence/runs/20261124-079-pr25-legacy-engine-handshake-timeouts.log"
+  ],
+  "environment": {
+    "platform": "windows",
+    "executor": "local",
+    "candidate": {
+      "commit": "fe853f02ddd4f99538f912b68977049fb8532783",
+      "tree": "19f980e4c52ead9801adab2a5a7ad2fcfe285b16",
+      "dirty": false
+    },
+    "base": "efa051525cf3c7c4621b695044dbeda38bf3530b",
+    "hosted_ci_cd": "unset",
+    "git_environment_values": "redacted",
+    "engine_source_revision": "fe853f02ddd4f99538f912b68977049fb8532783",
+    "engine_semantic_identity": "repopact-semantic-v1:sha256:c8d81ed33f2f93a33ce92b80f6cd70d5a285bb656be104614a90d78078eab987",
+    "git_environment": "removed for canonical source checks",
+    "resolution": "stale semantic inputs regenerated canonically; preliminary failed attempts preserved"
+  }
+}

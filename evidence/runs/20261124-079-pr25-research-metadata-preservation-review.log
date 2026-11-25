@@ -1,0 +1,11 @@
+WI079 research metadata preservation review
+Compared candidate research/metadata.json with main efa051525cf3c7c4621b695044dbeda38bf3530b using UTF-8 decoding.
+Base registered claim documents: 14
+Candidate registered claim documents: 15
+Only metadata change relative to main: added research/wi079-self-audit-benchmark-protocol.md.
+All prior metadata fields, including existing WI080 research review dates, remain semantically equal: true.
+claim_freshness.verified_on: 2026-11-23 (base 2026-11-23)
+claim_freshness.review_by: 2026-12-23 (base 2026-12-23)
+proposed_state_trace.adopter_commit_visibility_reviewed_on: 2026-11-23 (base 2026-11-23)
+Protocol registration line: Date registered: 2026-11-22. Status: **planned, NOT RUN**. This is an exploratory validation of the optional helper, not evidence for the claim that one agent replaces an independent reviewer.
+Comparative model experiment: NOT RUN; no benchmark manifest exists.

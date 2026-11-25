@@ -85,7 +85,10 @@
         "20261123-wi079-windows-final-focused",
         "20261123-143717-209916-verify-ci",
         "20261123-wi079-exact-head-isolation",
-        "20261123-wi079-windows-exact-head-focused"
+        "20261123-wi079-windows-exact-head-focused",
+        "20261124-079-pr25-focused-cli-regression",
+        "20261124-079-pr25-canonical-source-checks",
+        "20261124-079-pr25-clean-exact-head-ci"
       ]
     },
     {
@@ -107,7 +110,8 @@
       "text": "Document adopter and nested-AGENTS.md guidance; link the 2026-11-22 draft rollout, reconcile documentation impacts and generated artifacts, and close only with criterion-linked concrete evidence.",
       "state": "pending",
       "evidence": [
-        "20261122-wi079-windows-focused-regression"
+        "20261122-wi079-windows-focused-regression",
+        "20261124-079-pr25-documentation-review"
       ]
     }
   ],

@@ -1,0 +1,63 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261124-079-pr25-documentation-review",
+  "timestamp": "2026-11-25T03:40:35Z",
+  "timestamp_basis": "git-recording",
+  "work_item": "079",
+  "result": "passed",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "python scripts/generate_engine_semantic_identity.py --update",
+      "exit_code": 0,
+      "summary": "Canonical generator added self-audit source and template inputs; semantic identity regenerated."
+    },
+    {
+      "command": "python -m repopact.cli documentation snapshot <reviewed mappings> --root .",
+      "exit_code": 0,
+      "summary": "Reviewed manual source/prose pairs; current canonical digests recorded for all mappings."
+    },
+    {
+      "command": "python -m repopact.cli dashboard --root .",
+      "exit_code": 0,
+      "summary": "Canonical dashboard generated."
+    },
+    {
+      "command": "Compare research/metadata.json with main and inspect WI079 protocol status",
+      "exit_code": 0,
+      "summary": "All 14 existing research records and review dates unchanged; only WI079 protocol was added, and it remains planned/NOT RUN."
+    }
+  ],
+  "artifacts": [
+    "evidence/runs/20261124-079-pr25-documentation-mapping-review.log",
+    "evidence/runs/20261124-079-pr25-research-metadata-preservation-review.log",
+    "evidence/runs/20261124-079-pr25-reviewed-generators.log",
+    "governance/documentation-mappings.json",
+    "research/metadata.json",
+    "research/wi079-self-audit-benchmark-protocol.md",
+    "audits/reports/dashboard.md"
+  ],
+  "environment": {
+    "platform": "windows",
+    "executor": "local",
+    "candidate": {
+      "commit": "fe853f02ddd4f99538f912b68977049fb8532783",
+      "tree": "19f980e4c52ead9801adab2a5a7ad2fcfe285b16",
+      "dirty": false
+    },
+    "base": "efa051525cf3c7c4621b695044dbeda38bf3530b",
+    "hosted_ci_cd": "unset",
+    "git_environment_values": "redacted",
+    "reviewed_source_paths": [
+      "repopact/cli.py",
+      "repopact/self_audit.py",
+      "repopact/templates/agent-self-audit.md"
+    ],
+    "reviewed_documentation_paths": [
+      "docs/cli-reference.md",
+      "docs/guides/pre-completion-assurance.md",
+      "repopact/templates/README.md"
+    ],
+    "research_protocol": "NOT RUN"
+  }
+}

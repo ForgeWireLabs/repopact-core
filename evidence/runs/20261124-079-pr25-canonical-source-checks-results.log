@@ -1,0 +1,43 @@
+Standalone canonical source-check results
+[
+  {
+    "command": "cargo fmt --all --manifest-path rust/Cargo.toml -- --check",
+    "duration_seconds": 1.765,
+    "exit_code": 0,
+    "name": "rustfmt",
+    "stderr": "",
+    "stdout": ""
+  },
+  {
+    "command": "python scripts/generate_engine_semantic_identity.py --check",
+    "duration_seconds": 2.203,
+    "exit_code": 0,
+    "name": "semantic-identity",
+    "stderr": "",
+    "stdout": "Semantic input manifest is current.\n"
+  },
+  {
+    "command": "python -m repopact.cli check-frozen --root . --base efa051525cf3c7c4621b695044dbeda38bf3530b",
+    "duration_seconds": 0.735,
+    "exit_code": 0,
+    "name": "frozen-surface",
+    "stderr": "",
+    "stdout": "No frozen-surface changes detected.\n"
+  },
+  {
+    "command": "python -m repopact.cli validate --root .",
+    "duration_seconds": 10.265,
+    "exit_code": 0,
+    "name": "repopact-validate",
+    "stderr": "",
+    "stdout": "Repository governance validation passed.\n"
+  },
+  {
+    "command": "python -m repopact.run_conformance",
+    "duration_seconds": 8.547,
+    "exit_code": 0,
+    "name": "canonical-conformance",
+    "stderr": "",
+    "stdout": "PASS valid-minimal: accepted\nPASS valid-proposed-work: accepted\nPASS active-depends-on-proposed: rejected with 'depends on proposed work item'\nPASS completed-with-pending: rejected with 'completed item has pending criterion'\nPASS satisfied-without-evidence: rejected with 'satisfied without evidence'\nPASS unknown-dependency: rejected with 'unknown dependency'\nPASS unregistered-contract: rejected with 'not registered in audits/registry.json'\nPASS dependency-cycle: rejected with 'dependency cycle'\nPASS valid-provisional-work: accepted\nPASS completed-provisional-work: rejected with 'cannot be completed; ratchet to concrete first (P2)'\nPASS status-directory-mismatch: rejected with 'status 'active' does not match directory 'completed''\nPASS invalid-semantic-version: rejected with 'must be semantic (MAJOR.MINOR.PATCH)'\nPASS valid-release-label: accepted\nPASS release-label-version-mismatch: rejected with 'must equal VERSION'\nPASS schema-invalid-evidence: rejected with 'schema result: 'unknown' is not one of'\nPASS verification-default-profile: rejected with 'does not name a declared verification profile'\nPASS orphan-work-directory: rejected with 'work directory holds planning content'\nPASS disjoint-active-scopes: rejected with 'active scope conflict'\nPASS missing-dashboard: rejected with 'missing generated dashboard'\nPASS stale-dashboard: rejected with 'dashboard is stale'\nPASS readme-release-drift: rejected with 'but VERSION is'\nPASS readme-checkbox-mismatch: rejected with 'checkbox is unchecked'\nPASS valid-assurance-mapping-minimal: accepted\nPASS valid-assurance-mapping-full: accepted\nPASS valid-assurance-mapping-not-applicable: accepted\nPASS assurance-schema-invalid: rejected with 'is not one of'\nPASS assurance-applicability-rationale-missing: rejected with 'requires a rationale'\nPASS assurance-unknown-decision: rejected with 'references unknown decision'\nPASS assurance-implementation-path-escapes: rejected with 'escapes the repository'\nPASS assurance-implementation-reference-missing: rejected with 'does not exist'\nPASS assurance-unknown-evidence-run: rejected with 'references unknown evidence run'\nPASS valid-assurance-mapping-forgewire: accepted\nPASS valid-assurance-restricted-artifact-warning: accepted\nPASS assurance-private-key-evidence: rejected with 'private-key marker'\nPASS assurance-documentation-claim-basis-unsupported: rejected with 'no corresponding data to support it'\nPASS documentation-impact-missing-on-completed: rejected with 'completed item requires a resolved documentation_impact'\nPASS documentation-impact-affected-unknown-evidence: rejected with 'documentation_impact references unknown evidence'\nPASS documentation-impact-affected-evidence-empty: rejected with 'documentation_impact/evidence'\nPASS documentation-impact-justified-none: accepted\nPASS documentation-impact-affected-updated: accepted\nPASS documentation-mapping-neutral-current: accepted\nPASS documentation-mapping-forgewire-stale: rejected with 'mapped source changed while related documentation stayed at its reviewed bytes'\nPASS documentation-generated-output-stale: rejected with 'mapped source/generator changed while generated documentation stayed at its reviewed bytes'\n\nCanonical Rust conformance: 43/43 cases passed.\nPASS WI050-no-lease-taxonomy: mutation is not a no-lease operation\nPASS WI050-receipt-binding: signed receipt verifies\nPASS WI050-receipt-class-tamper: receipt class mutation is rejected\nPASS WI050-delegation-subset: strict child authority accepted\nPASS WI050-delegation-widening: path widening rejected\nPASS WI050-adapter-pre-action: pre-action family advertised\nPASS WI050-adapter-launcher: independent lower-assurance family reported honestly\nPASS WI050-fail-closed: denial cannot downgrade to advisory\n\nWI050 admission corpus: 8/8 vectors passed.\nConformance provenance: complete (C:\\Projects\\repopact-pr25-wi079-validation-20261125\\evidence\\runs\\20261125T025918951801Z-wi076-ac6-engine-conformance.json)\n"
+  }
+]

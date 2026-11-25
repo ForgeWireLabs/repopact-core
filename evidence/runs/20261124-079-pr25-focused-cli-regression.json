@@ -1,0 +1,57 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261124-079-pr25-focused-cli-regression",
+  "timestamp": "2026-11-25T03:40:35Z",
+  "timestamp_basis": "git-recording",
+  "work_item": "079",
+  "result": "passed",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "python -m unittest discover -s tests -p test_self_audit.py -v",
+      "exit_code": 0,
+      "summary": "All 32 focused self-audit tests passed with inherited GIT_* variables present."
+    },
+    {
+      "command": "python -m repopact.cli self-audit capture --root . --base efa051525cf3c7c4621b695044dbeda38bf3530b",
+      "exit_code": 0,
+      "summary": "Top-level capture emitted candidate template."
+    },
+    {
+      "command": "python -m repopact.cli self-audit check --root . --report <outside-candidate disposable report>",
+      "exit_code": 0,
+      "summary": "Synthetic structural smoke returned self-report-current with instruction-only assurance; it was not review evidence."
+    },
+    {
+      "command": "python -m repopact.cli self-audit check --root . --report <same report after adding a candidate file>",
+      "exit_code": 2,
+      "summary": "Expected stale-candidate negative returned incomplete; negative case passed."
+    }
+  ],
+  "artifacts": [
+    "evidence/runs/20261124-079-pr25-focused-self-audit-hostile-git.log",
+    "evidence/runs/20261124-079-pr25-cli-capture-check.log"
+  ],
+  "environment": {
+    "platform": "windows",
+    "executor": "local",
+    "candidate": {
+      "commit": "fe853f02ddd4f99538f912b68977049fb8532783",
+      "tree": "19f980e4c52ead9801adab2a5a7ad2fcfe285b16",
+      "dirty": false
+    },
+    "base": "efa051525cf3c7c4621b695044dbeda38bf3530b",
+    "hosted_ci_cd": "unset",
+    "git_environment_values": "redacted",
+    "inherited_git_variable_names": [
+      "GIT_CONFIG_COUNT",
+      "GIT_CONFIG_KEY_0..9",
+      "GIT_CONFIG_VALUE_0..9",
+      "GIT_DIR-related overrides including GIT_WORK_TREE and GIT_INDEX_FILE",
+      "GIT_INSTALL_ROOT",
+      "GIT_PAGER"
+    ],
+    "values_recorded": false,
+    "smoke_report": "synthetic and disposable"
+  }
+}
