@@ -82,13 +82,17 @@
       "id": "AC-7",
       "text": "Regenerate canonical semantic identity, governance/documentation mappings and dashboard as needed; pass canonical validate, frozen-surface verification and git diff --check without inventing green status for the historical Rust incident.",
       "state": "satisfied",
-      "evidence": ["20261124-081-canonical-final-c78f015"]
+      "evidence": [
+        "20261124-081-canonical-final-c78f015"
+      ]
     },
     {
       "id": "AC-8",
       "text": "Reconcile cleanup ownership with any existing RepoPact Workbench/Fabric worktree-maintenance plans without broadening to unowned files; document independent review, actual code and evidence hashes, residual risks, and explicit operator integration decision. Maintain local-only CI through 2026-12-01 inclusive.",
-      "state": "pending",
-      "evidence": []
+      "state": "satisfied",
+      "evidence": [
+        "20261124-081-ac8-core-only-integration-review"
+      ]
     }
   ],
   "created": "2026-11-24",
