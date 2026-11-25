@@ -1,6 +1,6 @@
 # WI081 — Local CI Environment Sensitivity and Validation Storage Hygiene
 
-**Status:** active, not completed. **Owner:** tooling-owner, with governance/evidence/work/docs as affected scopes.
+**Status:** completed in PR #23 candidate; canonical completion validation pending before merge. **Owner:** tooling-owner, with governance/evidence/work/docs as affected scopes.
 
 ## Context
 
@@ -58,7 +58,7 @@ Local CI mandatory through December 1, 2026 inclusive; no automatic hosted enabl
 
 ## Completion
 
-AC-1 through AC-7 have linked concrete evidence. AC-8 remains pending the operator's explicit Workbench/Fabric integration decision. Keep WI081 active until that human-only gate is resolved; the passing local profiles do not waive the original failed run or close WI080's historical Rust uncertainty.
+AC-1 through AC-8 have linked concrete evidence. The operator accepted RepoPact Core-only cleanup integration in independent PR #22 review 6049772262; Workbench/Fabric ownership remains separate. Completion in this PR still requires canonical exact-head verification and merge. The earlier failed CI and WI080 historical Rust uncertainty remain unresolved.
 
 ## Independent integration review — 2026-11-24
 
@@ -66,4 +66,4 @@ PR #22 was reviewed at head `2473c5611a4a59ea2336f1c7a8ed1e6a23aaf711` (tree `60
 
 **Operator integration boundary:** RepoPact Core accepts ownership-registered, tool-created disposable targets and detached worktrees with dry-run-first cleanup. No Workbench/Fabric adoption, no automatic reclamation of pre-existing builds, and no cleanup of user workspaces, native Fabric installations, retained state, or externally owned worktrees. Workbench retains its own process/artifact authority; Fabric's native uninstall/export and repository-separation authority stays governed by Fabric issues #30 and #56. Any future integration requires its own work item and physical/product acceptance.
 
-AC-8's decision is now documented and linked, so **AC-1 through AC-8 are all satisfied** in the active work-item record. The directory remains `work/active/` solely until a final local governance transition moves it to `work/completed/`, regenerates the dashboard and validates the completion state at an exact source head. This decision does not explain WI080's historical Rust intermittency, automatically enable hosted CI, or authorize release. Local-only CI remains binding through 2026-12-01 inclusive.
+AC-8 is documented and linked; all eight criteria are satisfied. The complete five-file WI081 directory is staged under `work/completed/` with only this README, work-item status, and validation addendum modified. Canonical dashboard regeneration, complete exact-source validation, and independent final review are still required before merging PR #23. This completion does not explain WI080's historical Rust intermittency, enable hosted CI, or authorize a release. Local-only CI remains binding through 2026-12-01 inclusive.

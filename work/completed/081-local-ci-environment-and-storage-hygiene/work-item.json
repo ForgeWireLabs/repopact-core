@@ -2,7 +2,7 @@
   "$schema": "../../../repopact/schemas/work-item.schema.json",
   "id": "081",
   "title": "Repair Local CI Environment Sensitivity and Validation Storage Hygiene",
-  "status": "active",
+  "status": "completed",
   "owner_scope": "tooling",
   "affected_scopes": [
     "tooling",

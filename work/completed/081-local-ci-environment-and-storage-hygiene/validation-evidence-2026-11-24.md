@@ -180,3 +180,9 @@ integration decision for Workbench/Fabric ownership. WI080 AC-6 and AC-10 remain
 blocked; these WI081 results do not establish the historical Rust failure's
 cause. Hosted verification and publication remain disabled through December
 1, 2026 inclusive.
+
+## Subsequent independent acceptance and completion transition
+
+On 2026-11-24 the independent GitHub review of exact PR #22 source and evidence approved **RepoPact Core-only** cleanup integration while explicitly denying implicit Workbench or Fabric adoption. PR #22 merged at `5d185faac83b68596715ce99824dd4b717eb104e` (tree `60647f7aa6203e68f582c59cb2dc4071f94d6222`). The source verification and evidence from the previous sections remain unchanged, including their originally pending AC-8 status *at the time of validation*. The later decision is durably recorded as evidence run `20261124-081-ac8-core-only-integration-review`, now linked to AC-8.
+
+This PR #23 candidate moves all five WI081 files without discarding the historical validation records and marks status `completed` only after all eight criteria reached `satisfied`. The final move/dashboard and exact-head verification are separate acceptance gates; until completed and merged, this paragraph is a **candidate transition**, not an assertion of a new successful test run. WI080 remains blocked on AC-6/AC-10 and local-only CI continues through December 1, 2026 inclusive.
