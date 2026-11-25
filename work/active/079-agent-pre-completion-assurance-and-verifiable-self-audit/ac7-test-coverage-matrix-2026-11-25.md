@@ -22,7 +22,7 @@
 **Exact source already validated:**
 
 - PR #25: `fe853f02ddd4f99538f912b68977049fb8532783` / tree `19f980e4c52ead9801adab2a5a7ad2fcfe285b16`, 509 Python passed/4 skipped, 32 focused pass, five required local CI steps and optional frozen pass.
-- PR #26: `78569dc029f557f54870abb918ecafd3a68ad635` / tree `33e042101d27587ae4b1acc47502ce11f804e4c8`, 515 Python passed/4 skipped, six real optional-profile tests and 32 original focused pass, five required local CI steps and optional frozen pass.
+- PR #26: `78569dc029f557f54870abb918ecafd3a68ad635` / tree `33e042101d27587ae4b1acc47502ce11f804e4c8`, 515 Python tests (4 skipped), six real optional-profile tests and 32 original focused pass, five required local CI steps and optional frozen pass.
 
 **Next gate:** run newly added fresh-repair test, then perform exact-source local `verify ci`/semantic identity/format/frozen/documentation/dashboard checks and record passing or failing evidence without altering earlier runs. Only then may AC-7 be independently reassessed as satisfied. If the new regression fails, fix the mechanism or test's *incorrect* contract without weakening negative assertions.
 
