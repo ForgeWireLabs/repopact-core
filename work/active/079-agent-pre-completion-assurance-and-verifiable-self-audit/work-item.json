@@ -104,7 +104,8 @@
         "20261124-079-pr25-focused-cli-regression",
         "20261124-079-pr25-canonical-source-checks",
         "20261124-079-pr25-clean-exact-head-ci",
-        "20261125-079-pr27-ac7-focused"
+        "20261125-079-pr27-ac7-focused",
+        "20261125-079-pr27-exact-local-ci"
       ]
     },
     {
