@@ -1,0 +1,138 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261123-143717-209916-verify-ci",
+  "timestamp": "2026-11-23T14:37:17Z",
+  "timestamp_basis": "git-recording",
+  "work_item": "079",
+  "result": "failed",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "'C:\\Program Files\\Python312\\python.exe' -m repopact.cli validate --root 'C:\\Projects\\repopact-wi079-head-verify'",
+      "exit_code": 1,
+      "summary": "validate: failed - command exited 1"
+    },
+    {
+      "command": "'C:\\Program Files\\Python312\\python.exe' -m unittest discover -s tests -v",
+      "exit_code": 1,
+      "summary": "python-tests: failed - command exited 1"
+    },
+    {
+      "command": "'C:\\Program Files\\Python312\\python.exe' -m repopact.run_conformance",
+      "exit_code": 1,
+      "summary": "conformance: failed - command exited 1"
+    },
+    {
+      "command": "cargo test --workspace --locked --manifest-path rust/Cargo.toml",
+      "exit_code": 101,
+      "summary": "rust-workspace: failed - command exited 101"
+    },
+    {
+      "command": "builtin:spec_freshness",
+      "exit_code": 0,
+      "summary": "spec-freshness: passed - SPEC.md derived blocks are current"
+    },
+    {
+      "command": "'C:\\Program Files\\Python312\\python.exe' -m repopact.cli check-frozen --root 'C:\\Projects\\repopact-wi079-head-verify' --base origin/main",
+      "exit_code": 0,
+      "summary": "frozen-surface-report: passed - command passed"
+    }
+  ],
+  "artifacts": [],
+  "environment": {
+    "platform": "windows",
+    "executor": "local",
+    "candidate": {
+      "commit": "81690fd3385487545cd78bac05dff976432bee27",
+      "tree": "47a339a6676738ad3769dd0ceb408d85ab248e2f",
+      "dirty": true
+    },
+    "verification": {
+      "profile": "ci",
+      "status": "fail",
+      "exit_code": 1,
+      "duration_seconds": 1706.031,
+      "coverage": {
+        "mode": "host",
+        "satisfied": true,
+        "host_ready": true,
+        "all_declared_executed": true,
+        "required_total": 5,
+        "required_executed": 5,
+        "required_passed": 1,
+        "required_failed": 4,
+        "required_errors": 0,
+        "required_unavailable": 0,
+        "required_not_applicable": 0,
+        "declared_platforms": [],
+        "required_platforms": [],
+        "missing_platforms": [],
+        "capabilities": {
+          "cargo": "available"
+        }
+      },
+      "steps": [
+        {
+          "id": "validate",
+          "status": "failed",
+          "required": true,
+          "applicable": true,
+          "capability": null,
+          "platforms": [],
+          "exit_code": 1,
+          "summary": "command exited 1"
+        },
+        {
+          "id": "python-tests",
+          "status": "failed",
+          "required": true,
+          "applicable": true,
+          "capability": null,
+          "platforms": [],
+          "exit_code": 1,
+          "summary": "command exited 1"
+        },
+        {
+          "id": "conformance",
+          "status": "failed",
+          "required": true,
+          "applicable": true,
+          "capability": null,
+          "platforms": [],
+          "exit_code": 1,
+          "summary": "command exited 1"
+        },
+        {
+          "id": "rust-workspace",
+          "status": "failed",
+          "required": true,
+          "applicable": true,
+          "capability": "cargo",
+          "platforms": [],
+          "exit_code": 101,
+          "summary": "command exited 101"
+        },
+        {
+          "id": "spec-freshness",
+          "status": "passed",
+          "required": true,
+          "applicable": true,
+          "capability": null,
+          "platforms": [],
+          "exit_code": 0,
+          "summary": "SPEC.md derived blocks are current"
+        },
+        {
+          "id": "frozen-surface-report",
+          "status": "passed",
+          "required": false,
+          "applicable": true,
+          "capability": null,
+          "platforms": [],
+          "exit_code": 0,
+          "summary": "command passed"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,18 @@
+SOURCE_HEAD=fe853f02ddd4f99538f912b68977049fb8532783
+SOURCE_TREE=19f980e4c52ead9801adab2a5a7ad2fcfe285b16
+INHERITED_GIT_VARIABLE_NAMES=GIT_CONFIG_COUNT,GIT_CONFIG_KEY_0,GIT_CONFIG_KEY_1,GIT_CONFIG_KEY_2,GIT_CONFIG_KEY_3,GIT_CONFIG_KEY_4,GIT_CONFIG_KEY_5,GIT_CONFIG_KEY_6,GIT_CONFIG_KEY_7,GIT_CONFIG_KEY_8,GIT_CONFIG_KEY_9,GIT_CONFIG_VALUE_0,GIT_CONFIG_VALUE_1,GIT_CONFIG_VALUE_2,GIT_CONFIG_VALUE_3,GIT_CONFIG_VALUE_4,GIT_CONFIG_VALUE_5,GIT_CONFIG_VALUE_6,GIT_CONFIG_VALUE_7,GIT_CONFIG_VALUE_8,GIT_CONFIG_VALUE_9,GIT_INSTALL_ROOT,GIT_PAGER
+HOSTED_CI_CD=disabled
+CAPTURE_EXIT=0
+CURRENT_CHECK_EXIT=0
+{
+  "assurance": "instruction-only",
+  "candidate_fingerprint": "8a1d5acc91b247ef4e22a1cf1cc141e0b0d5c14ab85ab434d09d8a59bb3adbe4",
+  "caveat": "Structural match only: not independent approval, tool-execution proof, or a protected completion boundary.",
+  "changed_paths": 34,
+  "result": "self-report-current"
+}
+
+STALE_NEGATIVE_EXIT=2
+{"message": "STALE: repository candidate differs from reviewed snapshot", "result": "incomplete"}
+
+ASSURANCE=instruction-only; synthetic report is not review evidence

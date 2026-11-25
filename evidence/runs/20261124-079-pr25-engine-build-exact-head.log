@@ -1,0 +1,12 @@
+SOURCE_HEAD=fe853f02ddd4f99538f912b68977049fb8532783
+SOURCE_TREE=19f980e4c52ead9801adab2a5a7ad2fcfe285b16
+GIT_ENV=removed
+CARGO_TARGET_DIR=unset
+COMMAND=cargo build --locked --manifest-path rust/Cargo.toml --bin repopact-engine
+EXIT=0
+
+STDOUT:
+
+STDERR:
+   Compiling repopact-engine v0.1.0 (C:\Projects\repopact-pr25-wi079-validation-20261125\rust\apps\repopact-engine)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 4.09s

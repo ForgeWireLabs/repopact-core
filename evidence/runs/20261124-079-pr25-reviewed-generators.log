@@ -1,0 +1,46 @@
+ENGINE=C:\Projects\repopact-pr25-wi079-validation-20261125\rust\target\debug\repopact-engine.exe
+GIT_ENV=removed
+HOSTED_CI_CD=disabled
+COMMAND=python scripts/generate_engine_semantic_identity.py --check
+EXIT=0
+STDOUT:
+Semantic input manifest is current.
+
+STDERR:
+
+COMMAND=python -m repopact.cli documentation snapshot documentation-freshness-tooling --root .
+EXIT=0
+STDOUT:
+{
+  "documentation_digest": "6a7b56a721f7965e9cafedb5f980758d186016f15bb4be426b429c9c0d8b618b",
+  "source_digest": "1a7c1e4574a34c9a9f530225b20cd7dccb0f843def72340748889cf2f9fa8899"
+}
+
+STDERR:
+
+COMMAND=python -m repopact.cli documentation snapshot engine-semantic-compatibility --root .
+EXIT=0
+STDOUT:
+{
+  "documentation_digest": "1fc2acdea4d2217eb53a8e8c23388bed705be45b26b56ae90a203d4807491ace",
+  "source_digest": "1ed63042e912661cf4eb0d5c5e10be2945e257d22864979fbfd9f9aa023b62df"
+}
+
+STDERR:
+
+COMMAND=python -m repopact.cli documentation snapshot experimental-self-audit --root .
+EXIT=0
+STDOUT:
+{
+  "documentation_digest": "c5758584504f340b018f5d23e5e54197a55e96c119a117403e44f59c56a5a4e2",
+  "source_digest": "b54c1e1bc8e20878d2229f976aa2a29ce5ebd025ae1d771961735869ad3654e0"
+}
+
+STDERR:
+
+COMMAND=python -m repopact.cli dashboard --root .
+EXIT=0
+STDOUT:
+Generated audits/reports/dashboard.md
+
+STDERR:

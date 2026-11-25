@@ -1,0 +1,42 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261123-wi079-windows-final-focused",
+  "timestamp": "2026-11-23T14:04:45.3832432Z",
+  "work_item": "079",
+  "result": "passed",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "python -m py_compile repopact/self_audit.py tests/test_self_audit.py",
+      "exit_code": 0,
+      "summary": "Python source and focused test module compiled successfully."
+    },
+    {
+      "command": "python -m unittest discover -s tests -p test_self_audit.py -v",
+      "exit_code": 0,
+      "summary": "31 focused tests passed, 0 failures, 0 errors, in 37.198 seconds. All inherited GIT_* variables were removed from this local test process. Log: C:\\Projects\\repopact-wi079-focused-final.log."
+    }
+  ],
+  "artifacts": [
+    "repopact/self_audit.py",
+    "tests/test_self_audit.py",
+    "C:\\Projects\\repopact-wi079-focused-final.log"
+  ],
+  "environment": {
+    "executor": "local-Windows-worktree",
+    "platform": "windows",
+    "python": "3.12.4",
+    "git": "2.53.0.windows.3",
+    "candidate": {
+      "commit": "0065c5b44aea09e2c09cb69cd0a3bcf509ef556b",
+      "tree": "a41b9397d626f924feaf79f5a0cc327abf0a05f1",
+      "dirty": true
+    },
+    "engine_override": "C:\\Projects\\repopact-wi079-local\\rust\\target\\release\\repopact-engine.exe",
+    "git_environment": "All inherited environment variables with names starting GIT_ were removed before the test process; variable values were not copied into evidence.",
+    "limitations": [
+      "This is focused WI079 self-audit coverage. It does not turn the overall local CI profile or canonical validation into PASS.",
+      "The real-repository full suite and local CI profile are recorded separately as failed because of the pre-existing research-freshness condition and dirty-tree conformance provenance."
+    ]
+  }
+}

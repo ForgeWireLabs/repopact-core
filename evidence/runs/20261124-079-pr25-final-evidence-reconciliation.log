@@ -1,0 +1,48 @@
+SOURCE_COMMIT_TESTED=fe853f02ddd4f99538f912b68977049fb8532783
+SOURCE_TREE_TESTED=19f980e4c52ead9801adab2a5a7ad2fcfe285b16
+GIT_ENV=removed
+HOSTED_CI_CD=unset
+
+### dashboard
+COMMAND=python -m repopact.cli dashboard --root .
+EXIT=0
+STDOUT:
+Generated audits/reports/dashboard.md
+
+STDERR:
+
+
+### repopact-validate
+COMMAND=python -m repopact.cli validate --root .
+EXIT=0
+STDOUT:
+Repository governance validation passed.
+
+STDERR:
+
+
+### semantic-check
+COMMAND=python scripts/generate_engine_semantic_identity.py --check
+EXIT=0
+STDOUT:
+Semantic input manifest is current.
+
+STDERR:
+
+
+### frozen-check
+COMMAND=python -m repopact.cli check-frozen --root . --base efa051525cf3c7c4621b695044dbeda38bf3530b
+EXIT=0
+STDOUT:
+No frozen-surface changes detected.
+
+STDERR:
+
+
+### diff-check
+COMMAND=git diff --check
+EXIT=0
+STDOUT:
+
+STDERR:
+warning: in the working copy of 'work/active/079-agent-pre-completion-assurance-and-verifiable-self-audit/work-item.json', CRLF will be replaced by LF the next time Git touches it

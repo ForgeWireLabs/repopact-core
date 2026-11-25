@@ -1,0 +1,4 @@
+Preliminary canonical snapshot attempt before exact-source engine build
+Source HEAD=e446e7ac76ba729e44fd32d85aa825c9bf104b05; committed tree=4afd9025e68c00ae7d13e8dbaf1bf227a5baaf54.
+Ambient REPOPACT_ENGINE was unset; discovery selected C:\Program Files\Python312\Scripts\repopact-engine.exe. Three documentation snapshot commands each returned: Rust engine compatibility error: Rust engine timed out after 30s during handshake.
+Disposition: preserved as a failed preliminary attempt. The canonical commands passed after building the engine from the exact PR source with GIT_* variables removed and REPOPACT_ENGINE explicitly set.
