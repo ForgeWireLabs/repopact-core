@@ -4,7 +4,7 @@
 
 The AC-7 matrix now covers every stated class, including actual optional-profile unavailable executable and WI079-specific reference conformance. The previously validated fresh repair, frozen/scope checks, and missing/stale/omitted/forbidden-approval cases remain linked. No additional fixture expansion is justified merely to advance AC-7.
 
-## Proposed remaining disposition (not adopted by this draft)
+## Proposed remaining disposition (historical, before operator authorization)
 
 - **AC-2:** waive with explicit operator rationale under INV-2 rather than assert the original design preceded implementation. The chronological deviation remains documented. The option comparison and subsequent scoped choice are available, but cannot retroactively satisfy the temporal requirement.
 - **AC-8:** the actual text requires proof of *claimed* completion checks on supported integration boundaries and accurate treatment of instruction-only bypass. Recommend accepting the exercised opt-in local profile as the only supported check, including seven positive/negative cases and proof that plain Git is not intercepted. Do not add a protected policy simply to satisfy the criterion. If operator intends protected Git/transition/H14 enforcement, keep AC-8 pending and scope a separate authorized design. No such authority is claimed here.
@@ -14,3 +14,7 @@ The AC-7 matrix now covers every stated class, including actual optional-profile
 The operator's prior source integration delegation is not treated as approval to waive acceptance criteria or authorize a new protected semantic contract. All four remain pending in this candidate; WI079 remains active. WI080 AC-6/10 remain blocked. Hosted CI/CD local-only through 2026-12-01 inclusive. No release, model experiment or publication.
 
 To avoid needless repeated laptop runs, consolidate the remaining disposition decisions before final canonical governance validation. No generated dashboard was hand-edited.
+
+## Operator-authorized disposition — 2026-11-25
+
+The operator accepted the four recommendations with `proceed`. [Decision 0079](../../../decisions/0079-wi079-optional-assurance-and-research-deferral.md) records the actual chronology, scope and limitations. AC-2 and AC-9 are waived, not satisfied; AC-9 transfers to proposed [WI082](../../proposed/082-evaluate-self-audit-and-independent-review-effectiveness/README.md), with its original protocol unchanged and NOT RUN. AC-8 is satisfied for the demonstrated opted-in local boundary only. AC-10 remains pending final exact-source validation. The two concrete self-audit defects found at final review are repaired in source, with two new unrun regression methods; do not merge or complete WI079 until validated. Evidence: `20261125-079-operator-disposition-and-documentation-review`.

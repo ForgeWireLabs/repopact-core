@@ -63,7 +63,7 @@ The operator authorized WI079 engineering after the initial proposal. The draft 
 
 ## Known process deviation and outstanding approval
 
-The initial exploratory helper was committed before the complete option comparison/design reconciliation was written. The order is preserved here instead of being backdated or represented as a preregistered implementation decision. AC-2 therefore remains pending and requires explicit technical review of the selected minimal pilot before any binding Rust/schema contract is implemented. Existing source experiments do not authorize new protected-surface changes.
+The initial exploratory helper was committed before the complete option comparison/design reconciliation was written. The order is preserved here instead of being backdated or represented as a preregistered implementation decision. AC-2 was pending at that checkpoint; the later explicit operator disposition is recorded in Decision 0079. Any binding Rust/schema contract requires prospective design approval. Existing source experiments do not authorize new protected-surface changes.
 
 ## Closeout requirements
 
@@ -79,3 +79,9 @@ The criterion states in `work-item.json` are authoritative. The following closeo
 ## PR #28 integration and AC-7 disposition — 2026-11-25
 
 PR #28 merged as `b9dec03ad59c2ef7d782eda9f2b3220747e8ba3c`. Both remaining AC-7 fixture gaps passed; technical review 6065238331 accepts AC-7 evidence. This draft stages six satisfied criteria and four pending, with no runtime change. See [AC-7 acceptance and remaining scope decisions](ac7-acceptance-disposition-2026-11-25.md). The earlier all-pending and missing-fixture descriptions are historical checkpoints. AC-2/8/9/10 remain pending; the study is NOT RUN and protected enforcement is not claimed.
+
+## Operator-authorized disposition and final validation candidate — 2026-11-25
+
+[Decision 0079](../../../decisions/0079-wi079-optional-assurance-and-research-deferral.md) records the operator's approval of the four recommended dispositions. AC-2 is waived for the preserved historical ordering deviation; AC-8 is satisfied only for the actual exercised optional local profile (no protected gate); AC-9 is waived and transferred to [proposed WI082](../../proposed/082-evaluate-self-audit-and-independent-review-effectiveness/README.md), original protocol NOT RUN. AC-7 is satisfied based on review 6065238331 and PR28 exact-source evidence. AC-10 remains pending final canonical validation and lifecycle closeout. This candidate has seven satisfied, two waived, one pending. WI079 stays active until AC-10 is evidenced.
+
+The final source review reproduced a net-diff path omission when staged and unstaged changes cancel and an unhandled unhashable finding status. The scoped source repair retains the union of committed, staged and unstaged paths and rejects malformed status values cleanly. Two new regression methods require execution; earlier PR28 test evidence does not cover the changed source. Final documentation impact is recorded as affected. See `20261125-079-operator-disposition-and-documentation-review` and the disposition note. No model experiment, mandatory gate, hosted CI/CD, publication or release authorized.

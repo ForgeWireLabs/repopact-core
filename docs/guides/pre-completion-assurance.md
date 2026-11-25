@@ -10,7 +10,7 @@ The [versioned opt-in AGENTS.md block](../../repopact/templates/agent-self-audit
 
 ## When and why to use it
 
-Use it after implementation and relevant tests, but before claiming a review of the final candidate. It covers a specific comparison base, HEAD, Git index, nonignored untracked files, and working-tree content changed relative to that base. It detects changes after the snapshot, including a newly added untracked file or a staged edit. It does **not** inspect ignored files, unrelated generated assets excluded by Git, or the quality of an agent's reasoning.
+Use it after implementation and relevant tests, but before claiming a review of the final candidate. It covers a specific comparison base, HEAD, Git index, and the union of base-to-HEAD, HEAD-to-index, and index-to-working-tree changes plus nonignored untracked files. It hashes current working-tree content for that union. A committed or staged edit must still be reviewed if a later layer reverses its bytes; inspect all three layers, not just the net diff. It detects changes after the snapshot, including a newly added untracked file or a staged edit. It does **not** inspect ignored files, unrelated generated assets excluded by Git, or the quality of an agent's reasoning.
 
 For an existing worktree, use an explicit reviewed base; do not silently assume `main` or `origin/main` points to the same commit on every host. Have Git available and capture the report **outside** the repository (for example, in a worktree-specific validation-log directory). This avoids a self-referential review file changing the candidate after capture.
 
@@ -64,8 +64,8 @@ Configure a distinct report filename per worktree for the executing host and avo
 
 ## Status and exclusions
 
-This WI079 implementation is a prototype source change and requires local Python unit tests, canonical validation, semantic-input identity regeneration, and supported-platform verification before integration. It is not in the published package.
+The experimental helper and opt-in profile have been integrated into the development source, with exact-source Windows local validation and a separate WI079 reference corpus. It is not in the published 3.1.3 package. New candidate changes require their own validation. A missing or unavailable required step cannot pass the opted-in profile; ordinary Git commits do not automatically invoke it.
 
 The prototype deliberately rejects unsupported changed directory/submodule types, missing Git dependencies, oversized changed files, and unreadable inputs instead of silently skipping them. Ignored files are outside its coverage. A same-principal agent can fabricate its own report or avoid invocation; therefore even a profile-level PASS does not establish H14 admission closure or independent review. Treat release, signing, protected surfaces, experiments, and destructive actions as separately authorized.
 
-For the rationale and comparison with WI044 and H14, see [WI079 design reconciliation](../../work/active/079-agent-pre-completion-assurance-and-verifiable-self-audit/design-reconciliation.md).
+For the final scope decision and comparison with WI044 and H14, see [Decision 0079](../../decisions/0079-wi079-optional-assurance-and-research-deferral.md). Comparative efficacy is unmeasured; [WI082](../../work/proposed/082-evaluate-self-audit-and-independent-review-effectiveness/README.md) retains the unrun research requirement.

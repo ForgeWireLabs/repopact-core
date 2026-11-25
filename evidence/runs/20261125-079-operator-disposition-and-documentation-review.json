@@ -1,0 +1,58 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261125-079-operator-disposition-and-documentation-review",
+  "timestamp": "2026-11-25T21:38:46.486Z",
+  "work_item": "079",
+  "result": "partial",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "Record operator disposition from the current WI079 conversation (operator: proceed following four explicit proposed dispositions) and reconcile the criterion states, design and research protocol",
+      "exit_code": 0,
+      "summary": "AC2 waived for historical design-order deviation, AC8 satisfied only for demonstrated opted-in local profile, AC9 waived and transferred to proposed WI082; no study executed. AC10 pending final validation."
+    },
+    {
+      "command": "Review WI079 adopter guide, nested AGENTS guidance, rollout links, prior documentation snapshots and exact-source validation records; prepare affected documentation impact",
+      "exit_code": 0,
+      "summary": "Guide and decision reconcile instruction-only scope, history, research deferral, review-layer coverage and non-interception. New source fixes require canonical identity/documentation snapshot regeneration and exact-source final validation; no fresh CI claimed."
+    },
+    {
+      "command": "Reproduce net-diff reversal in an isolated local Git fixture and evaluate malformed list status membership in Python",
+      "exit_code": 0,
+      "summary": "git diff --name-only BASE -- emitted no paths while git status reported MM alpha.txt and HEAD-to-index/index-to-worktree each listed alpha.txt. A list status tested for set membership raised TypeError. Scoped code fixes and two new regressions staged at cb40bfdaf8c9fd6741ac7c80d45550a05730ca5f; full repaired-source test execution is pending."
+    }
+  ],
+  "artifacts": [
+    "decisions/0079-wi079-optional-assurance-and-research-deferral.md",
+    "work/proposed/082-evaluate-self-audit-and-independent-review-effectiveness/work-item.json",
+    "work/proposed/082-evaluate-self-audit-and-independent-review-effectiveness/README.md",
+    "research/wi079-self-audit-benchmark-protocol.md",
+    "docs/guides/pre-completion-assurance.md",
+    "repopact/self_audit.py",
+    "tests/test_self_audit.py",
+    "evidence/runs/20261125-079-pr26-optional-boundary-focused.json",
+    "evidence/runs/20261125-079-pr28-ac7-focused.json",
+    "evidence/runs/20261125-079-pr28-exact-local-ci.json"
+  ],
+  "environment": {
+    "review_kind": "operator-authorized disposition, static documentation/source review and isolated Git/Python behavior reproduction; not a repaired-source CI execution",
+    "operator_instruction": "proceed",
+    "authorization_context": "four recommended dispositions immediately preceding instruction; no protected policy or experiment authority",
+    "prior_accepted_main": "b9dec03ad59c2ef7d782eda9f2b3220747e8ba3c",
+    "repair_candidate": "cb40bfdaf8c9fd6741ac7c80d45550a05730ca5f",
+    "repair_tree": "b38332c89965a0e4967f05c3dc867f5eaf80e260",
+    "waived": [
+      "AC-2",
+      "AC-9"
+    ],
+    "scoped_satisfied": [
+      "AC-8"
+    ],
+    "pending": [
+      "AC-10"
+    ],
+    "research": "WI082 proposed; original protocol NOT RUN",
+    "limits": "instruction-only, no protected merge or H14 proof; no independent second-principal approval; WI080 remains blocked",
+    "hosted_ci_cd": "local-only through 2026-12-01 inclusive"
+  }
+}
