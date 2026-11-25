@@ -49,8 +49,8 @@ Record escaped functional/security defects, false positives, post-review regress
 
 **Decision gate:** after the pilot's executable validation and benchmark, explicitly choose whether a canonical versioned completion/evidence policy adds value. If it does, write a durable decision and implement in the Rust engine with compatibility/conformance. If it does not, keep the helper optional and close WI079 only after documenting that justified disposition.
 
-## Current work and no-claim inventory
+## Initial 2026-11-22 no-claim inventory (historical)
 
-- Source helper and isolated regression tests are added to this draft branch; **no local execution is yet evidenced**.
-- Stable package support, cross-platform runtime behavior, real agent review quality, hosted invocation, and effective protected completion gate are **NOT PROVEN**.
+- At initial drafting the helper and isolated regressions existed, but **no local execution was yet evidenced at that checkpoint**. Subsequent focused and full Windows local validation is preserved in PR #25, including clean exact-source run `20261124-079-pr25-clean-exact-head-ci`; those later results do not retroactively change the initial record.
+- Current limitations remain: real agent review quality, independent-review effectiveness, hosted invocation, and a protected pre-completion gate are **NOT PROVEN**. See the separate [opt-in profile boundary](optional-profile-boundary-2026-11-25.md) for pending local interception tests and explicit non-interception of plain Git commits.
 - WI079 work-item criteria remain pending. No release or adopter rollout is approved.
