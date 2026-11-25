@@ -1,0 +1,6 @@
+test_net_reversal_does_not_hide_review_layers (tests.test_self_audit.CandidateAuditTests.test_net_reversal_does_not_hide_review_layers) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 6.577s
+
+OK

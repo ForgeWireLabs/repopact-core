@@ -2,7 +2,7 @@
   "$schema": "../../../repopact/schemas/work-item.schema.json",
   "id": "079",
   "title": "Agent Pre-Completion Assurance and Verifiable Self-Audit Evidence",
-  "status": "active",
+  "status": "completed",
   "owner_scope": "governance",
   "affected_scopes": [
     "governance",
@@ -137,12 +137,14 @@
     {
       "id": "AC-10",
       "text": "Document adopter and nested-AGENTS.md guidance; link the 2026-11-22 draft rollout, reconcile documentation impacts and generated artifacts, and close only with criterion-linked concrete evidence.",
-      "state": "pending",
+      "state": "satisfied",
       "evidence": [
         "20261122-wi079-windows-focused-regression",
         "20261124-079-pr25-documentation-review",
         "20261125-079-operator-disposition-and-documentation-review",
-        "20261125-079-pr28-exact-local-ci"
+        "20261125-079-pr28-exact-local-ci",
+        "20261125-079-pr29-final-local-ci",
+        "20261125-079-pr29-closeout-review"
       ]
     }
   ],

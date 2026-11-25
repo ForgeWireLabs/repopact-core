@@ -1,0 +1,166 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261125-079-pr29-closeout-review",
+  "timestamp": "2026-11-25T23:54:13Z",
+  "work_item": "079",
+  "result": "passed",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "cargo build --manifest-path rust/Cargo.toml --locked --release -p repopact-engine with REPOPACT_SOURCE_REVISION=7c451c7da22616869816e2513c4404c6b01a0cb9",
+      "exit_code": 0,
+      "summary": "Matching Windows release engine built from the exact tested source revision."
+    },
+    {
+      "command": "repopact verify ci --json --evidence-work-item 079 --evidence-id 20261125-079-pr29-final-local-ci",
+      "exit_code": 0,
+      "summary": "Exact-source local profile: 5/5 required steps and optional frozen-surface report passed; full Python 522 tests (4 skipped), canonical conformance 43/43, WI050 8/8, WI079 vectors 10/10, locked Rust workspace and SPEC freshness passed."
+    },
+    {
+      "command": "Focused WI079 regressions and corpus suites; see 20261125-079-pr29-preflight-attempts",
+      "exit_code": 0,
+      "summary": "Two new regressions 1/1 each; self-audit 35/35; boundary 7/7; corpus 3/3. Earlier setup failures and retries are separately preserved."
+    },
+    {
+      "command": "Review adopter/nested AGENTS guidance, 2026-11-22 rollout links, Decision 0079, and canonical documentation snapshots",
+      "exit_code": 0,
+      "summary": "Documentation impact reconciled; guidance remains opt-in/instruction-only and makes no protected-boundary claim."
+    },
+    {
+      "command": "Move complete WI079 directory from work/active to work/completed",
+      "exit_code": 0,
+      "summary": "Full directory preserved by git mv; AC-10 satisfied with this record and exact-source local CI evidence. AC-2 and AC-9 remain waived."
+    },
+    {
+      "command": "python scripts/generate_engine_semantic_identity.py --check",
+      "exit_code": 0,
+      "summary": "Final semantic manifest check passed."
+    },
+    {
+      "command": "repopact documentation snapshot experimental-self-audit",
+      "exit_code": 0,
+      "summary": "Final source/documentation snapshot matched the reviewed bytes."
+    },
+    {
+      "command": "repopact documentation snapshot engine-semantic-compatibility",
+      "exit_code": 0,
+      "summary": "Final source/documentation snapshot matched the reviewed bytes."
+    },
+    {
+      "command": "repopact spec --root .",
+      "exit_code": 0,
+      "summary": "Canonical SPEC regeneration completed; exact-source CI freshness check passed."
+    },
+    {
+      "command": "repopact dashboard --root .",
+      "exit_code": 0,
+      "summary": "Dashboard regenerated after WI079 lifecycle move."
+    },
+    {
+      "command": "repopact validate --root .",
+      "exit_code": 0,
+      "summary": "Final canonical validation passed with the exact-source engine selected."
+    },
+    {
+      "command": "repopact check-frozen --root . --base origin/main",
+      "exit_code": 0,
+      "summary": "No frozen-surface changes detected."
+    },
+    {
+      "command": "cargo fmt --manifest-path rust/Cargo.toml --all -- --check",
+      "exit_code": 0,
+      "summary": "Rust formatting check passed."
+    },
+    {
+      "command": "git diff --check; git diff --cached --check -- . ':(exclude)evidence/runs/20261125-079-pr29-preflight-attempts/editable-dev-install.log'",
+      "exit_code": 0,
+      "summary": "Working-tree diff check and staged whitespace check passed; only the preserved raw installer failure log with original trailing spaces was excluded."
+    }
+  ],
+  "artifacts": [
+    "evidence/runs/20261125-079-pr29-final-local-ci.json",
+    "evidence/runs/20261125-079-pr29-final-local-ci.stdout.log",
+    "evidence/runs/20261125-079-pr29-engine-build.log",
+    "evidence/runs/20261125T233224935458Z-wi076-ac6-engine-conformance.json",
+    "evidence/runs/20261125-079-pr29-preflight-attempts.json",
+    "evidence/runs/20261125-079-pr29-preflight-attempts/editable-dev-install.log",
+    "evidence/runs/20261125-079-pr29-preflight-attempts/self-audit-35.log",
+    "evidence/runs/20261125-079-pr29-preflight-attempts/self-audit-35-retry.log",
+    "evidence/runs/20261125-079-pr29-preflight-attempts/boundary-7.log",
+    "evidence/runs/20261125-079-pr29-preflight-attempts/corpus-3.log",
+    "work/completed/079-agent-pre-completion-assurance-and-verifiable-self-audit/final-closeout-2026-11-25.md",
+    "work/completed/079-agent-pre-completion-assurance-and-verifiable-self-audit/README.md",
+    "work/completed/079-agent-pre-completion-assurance-and-verifiable-self-audit/work-item.json",
+    "docs/guides/pre-completion-assurance.md",
+    "decisions/0079-wi079-optional-assurance-and-research-deferral.md",
+    "evidence/runs/20261125-079-operator-disposition-and-documentation-review.json",
+    "evidence/runs/20261124-079-pr25-documentation-review.json",
+    "governance/documentation-mappings.json",
+    "build/semantic-input-manifest.json",
+    "repopact/_semantic-input-manifest.json",
+    "repopact/_semantic_identity.json",
+    "audits/reports/dashboard.md",
+    "work/proposed/082-evaluate-self-audit-and-independent-review-effectiveness/README.md",
+    "work/proposed/082-evaluate-self-audit-and-independent-review-effectiveness/work-item.json",
+    "evidence/runs/20261125-079-pr29-final-checks/semantic-identity.log",
+    "evidence/runs/20261125-079-pr29-final-checks/semantic-identity.exit",
+    "evidence/runs/20261125-079-pr29-final-checks/docs-self-audit-snapshot.log",
+    "evidence/runs/20261125-079-pr29-final-checks/docs-self-audit-snapshot.exit",
+    "evidence/runs/20261125-079-pr29-final-checks/docs-engine-snapshot.log",
+    "evidence/runs/20261125-079-pr29-final-checks/docs-engine-snapshot.exit",
+    "evidence/runs/20261125-079-pr29-final-checks/spec-regenerate.log",
+    "evidence/runs/20261125-079-pr29-final-checks/spec-regenerate.exit",
+    "evidence/runs/20261125-079-pr29-final-checks/dashboard-regenerate.log",
+    "evidence/runs/20261125-079-pr29-final-checks/dashboard-regenerate.exit",
+    "evidence/runs/20261125-079-pr29-final-checks/validate.log",
+    "evidence/runs/20261125-079-pr29-final-checks/validate.exit",
+    "evidence/runs/20261125-079-pr29-final-checks/frozen-surface.log",
+    "evidence/runs/20261125-079-pr29-final-checks/frozen-surface.exit",
+    "evidence/runs/20261125-079-pr29-final-checks/rustfmt.log",
+    "evidence/runs/20261125-079-pr29-final-checks/rustfmt.exit",
+    "evidence/runs/20261125-079-pr29-final-checks/git-diff-check.log",
+    "evidence/runs/20261125-079-pr29-final-checks/git-diff-check.exit",
+    "evidence/runs/20261125-079-pr29-final-checks/git-staged-diff-check.log",
+    "evidence/runs/20261125-079-pr29-final-checks/git-staged-diff-check.exit",
+    "evidence/runs/20261125-079-pr29-final-checks/validate-schema-failure.log",
+    "evidence/runs/20261125-079-pr29-final-checks/validate-schema-failure.exit",
+    "evidence/runs/20261125-079-pr29-final-checks/attempt-disposition.md",
+    "AGENTS.md",
+    "docs/AGENTS.md",
+    "research/wi079-self-audit-benchmark-protocol.md",
+    "work/completed/079-agent-pre-completion-assurance-and-verifiable-self-audit/LOCAL-VALIDATION.md",
+    "work/completed/079-agent-pre-completion-assurance-and-verifiable-self-audit/ac7-test-coverage-matrix-2026-11-25.md",
+    "evidence/runs/20261125-079-pr29-final-checks/diff-check-original-evidence-trailing-spaces.md"
+  ],
+  "environment": {
+    "platform": "windows",
+    "executor": "local",
+    "source_at_ci_start": {
+      "commit": "7c451c7da22616869816e2513c4404c6b01a0cb9",
+      "tree": "70878e28e0d2a8f65d4cb3569b9ae6144b20f4b6",
+      "dirty": false
+    },
+    "source_at_focused_start": {
+      "commit": "daa94e8ddc264212a7e1c372b5c935c95c522ab5",
+      "tree": "eba436807784d81052e376a4555ca0d96e451810",
+      "dirty": false
+    },
+    "engine": {
+      "source_revision": "7c451c7da22616869816e2513c4404c6b01a0cb9",
+      "sha256": "9a5043b8dffbabc8e27b9a77e32c1f917f1c966d8ede8f4d7f1a2440402fba5a",
+      "semantic_identity": "repopact-semantic-v1:sha256:b6cdc89b9c4f6f4998d341cf592439e43455b694442735dbacb1c42cb3b1a90b"
+    },
+    "hosted_ci_cd": "unset; local-only through 2026-12-01 inclusive",
+    "wi079": {
+      "status": "completed",
+      "ac2": "waived",
+      "ac9": "waived",
+      "ac10": "satisfied"
+    },
+    "wi082": {
+      "status": "proposed",
+      "acceptance_criteria": "all pending",
+      "protocol": "NOT RUN"
+    }
+  }
+}

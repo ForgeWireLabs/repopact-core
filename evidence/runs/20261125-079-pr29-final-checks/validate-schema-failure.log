@@ -1,0 +1,3 @@
+ERROR [evidence.fields-missing] evidence/runs/20261125-079-pr29-final-local-ci.stdout.json: missing evidence fields: id, timestamp, work_item, result, commands, artifacts, environment
+
+Validation failed with 1 error(s).
