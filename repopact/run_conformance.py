@@ -342,6 +342,15 @@ def _write_provenance(payload: dict[str, object], requested: Path | None) -> Pat
             "conformance": payload["conformance"],
         },
     }
+    # Older payloads without WI079 remain writable for compatibility tests;
+    # every normal reference-run invocation now records its separate corpus.
+    self_audit_summary = payload["conformance"].get("wi079_self_audit_corpus")
+    if self_audit_summary is not None:
+        count = self_audit_summary["passed"] + self_audit_summary["failed"]
+        evidence["commands"][0]["summary"] += (
+            f"; WI079-reference={self_audit_summary['passed']}/{count}"
+        )
+        evidence["artifacts"].append("repopact/self_audit_conformance.py")
     schema = json.loads(
         (ROOT / "repopact" / "schemas" / "evidence-run.schema.json").read_text(encoding="utf-8")
     )
@@ -405,7 +414,21 @@ def main() -> int:
     for case_id, passed, detail in admission_results:
         print(f"{'PASS' if passed else 'FAIL'} {case_id}: {detail}")
     print(f"\nWI050 admission corpus: {len(admission_results) - len(admission_failed)}/{len(admission_results)} vectors passed.")
+    # WI079 is an executable reference-helper corpus, not an additional Rust
+    # governance validator rule or a claim about alternative implementations.
+    self_audit_results = []
+    self_audit_failed = []
     if provenance is not None:
+        from .self_audit_conformance import run_self_audit_corpus
+        self_audit_results = run_self_audit_corpus()
+        self_audit_failed = [row for row in self_audit_results if not row[1]]
+        for case_id, passed, detail in self_audit_results:
+            print(f"{'PASS' if passed else 'FAIL'} {case_id}: {detail}")
+        print(
+            f"\nWI079 Python self-audit reference corpus: "
+            f"{len(self_audit_results) - len(self_audit_failed)}/{len(self_audit_results)} vectors passed "
+            "(instruction-only; not protected enforcement)."
+        )
         admission_summary = {
             "passed": len(admission_results) - len(admission_failed),
             "failed": len(admission_failed),
@@ -415,7 +438,20 @@ def main() -> int:
             ],
         }
         provenance["conformance"]["wi050_admission_corpus"] = admission_summary
-        any_test_failures = bool(failed or admission_failed or (args.legacy_python and legacy_failed))
+        provenance["conformance"]["wi079_self_audit_corpus"] = {
+            "implementation": "python-reference-self-audit",
+            "assurance": "instruction-only",
+            "passed": len(self_audit_results) - len(self_audit_failed),
+            "failed": len(self_audit_failed),
+            "cases": [
+                {"id": case_id, "status": "PASS" if passed else "FAIL", "detail": detail}
+                for case_id, passed, detail in self_audit_results
+            ],
+        }
+        any_test_failures = bool(
+            failed or admission_failed or self_audit_failed
+            or (args.legacy_python and legacy_failed)
+        )
         incomplete = provenance["engine"]["status"] != "complete"
         exit_code = 1 if any_test_failures or incomplete else 0
         provenance["result"] = "failed" if any_test_failures else "partial" if incomplete else "passed"
@@ -425,7 +461,10 @@ def main() -> int:
     elif args.command is not None:
         print("Conformance provenance: NOT_RECORDED (custom command does not expose a correlated process image).")
     incomplete = provenance is not None and provenance["engine"]["status"] != "complete"
-    return 1 if failed or admission_failed or incomplete or (args.legacy_python and legacy_failed) else 0
+    return 1 if (
+        failed or admission_failed or self_audit_failed or incomplete
+        or (args.legacy_python and legacy_failed)
+    ) else 0
 
 
 if __name__ == "__main__":
