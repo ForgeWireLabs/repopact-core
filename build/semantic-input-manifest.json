@@ -24,7 +24,7 @@
     },
     {
       "path": "conformance/README.md",
-      "sha256": "318af70c9fc2f8227cff77a05fdb08390f875192eaac8ef8669d6f76078fca8e"
+      "sha256": "464afb5aed1e7904b510a2a3095d66c7c95257fef1e4da58b8a93cacf110198f"
     },
     {
       "path": "conformance/fixtures/README.md",
@@ -592,7 +592,7 @@
     },
     {
       "path": "repopact/run_conformance.py",
-      "sha256": "140e014fe7661b4e82c765a71837f48a4569d2eb612bd622f5682abb67e2aab3"
+      "sha256": "52ce371c7cfb5277f8e42d972ac6505d5210f4847cf470a1b35f54d71482f2f0"
     },
     {
       "path": "repopact/runtime-dependency-groups.json",
@@ -677,6 +677,10 @@
     {
       "path": "repopact/self_audit.py",
       "sha256": "1834d9a5cf8df0414a30ca89557410736e1a769e70f535fa768b36bacc04fb29"
+    },
+    {
+      "path": "repopact/self_audit_conformance.py",
+      "sha256": "c0af78eeaf16a7e5d71276deb868b8b3a387c4a01230bed9400b6560ef16db6f"
     },
     {
       "path": "repopact/takeover.py",
@@ -1051,5 +1055,5 @@
       "sha256": "568ee233f91fcfc6afad4dfdb4fd6cbadd2761f0b795d91a089030c3b0b0bbb3"
     }
   ],
-  "semantic_identity": "repopact-semantic-v1:sha256:c8d81ed33f2f93a33ce92b80f6cd70d5a285bb656be104614a90d78078eab987"
+  "semantic_identity": "repopact-semantic-v1:sha256:5298450478cb065378969da70c40851b457f16a95f0da89fd51afe3453db6f44"
 }
