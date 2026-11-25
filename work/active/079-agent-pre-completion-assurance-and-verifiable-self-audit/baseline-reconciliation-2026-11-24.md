@@ -28,3 +28,9 @@
 ## Why this approach
 
 The historical PR #18 branch was 46 commits ahead and 45 commits behind the now-repaired main. The durable evidence in #18 is valid historical context but its semantic identity and expired research dates are not valid integration inputs. A new source-level candidate avoids overwriting that branch and makes the provenance and final acceptance of the merged prototype independently reviewable.
+
+## Subsequent scoped reliability repair (pending host validation)
+
+The independent source review noticed that historical `repopact/self_audit.py::_git` passed all inherited `GIT_*` environment overrides into subprocesses even though the helper explicitly accepts a repository root and base. That allows an enclosing agent/CI shell to redirect the Git directory/index/worktree, causing false failure or an incorrect candidate identity. This is the same general class of inherited-Git-environment interference observed in WI079's historical tests, not a demonstrated explanation of WI080's Rust intermittency.
+
+The staged candidate now filters inherited `GIT_*` values and re-enables only controlled `GIT_TERMINAL_PROMPT=0` and `GIT_OPTIONAL_LOCKS=0`; the test fixture's Git invocation uses the same isolation. A new `test_inherited_git_overrides_cannot_redirect_candidate` injects contradictory `GIT_DIR`, `GIT_WORK_TREE`, `GIT_INDEX_FILE` and `GIT_CONFIG_COUNT` selectors and asserts that the snapshot and fresh report check still target the intended repository. The focused suite has **32 test definitions**, including this **UNRUN new regression**. The original PR #18 implementation and 31-test evidence are preserved at their historical SHA; they do not validate the new change. Run the new negative regression and exact-head local CI before any integration.
