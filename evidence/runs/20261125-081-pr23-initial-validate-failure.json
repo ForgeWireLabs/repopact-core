@@ -1,0 +1,73 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261125-081-pr23-initial-validate-failure",
+  "timestamp": "2026-11-25T01:31:12Z",
+  "timestamp_basis": "git-recording",
+  "work_item": "081",
+  "result": "failed",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "'C:\\Projects\\repopact-pr23-wi081-finalize-check-20261125\\.venv\\Scripts\\python.exe' -m repopact.cli validate --root 'C:\\Projects\\repopact-pr23-wi081-prefx-capture-20261125'",
+      "exit_code": 1,
+      "summary": "validate: failed - command exited 1"
+    }
+  ],
+  "artifacts": [
+    "evidence/runs/20261125-081-pr23-initial-validate-failure.capture.jsonl"
+  ],
+  "environment": {
+    "platform": "windows",
+    "executor": "local",
+    "candidate": {
+      "commit": "7883f46fb65332bd9e34faa944792e4b335f962a",
+      "tree": "0b1692d787f872119c5eb7f51d1bd9707cf5526a",
+      "dirty": true
+    },
+    "candidate_at_start": {
+      "commit": "7883f46fb65332bd9e34faa944792e4b335f962a",
+      "tree": "0b1692d787f872119c5eb7f51d1bd9707cf5526a",
+      "dirty": false
+    },
+    "validation_storage": null,
+    "relevant_environment": {
+      "CARGO_TARGET_DIR": null,
+      "REPOPACT_ENGINE": "C:\\Projects\\repopact-pr23-wi081-finalize-check-20261125\\rust\\target\\debug\\repopact-engine.exe"
+    },
+    "verification": {
+      "profile": "quick",
+      "status": "fail",
+      "exit_code": 1,
+      "duration_seconds": 7.328,
+      "coverage": {
+        "mode": "host",
+        "satisfied": true,
+        "host_ready": true,
+        "all_declared_executed": true,
+        "required_total": 1,
+        "required_executed": 1,
+        "required_passed": 0,
+        "required_failed": 1,
+        "required_errors": 0,
+        "required_unavailable": 0,
+        "required_not_applicable": 0,
+        "declared_platforms": [],
+        "required_platforms": [],
+        "missing_platforms": [],
+        "capabilities": {}
+      },
+      "steps": [
+        {
+          "id": "validate",
+          "status": "failed",
+          "required": true,
+          "applicable": true,
+          "capability": null,
+          "platforms": [],
+          "exit_code": 1,
+          "summary": "command exited 1"
+        }
+      ]
+    }
+  }
+}
