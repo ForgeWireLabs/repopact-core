@@ -13,6 +13,10 @@
   ],
   "depends_on": [],
   "provenance": "concrete",
+  "documentation_impact": {
+    "state": "none",
+    "rationale": "Reviewed the governed documentation surfaces for CLI/API, configuration, architecture, operations, and contributor workflow. WI081 changes local validation internals and test fixtures without changing documented command behavior, supported configuration, or architecture. The existing local CI guide already documents immutable invocation evidence and fail-closed capture; the work-item README and validation report are lifecycle/evidence records, and the dashboard is generated. No additional product documentation update is required."
+  },
   "preflight": {
     "created_before_work_started": true,
     "created_at": "2026-11-24T16:07:45.720Z",
