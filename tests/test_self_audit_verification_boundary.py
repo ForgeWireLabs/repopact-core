@@ -128,7 +128,8 @@ class OptionalSelfAuditVerificationBoundaryTests(unittest.TestCase):
         exit_code, record = self.run_actual_verify_cli()
         self.assertEqual(1, exit_code)
         self.assertEqual("fail", record["status"])
-        self.assertFalse(record["coverage"]["satisfied"])
+        # Coverage means the required step was attempted; it can still fail.
+        self.assertTrue(record["coverage"]["satisfied"])
         self.assertEqual(1, record["coverage"]["required_total"])
         self.assertEqual(1, record["coverage"]["required_executed"])
         self.assertEqual(1, record["coverage"]["required_failed"])
