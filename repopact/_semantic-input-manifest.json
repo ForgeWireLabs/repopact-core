@@ -484,7 +484,7 @@
     },
     {
       "path": "repopact/cli.py",
-      "sha256": "6dea4cc09a7063a669f8fcb6f00e78cf9f31c2e1c995e90880a62e796581ca1d"
+      "sha256": "06302068188f97278d7797bb7ca8dddadf9b70dc2c6900054f3121faf86897ed"
     },
     {
       "path": "repopact/confinement.py",
@@ -675,16 +675,24 @@
       "sha256": "1fe8ea9ac59d47f1f80c1310d2b052366697acc18c2113a1e47a826d7504c006"
     },
     {
+      "path": "repopact/self_audit.py",
+      "sha256": "1834d9a5cf8df0414a30ca89557410736e1a769e70f535fa768b36bacc04fb29"
+    },
+    {
       "path": "repopact/takeover.py",
       "sha256": "ea3a115f2d6c88aa1916d0fa758d6d458cba2bf12e07b658304517ad7da0d7ba"
     },
     {
       "path": "repopact/templates/README.md",
-      "sha256": "c84c5f64375d9a5ad4b107e750634059a07b6bf796359eb9230203ba8def929b"
+      "sha256": "941608b4831289ec38412b2e6af67a9a2e507b27bca6e810ec43e8c6458d7e76"
     },
     {
       "path": "repopact/templates/admission-policy.json",
       "sha256": "c01c2a4a35949ad072192bc3a102b425abf02d688368f3e8b7e37be6d31707a8"
+    },
+    {
+      "path": "repopact/templates/agent-self-audit.md",
+      "sha256": "90303939c74287ad0c2ef1fa5c97eabfdd80dd0b813c53de7b11e5d77e0d32e4"
     },
     {
       "path": "repopact/templates/decision.md",
@@ -1043,5 +1051,5 @@
       "sha256": "568ee233f91fcfc6afad4dfdb4fd6cbadd2761f0b795d91a089030c3b0b0bbb3"
     }
   ],
-  "semantic_identity": "repopact-semantic-v1:sha256:6e369782c9d7a077b30a508bb6ac3aefb3547caee748d9353dd400a741b8fcd2"
+  "semantic_identity": "repopact-semantic-v1:sha256:c8d81ed33f2f93a33ce92b80f6cd70d5a285bb656be104614a90d78078eab987"
 }

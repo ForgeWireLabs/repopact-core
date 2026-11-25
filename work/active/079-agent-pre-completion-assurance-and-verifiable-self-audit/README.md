@@ -1,7 +1,7 @@
 # 079 — Agent Pre-Completion Assurance and Verifiable Self-Audit Evidence
 
 > **Status:** active (operator-authorized engineering as of 2026-11-22); not completed or release-cleared.
-> **Lead:** governance-owner. **Affected:** tooling, evidence, docs, work.
+> **Lead:** governance-owner. **Affected:** governance, tooling, evidence, docs, work.
 > **Depends on:** none. **Created:** 2026-11-22.
 
 ## Intent and observed gap

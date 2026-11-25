@@ -21,7 +21,7 @@
       ],
       "description": "The opt-in mapping diagnostics and snapshot command are explained by the adopter-facing freshness guide.",
       "snapshot": {
-        "source_digest": "ee139164bda345852951b405f9d88275fb9a2e1c4f84925c9c8f59074e905c59",
+        "source_digest": "1a7c1e4574a34c9a9f530225b20cd7dccb0f843def72340748889cf2f9fa8899",
         "documentation_digest": "6a7b56a721f7965e9cafedb5f980758d186016f15bb4be426b429c9c0d8b618b"
       }
     },
@@ -79,8 +79,27 @@
       ],
       "description": "The installation and packaging guide explains semantic identity, same-process admission, exact runtime dependency checks, migration, no-replay handling for uncertain outcomes, wheel payload and packaged-engine verification, and the limits of executable provenance.",
       "snapshot": {
-        "documentation_digest": "1fc2acdea4d2217eb53a8e8c23388bed705be45b26b56ae90a203d4807491ace",
-      "source_digest": "e3ca0ac3d55fbdfe41ee7acd36815a06766996f4c6b7d77dc2f45e0e4cbadd91"
+        "source_digest": "1ed63042e912661cf4eb0d5c5e10be2945e257d22864979fbfd9f9aa023b62df",
+        "documentation_digest": "1fc2acdea4d2217eb53a8e8c23388bed705be45b26b56ae90a203d4807491ace"
+      }
+    },
+    {
+      "id": "experimental-self-audit",
+      "kind": "manual",
+      "source_paths": [
+        "repopact/cli.py",
+        "repopact/self_audit.py",
+        "repopact/templates/agent-self-audit.md"
+      ],
+      "documentation_paths": [
+        "docs/cli-reference.md",
+        "docs/guides/pre-completion-assurance.md",
+        "repopact/templates/README.md"
+      ],
+      "description": "The experimental self-audit CLI, candidate snapshot, and opt-in instruction template are explained with their freshness checks and instruction-only limits.",
+      "snapshot": {
+        "source_digest": "b54c1e1bc8e20878d2229f976aa2a29ce5ebd025ae1d771961735869ad3654e0",
+        "documentation_digest": "c5758584504f340b018f5d23e5e54197a55e96c119a117403e44f59c56a5a4e2"
       }
     }
   ]
