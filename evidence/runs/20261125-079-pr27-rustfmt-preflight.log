@@ -1,0 +1,15 @@
+WI079 PR27 rustfmt preflight — 2026-11-25
+Source checkpoint: 94e65a032da546f6a88c0f0d9cc9d48fd5a398a4 / tree 5a37de5d2acbf3c58eabdaeef46607e0ac2c4b52
+
+Attempt 1
+Command: cargo fmt --all -- --check
+Working directory: C:\Projects\repopact-pr27-wi079-validation-20261125
+Exit code: 1
+Diagnostic: cargo metadata could not find Cargo.toml in the repository root or any parent directory. Cargo displayed usage and exited before rustfmt ran.
+
+Corrected attempt
+Command: cargo fmt --manifest-path rust/Cargo.toml --all -- --check
+Exit code: 0
+Result: pass; no formatting changes were requested.
+
+The first attempt is preserved as an invocation error, not relabeled as a test or formatting failure.

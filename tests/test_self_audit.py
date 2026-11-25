@@ -143,6 +143,45 @@ class CandidateAuditTests(unittest.TestCase):
         with self.assertRaisesRegex(self_audit.SelfAuditError, "scenario"):
             self_audit.inspect_report(self.root, report)
 
+    def test_repaired_finding_needs_fresh_snapshot_and_remains_self_reported(self):
+        (self.root / "alpha.txt").write_text("known defect\n", encoding="utf-8")
+        before = self_audit.report_template(self.root, self.base)
+        before["review"].update(
+            outcome="pass",
+            actor="agent",
+            reviewed_paths=["alpha.txt"],
+            findings=[{
+                "path": "alpha.txt",
+                "status": "open_blocker",
+                "scenario": "known defect in alpha.txt",
+            }],
+        )
+        with self.assertRaisesRegex(self_audit.SelfAuditError, "unresolved"):
+            self_audit.inspect_report(self.root, before)
+
+        # A claimed repair cannot reuse inspection of the previous bytes.
+        (self.root / "alpha.txt").write_text("corrected\n", encoding="utf-8")
+        with self.assertRaisesRegex(self_audit.SelfAuditError, "STALE"):
+            self_audit.inspect_report(self.root, before)
+
+        after = self_audit.report_template(self.root, self.base)
+        after["review"].update(
+            outcome="pass",
+            actor="agent",
+            reviewed_paths=["alpha.txt"],
+            findings=[{
+                "path": "alpha.txt",
+                "status": "fixed",
+                "scenario": "corrected the previously known defect in alpha.txt",
+            }],
+        )
+        result = self_audit.inspect_report(self.root, after)
+        self.assertEqual("self-report-current", result["result"])
+        self.assertEqual("instruction-only", result["assurance"])
+        self.assertNotEqual(
+            before["candidate"]["fingerprint"], after["candidate"]["fingerprint"]
+        )
+
     def test_malformed_review_coverage_fails_cleanly(self):
         report = self_audit.report_template(self.root, self.base)
         report["review"].update(

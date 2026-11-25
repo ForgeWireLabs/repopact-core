@@ -1,0 +1,41 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261125-079-pr27-ac7-focused",
+  "timestamp": "2026-11-25T18:04:43Z",
+  "work_item": "079",
+  "result": "passed",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "python -m unittest tests.test_self_audit.CandidateAuditTests.test_repaired_finding_needs_fresh_snapshot_and_remains_self_reported -v",
+      "exit_code": 0,
+      "summary": "Required first regression passed (1/1) on source e2b360a681adccdd6987ece273c93850061cf7e9, tree 12c16cea3ab2522d040a7a7fcabaee480ef86cfc. This initial system-Python invocation inherited 23 GIT_* variable names; the test also passed in the later sanitized 33-test run."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m unittest tests.test_self_audit -v",
+      "exit_code": 0,
+      "summary": "All 33 self-audit tests passed in 48.260 seconds, including the repaired-finding regression. All inherited GIT_* variables, REPOPACT_GITHUB_CI/CD and CARGO_TARGET_DIR were removed or unset for this run."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m unittest tests.test_self_audit_verification_boundary -v",
+      "exit_code": 0,
+      "summary": "All 6 optional-profile verification-boundary tests passed in 10.288 seconds in the same sanitized environment."
+    }
+  ],
+  "artifacts": [
+    "evidence/runs/20261125-079-pr27-ac7-focused/repaired-finding-first.log",
+    "evidence/runs/20261125-079-pr27-ac7-focused/self-audit-33-sanitized.log",
+    "evidence/runs/20261125-079-pr27-ac7-focused/boundary-6-sanitized.log",
+    "work/active/079-agent-pre-completion-assurance-and-verifiable-self-audit/ac7-test-coverage-matrix-2026-11-25.md"
+  ],
+  "environment": {
+    "os": "Windows",
+    "shell": "PowerShell",
+    "python": "3.12.4",
+    "source_commit": "e2b360a681adccdd6987ece273c93850061cf7e9",
+    "source_tree": "12c16cea3ab2522d040a7a7fcabaee480ef86cfc",
+    "working_tree_clean_at_start": true,
+    "hosted_ci_cd": "not enabled; CI remains local-only through 2026-12-01 inclusive",
+    "sanitization": "The 33-test and 6-test suite processes removed every inherited GIT_* variable and removed REPOPACT_GITHUB_CI, REPOPACT_GITHUB_CD and CARGO_TARGET_DIR. The first isolated test's inherited GIT_* variable names were inventoried without values."
+  }
+}

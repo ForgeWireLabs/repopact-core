@@ -1,0 +1,6 @@
+test_repaired_finding_needs_fresh_snapshot_and_remains_self_reported (tests.test_self_audit.CandidateAuditTests.test_repaired_finding_needs_fresh_snapshot_and_remains_self_reported) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 3.381s
+
+OK
