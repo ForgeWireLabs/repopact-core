@@ -30,3 +30,44 @@
 **Preserved invocation diagnostic:** the first `cargo fmt --all -- --check` attempt ran from the repository root without a root `Cargo.toml`, so Cargo metadata exited 1 before rustfmt ran. The corrected `cargo fmt --manifest-path rust/Cargo.toml --all -- --check` passed. This was a command-path error, not a formatting defect; both outcomes are recorded in `evidence/runs/20261125-079-pr27-rustfmt-preflight.log`.
 
 AC-8 remains an independently pending protected-boundary issue. These tests prove opt-in local behavior and truthfully document the absence of unconditional Git/merge interposition; they do not establish H14 coverage. Research AC-9 is still **NOT RUN**. Hosted CI/CD is local-only through 2026-12-01 inclusive.
+
+
+## Follow-up candidate — two remaining AC-7 fixtures
+
+PR #27 merged at `a53f499ab4e147ae3248aa48a545d8a6deac37ac`
+(tree `d6b9a18305b30f7595ec089a4b6659854fddcd2d`). Five criteria are
+satisfied on main; the AC-7 disposition above is unchanged. The following
+new code is **staged, NOT RUN**:
+
+- `tests/test_self_audit_verification_boundary.py::test_unavailable_self_audit_executable_is_incomplete`:
+  configure the actual required WI079 step with an absent absolute interpreter
+  path in an isolated repository. Generate a structurally current external report
+  for the modified candidate; then invoke the real profile runner. Expected:
+  step unavailable, no helper exit code, zero required steps executed/passed,
+  one required unavailable, coverage unsatisfied, profile incomplete/exit 2.
+  This isolates executable availability from stale/missing report rejection.
+- `repopact/self_audit_conformance.py`: ten isolated executable reference
+  vectors (current, missing, incomplete, stale, omitted untracked, root/review/
+  finding approval assertions, blocker, reported-fixed). Expected outcomes
+  are fixed independently of the implementation. Each uses a disposable Git
+  repo and the actual helper CLI. Missing Git or malformed output fails the case.
+- `repopact/run_conformance.py`: default conformance command runs WI079
+  alongside, but separately from, the 43 canonical Rust governance fixtures
+  and eight WI050 vectors. The provenance record includes
+  `conformance.wi079_self_audit_corpus` with per-vector results and explicit
+  Python-reference/instruction-only labels; failed vectors make the combined
+  command fail. No new canonical Rust rule, frozen schema, or mandatory
+  self-audit completion check is introduced. The custom comparator path does
+  not claim to exercise this reference-helper corpus.
+- `tests/test_self_audit_conformance.py`: three new unit/integration tests
+  for the complete vector set, missing Git, and combined failure aggregation.
+  Mocked aggregation tests do not attest an actual Rust run.
+
+After canonical semantic identity regeneration, documentation snapshot review,
+and a matching-source engine build, run the 33 self-audit methods, **seven**
+optional-boundary methods, three new corpus tests, and normal full local CI.
+Retain the individual ten-vector outcomes, exact source commit/tree, and
+conformance provenance. If and only if all actual cases pass and the matrix
+is independently reviewed, AC-7 may be reconsidered for satisfaction.
+AC-2, AC-8, AC-9 and AC-10 remain pending. No comparative model calls,
+protected policy, hosted CI/CD, or release is authorized.
