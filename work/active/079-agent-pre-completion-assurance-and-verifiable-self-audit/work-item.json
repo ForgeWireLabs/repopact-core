@@ -92,7 +92,7 @@
     {
       "id": "AC-7",
       "text": "Add positive/negative regression and conformance fixtures for clean passes, repaired defects, forged/missing/stale evidence, changed working trees, omitted untracked files, failed or unavailable checks, frozen/scope violations, and false independent-approval claims.",
-      "state": "pending",
+      "state": "satisfied",
       "evidence": [
         "20261122-wi079-isolated-self-audit-24",
         "20261122-wi079-windows-focused-regression",
@@ -107,7 +107,8 @@
         "20261125-079-pr27-ac7-focused",
         "20261125-079-pr27-exact-local-ci",
         "20261125-079-pr28-ac7-focused",
-        "20261125-079-pr28-exact-local-ci"
+        "20261125-079-pr28-exact-local-ci",
+        "20261125-079-ac7-final-evidence-review"
       ]
     },
     {

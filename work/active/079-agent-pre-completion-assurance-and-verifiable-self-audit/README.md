@@ -67,7 +67,7 @@ The initial exploratory helper was committed before the complete option comparis
 
 ## Closeout requirements
 
-The ten criteria in `work-item.json` remain pending. Before any canonical schema, binding completion-policy, or other protected semantic change, record architectural approval in the existing governance workflow. Completion requires criterion-linked concrete evidence, documented limits and negative cases, resolved documentation-impact state, canonical RepoPact validation, and generator-produced dashboard/spec updates (never hand-edited). A draft work item alone is not an executable assurance feature.
+The criterion states in `work-item.json` are authoritative. The following closeout requirements remain applicable. Before any canonical schema, binding completion-policy, or other protected semantic change, record architectural approval in the existing governance workflow. Completion requires criterion-linked concrete evidence, documented limits and negative cases, resolved documentation-impact state, canonical RepoPact validation, and generator-produced dashboard/spec updates (never hand-edited). A draft work item alone is not an executable assurance feature.
 
 ## Subsequent integration and criterion review — 2026-11-25
 
@@ -75,3 +75,7 @@ The ten criteria in `work-item.json` remain pending. Before any canonical schema
 - Independent remote source/evidence review `20261125-079-criterion-source-and-evidence-review` supports AC-1, AC-3, AC-4, AC-5 and AC-6 **satisfied** on this **draft candidate**, not yet on main. AC-2's historical implementation-before-design requirement remains pending and may not be backdated. The fresh-repair regression passed first (1/1), followed by self-audit 33/33, boundary 6/6, and exact-source local CI on `94e65a032da546f6a88c0f0d9cc9d48fd5a398a4` (516 Python passed/4 skipped; Rust workspace 98 passed; conformance 43/43; WI050 8/8). AC-7 remains **pending**: its matrix identifies no WI079-profile unavailable-executable fixture and no WI079 self-audit conformance fixtures. AC-8 (protected authority), AC-9 (benchmark **NOT RUN**) and AC-10 (final closeout) remain pending.
 - The [criterion reconciliation](criterion-evidence-reconciliation-2026-11-25.md) records reviewed evidence and hard boundaries. The independent review **does not** grant formal second-principal GitHub approval or H14 enforcement.
 - Canonical dashboard regeneration and exact-source local CI have passed for PR #27; this does not close AC-7's remaining fixture gaps. The historical WI080 Rust failure remains blocked and unproven; CI stays local-only through 2026-12-01 inclusive.
+
+## PR #28 integration and AC-7 disposition — 2026-11-25
+
+PR #28 merged as `b9dec03ad59c2ef7d782eda9f2b3220747e8ba3c`. Both remaining AC-7 fixture gaps passed; technical review 6065238331 accepts AC-7 evidence. This draft stages six satisfied criteria and four pending, with no runtime change. See [AC-7 acceptance and remaining scope decisions](ac7-acceptance-disposition-2026-11-25.md). The earlier all-pending and missing-fixture descriptions are historical checkpoints. AC-2/8/9/10 remain pending; the study is NOT RUN and protected enforcement is not claimed.
