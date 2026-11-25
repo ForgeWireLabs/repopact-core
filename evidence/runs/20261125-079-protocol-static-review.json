@@ -1,0 +1,38 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261125-079-protocol-static-review",
+  "timestamp": "2026-11-25T02:17:16.419Z",
+  "work_item": "079",
+  "result": "partial",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "Independent GitHub text/source review of WI079 research/wi079-self-audit-benchmark-protocol.md at original PR #18 head 0562293d1f4a789055f6035204a60550ff29fd9e",
+      "exit_code": 0,
+      "summary": "Confirmed protocol is explicitly PLANNED / NOT RUN. It defines baseline, same-agent self-audit and independent-review conditions; H0/H1/H2, 12 task categories, fixed external golden checks and outcome/cost/churn measures. No actual model experiment, locked fixture/task manifest, comparative result or reviewer-quality claim was presented."
+    },
+    {
+      "command": "Reconcile research/metadata.json from WI080-reviewed main with WI079 fifteenth protocol registration",
+      "exit_code": 0,
+      "summary": "Kept Nov 23 verified_on, Dec 23 review_by, and Nov 23 adopter visibility review date from main, added only fifteenth planned protocol entry. Older PR #18 research review dates were not used and no review timestamp advanced merely to pass validation."
+    }
+  ],
+  "artifacts": [
+    "research/wi079-self-audit-benchmark-protocol.md",
+    "research/metadata.json"
+  ],
+  "environment": {
+    "review_type": "GitHub remote static methodological/source review, no model experiment",
+    "reviewed_wi079_head": "0562293d1f4a789055f6035204a60550ff29fd9e",
+    "accepted_baseline": "efa051525cf3c7c4621b695044dbeda38bf3530b",
+    "accepted_baseline_tree": "aa3998d4d858754ecc89de6fc86fbf210cf40cb4",
+    "disposition": "Study remains prospective and low-powered; no model runs authorized or performed. AC-9 remains pending. Existing 14-document WI080 review retained, new document inspected separately.",
+    "open_gates": [
+      "Freeze benchmark-manifest.json task/seed/model/toolchain/golden-test identities before any comparative execution",
+      "Independently adjudicate task defects and clean controls; report pilot power limits and missing measurements",
+      "Obtain separate operator budget/experiment authority; no automatic model spend or parallel review execution",
+      "Re-run canonical local CI and regenerate semantic identity/dashboard/documentation snapshots for combined WI079 source"
+    ],
+    "hosted_ci": "disabled through 2026-12-01 inclusive"
+  }
+}
