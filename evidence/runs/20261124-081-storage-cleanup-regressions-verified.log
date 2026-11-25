@@ -1,0 +1,18 @@
+REMOVED_GIT_ENV_NAMES=GIT_CONFIG_COUNT,GIT_CONFIG_KEY_0,GIT_CONFIG_KEY_1,GIT_CONFIG_KEY_2,GIT_CONFIG_KEY_3,GIT_CONFIG_KEY_4,GIT_CONFIG_KEY_5,GIT_CONFIG_KEY_6,GIT_CONFIG_KEY_7,GIT_CONFIG_KEY_8,GIT_CONFIG_KEY_9,GIT_CONFIG_VALUE_0,GIT_CONFIG_VALUE_1,GIT_CONFIG_VALUE_2,GIT_CONFIG_VALUE_3,GIT_CONFIG_VALUE_4,GIT_CONFIG_VALUE_5,GIT_CONFIG_VALUE_6,GIT_CONFIG_VALUE_7,GIT_CONFIG_VALUE_8,GIT_CONFIG_VALUE_9,GIT_INSTALL_ROOT,GIT_PAGER
+test_disk_preflight_reports_low_free_space_for_external_target (tests.test_local_storage.LocalValidationStorageTests.test_disk_preflight_reports_low_free_space_for_external_target) ... ok
+test_inventory_does_not_traverse_symlinked_build_output (tests.test_local_storage.LocalValidationStorageTests.test_inventory_does_not_traverse_symlinked_build_output) ... ok
+test_inventory_reports_active_unsealed_owned_target (tests.test_local_storage.LocalValidationStorageTests.test_inventory_reports_active_unsealed_owned_target) ... ok
+test_inventory_reports_evidence_as_immutable_and_does_not_delete (tests.test_local_storage.LocalValidationStorageTests.test_inventory_reports_evidence_as_immutable_and_does_not_delete) ... ok
+test_owned_target_apply_removes_only_sealed_test_fixture (tests.test_local_storage.LocalValidationStorageTests.test_owned_target_apply_removes_only_sealed_test_fixture) ... ok
+test_owned_target_cleanup_is_dry_run_and_refuses_unowned_content (tests.test_local_storage.LocalValidationStorageTests.test_owned_target_cleanup_is_dry_run_and_refuses_unowned_content) ... ok
+test_unregistered_target_is_never_removed (tests.test_local_storage.LocalValidationStorageTests.test_unregistered_target_is_never_removed) ... ok
+test_unregistered_worktree_path_is_never_removed (tests.test_local_storage.LocalValidationStorageTests.test_unregistered_worktree_path_is_never_removed) ... ok
+test_worktree_cleanup_refuses_ignored_user_files (tests.test_local_storage.LocalValidationStorageTests.test_worktree_cleanup_refuses_ignored_user_files) ... ok
+test_worktree_cleanup_refuses_unbounded_inventory (tests.test_local_storage.LocalValidationStorageTests.test_worktree_cleanup_refuses_unbounded_inventory) ... ok
+test_worktree_cleanup_requires_registered_clean_detached_checkout (tests.test_local_storage.LocalValidationStorageTests.test_worktree_cleanup_requires_registered_clean_detached_checkout) ... ok
+
+----------------------------------------------------------------------
+Ran 11 tests in 9.956s
+
+OK
+EXIT_CODE=0

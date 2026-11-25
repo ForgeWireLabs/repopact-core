@@ -1,0 +1,16 @@
+test_capture_refuses_symlinked_evidence_directory (tests.test_verify_capture.VerificationCaptureTests.test_capture_refuses_symlinked_evidence_directory) ... ok
+test_disk_full_output_capture_returns_incomplete_and_keeps_marker (tests.test_verify_capture.VerificationCaptureTests.test_disk_full_output_capture_returns_incomplete_and_keeps_marker) ... RepoPact verification output capture failed; result is INCOMPLETE: [Errno 28] simulated disk full during output capture
+ok
+test_evidence_storage_failure_never_emits_a_pass_report (tests.test_verify_capture.VerificationCaptureTests.test_evidence_storage_failure_never_emits_a_pass_report) ... ok
+test_interrupted_profile_remains_incomplete_and_not_a_pass (tests.test_verify_capture.VerificationCaptureTests.test_interrupted_profile_remains_incomplete_and_not_a_pass) ... RepoPact verification was interrupted; result is INCOMPLETE
+ok
+test_short_output_write_is_incomplete (tests.test_verify_capture.VerificationCaptureTests.test_short_output_write_is_incomplete) ... RepoPact verification output capture failed; result is INCOMPLETE: short verification output write: 1255 of 1256 characters
+ok
+test_live_capture_markers_are_excluded_but_other_evidence_participates (tests.test_dev_fixtures.DevFixturesTests.test_live_capture_markers_are_excluded_but_other_evidence_participates) ... ok
+test_source_identity_ignores_only_current_live_capture_pair (tests.test_conformance_provenance_identity.ConformanceProvenanceIdentityTests.test_source_identity_ignores_only_current_live_capture_pair) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 1.929s
+
+OK
+FOCUSED_EXIT=0

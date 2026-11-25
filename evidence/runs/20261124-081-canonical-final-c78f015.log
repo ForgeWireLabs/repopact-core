@@ -1,0 +1,64 @@
+SOURCE_HEAD=c78f0159a13effe84623d4be4296c079af19a95b
+SOURCE_TREE=e42775414a41db90b69000813a31aa8edd4b04b4
+ENGINE=C:\Projects\repopact-wi081-20261124\rust\target\debug\repopact-engine.exe
+REMOVED_GIT_ENV_NAMES=GIT_CONFIG_COUNT,GIT_CONFIG_KEY_0,GIT_CONFIG_KEY_1,GIT_CONFIG_KEY_2,GIT_CONFIG_KEY_3,GIT_CONFIG_KEY_4,GIT_CONFIG_KEY_5,GIT_CONFIG_KEY_6,GIT_CONFIG_KEY_7,GIT_CONFIG_KEY_8,GIT_CONFIG_KEY_9,GIT_CONFIG_VALUE_0,GIT_CONFIG_VALUE_1,GIT_CONFIG_VALUE_2,GIT_CONFIG_VALUE_3,GIT_CONFIG_VALUE_4,GIT_CONFIG_VALUE_5,GIT_CONFIG_VALUE_6,GIT_CONFIG_VALUE_7,GIT_CONFIG_VALUE_8,GIT_CONFIG_VALUE_9,GIT_INSTALL_ROOT,GIT_PAGER
+--- semantic-identity ---
+Semantic input manifest is current.
+EXIT_CODE=0
+--- documentation-snapshot ---
+{
+  "documentation_digest": "1fc2acdea4d2217eb53a8e8c23388bed705be45b26b56ae90a203d4807491ace",
+  "source_digest": "e3ca0ac3d55fbdfe41ee7acd36815a06766996f4c6b7d77dc2f45e0e4cbadd91"
+}
+EXIT_CODE=0
+--- dashboard ---
+Generated audits/reports/dashboard.md
+EXIT_CODE=0
+--- validate ---
+ERROR [evidence.fields-missing] evidence/runs/20261124-081-final-storage-external-target-inventory-c78f015.json: missing evidence fields: id, timestamp, work_item, result, commands, artifacts, environment
+ERROR [evidence.fields-missing] evidence/runs/20261124-081-final-storage-inventory-c78f015.json: missing evidence fields: id, timestamp, work_item, result, commands, artifacts, environment
+ERROR [evidence.fields-missing] evidence/runs/20261124-081-final-storage-preflight-c78f015.json: missing evidence fields: id, timestamp, work_item, result, commands, artifacts, environment
+ERROR [work.unknown-evidence] work/active/081-local-ci-environment-and-storage-hygiene/work-item.json: criterion AC-1 references unknown evidence 'evidence/runs/20261124-080-pr21-local-ci.json'
+ERROR [work.unknown-evidence] work/active/081-local-ci-environment-and-storage-hygiene/work-item.json: criterion AC-1 references unknown evidence 'evidence/runs/20261124-081-pr21-cargo-target-sanitized-control.log'
+ERROR [work.unknown-evidence] work/active/081-local-ci-environment-and-storage-hygiene/work-item.json: criterion AC-1 references unknown evidence 'evidence/runs/20261124-081-pr21-cargo-target-sanitized-repro.log'
+ERROR [work.unknown-evidence] work/active/081-local-ci-environment-and-storage-hygiene/work-item.json: criterion AC-1 references unknown evidence 'work/active/081-local-ci-environment-and-storage-hygiene/validation-evidence-2026-11-24.md'
+ERROR [work.unknown-evidence] work/active/081-local-ci-environment-and-storage-hygiene/work-item.json: criterion AC-2 references unknown evidence 'evidence/runs/20261124-081-cargo-target-tests-sanitized-default.log'
+ERROR [work.unknown-evidence] work/active/081-local-ci-environment-and-storage-hygiene/work-item.json: criterion AC-2 references unknown evidence 'evidence/runs/20261124-081-cargo-target-tests-sanitized-external.log'
+ERROR [work.unknown-evidence] work/active/081-local-ci-environment-and-storage-hygiene/work-item.json: criterion AC-2 references unknown evidence 'evidence/runs/20261124-081-final-ci-default-c78f015.json'
+ERROR [work.unknown-evidence] work/active/081-local-ci-environment-and-storage-hygiene/work-item.json: criterion AC-2 references unknown evidence 'evidence/runs/20261124-081-final-ci-external-c78f015.json'
+ERROR [work.unknown-evidence] work/active/081-local-ci-environment-and-storage-hygiene/work-item.json: criterion AC-2 references unknown evidence 'tests/test_engine_package_identity.py'
+ERROR [work.unknown-evidence] work/active/081-local-ci-environment-and-storage-hygiene/work-item.json: criterion AC-3 references unknown evidence 'evidence/runs/20261124-081-final-storage-external-target-inventory-c78f015.json'
+ERROR [work.unknown-evidence] work/active/081-local-ci-environment-and-storage-hygiene/work-item.json: criterion AC-3 references unknown evidence 'evidence/runs/20261124-081-final-storage-inventory-c78f015.json'
+ERROR [work.unknown-evidence] work/active/081-local-ci-environment-and-storage-hygiene/work-item.json: criterion AC-3 references unknown evidence 'evidence/runs/20261124-081-final-storage-preflight-c78f015.json'
+ERROR [work.unknown-evidence] work/active/081-local-ci-environment-and-storage-hygiene/work-item.json: criterion AC-3 references unknown evidence 'work/active/081-local-ci-environment-and-storage-hygiene/README.md'
+ERROR [work.unknown-evidence] work/active/081-local-ci-environment-and-storage-hygiene/work-item.json: criterion AC-3 references unknown evidence 'work/active/081-local-ci-environment-and-storage-hygiene/validation-evidence-2026-11-24.md'
+ERROR [work.unknown-evidence] work/active/081-local-ci-environment-and-storage-hygiene/work-item.json: criterion AC-4 references unknown evidence 'evidence/runs/20261124-081-final-storage-external-target-inventory-c78f015.json'
+ERROR [work.unknown-evidence] work/active/081-local-ci-environment-and-storage-hygiene/work-item.json: criterion AC-4 references unknown evidence 'evidence/runs/20261124-081-owned-cleanup-sample.log'
+ERROR [work.unknown-evidence] work/active/081-local-ci-environment-and-storage-hygiene/work-item.json: criterion AC-4 references unknown evidence 'evidence/runs/20261124-081-owned-inventory-unsealed-repro.log'
+ERROR [work.unknown-evidence] work/active/081-local-ci-environment-and-storage-hygiene/work-item.json: criterion AC-4 references unknown evidence 'repopact/local_storage.py'
+ERROR [work.unknown-evidence] work/active/081-local-ci-environment-and-storage-hygiene/work-item.json: criterion AC-4 references unknown evidence 'scripts/local_validation_storage.py'
+ERROR [work.unknown-evidence] work/active/081-local-ci-environment-and-storage-hygiene/work-item.json: criterion AC-4 references unknown evidence 'tests/test_local_storage.py'
+ERROR [work.unknown-evidence] work/active/081-local-ci-environment-and-storage-hygiene/work-item.json: criterion AC-5 references unknown evidence 'evidence/runs/20261124-081-final-ci-default-e.capture.jsonl'
+ERROR [work.unknown-evidence] work/active/081-local-ci-environment-and-storage-hygiene/work-item.json: criterion AC-5 references unknown evidence 'evidence/runs/20261124-081-final-ci-default-e.json'
+ERROR [work.unknown-evidence] work/active/081-local-ci-environment-and-storage-hygiene/work-item.json: criterion AC-5 references unknown evidence 'repopact/verification_capture.py'
+ERROR [work.unknown-evidence] work/active/081-local-ci-environment-and-storage-hygiene/work-item.json: criterion AC-5 references unknown evidence 'repopact/verify_cli.py'
+ERROR [work.unknown-evidence] work/active/081-local-ci-environment-and-storage-hygiene/work-item.json: criterion AC-5 references unknown evidence 'tests/test_verification.py'
+ERROR [work.unknown-evidence] work/active/081-local-ci-environment-and-storage-hygiene/work-item.json: criterion AC-5 references unknown evidence 'tests/test_verify_capture.py'
+ERROR [work.unknown-evidence] work/active/081-local-ci-environment-and-storage-hygiene/work-item.json: criterion AC-5 references unknown evidence 'work/active/081-local-ci-environment-and-storage-hygiene/validation-evidence-2026-11-24.md'
+ERROR [work.unknown-evidence] work/active/081-local-ci-environment-and-storage-hygiene/work-item.json: criterion AC-6 references unknown evidence 'evidence/runs/20261124-081-final-ci-default-c78f015.json'
+ERROR [work.unknown-evidence] work/active/081-local-ci-environment-and-storage-hygiene/work-item.json: criterion AC-6 references unknown evidence 'evidence/runs/20261124-081-final-ci-external-c78f015.json'
+ERROR [work.unknown-evidence] work/active/081-local-ci-environment-and-storage-hygiene/work-item.json: criterion AC-6 references unknown evidence 'evidence/runs/20261124-081-pr21-cargo-target-sanitized-control.log'
+ERROR [work.unknown-evidence] work/active/081-local-ci-environment-and-storage-hygiene/work-item.json: criterion AC-6 references unknown evidence 'evidence/runs/20261124-081-pr21-cargo-target-sanitized-repro.log'
+ERROR [work.unknown-evidence] work/active/081-local-ci-environment-and-storage-hygiene/work-item.json: criterion AC-6 references unknown evidence 'evidence/runs/20261124T215623940062Z-wi076-ac6-engine-conformance.json'
+ERROR [work.unknown-evidence] work/active/081-local-ci-environment-and-storage-hygiene/work-item.json: criterion AC-6 references unknown evidence 'evidence/runs/20261124T222939451985Z-wi076-ac6-engine-conformance.json'
+ERROR [work.unknown-evidence] work/active/081-local-ci-environment-and-storage-hygiene/work-item.json: criterion AC-6 references unknown evidence 'work/active/081-local-ci-environment-and-storage-hygiene/validation-evidence-2026-11-24.md'
+
+Validation failed with 37 error(s).
+EXIT_CODE=1
+--- frozen-surface ---
+No frozen-surface changes detected.
+EXIT_CODE=0
+--- rust-format ---
+EXIT_CODE=0
+--- diff-check ---
+EXIT_CODE=0

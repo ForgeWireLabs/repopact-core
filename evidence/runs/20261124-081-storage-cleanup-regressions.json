@@ -1,0 +1,30 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261124-081-storage-cleanup-regressions",
+  "timestamp": "2026-11-24T22:43:14.2909407Z",
+  "work_item": "081",
+  "result": "passed",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "summary": "Eleven storage tests passed, including dry-run, sealed ownership, symlink, ignored-file, dirty-worktree and bounded-inventory refusals.",
+      "command": "python -m unittest tests.test_local_storage -v",
+      "exit_code": 0
+    }
+  ],
+  "artifacts": [
+    "repopact/local_storage.py",
+    "scripts/local_validation_storage.py",
+    "tests/test_local_storage.py",
+    "evidence/runs/20261124-081-storage-cleanup-regressions-verified.log",
+    "evidence/runs/20261124-081-owned-cleanup-sample.log",
+    "evidence/runs/20261124-081-owned-inventory-unsealed-repro.log"
+  ],
+  "environment": {
+    "platform": "windows",
+    "executor": "local",
+    "source_revision": "c78f0159a13effe84623d4be4296c079af19a95b",
+    "source_tree": "e42775414a41db90b69000813a31aa8edd4b04b4",
+    "git_environment": "GIT_* removed by-name; values not logged"
+  }
+}

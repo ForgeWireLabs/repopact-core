@@ -18,6 +18,7 @@ from dataclasses import replace
 from io import BytesIO
 from pathlib import Path
 from typing import Any
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPTS = ROOT / "scripts"
@@ -161,6 +162,7 @@ def _wheel_contents(source: PackageSource, trusted_dir: Path) -> tuple[dict[str,
 class SyntheticPackageArchiveTests(unittest.TestCase):
     def setUp(self) -> None:
         self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name) / "source"
         self.root.mkdir()
         self._make_source_tree()
@@ -210,12 +212,35 @@ class SyntheticPackageArchiveTests(unittest.TestCase):
         target.mkdir(parents=True)
         (target / "repopact-engine.exe").write_bytes(b"trusted engine bytes")
         (target / "repopact.exe").write_bytes(b"trusted cli bytes")
+        self._cargo_target_env = patch.dict(
+            os.environ, {"CARGO_TARGET_DIR": str(self.root / "target")}
+        )
+        self._cargo_target_env.start()
+        self.addCleanup(self._cargo_target_env.stop)
         self.source = _source_package(self.root, metadata_path, SOURCE_REVISION)
         self.sdist = self.root / "repopact-3.1.4.dev0.tar.gz"
         self.wheel = self.root / "repopact-3.1.4.dev0-py3-none-win_amd64.whl"
 
-    def tearDown(self) -> None:
-        self.temp.cleanup()
+    def test_source_accepts_matching_external_cargo_target_dir(self) -> None:
+        external_target = self.root.parent / "external-cargo-target"
+        shutil.copytree(self.root / "target", external_target)
+        cargo_metadata = json.loads(self.metadata_path.read_text(encoding="utf-8"))
+        cargo_metadata["target_directory"] = str(external_target)
+        self.metadata_path.write_text(json.dumps(cargo_metadata), encoding="utf-8")
+
+        with patch.dict(os.environ, {"CARGO_TARGET_DIR": str(external_target)}):
+            source = _source_package(self.root, self.metadata_path, SOURCE_REVISION)
+
+        self.assertEqual(external_target.resolve(), source.cargo_target_directory)
+
+    def test_source_rejects_mismatched_external_cargo_target_dir(self) -> None:
+        external_target = self.root.parent / "mismatched-cargo-target"
+        with patch.dict(os.environ, {"CARGO_TARGET_DIR": str(external_target)}):
+            with self.assertRaisesRegex(
+                ArchiveIdentityError,
+                "Cargo metadata target directory differs from the active CARGO_TARGET_DIR",
+            ):
+                _source_package(self.root, self.metadata_path, SOURCE_REVISION)
 
     def _make_source_tree(self) -> None:
         for directory in (

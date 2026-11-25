@@ -16,6 +16,7 @@ import shutil
 import subprocess
 import sys
 import time
+import uuid
 from dataclasses import asdict, dataclass, replace
 from datetime import datetime, timezone
 from importlib.resources import files
@@ -34,6 +35,14 @@ _WORK_ITEM_ID = re.compile(r"^[0-9]{3,}$")
 
 class VerificationConfigError(RuntimeError):
     """Raised when the repository verification contract is unusable."""
+
+
+def new_evidence_id(profile: str) -> str:
+    """Create a collision-resistant run id before local validation begins."""
+    if not profile or "/" in profile or "\\" in profile:
+        raise VerificationConfigError(f"invalid verification profile id {profile!r}")
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S-%f")
+    return f"{stamp}-{uuid.uuid4().hex[:8]}-verify-{profile}"
 
 
 @dataclass(frozen=True)
@@ -84,6 +93,8 @@ class VerificationReport:
     coverage: CoverageSummary
     steps: list[StepResult]
     evidence_path: str | None = None
+    candidate_at_start: dict[str, Any] | None = None
+    storage_preflight: dict[str, Any] | None = None
 
     @property
     def exit_code(self) -> int:
@@ -552,7 +563,13 @@ def _coverage(profile: dict[str, Any], results: list[StepResult], platform: str)
     )
 
 
-def run_profile(root: Path, profile_name: str | None = None) -> VerificationReport:
+def run_profile(
+    root: Path,
+    profile_name: str | None = None,
+    *,
+    progress_callback=None,
+    candidate_at_start: dict[str, Any] | None = None,
+) -> VerificationReport:
     root = root.resolve()
     contract = load_contract(root)
     name = profile_name or contract.get("default_profile")
@@ -565,11 +582,81 @@ def run_profile(root: Path, profile_name: str | None = None) -> VerificationRepo
     started = time.monotonic()
     results: list[StepResult] = []
     profile = profiles[name]
+    candidate_at_start = candidate_at_start or _candidate_identity(root)
+    storage_preflight: dict[str, Any] | None = None
+    if name == "ci":
+        from .local_storage import LocalStorageError, disk_preflight
+
+        try:
+            storage_preflight = disk_preflight(root)
+        except (LocalStorageError, OSError) as exc:
+            storage_preflight = {"ready": False, "diagnostic": str(exc)}
+        if not storage_preflight.get("ready"):
+            diagnostic = storage_preflight.get("diagnostic")
+            if diagnostic is None:
+                low = [item for item in storage_preflight.get("volumes", []) if not item.get("ready")]
+                diagnostic = "; ".join(
+                    f"{item.get('volume') or item.get('checked_path')}: "
+                    f"{item.get('free_bytes')} bytes free, "
+                    f"{item.get('required_free_bytes')} required"
+                    for item in low
+                ) or "local storage preflight could not establish sufficient free space"
+            for step in profile["steps"]:
+                required, capability, platforms = _step_meta(step)
+                applicable = not platforms or platform in platforms
+                results.append(
+                    StepResult(
+                        id=str(step["id"]),
+                        status="unavailable" if applicable else "skipped",
+                        required=required,
+                        command=None,
+                        builtin=str(step.get("builtin")) if "builtin" in step else None,
+                        cwd=".",
+                        exit_code=None,
+                        duration_seconds=0.0,
+                        summary=f"not run: local CI storage preflight failed: {diagnostic}",
+                        capability=capability,
+                        platforms=platforms,
+                        applicable=applicable,
+                    )
+                )
+            coverage = _coverage(profile, results, platform)
+            return VerificationReport(
+                profile=name,
+                status="incomplete",
+                executor="local",
+                platform=platform,
+                root=str(root),
+                duration_seconds=time.monotonic() - started,
+                coverage=coverage,
+                steps=results,
+                candidate_at_start=candidate_at_start,
+                storage_preflight=storage_preflight,
+            )
     for step in profile["steps"]:
         if "argv" in step:
-            results.append(_command_step(root, step, platform))
+            result = _command_step(root, step, platform)
         else:
-            results.append(_builtin_step(root, step, platform))
+            result = _builtin_step(root, step, platform)
+        results.append(result)
+        if progress_callback is not None:
+            try:
+                progress_callback(result)
+            except Exception as exc:
+                results.append(
+                    StepResult(
+                        id="output-capture",
+                        status="error",
+                        required=True,
+                        command=None,
+                        builtin=None,
+                        cwd=".",
+                        exit_code=None,
+                        duration_seconds=0.0,
+                        summary=f"bounded partial-output capture failed after {result.id}: {str(exc)[:500]}",
+                    )
+                )
+                break
 
     required = [step for step in results if step.required]
     coverage = _coverage(profile, results, platform)
@@ -590,6 +677,8 @@ def run_profile(root: Path, profile_name: str | None = None) -> VerificationRepo
         duration_seconds=time.monotonic() - started,
         coverage=coverage,
         steps=results,
+        candidate_at_start=candidate_at_start,
+        storage_preflight=storage_preflight,
     )
 
 
@@ -643,6 +732,7 @@ def build_evidence(
     *,
     evidence_id: str | None = None,
     timestamp: datetime | None = None,
+    artifacts: list[str] | None = None,
 ) -> dict[str, Any]:
     """Build an evidence-run record for an actual local profile invocation."""
     root = root.resolve()
@@ -692,11 +782,17 @@ def build_evidence(
         "result": result,
         "provenance": "concrete",
         "commands": commands,
-        "artifacts": [],
+        "artifacts": list(artifacts or []),
         "environment": {
             "platform": report.platform,
             "executor": report.executor,
             "candidate": _candidate_identity(root),
+            "candidate_at_start": report.candidate_at_start,
+            "validation_storage": report.storage_preflight,
+            "relevant_environment": {
+                "CARGO_TARGET_DIR": os.environ.get("CARGO_TARGET_DIR"),
+                "REPOPACT_ENGINE": os.environ.get("REPOPACT_ENGINE"),
+            },
             "verification": {
                 "profile": report.profile,
                 "status": report.status,
@@ -729,6 +825,7 @@ def record_evidence(
     evidence_id: str | None = None,
     refresh_dashboard: bool = True,
     client=None,
+    artifacts: list[str] | None = None,
 ) -> str:
     """Persist one immutable verification evidence run and refresh derived state.
 
@@ -742,7 +839,9 @@ def record_evidence(
         engine.check_compatibility("dashboard.write")
     except EngineError as exc:
         raise VerificationConfigError(f"canonical Rust engine unavailable: {exc}") from exc
-    record = build_evidence(root, report, work_item, evidence_id=evidence_id)
+    record = build_evidence(
+        root, report, work_item, evidence_id=evidence_id, artifacts=artifacts
+    )
     evidence_dir = root / "evidence" / "runs"
     evidence_dir.mkdir(parents=True, exist_ok=True)
     path = evidence_dir / f"{record['id']}.json"

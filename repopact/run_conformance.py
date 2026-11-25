@@ -24,6 +24,7 @@ import jsonschema
 from . import engine_client
 from . import generate_dashboard
 from . import legacy_validate
+from .verification_capture import active_capture_artifact_paths
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -165,10 +166,16 @@ def _git_source_state(root: Path) -> dict[str, object]:
 
     revision = git("rev-parse", "--verify", "HEAD")
     status = git("status", "--porcelain", "--untracked-files=all")
+    lines = status.splitlines() if status is not None else []
+    ignored_runtime_artifacts = active_capture_artifact_paths(root)
+    ignored_lines = {f"?? {path}" for path in ignored_runtime_artifacts}
+    source_lines = [line for line in lines if line not in ignored_lines]
+    source_status = "\n".join(source_lines) if status is not None else None
     return {
         "revision": revision,
-        "dirty": status is None or bool(status),
-        "status_porcelain": status,
+        "dirty": source_status is None or bool(source_lines),
+        "status_porcelain": source_status,
+        "ignored_runtime_artifacts": sorted(ignored_runtime_artifacts),
     }
 
 

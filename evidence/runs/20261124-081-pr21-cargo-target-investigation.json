@@ -1,0 +1,35 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261124-081-pr21-cargo-target-investigation",
+  "timestamp": "2026-11-24T22:43:14.2854911Z",
+  "work_item": "081",
+  "result": "passed",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "summary": "Expected defect reproduced: nine fixture tests error on the mismatched Cargo metadata target directory.",
+      "command": "python -m unittest tests.test_engine_package_identity -v (controlled external CARGO_TARGET_DIR reproduction)",
+      "exit_code": 1
+    },
+    {
+      "summary": "Control passed all nine tests after inherited Git and Cargo target variables were removed.",
+      "command": "python -m unittest tests.test_engine_package_identity -v (sanitized environment control)",
+      "exit_code": 0
+    }
+  ],
+  "artifacts": [
+    "evidence/runs/20261124-080-pr21-local-ci.json",
+    "evidence/runs/20261124-081-pr21-cargo-target-sanitized-repro.log",
+    "evidence/runs/20261124-081-pr21-cargo-target-sanitized-control.log",
+    "tests/test_engine_package_identity.py"
+  ],
+  "environment": {
+    "platform": "windows",
+    "executor": "local",
+    "source_revision": "1c7f1d0bcdbca8fb99b1ee3df8c13165e2a1e771",
+    "source_tree": "b18f7c654d63bd048c218ff04ebfbcd909ff7054",
+    "repro_cargo_target_dir": "C:\\Projects\\repopact-wi081-external-target-repro-20261124",
+    "inherited_git_environment": "removed by-name; values not logged",
+    "failure": "ArchiveIdentityError: Cargo metadata target directory differs from the active CARGO_TARGET_DIR"
+  }
+}

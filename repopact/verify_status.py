@@ -31,13 +31,17 @@ def _load_json(path: Path) -> Any | None:
 
 
 def _local_verification_state(root: Path) -> dict[str, Any]:
+    latest = _latest_verification_evidence(root)
+    incomplete = _incomplete_captures(root)
     config_path = root / "governance" / "verification.json"
     if not config_path.is_file():
         return {
             "contract_present": False,
             "default_profile": None,
             "profiles": [],
-            "latest_evidence": None,
+            "latest_evidence": latest,
+            "effective_status": "incomplete" if incomplete else (latest or {}).get("status"),
+            "incomplete_captures": incomplete,
         }
     try:
         config = load_contract(root)
@@ -50,7 +54,9 @@ def _local_verification_state(root: Path) -> dict[str, Any]:
         "contract_present": True,
         "default_profile": default_profile,
         "profiles": profiles,
-        "latest_evidence": _latest_verification_evidence(root),
+        "latest_evidence": latest,
+        "effective_status": "incomplete" if incomplete else (latest or {}).get("status"),
+        "incomplete_captures": incomplete,
     }
 
 
@@ -84,6 +90,39 @@ def _latest_verification_evidence(root: Path) -> dict[str, Any] | None:
         "status": verification.get("status"),
         "candidate": environment.get("candidate"),
     }
+
+
+def _incomplete_captures(root: Path) -> list[dict[str, Any]]:
+    progress_dir = root / "evidence" / "runs" / ".in-progress"
+    if not progress_dir.is_dir():
+        return []
+    reports = []
+    for path in sorted(progress_dir.glob("*.state.json")):
+        data = _load_json(path)
+        if not isinstance(data, dict):
+            reports.append(
+                {
+                    "path": path.relative_to(root).as_posix(),
+                    "status": "incomplete",
+                    "phase": "unreadable-state",
+                    "diagnostic": "capture marker is unreadable; do not treat the run as passed",
+                }
+            )
+            continue
+        reports.append(
+            {
+                "id": data.get("id"),
+                "work_item": data.get("work_item"),
+                "profile": data.get("profile"),
+                "path": path.relative_to(root).as_posix(),
+                "status": "incomplete",
+                "phase": data.get("phase", "running"),
+                "started_at": data.get("started_at"),
+                "diagnostic": data.get("diagnostic"),
+                "capture_log": data.get("capture_log"),
+            }
+        )
+    return reports
 
 
 def _hosted_adapter_state(root: Path, workflow_relpath: str, default_flag_key: str, execution_policy: dict[str, Any]) -> dict[str, Any]:
@@ -212,6 +251,8 @@ def render_human(status: dict[str, Any]) -> str:
         f"  contract present: {local['contract_present']}",
         f"  default profile: {local['default_profile']}",
         f"  latest evidence: {latest['profile'] + ' -> ' + latest['status'] if latest else 'none found'}",
+        f"  effective status: {local.get('effective_status') or 'none'}",
+        f"  incomplete captures: {len(local.get('incomplete_captures', []))}",
         "",
         "hosted CI:",
         f"  policy default enabled: {ci['policy_default_enabled']}",

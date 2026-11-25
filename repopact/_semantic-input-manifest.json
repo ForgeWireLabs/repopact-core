@@ -492,7 +492,7 @@
     },
     {
       "path": "repopact/dev_fixtures.py",
-      "sha256": "ff192305c9ed1bab54336ff2baee3ec52b947f872700a334fbe2c0f13a2fe6bb"
+      "sha256": "2026f5a0ff77bd462d56e1731c86b73f35223b15f5c525c9ee11f2eaa98644c4"
     },
     {
       "path": "repopact/doctor.py",
@@ -551,6 +551,10 @@
       "sha256": "60e82790569b234bf437f687ea94def9c74ca364c09a68f907c4ace1d95bf8d0"
     },
     {
+      "path": "repopact/local_storage.py",
+      "sha256": "0b3059e4b8bcefdfe49561a07c30df285a7cda5e2fdb49c6c9d38679e4b75a0d"
+    },
+    {
       "path": "repopact/new.py",
       "sha256": "552c17625d6899b251bfa40f2be84dedb1601dc26f37d213d39a9b2a9c163282"
     },
@@ -588,7 +592,7 @@
     },
     {
       "path": "repopact/run_conformance.py",
-      "sha256": "791d5c4a6f702585c4b9e80c36394231eadad41951981769bf24b6958b2f7e03"
+      "sha256": "140e014fe7661b4e82c765a71837f48a4569d2eb612bd622f5682abb67e2aab3"
     },
     {
       "path": "repopact/runtime-dependency-groups.json",
@@ -728,15 +732,19 @@
     },
     {
       "path": "repopact/verification.py",
-      "sha256": "7e151ae3f538c10d697eda4fc5676e4a6d9070f3af1887431dd7a371de4c66b7"
+      "sha256": "5ac5656346197c38869c6322d040e86480c5db33016a4ad67cfc15e085aaed71"
+    },
+    {
+      "path": "repopact/verification_capture.py",
+      "sha256": "6430a50acfef1139fb53f8d835fc3b64689ae700c6e6a45d0e2628c3be605e04"
     },
     {
       "path": "repopact/verify_cli.py",
-      "sha256": "b3a14ae28897d64058c2c628600169534d6908d36daed6aa8a46afad9dd81b58"
+      "sha256": "eb10899c2e301a6ef619390d1eb1c630423fc2cc3bd9b1e3fb744dd53a3f6d4e"
     },
     {
       "path": "repopact/verify_status.py",
-      "sha256": "a0c405d17ae42c4b8e9dc8e43a2fc8129b08f0d7060d6b83207c1fbddbdb75ba"
+      "sha256": "238a1d9e206b0e0a2cc20169d3ce116d51891d790484451288d68b6e8038ece7"
     },
     {
       "path": "repopact/windows_guard_service.py",
@@ -1035,5 +1043,5 @@
       "sha256": "568ee233f91fcfc6afad4dfdb4fd6cbadd2761f0b795d91a089030c3b0b0bbb3"
     }
   ],
-  "semantic_identity": "repopact-semantic-v1:sha256:e2db06591d5cd1f82839cfa136a31e1fbc3870d88034fc1b0fd24e5708544cc3"
+  "semantic_identity": "repopact-semantic-v1:sha256:6e369782c9d7a077b30a508bb6ac3aefb3547caee748d9353dd400a741b8fcd2"
 }

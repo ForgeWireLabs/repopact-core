@@ -2,13 +2,16 @@
 from __future__ import annotations
 
 import json
+import os
 import shutil
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
 
 from repopact import run_conformance
+from repopact.verification_capture import ACTIVE_CAPTURE_ID_ENV
 
 
 class ConformanceProvenanceIdentityTests(unittest.TestCase):
@@ -100,6 +103,63 @@ class ConformanceProvenanceIdentityTests(unittest.TestCase):
             with self.subTest(value=value):
                 with self.assertRaises(ValueError):
                     run_conformance._conformance_evidence_id(value)
+
+    def test_source_identity_ignores_only_current_live_capture_pair(self):
+        source = self.root / "source-state"
+        source.mkdir()
+        subprocess.run(["git", "init", "-q"], cwd=source, check=True, capture_output=True)
+        subprocess.run(["git", "config", "--local", "user.email", "fixture@example.invalid"], cwd=source, check=True, capture_output=True)
+        subprocess.run(["git", "config", "--local", "user.name", "Fixture Source"], cwd=source, check=True, capture_output=True)
+        (source / "tracked.txt").write_text("committed source\n", encoding="utf-8")
+        subprocess.run(["git", "add", "tracked.txt"], cwd=source, check=True, capture_output=True)
+        subprocess.run(["git", "commit", "-q", "-m", "source"], cwd=source, check=True, capture_output=True)
+
+        progress = source / "evidence" / "runs" / ".in-progress"
+        progress.mkdir(parents=True)
+        (progress / "20261124-ci.state.json").write_text(
+            json.dumps(
+                {
+                    "format": "repopact-local-verification-capture-v1",
+                    "id": "20261124-ci",
+                    "status": "partial",
+                    "phase": "running",
+                    "capture_log": "evidence/runs/.in-progress/20261124-ci.steps.jsonl.partial",
+                }
+            ),
+            encoding="utf-8",
+        )
+        (progress / "20261124-ci.steps.jsonl.partial").write_text("", encoding="utf-8")
+        with patch.dict(os.environ, {ACTIVE_CAPTURE_ID_ENV: "20261124-ci"}):
+            clean = run_conformance._git_source_state(source)
+        self.assertFalse(clean["dirty"])
+        self.assertEqual("", clean["status_porcelain"])
+        self.assertEqual(
+            [
+                "evidence/runs/.in-progress/20261124-ci.state.json",
+                "evidence/runs/.in-progress/20261124-ci.steps.jsonl.partial",
+            ],
+            clean["ignored_runtime_artifacts"],
+        )
+
+        with patch.dict(os.environ, {ACTIVE_CAPTURE_ID_ENV: "20261124-ci"}):
+            (source / "unrelated.txt").write_text("source change\n", encoding="utf-8")
+            dirty = run_conformance._git_source_state(source)
+            self.assertTrue(dirty["dirty"])
+            self.assertIn("?? unrelated.txt", dirty["status_porcelain"])
+
+            (source / "unrelated.txt").unlink()
+            orphan = progress / "20261124-orphan.state.json"
+            orphan.write_text("{}\n", encoding="utf-8")
+            incomplete = run_conformance._git_source_state(source)
+            self.assertTrue(incomplete["dirty"])
+            self.assertIn("20261124-orphan.state.json", incomplete["status_porcelain"])
+
+            stale = progress / "20261124-stale.state.json"
+            stale.write_text("{}\n", encoding="utf-8")
+            (progress / "20261124-stale.steps.jsonl.partial").write_text("", encoding="utf-8")
+            stale_status = run_conformance._git_source_state(source)
+            self.assertTrue(stale_status["dirty"])
+            self.assertIn("20261124-stale.state.json", stale_status["status_porcelain"])
 
 
 if __name__ == "__main__":

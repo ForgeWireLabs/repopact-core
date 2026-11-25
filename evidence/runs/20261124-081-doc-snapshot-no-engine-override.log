@@ -1,0 +1,7 @@
+COMMAND=python -m repopact.cli documentation snapshot --root . engine-semantic-compatibility
+SOURCE_HEAD=ae5fe1686a91d4a05d41430ed40493a19039aec7
+SOURCE_TREE=c4e58109a974a21dca7046f174e3a5abb88f33d3
+REPOPACT_ENGINE=unset for this invocation
+OUTPUT=Rust engine compatibility error: Rust engine timed out after 30s during handshake
+EXIT_CODE=1
+CLASSIFICATION=validation invocation setup error; exact engine override was omitted. The same snapshot was rerun with the exact-source engine and passed, see 20261124-081-doc-snapshot-ae5fe16.log.
