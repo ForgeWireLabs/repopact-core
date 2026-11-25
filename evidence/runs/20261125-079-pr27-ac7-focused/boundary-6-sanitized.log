@@ -1,0 +1,11 @@
+test_git_completion_marker_without_profile_is_not_intercepted (tests.test_self_audit_verification_boundary.OptionalSelfAuditVerificationBoundaryTests.test_git_completion_marker_without_profile_is_not_intercepted) ... ok
+test_incomplete_self_report_is_denied_by_actual_profile (tests.test_self_audit_verification_boundary.OptionalSelfAuditVerificationBoundaryTests.test_incomplete_self_report_is_denied_by_actual_profile) ... ok
+test_independent_approval_assertion_cannot_be_laundered (tests.test_self_audit_verification_boundary.OptionalSelfAuditVerificationBoundaryTests.test_independent_approval_assertion_cannot_be_laundered) ... ok
+test_missing_report_is_actually_invoked_and_denied (tests.test_self_audit_verification_boundary.OptionalSelfAuditVerificationBoundaryTests.test_missing_report_is_actually_invoked_and_denied) ... ok
+test_stale_report_after_untracked_change_is_denied (tests.test_self_audit_verification_boundary.OptionalSelfAuditVerificationBoundaryTests.test_stale_report_after_untracked_change_is_denied) ... ok
+test_structurally_current_self_report_passes_only_local_profile (tests.test_self_audit_verification_boundary.OptionalSelfAuditVerificationBoundaryTests.test_structurally_current_self_report_passes_only_local_profile) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 10.288s
+
+OK
