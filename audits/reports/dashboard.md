@@ -13,15 +13,15 @@
 | Scope contracts | 5 |
 | Audit registry entries | 5 |
 | Audit findings | 3 |
-| Decision records | 78 |
+| Decision records | 79 |
 | Policy records | 2 |
-| Evidence runs | 301 |
+| Evidence runs | 303 |
 
 ## Work
 
 | Status | Count |
 | --- | ---: |
-| proposed | 3 |
+| proposed | 4 |
 | active | 10 |
 | blocked | 2 |
 | deferred | 1 |

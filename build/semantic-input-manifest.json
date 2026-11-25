@@ -676,7 +676,7 @@
     },
     {
       "path": "repopact/self_audit.py",
-      "sha256": "1834d9a5cf8df0414a30ca89557410736e1a769e70f535fa768b36bacc04fb29"
+      "sha256": "e32fecbcd8593392d551097aaf2f3e2899098cbc02c0b1879374729b56590b81"
     },
     {
       "path": "repopact/self_audit_conformance.py",
@@ -1055,5 +1055,5 @@
       "sha256": "568ee233f91fcfc6afad4dfdb4fd6cbadd2761f0b795d91a089030c3b0b0bbb3"
     }
   ],
-  "semantic_identity": "repopact-semantic-v1:sha256:5298450478cb065378969da70c40851b457f16a95f0da89fd51afe3453db6f44"
+  "semantic_identity": "repopact-semantic-v1:sha256:b6cdc89b9c4f6f4998d341cf592439e43455b694442735dbacb1c42cb3b1a90b"
 }
