@@ -177,12 +177,19 @@ class OptionalSelfAuditVerificationBoundaryTests(unittest.TestCase):
         # No platform or protected completion authority is inferred here.
         self.assertEqual("host", record["coverage"]["mode"])
 
-    def test_git_commit_without_optional_profile_is_not_intercepted(self) -> None:
-        # Negative boundary: an ordinary local Git commit does not invoke the
-        # optional RepoPact profile or require self-report evidence.
+    def test_git_completion_marker_without_profile_is_not_intercepted(self) -> None:
+        # Negative boundary: plain Git can commit a file CLAIMING completed
+        # status without invoking WI079. This is deliberately NOT an assertion
+        # that RepoPact's canonical validator accepted a completed work item.
+        completed = self.root / "work" / "completed" / "999-fixture-unprotected"
+        completed.mkdir(parents=True)
+        (completed / "work-item.json").write_text(
+            json.dumps({"id": "999", "status": "completed"}) + "\n",
+            encoding="utf-8",
+        )
         self.assertFalse(self.report_path.exists())
-        self.git("add", "alpha.txt")
-        self.git("commit", "-qm", "Git can commit without a WI079 report")
+        self.git("add", "work/completed/999-fixture-unprotected/work-item.json")
+        self.git("commit", "-qm", "Git can commit a completion marker without WI079")
         self.assertNotEqual(self.base, self.git("rev-parse", "HEAD").strip())
         self.assert_denied_by_required_step(message="Review report missing")
 
