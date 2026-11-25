@@ -98,7 +98,9 @@
       "id": "AC-9",
       "text": "Preregister and compare ordinary verification, structured self-audit, and independent review on fixed tasks; measure escaped defects, false positives, churn, cost, and task success without assuming self-audit replaces independent reviewers.",
       "state": "pending",
-      "evidence": []
+      "evidence": [
+        "20261125-079-protocol-static-review"
+      ]
     },
     {
       "id": "AC-10",
@@ -110,5 +112,5 @@
     }
   ],
   "created": "2026-11-22",
-  "updated": "2026-11-23"
+  "updated": "2026-11-24"
 }
