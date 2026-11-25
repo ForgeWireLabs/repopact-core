@@ -1,0 +1,62 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261124-081-ac8-core-only-integration-review",
+  "timestamp": "2026-11-25T00:42:31.399Z",
+  "work_item": "081",
+  "result": "passed",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "Independent GitHub diff, exact-commit and validation-record review of RepoPact Core WI081 PR #22",
+      "exit_code": 0,
+      "summary": "Reviewed source changes and retained failed/passed run records; confirmed canonical local CI passed default and controlled external CARGO_TARGET_DIR at clean tested source c78f0159a13effe84623d4be4296c079af19a95b; later final PR changes were evidence, dashboard and work-item updates only."
+    },
+    {
+      "command": "Review RepoPact Workbench and ForgeWire Fabric cleanup/lifecycle ownership boundaries; decide WI081 integration scope",
+      "exit_code": 0,
+      "summary": "Accepted Core-only integration. Workbench and Fabric cleanup are separate product-owned work; no automatic cross-repo cleanup, no deletion of external/user-owned worktrees, installed Fabric state or backups. Native installed-state/retention checks remain separately gated."
+    },
+    {
+      "command": "GitHub integration PR #22 at exact reviewed HEAD 2473c5611a4a59ea2336f1c7a8ed1e6a23aaf711",
+      "exit_code": 0,
+      "summary": "Merged to main at 5d185faac83b68596715ce99824dd4b717eb104e (tree 60647f7aa6203e68f582c59cb2dc4071f94d6222) with no source or tree substitution."
+    }
+  ],
+  "artifacts": [
+    "evidence/runs/20261124-081-final-ci-default-c78f015.json",
+    "evidence/runs/20261124-081-final-ci-external-c78f015.json",
+    "evidence/runs/20261124-081-pr21-cargo-target-investigation.json",
+    "evidence/runs/20261124-081-storage-cleanup-regressions.json",
+    "evidence/runs/20261124-081-failure-capture-regressions.json"
+  ],
+  "environment": {
+    "platform": "GitHub remote independent source and evidence review; no additional host-local execution",
+    "reviewer": "ChatGPT under delegated GitHub integration responsibility",
+    "review_reference": "https://github.com/ForgeWireLabs/repopact-core/pull/22#pullrequestreview-6049772262",
+    "reviewed_head": "2473c5611a4a59ea2336f1c7a8ed1e6a23aaf711",
+    "reviewed_tree": "60647f7aa6203e68f582c59cb2dc4071f94d6222",
+    "tested_source": "c78f0159a13effe84623d4be4296c079af19a95b",
+    "tested_tree": "e42775414a41db90b69000813a31aa8edd4b04b4",
+    "main_merge_commit": "5d185faac83b68596715ce99824dd4b717eb104e",
+    "main_tree": "60647f7aa6203e68f582c59cb2dc4071f94d6222",
+    "default_ci_sha256": "F604B01679B051DB936B1BE05216F41DF1818FDD8CD5817FFE5C1AED6CEAEB06",
+    "external_ci_sha256": "CC3EC1A3B0EDA7DDE41FCF8E955E4A4896A59AABAF88C01401E084643EA9C1FA",
+    "decisions": {
+      "repopact_core": "INTEGRATED; explicit registered ownership only; dry-run default; opt-in cleanup",
+      "repopact_workbench": "NO INTEGRATION; independent Workbench application/process and disposable artifact authority",
+      "forgewire_fabric": "NO INTEGRATION; independent native installed-state preservation, import/export, source and worktree authority"
+    },
+    "supporting_external_references": [
+      "https://github.com/ForgeWireLabs/forgewire-fabric/issues/30",
+      "https://github.com/ForgeWireLabs/forgewire-fabric/issues/56",
+      "https://github.com/ForgeWireLabs/repopact-core/pull/22"
+    ],
+    "unresolved": [
+      "Historical WI080 consumed_work_record_drift_is_stale cause unproven; AC-6/AC-10 remain pending",
+      "Original disk exhaustion allocation not recovered; only fail-closed interruption handling verified",
+      "No claim of automatic cleanup of pre-existing, unregistered, external or user-owned build artifacts",
+      "No Workbench/Fabric implementation or native installed-state verification performed"
+    ],
+    "local_only_ci_through": "2026-12-01"
+  }
+}
