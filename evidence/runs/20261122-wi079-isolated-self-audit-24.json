@@ -1,0 +1,45 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261122-wi079-isolated-self-audit-24",
+  "timestamp": "2026-11-22T21:33:46Z",
+  "work_item": "079",
+  "result": "partial",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "python -m py_compile /mnt/data/wi079_validation/repopact/self_audit.py /mnt/data/wi079_validation/tests/test_self_audit.py",
+      "exit_code": 0,
+      "summary": "PASS: source/test files identical to GitHub blobs."
+    },
+    {
+      "command": "PYTHONPATH=/mnt/data/wi079_validation python - [run 24 CandidateAuditTests with unittest; skip only test_top_level_cli_exposes_experimental_capture]",
+      "exit_code": 0,
+      "summary": "PASS: 24 executed, 0 failures, 0 errors, 0 skips, 1.164s."
+    }
+  ],
+  "artifacts": [
+    "repopact/self_audit.py",
+    "tests/test_self_audit.py"
+  ],
+  "environment": {
+    "executor": "isolated-Linux-byte-identical-GitHub-blob-mirror",
+    "source_git_blob_sha1": "76521b03d81e5ca8696a92761379cc5a9139a48b",
+    "tests_git_blob_sha1": "cd12716459f093bc6a053c5211109db9b8f5f350",
+    "declared_tests": 25,
+    "tests_run": 24,
+    "not_run": [
+      "test_top_level_cli_exposes_experimental_capture"
+    ],
+    "scope": "Git source/symlink-parent containment, linked worktrees, base/head, index/dirty/untracked, stale claims, malformed reports, bounded output and denial of asserted independent approval.",
+    "limitations": [
+      "Not a full checkout: native RepoPact CLI dispatch, canonical Rust validator, semantic-identity regeneration, dashboard and configured CI were not executed.",
+      "No Windows/macOS, protected completion-boundary or matched model-agent experiment.",
+      "The self-review helper's reported PASS remains a structural claim, not authority or independent review."
+    ],
+    "earlier_evidence_retained": [
+      "20261122-wi079-isolated-self-audit-19",
+      "20261122-wi079-isolated-self-audit-22",
+      "20261122-wi079-isolated-self-audit-23"
+    ]
+  }
+}

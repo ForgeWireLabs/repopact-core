@@ -10,6 +10,7 @@ it to the correct location.
 | decision | `decision.md` | `decisions/NNNN-slug.md` |
 | policy | `policy.md` | `governance/policies/NNN-slug.md` |
 | evidence run | `evidence-run.json` | `evidence/runs/<id>.json` |
+| opt-in agent self-audit instruction | `agent-self-audit.md` | Append within a repository root `AGENTS.md`, preserving any stricter nested contracts |
 | source-to-documentation mapping | `documentation-mappings.json` | `governance/documentation-mappings.json` |
 
 Templates are reference material; they are not validated as live records.

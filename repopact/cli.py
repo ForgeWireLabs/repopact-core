@@ -241,6 +241,13 @@ def main(argv: list[str] | None = None) -> int:
     )
     p_verify.add_argument("verify_args", nargs=argparse.REMAINDER)
 
+    p_self_audit = sub.add_parser(
+        "self-audit",
+        help="WI079 experimental Git candidate self-review freshness helper (not completion authority)",
+        add_help=False,
+    )
+    p_self_audit.add_argument("self_audit_args", nargs=argparse.REMAINDER)
+
     p_release_group = sub.add_parser(
         "release",
         help="Local-first release verify/build/inspect/publish operations (WI046)",
@@ -573,6 +580,11 @@ def main(argv: list[str] | None = None) -> int:
         from . import verify_cli
 
         return verify_cli.main(args.verify_args)
+
+    if args.command == "self-audit":
+        from . import self_audit
+
+        return self_audit.main(args.self_audit_args)
 
     if args.command == "release":
         from . import release_local

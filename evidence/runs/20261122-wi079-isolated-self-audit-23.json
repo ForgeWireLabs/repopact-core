@@ -1,0 +1,48 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261122-wi079-isolated-self-audit-23",
+  "timestamp": "2026-11-22T21:32:05Z",
+  "work_item": "079",
+  "result": "partial",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "python -m py_compile /mnt/data/wi079_validation/repopact/self_audit.py /mnt/data/wi079_validation/tests/test_self_audit.py",
+      "exit_code": 0,
+      "summary": "PASS; exact current GitHub blob source syntax checked."
+    },
+    {
+      "command": "PYTHONPATH=/mnt/data/wi079_validation python - [unittest loader for CandidateAuditTests, excluding only test_top_level_cli_exposes_experimental_capture]",
+      "exit_code": 0,
+      "summary": "PASS; 23 of 23 tests executed, 0 failures, 0 errors, 0 skips; 1.204 seconds."
+    }
+  ],
+  "artifacts": [
+    "repopact/self_audit.py",
+    "tests/test_self_audit.py",
+    "work/active/079-agent-pre-completion-assurance-and-verifiable-self-audit/LOCAL-VALIDATION.md"
+  ],
+  "environment": {
+    "platform": "linux",
+    "executor": "isolated-container-exact-blob-reproduction",
+    "git_source_blob_sha1": "d27ae76dcf19f438f8532747dd555473c2f82432",
+    "git_unit_test_blob_sha1": "18978eb86c0a29b14fb30e476cbf34bcf4cffe79",
+    "scope": "Candidate snapshot and self-report helper: changed paths, index and dirty state, linked worktrees, renames/deletions, symlinks, ignored-file limits, bounded command output, stale/fabricated/approval-laundered claims.",
+    "tests_declared": 24,
+    "tests_executed": 23,
+    "tests_not_run": [
+      "test_top_level_cli_exposes_experimental_capture"
+    ],
+    "status_caveats": [
+      "The complete RepoPact package was not present. CLI-dispatch test remains NOT RUN.",
+      "Canonical Rust validation, verify ci, semantic identity and dashboard regeneration remain NOT RUN.",
+      "Windows/macOS, actual protected completion boundary and agent comparative benchmark remain NOT PROVEN.",
+      "The matched source files were executed from an isolated two-file mirror, not from a full Git repository checkout.",
+      "This is execution evidence for a bounded subset, not proof of review quality, release clearance, or completed WI079."
+    ],
+    "historical_prior_evidence": [
+      "20261122-wi079-isolated-self-audit-19",
+      "20261122-wi079-isolated-self-audit-22"
+    ]
+  }
+}

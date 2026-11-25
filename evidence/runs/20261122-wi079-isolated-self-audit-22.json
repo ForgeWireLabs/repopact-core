@@ -1,0 +1,46 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261122-wi079-isolated-self-audit-22",
+  "timestamp": "2026-11-22T21:29:28Z",
+  "work_item": "079",
+  "result": "partial",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "python -m py_compile /mnt/data/wi079_validation/repopact/self_audit.py /mnt/data/wi079_validation/tests/test_self_audit.py",
+      "exit_code": 0,
+      "summary": "PASS; both source and unit-test files reproduced exactly from GitHub file blob identities."
+    },
+    {
+      "command": "PYTHONPATH=/mnt/data/wi079_validation python - [unittest.TestLoader().loadTestsFromTestCase(CandidateAuditTests), excluding only test_top_level_cli_exposes_experimental_capture]",
+      "exit_code": 0,
+      "summary": "PASS; 22 executed, 0 failures, 0 errors, 0 skips; 1.085s. Full CLI integration test NOT RUN."
+    }
+  ],
+  "artifacts": [
+    "repopact/self_audit.py",
+    "tests/test_self_audit.py"
+  ],
+  "environment": {
+    "platform": "linux",
+    "executor": "isolated-container-exact-blob-reproduction",
+    "git_source_blob_sha1": "a474c584dedc177f73c729176532970ef54a9689",
+    "git_unit_test_blob_sha1": "4a1901ec69ea14ff98439fa0216c2f12fc70c593",
+    "baseline": "GitHub PR #18, branch work/079-pre-completion-assurance-20261122",
+    "scope": "standalone Python candidate capture/review claim checks; Git rename/deletion, staged/unstaged/untracked changes, ignored-file limitation, stale reports, bounded subprocess output, approvals denial",
+    "tests_declared": 23,
+    "tests_executed": 22,
+    "tests_not_run": [
+      "test_top_level_cli_exposes_experimental_capture"
+    ],
+    "excluded_scope": [
+      "Original RepoPact CLI/engine integration",
+      "Canonical Rust validator and full conformance",
+      "Repository dashboard and semantic-identity artifact regeneration",
+      "Windows/macOS runtime verification",
+      "Protected completion-boundary invocation and effectiveness",
+      "Model-agent benchmark comparison"
+    ],
+    "note": "Evidence for a bounded subset only; earlier run evidence ID 20261122-wi079-isolated-self-audit-19 preserves its original source identities. This newer run supersedes it for the isolated helper while preserving history."
+  }
+}

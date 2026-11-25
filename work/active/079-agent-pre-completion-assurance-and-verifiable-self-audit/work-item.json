@@ -1,0 +1,114 @@
+{
+  "$schema": "../../../repopact/schemas/work-item.schema.json",
+  "id": "079",
+  "title": "Agent Pre-Completion Assurance and Verifiable Self-Audit Evidence",
+  "status": "active",
+  "owner_scope": "governance",
+  "affected_scopes": [
+    "governance",
+    "tooling",
+    "evidence",
+    "docs",
+    "work"
+  ],
+  "depends_on": [],
+  "provenance": "concrete",
+  "preflight": {
+    "created_before_work_started": true,
+    "created_at": "2026-11-22T20:43:26Z",
+    "note": "Prospective operator-requested design item after the separate 2026-11-22 instruction-only AGENTS.md draft rollout. No RepoPact enforcement implementation is claimed. WI078 already exists on a separate workspace-cleanup branch. On 2026-11-22, the operator subsequently authorized engineering execution in the WI079 conversation; implementation work is now active, without operator permission to modify protected surfaces or release."
+  },
+  "acceptance_criteria": [
+    {
+      "id": "AC-1",
+      "text": "Reconcile existing work-item completion evidence, verification profiles, H14 admission closure, and WI044 claim semantics; document gaps and avoid a competing governance engine.",
+      "state": "pending",
+      "evidence": []
+    },
+    {
+      "id": "AC-2",
+      "text": "Compare instruction-only templates, typed review evidence, and optional completion-policy verification, including assurance claims, failure behavior, costs, compatibility, and operator authority; record the chosen design before implementation.",
+      "state": "pending",
+      "evidence": []
+    },
+    {
+      "id": "AC-3",
+      "text": "Define an exact review candidate identity covering review base, HEAD, staged/unstaged/untracked and renamed/deleted paths and worktrees. Detect stale evidence after changes, and honestly distinguish clean committed-tree from dirty-tree evidence.",
+      "state": "pending",
+      "evidence": [
+        "20261122-wi079-isolated-self-audit-24",
+        "20261122-wi079-windows-focused-regression",
+        "20261123-wi079-windows-exact-head-focused"
+      ]
+    },
+    {
+      "id": "AC-4",
+      "text": "Separate self-reported inspection, executed tools/tests, independent review, and operator approval. A self-audit PASS must never imply defect-free code, independent approval, authorization, admission closure, or release readiness.",
+      "state": "pending",
+      "evidence": [
+        "20261122-wi079-windows-focused-regression",
+        "20261123-wi079-windows-exact-head-focused"
+      ]
+    },
+    {
+      "id": "AC-5",
+      "text": "Define concrete finding criteria, bounded surgical repairs, reverification, stop conditions, and truthful PASS/FAIL/INCOMPLETE outcomes; disallow speculative refactor churn, weakening tests, and unapproved scope expansion.",
+      "state": "pending",
+      "evidence": [
+        "20261122-wi079-windows-focused-regression",
+        "20261123-wi079-windows-exact-head-focused"
+      ]
+    },
+    {
+      "id": "AC-6",
+      "text": "Implement the approved minimal, optional integration using canonical Rust semantics and existing evidence/verification primitives where possible; preserve legacy record validity and do not require a specific agent provider, cloud service, or always-on daemon.",
+      "state": "pending",
+      "evidence": [
+        "20261122-wi079-windows-focused-regression",
+        "20261122-220456-383942-verify-ci",
+        "20261122-wi079-baseline-isolation",
+        "20261123-021446-176011-verify-ci",
+        "20261123-wi079-windows-final-focused",
+        "20261123-143717-209916-verify-ci",
+        "20261123-wi079-exact-head-isolation",
+        "20261123-wi079-windows-exact-head-focused"
+      ]
+    },
+    {
+      "id": "AC-7",
+      "text": "Add positive/negative regression and conformance fixtures for clean passes, repaired defects, forged/missing/stale evidence, changed working trees, omitted untracked files, failed or unavailable checks, frozen/scope violations, and false independent-approval claims.",
+      "state": "pending",
+      "evidence": [
+        "20261122-wi079-isolated-self-audit-24",
+        "20261122-wi079-windows-focused-regression",
+        "20261123-021446-176011-verify-ci",
+        "20261123-wi079-windows-final-focused",
+        "20261123-143717-209916-verify-ci",
+        "20261123-wi079-exact-head-isolation",
+        "20261123-wi079-windows-exact-head-focused"
+      ]
+    },
+    {
+      "id": "AC-8",
+      "text": "Prove the actual invocation, coverage, and effectiveness of any claimed completion check on supported integration boundaries, including attempted completion without current evidence. Treat instruction-only integrations and same-principal bypass risks accurately.",
+      "state": "pending",
+      "evidence": []
+    },
+    {
+      "id": "AC-9",
+      "text": "Preregister and compare ordinary verification, structured self-audit, and independent review on fixed tasks; measure escaped defects, false positives, churn, cost, and task success without assuming self-audit replaces independent reviewers.",
+      "state": "pending",
+      "evidence": []
+    },
+    {
+      "id": "AC-10",
+      "text": "Document adopter and nested-AGENTS.md guidance; link the 2026-11-22 draft rollout, reconcile documentation impacts and generated artifacts, and close only with criterion-linked concrete evidence.",
+      "state": "pending",
+      "evidence": [
+        "20261122-wi079-windows-focused-regression"
+      ]
+    }
+  ],
+  "created": "2026-11-22",
+  "updated": "2026-11-23"
+}
