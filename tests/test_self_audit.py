@@ -11,6 +11,7 @@ import subprocess
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from repopact import self_audit
 
@@ -32,13 +33,35 @@ class CandidateAuditTests(unittest.TestCase):
         self.base = self.git("rev-parse", "HEAD").strip()
 
     def git(self, *args: str) -> str:
-        env = {**os.environ, "GIT_TERMINAL_PROMPT": "0"}
+        env = {
+            **{key: value for key, value in os.environ.items() if not key.startswith("GIT_")},
+            "GIT_TERMINAL_PROMPT": "0",
+            "GIT_OPTIONAL_LOCKS": "0",
+        }
         return subprocess.check_output(
             ["git", *args], cwd=self.root, env=env, text=True
         )
 
     def candidate(self) -> dict:
         return self_audit.snapshot(self.root, self.base)
+
+    def test_inherited_git_overrides_cannot_redirect_candidate(self):
+        baseline = self.candidate()
+        report = self_audit.report_template(self.root, self.base)
+        report["review"].update(outcome="pass", actor="test-agent", reviewed_paths=[])
+        conflicting = {
+            "GIT_DIR": str(self.root / "missing-git-directory"),
+            "GIT_WORK_TREE": str(self.root / "redirected-worktree"),
+            "GIT_INDEX_FILE": str(self.root / "redirected.index"),
+            "GIT_CONFIG_COUNT": "1",
+            "GIT_CONFIG_KEY_0": "core.worktree",
+            "GIT_CONFIG_VALUE_0": str(self.root / "redirected-worktree"),
+        }
+        with patch.dict(os.environ, conflicting):
+            self.assertEqual(baseline, self.candidate())
+            result = self_audit.inspect_report(self.root, report)
+        self.assertEqual("self-report-current", result["result"])
+        self.assertEqual("instruction-only", result["assurance"])
 
     def test_empty_working_tree_is_bound_to_head_and_base(self):
         candidate = self.candidate()
