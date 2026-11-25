@@ -36,7 +36,11 @@ def _git(root: Path, *args: str) -> bytes:
             cwd=root,
             stdout=subprocess.PIPE,
             stderr=subprocess.DEVNULL,
-            env={**os.environ, "GIT_TERMINAL_PROMPT": "0", "GIT_OPTIONAL_LOCKS": "0"},
+            env={
+                **{key: value for key, value in os.environ.items() if not key.startswith("GIT_")},
+                "GIT_TERMINAL_PROMPT": "0",
+                "GIT_OPTIONAL_LOCKS": "0",
+            },
         )
     except OSError as exc:
         raise SelfAuditError(f"Git operation unavailable: {args[0]}") from exc
