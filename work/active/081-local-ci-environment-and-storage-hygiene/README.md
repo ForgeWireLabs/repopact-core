@@ -59,3 +59,11 @@ Local CI mandatory through December 1, 2026 inclusive; no automatic hosted enabl
 ## Completion
 
 AC-1 through AC-7 have linked concrete evidence. AC-8 remains pending the operator's explicit Workbench/Fabric integration decision. Keep WI081 active until that human-only gate is resolved; the passing local profiles do not waive the original failed run or close WI080's historical Rust uncertainty.
+
+## Independent integration review — 2026-11-24
+
+PR #22 was reviewed at head `2473c5611a4a59ea2336f1c7a8ed1e6a23aaf711` (tree `60647f7aa6203e68f582c59cb2dc4071f94d6222`) and merged as `5d185faac83b68596715ce99824dd4b717eb104e`. The actual reviewed source was tested in clean exact-source default and controlled external-target local CI profiles. Independent GitHub review: https://github.com/ForgeWireLabs/repopact-core/pull/22#pullrequestreview-6049772262. Durable AC-8 evidence: `evidence/runs/20261124-081-ac8-core-only-integration-review.json`.
+
+**Operator integration boundary:** RepoPact Core accepts ownership-registered, tool-created disposable targets and detached worktrees with dry-run-first cleanup. No Workbench/Fabric adoption, no automatic reclamation of pre-existing builds, and no cleanup of user workspaces, native Fabric installations, retained state, or externally owned worktrees. Workbench retains its own process/artifact authority; Fabric's native uninstall/export and repository-separation authority stays governed by Fabric issues #30 and #56. Any future integration requires its own work item and physical/product acceptance.
+
+AC-8's decision is now documented and linked, so **AC-1 through AC-8 are all satisfied** in the active work-item record. The directory remains `work/active/` solely until a final local governance transition moves it to `work/completed/`, regenerates the dashboard and validates the completion state at an exact source head. This decision does not explain WI080's historical Rust intermittency, automatically enable hosted CI, or authorize release. Local-only CI remains binding through 2026-12-01 inclusive.
