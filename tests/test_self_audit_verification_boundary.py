@@ -146,6 +146,39 @@ class OptionalSelfAuditVerificationBoundaryTests(unittest.TestCase):
         self.assertFalse(self.report_path.exists())
         self.assert_denied_by_required_step(message="Review report missing")
 
+    def test_unavailable_self_audit_executable_is_incomplete(self) -> None:
+        # Keep the actual WI079 required step and its arguments; replace only
+        # its executable with an absolute path that cannot exist in this fixture.
+        config_path = self.root / "governance" / "verification.json"
+        config = json.loads(config_path.read_text(encoding="utf-8"))
+        step = config["profiles"]["optional-self-review"]["steps"][0]
+        missing = self.parent / "unavailable-self-audit-python.exe"
+        self.assertFalse(missing.exists())
+        step["argv"][0] = str(missing)
+        config_path.write_text(json.dumps(config, indent=2) + "\n", encoding="utf-8")
+        # The report binds the changed profile too; missing or stale evidence
+        # cannot explain this negative result.
+        self.write_report()
+        current = json.loads(self.report_path.read_text(encoding="utf-8"))
+        self.assertEqual("self-report-current", self_audit.inspect_report(self.root, current)["result"])
+        exit_code, record = self.run_actual_verify_cli()
+        self.assertEqual(2, exit_code)
+        self.assertEqual("incomplete", record["status"])
+        coverage = record["coverage"]
+        self.assertFalse(coverage["satisfied"])
+        self.assertFalse(coverage["all_declared_executed"])
+        self.assertEqual(1, coverage["required_total"])
+        self.assertEqual(0, coverage["required_executed"])
+        self.assertEqual(0, coverage["required_passed"])
+        self.assertEqual(1, coverage["required_unavailable"])
+        result = record["steps"][0]
+        self.assertEqual("self-report-freshness", result["id"])
+        self.assertTrue(result["required"])
+        self.assertEqual("unavailable", result["status"])
+        self.assertIsNone(result["exit_code"])
+        self.assertEqual(str(missing), result["command"][0])
+        self.assertIn("unavailable", result["summary"])
+
     def test_incomplete_self_report_is_denied_by_actual_profile(self) -> None:
         self.write_report(complete=False)
         self.assert_denied_by_required_step(message="INCOMPLETE")
