@@ -1,0 +1,4 @@
+Test launch attempt did not execute unittest modules.
+Command wrapper error: Tee-Object attempted to write beneath the literal path C:\Projects\repopact-pr28-wi079-ac7-final-validation-20261125\$\{temp\}\<test-log>.log because JavaScript interpolation was escaped incorrectly.
+Exit code: 1 for all three wrappers; no test module started.
+Corrected launch uses resolved log paths under C:\Users\jerem\AppData\Local\Temp\wi079-pr28-ac7-validation-20261125.

@@ -31,13 +31,62 @@
 
 AC-8 remains an independently pending protected-boundary issue. These tests prove opt-in local behavior and truthfully document the absence of unconditional Git/merge interposition; they do not establish H14 coverage. Research AC-9 is still **NOT RUN**. Hosted CI/CD is local-only through 2026-12-01 inclusive.
 
+## PR #28 final fixture validation — 2026-11-25
 
-## Follow-up candidate — two remaining AC-7 fixtures
+**Exact tested source:** `de2aa0e09001dbcdc6fdaab63f51c2b612a5b8e3` / tree
+`5ff5cc9ea28bfed7490cd8851e16534a16a7fd0c`, clean at the start of the local
+profile. The matching Windows engine reported source revision
+`de2aa0e09001dbcdc6fdaab63f51c2b612a5b8e3` and semantic identity
+`repopact-semantic-v1:sha256:5298450478cb065378969da70c40851b457f16a95f0da89fd51afe3453db6f44`.
+
+Focused evidence `20261125-079-pr28-ac7-focused` records 33/33 self-audit
+tests, 7/7 actual-profile boundary tests, and 3/3 corpus tests, all exit 0.
+The unavailable-executable boundary case passed by observing an unavailable
+required step, no helper exit code, zero executed/passed required steps, one
+unavailable required step, unsatisfied coverage, and profile exit 2.
+
+Exact-source local CI evidence is `20261125-079-pr28-exact-local-ci`: 2,242.203
+seconds, exit 0, all five required steps passed, and the optional frozen-surface
+step passed. The complete Python suite ran 520 tests with 4 skipped. Locked Rust
+workspace tests passed (98 tests). SPEC freshness passed; frozen-surface check
+reported no changes. Canonical conformance recorded complete process-image
+provenance and passed 43/43 Rust cases, 8/8 WI050 vectors, and 10/10 WI079
+reference vectors. The conformance record is
+`20261125T210423501522Z-wi076-ac6-engine-conformance`.
+
+| WI079 reference vector | Actual result | Exit | Status |
+| --- | --- | ---: | --- |
+| `WI079-current-report` | `self-report-current`, instruction-only | 0 | PASS |
+| `WI079-missing-report` | `incomplete` | 2 | PASS |
+| `WI079-incomplete-report` | `incomplete` | 2 | PASS |
+| `WI079-stale-report` | `incomplete` | 2 | PASS |
+| `WI079-omitted-untracked` | `incomplete` | 2 | PASS |
+| `WI079-root-approval` | `incomplete` | 2 | PASS |
+| `WI079-review-approval` | `incomplete` | 2 | PASS |
+| `WI079-finding-approval` | `incomplete` | 2 | PASS |
+| `WI079-blocking-finding` | `fail` | 1 | PASS |
+| `WI079-reported-fixed` | `self-report-current`, instruction-only | 0 | PASS |
+
+The reference vectors are Python-helper behavior checks; they do not claim
+independent review, adversarial forgery resistance, or protected completion
+enforcement. The unavailable executable case validates the optional local
+profile's incomplete semantics. Those limits remain relevant to AC-8 and do not
+turn an instruction-only self-report into authority.
+
+**AC-7 recommendation:** the previously missing unavailable-executable profile
+case and WI079 conformance vectors now have passing exact-source evidence, and
+the broader positive/negative test inventory passed. Recommend AC-7 for final
+review as eligible for satisfaction; keep its work-item state **pending** until
+that review. AC-2, AC-8, AC-9, and AC-10 remain pending; the comparative model
+experiment remains **NOT RUN**. Hosted CI/CD was not enabled.
+
+
+## Historical follow-up candidate — PR27 checkpoint
 
 PR #27 merged at `a53f499ab4e147ae3248aa48a545d8a6deac37ac`
-(tree `d6b9a18305b30f7595ec089a4b6659854fddcd2d`). Five criteria are
-satisfied on main; the AC-7 disposition above is unchanged. The following
-new code is **staged, NOT RUN**:
+(tree `d6b9a18305b30f7595ec089a4b6659854fddcd2d`). Five criteria were
+satisfied on main; at this PR27 checkpoint the AC-7 disposition remained
+unchanged and the following new code was **staged, NOT RUN**:
 
 - `tests/test_self_audit_verification_boundary.py::test_unavailable_self_audit_executable_is_incomplete`:
   configure the actual required WI079 step with an absent absolute interpreter
@@ -63,11 +112,13 @@ new code is **staged, NOT RUN**:
   for the complete vector set, missing Git, and combined failure aggregation.
   Mocked aggregation tests do not attest an actual Rust run.
 
-After canonical semantic identity regeneration, documentation snapshot review,
-and a matching-source engine build, run the 33 self-audit methods, **seven**
-optional-boundary methods, three new corpus tests, and normal full local CI.
-Retain the individual ten-vector outcomes, exact source commit/tree, and
-conformance provenance. If and only if all actual cases pass and the matrix
-is independently reviewed, AC-7 may be reconsidered for satisfaction.
-AC-2, AC-8, AC-9 and AC-10 remain pending. No comparative model calls,
-protected policy, hosted CI/CD, or release is authorized.
+At that checkpoint, the planned follow-up was to regenerate canonical semantic
+identity, review the documentation snapshot, build a matching-source engine,
+then run the 33 self-audit methods, **seven** optional-boundary methods, three
+new corpus tests, and normal full local CI. Retain the individual ten-vector
+outcomes, exact source commit/tree, and conformance provenance. This follow-up
+was executed on PR28 as recorded in the final fixture validation section above.
+If and only if all actual cases pass and the matrix is independently reviewed,
+AC-7 may be reconsidered for satisfaction. AC-2, AC-8, AC-9 and AC-10 remain
+pending. No comparative model calls, protected policy, hosted CI/CD, or release
+is authorized.

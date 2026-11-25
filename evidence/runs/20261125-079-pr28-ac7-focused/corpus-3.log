@@ -1,0 +1,8 @@
+test_reference_corpus_does_not_pass_when_git_is_unavailable (test_self_audit_conformance.SelfAuditConformanceTests.test_reference_corpus_does_not_pass_when_git_is_unavailable) ... ok
+test_reference_corpus_has_all_ten_expected_results (test_self_audit_conformance.SelfAuditConformanceTests.test_reference_corpus_has_all_ten_expected_results) ... ok
+test_reference_vector_failure_blocks_combined_conformance (test_self_audit_conformance.SelfAuditConformanceTests.test_reference_vector_failure_blocks_combined_conformance) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 17.424s
+
+OK
