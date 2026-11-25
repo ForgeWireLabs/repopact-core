@@ -144,7 +144,7 @@ class CandidateAuditTests(unittest.TestCase):
             self_audit.inspect_report(self.root, report)
 
     def test_repaired_finding_needs_fresh_snapshot_and_remains_self_reported(self):
-        (self.root / "alpha.txt").write_text("known defect\\n", encoding="utf-8")
+        (self.root / "alpha.txt").write_text("known defect\n", encoding="utf-8")
         before = self_audit.report_template(self.root, self.base)
         before["review"].update(
             outcome="pass",
@@ -160,7 +160,7 @@ class CandidateAuditTests(unittest.TestCase):
             self_audit.inspect_report(self.root, before)
 
         # A claimed repair cannot reuse inspection of the previous bytes.
-        (self.root / "alpha.txt").write_text("corrected\\n", encoding="utf-8")
+        (self.root / "alpha.txt").write_text("corrected\n", encoding="utf-8")
         with self.assertRaisesRegex(self_audit.SelfAuditError, "STALE"):
             self_audit.inspect_report(self.root, before)
 
