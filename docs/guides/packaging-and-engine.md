@@ -29,6 +29,12 @@ digest alone does not prove that executable bytes came from a trusted publisher.
 See [Decision 0077](../../decisions/0077-engine-semantic-compatibility-identity.md)
 for the input closure, versioning, and limits.
 
+The reference conformance run reports the WI079 Python self-audit corpus
+separately from the canonical Rust validator cases and WI050 admission vectors.
+The process-image provenance identifies the Rust engine, not an independent
+self-audit reviewer. WI079 reference-vector outcomes attest structural
+instruction-only behavior, not protected completion or release authorization.
+
 At the proposed strict boundary, `3.1.4.dev0`, the client starts one engine,
 checks its identities and required capabilities, admits that same process,
 then sends operations to it. A missing, legacy, stale, malformed, or mismatched

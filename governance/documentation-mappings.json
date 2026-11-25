@@ -66,6 +66,7 @@
         "repopact/runtime-dependency-groups.json",
         "repopact/runtime_dependencies.py",
         "repopact/run_conformance.py",
+        "repopact/self_audit_conformance.py",
         "rust/Cargo.lock",
         "rust/Cargo.toml",
         "rust/apps/repopact-engine/Cargo.toml",
@@ -77,10 +78,10 @@
       "documentation_paths": [
         "docs/guides/packaging-and-engine.md"
       ],
-      "description": "The installation and packaging guide explains semantic identity, same-process admission, exact runtime dependency checks, migration, no-replay handling for uncertain outcomes, wheel payload and packaged-engine verification, and the limits of executable provenance.",
+      "description": "The installation and packaging guide explains semantic identity, same-process admission, exact runtime dependency checks, migration, no-replay handling for uncertain outcomes, wheel payload and packaged-engine verification, the separate WI079 self-audit reference corpus, and the limits of executable provenance.",
       "snapshot": {
-        "source_digest": "1ed63042e912661cf4eb0d5c5e10be2945e257d22864979fbfd9f9aa023b62df",
-        "documentation_digest": "1fc2acdea4d2217eb53a8e8c23388bed705be45b26b56ae90a203d4807491ace"
+        "source_digest": "dacfaa45ed4b39289a3e3c2969b439057c6ee0209a7f1713990b84b2aea59131",
+        "documentation_digest": "e5eb7f75354a7ddfed2369c3cb19c992c8f780912f6531f3611130767edfb3a5"
       }
     },
     {

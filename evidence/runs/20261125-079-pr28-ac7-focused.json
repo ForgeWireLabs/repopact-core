@@ -1,0 +1,44 @@
+{
+  "timestamp": "2026-11-25T21:08:58Z",
+  "source_commit": "de2aa0e09001dbcdc6fdaab63f51c2b612a5b8e3",
+  "source_tree": "5ff5cc9ea28bfed7490cd8851e16534a16a7fd0c",
+  "work_item": "079",
+  "id": "20261125-079-pr28-ac7-focused",
+  "result": "passed",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "exit_code": 0,
+      "summary": "33 self-audit tests passed in 47.592 seconds on clean-at-start exact source; matching engine built with REPOPACT_SOURCE_REVISION and used through REPOPACT_ENGINE.",
+      "command": ".venv/Scripts/python.exe -m unittest discover -s tests -p test_self_audit.py -v"
+    },
+    {
+      "exit_code": 0,
+      "summary": "7 boundary tests passed in 15.590 seconds, including actual required WI079 profile with unavailable executable; coverage remained unsatisfied and profile incomplete.",
+      "command": ".venv/Scripts/python.exe -m unittest discover -s tests -p test_self_audit_verification_boundary.py -v"
+    },
+    {
+      "exit_code": 0,
+      "summary": "3 corpus tests passed in 17.424 seconds; ten expected vectors, unavailable Git failure, and combined failure aggregation covered.",
+      "command": ".venv/Scripts/python.exe -m unittest discover -s tests -p test_self_audit_conformance.py -v"
+    }
+  ],
+  "artifacts": [
+    "evidence/runs/20261125-079-pr28-ac7-focused/self-audit-33.log",
+    "evidence/runs/20261125-079-pr28-ac7-focused/boundary-7.log",
+    "evidence/runs/20261125-079-pr28-ac7-focused/corpus-3.log",
+    "evidence/runs/20261125-079-pr28-ac7-focused/initial-test-launch-error.log",
+    "evidence/runs/20261125-079-pr28-ac7-focused/preflight-diagnostics.log"
+  ],
+  "environment": {
+    "sanitization": "The focused test processes removed all inherited GIT_*, REPOPACT_GITHUB_*, CARGO_TARGET_DIR, and REPOPACT_SOURCE_REVISION variables, then set REPOPACT_ENGINE to the matching release engine.",
+    "working_tree_clean_at_start": true,
+    "engine": "rust/target/release/repopact-engine.exe built with REPOPACT_SOURCE_REVISION=de2aa0e09001dbcdc6fdaab63f51c2b612a5b8e3",
+    "hosted_ci_cd": "not enabled; local-only through 2026-12-01 inclusive",
+    "source_commit": "de2aa0e09001dbcdc6fdaab63f51c2b612a5b8e3",
+    "os": "Windows",
+    "source_tree": "5ff5cc9ea28bfed7490cd8851e16534a16a7fd0c",
+    "python": "3.12.4",
+    "shell": "PowerShell"
+  }
+}

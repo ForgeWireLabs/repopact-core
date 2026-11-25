@@ -1,0 +1,10 @@
+PR28 local validation setup diagnostics; these are command/harness errors, not test failures.
+
+1) Initial focused-suite launch did not invoke unittest because the PowerShell log path contained unresolved JavaScript interpolation text. Preserved exact transcript: initial-test-launch-error.log. The corrected 33/7/3 exact-source commands later passed.
+
+2) `cargo build --release --locked --manifest-path rust/Cargo.toml -p repopact-engine` completed successfully. The following version probe used `cargo run` without selecting a binary and exited 101 before launching the program:
+error: `cargo run` could not determine which binary to run. Use the `--bin` option to specify a binary, or the `default-run` manifest key.
+available binaries: repopact, repopact-engine
+The release engine build itself passed; exact engine provenance was subsequently confirmed by canonical conformance.
+
+3) This single-branch clone initially fetched `main` only into FETCH_HEAD; subsequent origin/main lookup commands failed because no remote-tracking ref existed. Fetching `main:refs/remotes/origin/main` then succeeded and resolved to the expected base a53f499ab4e147ae3248aa48a545d8a6deac37ac. No worktree files were changed by the failed lookup.
