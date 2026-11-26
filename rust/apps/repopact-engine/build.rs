@@ -18,6 +18,9 @@ fn main() {
     println!("cargo:rerun-if-changed={}", inputs_manifest_path.display());
     println!("cargo:rerun-if-changed={}", policy_path.display());
     println!("cargo:rerun-if-changed={}", generator_path.display());
+    for path in git_revision_inputs(&root) {
+        println!("cargo:rerun-if-changed={}", path.display());
+    }
     watch_semantic_input_roots(&root, &policy_path);
 
     check_semantic_manifest(&root, &inputs_manifest_path, &identity_path);
@@ -100,15 +103,65 @@ fn valid_revision(value: &str) -> bool {
     value.len() == 40 && value.bytes().all(|byte| byte.is_ascii_hexdigit())
 }
 
-fn git_revision(root: &PathBuf) -> Option<String> {
-    let output = Command::new("git")
-        .args(["rev-parse", "--verify", "HEAD"])
+fn git_revision_inputs(root: &PathBuf) -> Vec<PathBuf> {
+    let mut paths = Vec::new();
+    for git_path in [
+        git_path(root, &["rev-parse", "--git-path", "HEAD"]),
+        git_path(root, &["rev-parse", "--git-path", "packed-refs"]),
+    ]
+    .into_iter()
+    .flatten()
+    {
+        if !paths.contains(&git_path) {
+            paths.push(git_path);
+        }
+    }
+    if let Some(reference) = git_output(root, &["symbolic-ref", "--quiet", "HEAD"])
+        .and_then(|output| String::from_utf8(output.stdout).ok())
+        .map(|value| value.trim().to_owned())
+        .filter(|value| !value.is_empty())
+    {
+        if let Some(path) = git_path(root, &["rev-parse", "--git-path", &reference]) {
+            if !paths.contains(&path) {
+                paths.push(path);
+            }
+        }
+    }
+    paths
+}
+
+fn git_path(root: &PathBuf, args: &[&str]) -> Option<PathBuf> {
+    let output = git_output(root, args)?;
+    let value = String::from_utf8(output.stdout).ok()?;
+    let path = PathBuf::from(value.trim());
+    Some(if path.is_absolute() {
+        path
+    } else {
+        root.join(path)
+    })
+}
+
+fn git_output(root: &PathBuf, args: &[&str]) -> Option<std::process::Output> {
+    let mut command = Command::new("git");
+    for (key, value) in std::env::vars_os() {
+        if !key
+            .to_string_lossy()
+            .to_ascii_uppercase()
+            .starts_with("GIT_")
+        {
+            command.env(key, value);
+        }
+    }
+    command
+        .args(args)
         .current_dir(root)
         .output()
-        .ok()?;
-    if !output.status.success() {
-        return None;
-    }
+        .ok()
+        .filter(|output| output.status.success())
+}
+
+fn git_revision(root: &PathBuf) -> Option<String> {
+    let output = git_output(root, &["rev-parse", "--verify", "HEAD"])?;
     let revision = String::from_utf8(output.stdout).ok()?.trim().to_owned();
     valid_revision(&revision).then(|| revision.to_ascii_lowercase())
 }

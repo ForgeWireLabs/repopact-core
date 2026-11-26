@@ -59,6 +59,21 @@ def default_source_root() -> Path:
 FIXTURE_MARKER_NAME = ".repopact-fixture-marker"
 
 
+def _git_env() -> dict[str, str]:
+    """Return the ambient environment without Git redirection/config overrides.
+
+    Fixture construction only needs local Git inventory and commit operations.
+    Inherited ``GIT_*`` values can redirect those commands or make Git reject
+    an otherwise valid checkout (for example, an empty indexed config value),
+    so disposable fixtures must not depend on the invoking runner's Git setup.
+    """
+    return {
+        key: value
+        for key, value in os.environ.items()
+        if not key.upper().startswith("GIT_")
+    }
+
+
 def _guard_not_a_fixture(source_root: Path) -> None:
     """Refuse to materialize a fixture using another fixture created by this
     module as the source. Every holder directory :class:`FixtureRepo` creates
@@ -89,12 +104,14 @@ def repository_source_files(source_root: Path) -> list[str]:
     tracked = subprocess.run(
         ["git", "ls-files", "--cached", "-z"],
         cwd=source_root,
+        env=_git_env(),
         check=True,
         capture_output=True,
     )
     untracked = subprocess.run(
         ["git", "ls-files", "--others", "--exclude-standard", "-z"],
         cwd=source_root,
+        env=_git_env(),
         check=True,
         capture_output=True,
     )
@@ -135,6 +152,7 @@ def configure_disposable_git_maintenance(repo_root: Path) -> None:
         subprocess.run(
             ["git", "config", "--local", key, value],
             cwd=repo_root,
+            env=_git_env(),
             check=True,
             capture_output=True,
         )
@@ -150,12 +168,13 @@ def init_disposable_git_repo(
     """``git init`` a disposable fixture, disable its automatic maintenance, and
     commit everything currently materialized in it.
     """
-    subprocess.run(["git", "init", "-q"], cwd=repo_root, check=True, capture_output=True)
+    git_env = _git_env()
+    subprocess.run(["git", "init", "-q"], cwd=repo_root, env=git_env, check=True, capture_output=True)
     configure_disposable_git_maintenance(repo_root)
-    subprocess.run(["git", "config", "--local", "user.email", user_email], cwd=repo_root, check=True, capture_output=True)
-    subprocess.run(["git", "config", "--local", "user.name", user_name], cwd=repo_root, check=True, capture_output=True)
-    subprocess.run(["git", "add", "-A"], cwd=repo_root, check=True, capture_output=True)
-    subprocess.run(["git", "commit", "-q", "-m", commit_message], cwd=repo_root, check=True, capture_output=True)
+    subprocess.run(["git", "config", "--local", "user.email", user_email], cwd=repo_root, env=git_env, check=True, capture_output=True)
+    subprocess.run(["git", "config", "--local", "user.name", user_name], cwd=repo_root, env=git_env, check=True, capture_output=True)
+    subprocess.run(["git", "add", "-A"], cwd=repo_root, env=git_env, check=True, capture_output=True)
+    subprocess.run(["git", "commit", "-q", "-m", commit_message], cwd=repo_root, env=git_env, check=True, capture_output=True)
 
 
 def _clear_readonly_and_retry(func, path, _exc_info) -> None:

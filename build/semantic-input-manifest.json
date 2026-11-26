@@ -492,7 +492,7 @@
     },
     {
       "path": "repopact/dev_fixtures.py",
-      "sha256": "2026f5a0ff77bd462d56e1731c86b73f35223b15f5c525c9ee11f2eaa98644c4"
+      "sha256": "be37b82c94b0be8b02f06421b4c3186289ee96113328d7df0729bd657fa96974"
     },
     {
       "path": "repopact/doctor.py",
@@ -772,7 +772,7 @@
     },
     {
       "path": "rust/apps/repopact-engine/build.rs",
-      "sha256": "1ed56478521e0f5a2e1b7517784256ea8f45b655230f1292e1382b2be8f79500"
+      "sha256": "627df8d20255e727027fae59cd94a6f78fc0961ab50ab91f6d7ad865de4e5d70"
     },
     {
       "path": "rust/apps/repopact-engine/src/bin/repopact.rs",
@@ -1055,5 +1055,5 @@
       "sha256": "568ee233f91fcfc6afad4dfdb4fd6cbadd2761f0b795d91a089030c3b0b0bbb3"
     }
   ],
-  "semantic_identity": "repopact-semantic-v1:sha256:dbca47f023dbeec3d646bcf1e76e3f4f816061e41143c517f02d219cbe3db4dc"
+  "semantic_identity": "repopact-semantic-v1:sha256:57ed7dca3dee9564632771cd8b1cc4f49afb5e9311f464e1c0b23d88c6f6fa03"
 }

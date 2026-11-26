@@ -34,13 +34,23 @@ The first CLI create attempt timed out at its 30-second limit after dispatch. Th
 
 The first full `ci` evidence run is preserved as
 `20261126-000614-018647-5e45898d-verify-ci` and failed: 207 Python fixture
-setups saw a malformed inherited `GIT_CONFIG_*` block after the self-audit
-override test, and conformance found an engine built from the prior commit
-`b01896a` while the checkout was `2b1c20d`. The self-audit test now clears the
-runner-only indexed Git config after testing that override, with a regression
-check for `git ls-files`; the focused sequence passed 42/42. The final engine
-will be rebuilt from the exact committed candidate before the full profile is
-rerun. The failed evidence and step log will remain in the history.
+setups saw malformed inherited indexed Git config, and conformance found an
+engine built from `b01896a` while the checkout was `2b1c20d`. Clearing the
+runner-only indexed Git config after the self-audit override test reduced the
+next failure count, and the focused self-audit/status sequence passed 42/42.
+
+The second full `ci` evidence run is preserved as
+`20261126-003030-342440-95556594-verify-ci`; its conformance provenance record
+is `20261126T005845093723Z-wi076-ac6-engine-conformance`. It still had 67
+fixture setup errors because early tests encounter the host's malformed
+`GIT_CONFIG_*` values before that cleanup test runs. Disposable fixture Git
+calls now remove inherited Git overrides, with a dedicated hostile-environment
+regression; the affected fixture and research-metadata modules passed 30/30.
+The same run found Cargo had reused source-revision metadata from `2b1c20d` at
+checkout `ec070bf`. The engine build now tracks `HEAD`, the active branch ref,
+and packed refs, so a checkout advance rebuilds the embedded source revision.
+Both negative runs and the incomplete provenance record remain linked under
+AC-5. Rebuild and exact-candidate full-profile evidence are still pending.
 
 ## Closeout
 

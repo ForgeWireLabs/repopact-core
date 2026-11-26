@@ -71,6 +71,10 @@ compatibility error appears, reinstall the matching pair; rollback means
 restoring the complete stable 3.1.3 package/engine pair, not copying an older
 engine into a newer Python environment.
 
+Cargo also embeds the checkout's Git source revision. Its build script tracks
+the active `HEAD`, branch ref, and packed refs so a branch advance refreshes
+that provenance even when no Rust source file changed.
+
 ## Build from source
 
 Use a supported Rust toolchain with Cargo and Maturin 1.15 or newer but below
