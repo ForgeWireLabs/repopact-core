@@ -23,6 +23,10 @@ Main was verified at `b9dec03ad59c2ef7d782eda9f2b3220747e8ba3c`. Open draft PR #
 
 The first CLI create attempt timed out at its 30-second limit after dispatch. The worktree was inspected before retry; no WI083 record or dashboard update existed. A single retry through the same canonical create path with a 180-second client deadline completed in 18.285 seconds. This is a local observation, not a general performance claim.
 
+## Optimization follow-up preflight — 2026-11-26
+
+Before implementation, verified `origin/main` at `559ed9a86a1c399826f9505e5412d11c54d099ab`, tree `8be9c62cda36506623e828a267538e5d62849195`. PR #29 is merged; WI079 and the first WI083 batch are integrated. Added prospective AC-7 to the existing canonical WI083 JSON while leaving AC-4, AC-1/AC-6, and all historical evidence unchanged. The authorized slice is a matched original-versus-single-candidate-snapshot experiment. The runtime copy and independent live post-state validation remain required. The pre-registered adoption gate requires exact equivalence, at least 15% improvement in pooled median candidate-validation time, and no representative case with p95 more than 5% above baseline. No source implementation had started when AC-7 was registered.
+
 ## Decisions
 
 - A successful declared profile run can satisfy the same check for the same relevant candidate if no relevant inputs have changed since it ran. Focused tests during iteration do not replace the final required profile.
@@ -139,3 +143,72 @@ remain pending.
 ## Closeout
 
 Every satisfied criterion needs linked evidence in `work-item.json`. Keep unavailable research pending. Regenerate the dashboard after governed changes. Submit one validated draft PR; do not merge, approve, or release.
+
+## AC-7 optimization gate — 2026-11-26
+
+The paired original-versus-single-snapshot experiment completed on the exact
+post-WI079 base and identical 1,220-file fixture. Focused prototype equivalence
+tests passed, but the pre-registered adoption gate failed: pooled median
+candidate-validation improvement was 4.283% against a 15% threshold, and
+active-create p95 regressed 41.5% against the 5% maximum. The optimization was
+not adopted; both Rust runtime files were restored to the base. Repository copy
+and independent live post-state validation remain intact. Full methodology,
+per-case results, limitations, source hashes, and retained raw artifacts are in
+`evidence/WI083-AC7-20261126/README.md`; evidence IDs are
+`20261126-wi083-ac7-paired-overlay` and
+`20261126-wi083-ac7-focused-prototype`. AC-7 is satisfied by completing its
+measurement and safety decision, including the required negative outcome. AC-1
+and AC-6 remain pending.
+
+## Final local validation repair — 2026-11-26
+
+The first `ci` attempt for AC-7, `20261126-wi083-ac7-final-ci`, stopped at
+its storage preflight (11,258,843,136 bytes free; 12,884,901,888 required) and
+ran no steps. It remains preserved. After reclaiming 4.4 GiB of this batch's
+rebuildable Cargo target caches, retry
+`20261126-wi083-ac7-final-ci-retry` ran all six declared checks in 2,390.766
+seconds. Repository validation, the Python unit suite, Rust workspace tests,
+SPEC freshness, and frozen-surface check passed. Canonical conformance vectors
+were 43/43, WI050 admission 8/8, and WI079 reference vectors 10/10, but the
+profile correctly failed its provenance requirement because the candidate
+worktree was dirty while the uncommitted WI083 ledger/evidence changes were
+under validation. Provenance artifact
+`20261126T181354883155Z-wi076-ac6-engine-conformance` records the precise
+reason: the source commit alone did not identify the dirty working tree. No
+source or test failure occurred. These failed attempts remain linked under
+AC-5; the final clean-revision full profile and legacy comparator are still
+required.
+
+The first explicit legacy-comparator attempt is preserved as
+`20261126T183035346612Z-wi076-ac6-engine-conformance` with its captured console
+output in `evidence/WI083-AC7-20261126/legacy-comparator-first-attempt-incomplete.txt`.
+All 43 canonical and 43 compatibility cases, WI050 8/8, and WI079 10/10 passed;
+provenance correctly remained incomplete because the executable's embedded
+source revision was `559ed9a` while the clean checkout had advanced to
+`f9cf6a2`. The engine will be rebuilt against the finalized candidate commit
+before the successful comparator and final profile.
+
+The clean-revision legacy comparator passed on commit
+`6e79ce512bc5b99cd73ec2adde1136b720fb51ca` after rebuilding the debug engine
+with `cargo build --locked --manifest-path rust/Cargo.toml -p repopact-engine`.
+The embedded engine source revision matches the checkout and process-image
+provenance is complete. Canonical Rust 43/43, legacy Python 43/43, WI050 8/8,
+and WI079 reference 10/10 passed. Evidence ID
+`20261126T183309135759Z-wi076-ac6-engine-conformance` is linked under AC-5;
+its raw output is `evidence/WI083-AC7-20261126/legacy-comparator-final.txt`.
+
+## Final clean-candidate validation — 2026-11-26
+
+After committing the WI083 measurement and comparator evidence, rebuilt the
+engine for commit `805f86ccf46d2311bbe19121cad22904b5993c9d` (tree
+`20867865b9b3e8e2ca196b887281d11b8f005651`) and ran the full local `ci`
+profile. All five required steps passed: repository validation, the full Python
+unit suite, canonical conformance, the Rust workspace, and SPEC freshness. The
+optional frozen-surface report also passed. Total profile duration was
+2,530.828 seconds. Start identity was clean at the commit/tree above; end
+identity retained that commit/tree and was dirty only because this run recorded
+its own evidence. Canonical conformance process-image provenance is complete
+at `20261126T191658572565Z-wi076-ac6-engine-conformance`. Profile evidence
+`20261126-wi083-ac7-clean-final-ci` and the conformance provenance are linked
+under AC-5. AC-1 and AC-6 remain pending; no productivity or comparative
+efficacy claim is made.

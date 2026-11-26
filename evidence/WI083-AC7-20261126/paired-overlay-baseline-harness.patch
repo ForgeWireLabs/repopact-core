@@ -1,0 +1,362 @@
+diff --git a/rust/crates/repopact-mutation/src/lib.rs b/rust/crates/repopact-mutation/src/lib.rs
+index 8f79fe7..7c8478d 100644
+--- a/rust/crates/repopact-mutation/src/lib.rs
++++ b/rust/crates/repopact-mutation/src/lib.rs
+@@ -1449,6 +1449,23 @@ fn create_readme(request: &CreateWorkItem, id: &str, status: &str) -> String {
+ static CANDIDATE_TEMP_COUNTER: AtomicU64 = AtomicU64::new(0);
+ const CANDIDATE_TEMP_COLLISION_LIMIT: usize = 64;
+ 
++#[cfg(test)]
++#[derive(Clone, Copy, Debug, Default)]
++struct CandidatePhaseMeasurement {
++    candidate_total_us: u128,
++    candidate_copy_us: u128,
++    candidate_operations_us: u128,
++    dashboard_render_us: u128,
++    dashboard_write_us: u128,
++    full_validation_us: u128,
++    cleanup_us: u128,
++    operation_count: usize,
++}
++
++#[cfg(test)]
++static LAST_CANDIDATE_PHASE_MEASUREMENT: Mutex<Option<CandidatePhaseMeasurement>> =
++    Mutex::new(None);
++
+ fn create_candidate_temp_under(
+     parent: &Path,
+     stamp: u128,
+@@ -1479,6 +1496,13 @@ fn validate_candidate(
+     root: &Path,
+     operations: &[PathOperation],
+ ) -> Result<(String, Vec<MutationDiagnostic>), String> {
++    #[cfg(test)]
++    let candidate_started = Instant::now();
++    #[cfg(test)]
++    let mut measurement = CandidatePhaseMeasurement {
++        operation_count: operations.len(),
++        ..CandidatePhaseMeasurement::default()
++    };
+     let stamp = SystemTime::now()
+         .duration_since(UNIX_EPOCH)
+         .map_err(|error| format!("cannot timestamp validation candidate: {error}"))?
+@@ -1486,14 +1510,44 @@ fn validate_candidate(
+     let temporary =
+         create_candidate_temp_under(&std::env::temp_dir(), stamp, &CANDIDATE_TEMP_COUNTER)?;
+     let result = (|| {
++        #[cfg(test)]
++        let copy_started = Instant::now();
+         copy_tree(root, &temporary)?;
++        #[cfg(test)]
++        {
++            measurement.candidate_copy_us = copy_started.elapsed().as_micros();
++        }
++        #[cfg(test)]
++        let operations_started = Instant::now();
+         for operation in operations {
+             apply_operation(&temporary, operation)?;
+         }
++        #[cfg(test)]
++        {
++            measurement.candidate_operations_us = operations_started.elapsed().as_micros();
++        }
++        #[cfg(test)]
++        let render_started = Instant::now();
+         let dashboard = repopact_validation::render_dashboard(&temporary)?;
++        #[cfg(test)]
++        {
++            measurement.dashboard_render_us = render_started.elapsed().as_micros();
++        }
+         let dashboard_path = temporary.join("audits/reports/dashboard.md");
++        #[cfg(test)]
++        let dashboard_write_started = Instant::now();
+         fs::write(&dashboard_path, platform_text(&dashboard)).map_err(|error| error.to_string())?;
++        #[cfg(test)]
++        {
++            measurement.dashboard_write_us = dashboard_write_started.elapsed().as_micros();
++        }
++        #[cfg(test)]
++        let validation_started = Instant::now();
+         let report = repopact_validation::validate(&temporary);
++        #[cfg(test)]
++        {
++            measurement.full_validation_us = validation_started.elapsed().as_micros();
++        }
+         let diagnostics = report
+             .diagnostics
+             .into_iter()
+@@ -1510,7 +1564,9 @@ fn validate_candidate(
+ 
+     // A cleanup failure is a real failure, even after successful validation.
+     // Do not report success while leaving a live candidate tree behind.
+-    match fs::remove_dir_all(&temporary) {
++    #[cfg(test)]
++    let cleanup_started = Instant::now();
++    let cleanup_result = match fs::remove_dir_all(&temporary) {
+         Ok(()) => result,
+         Err(error) => match result {
+             Ok(_) => Err(format!(
+@@ -1520,7 +1576,14 @@ fn validate_candidate(
+                 "{cause}; unable to remove validation candidate {temporary:?}: {error}"
+             )),
+         },
++    };
++    #[cfg(test)]
++    {
++        measurement.cleanup_us = cleanup_started.elapsed().as_micros();
++        measurement.candidate_total_us = candidate_started.elapsed().as_micros();
++        *LAST_CANDIDATE_PHASE_MEASUREMENT.lock().unwrap() = Some(measurement);
+     }
++    cleanup_result
+ }
+ 
+ fn format_utc_timestamp(time: SystemTime) -> Result<String, String> {
+@@ -2593,6 +2656,248 @@ mod tests {
+ 
+     static TEST_ROOT_COUNTER: AtomicU64 = AtomicU64::new(0);
+ 
++    #[derive(Clone, Copy, Debug)]
++    struct Ac7RawSample {
++        candidate: CandidatePhaseMeasurement,
++        base_snapshot_us: u128,
++        plan_us: u128,
++        total_us: u128,
++        plan_operations: usize,
++        diagnostics: usize,
++        blocking: usize,
++        applicable: bool,
++        memory_after: Option<(u64, u64, u64)>,
++    }
++
++    fn ac7_copy_inventory(root: &Path) -> (usize, u64, Vec<(String, u64)>) {
++        let mut pending = vec![root.to_path_buf()];
++        let mut files = 0usize;
++        let mut bytes = 0u64;
++        let mut manifest = Vec::new();
++        while let Some(directory) = pending.pop() {
++            for entry in fs::read_dir(directory).unwrap() {
++                let entry = entry.unwrap();
++                let kind = entry.file_type().unwrap();
++                if kind.is_dir() {
++                    pending.push(entry.path());
++                } else if kind.is_file() {
++                    files += 1;
++                    let length = entry.metadata().unwrap().len();
++                    bytes += length;
++                    let relative = entry
++                        .path()
++                        .strip_prefix(root)
++                        .unwrap()
++                        .to_string_lossy()
++                        .replace('\\', "/");
++                    manifest.push((relative, length));
++                }
++            }
++        }
++        manifest.sort_by(|left, right| left.0.cmp(&right.0));
++        (files, bytes, manifest)
++    }
++
++    #[cfg(windows)]
++    fn ac7_process_memory() -> Option<(u64, u64, u64)> {
++        #[repr(C)]
++        struct ProcessMemoryCountersEx {
++            cb: u32,
++            page_fault_count: u32,
++            peak_working_set_size: usize,
++            working_set_size: usize,
++            quota_peak_paged_pool_usage: usize,
++            quota_paged_pool_usage: usize,
++            quota_peak_nonpaged_pool_usage: usize,
++            quota_nonpaged_pool_usage: usize,
++            pagefile_usage: usize,
++            peak_pagefile_usage: usize,
++            private_usage: usize,
++        }
++
++        #[link(name = "kernel32")]
++        extern "system" {
++            fn GetCurrentProcess() -> isize;
++        }
++        #[link(name = "psapi")]
++        extern "system" {
++            fn GetProcessMemoryInfo(
++                process: isize,
++                counters: *mut ProcessMemoryCountersEx,
++                size: u32,
++            ) -> i32;
++        }
++
++        let mut counters: ProcessMemoryCountersEx = unsafe { std::mem::zeroed() };
++        counters.cb = std::mem::size_of::<ProcessMemoryCountersEx>() as u32;
++        let ok = unsafe {
++            GetProcessMemoryInfo(
++                GetCurrentProcess(),
++                &mut counters,
++                counters.cb,
++            )
++        };
++        (ok != 0).then_some((
++            counters.working_set_size as u64,
++            counters.peak_working_set_size as u64,
++            counters.private_usage as u64,
++        ))
++    }
++
++    #[cfg(not(windows))]
++    fn ac7_process_memory() -> Option<(u64, u64, u64)> {
++        None
++    }
++
++    fn ac7_median_p95(values: &[u128]) -> (u128, u128) {
++        let mut sorted = values.to_vec();
++        sorted.sort_unstable();
++        let middle = sorted.len() / 2;
++        let median = if sorted.len() % 2 == 0 {
++            (sorted[middle - 1] + sorted[middle]) / 2
++        } else {
++            sorted[middle]
++        };
++        let p95_rank = (95 * sorted.len() + 99) / 100;
++        (median, sorted[p95_rank - 1])
++    }
++
++    fn ac7_print_summary(case: &str, name: &str, values: Vec<u128>) {
++        let (median, p95) = ac7_median_p95(&values);
++        println!("SUMMARY,{case},{name},median_us={median},p95_nearest_rank_us={p95}");
++    }
++
++    #[test]
++    fn wi083_ac7_original_baseline_measurement() {
++        const WARMUPS: usize = 2;
++        const SAMPLES: usize = 10;
++        const DATE: &str = "2026-11-26";
++
++        let fixture = PathBuf::from(
++            std::env::var("WI083_AC7_FIXTURE_ROOT")
++                .expect("WI083_AC7_FIXTURE_ROOT must name the clean exact-source fixture"),
++        );
++        assert!(fixture.join("governance/invariants.json").is_file());
++        assert!(fixture.join("work/active/083-reduce-governance-debt-and-restore-small-team-throughput/work-item.json").is_file());
++
++        let measurement_temp = create_candidate_temp_under(
++            &std::env::temp_dir(),
++            SystemTime::now()
++                .duration_since(UNIX_EPOCH)
++                .unwrap()
++                .as_nanos(),
++            &TEST_ROOT_COUNTER,
++        )
++        .unwrap();
++        copy_tree(&fixture, &measurement_temp).unwrap();
++        let (copied_files, copied_bytes, copy_manifest) = ac7_copy_inventory(&measurement_temp);
++        fs::remove_dir_all(&measurement_temp).unwrap();
++        println!("META,fixture_root={},fixture_head=559ed9a86a1c399826f9505e5412d11c54d099ab", fixture.display());
++        println!("META,measurement=plan_only_no_apply,candidate_logical_snapshots=2,outer_base_snapshot_count=1,total_logical_snapshots=3");
++        println!("META,copied_files={copied_files},copied_bytes={copied_bytes},warmups_per_case={WARMUPS},samples_per_case={SAMPLES}");
++        println!("META,percentile=median_arithmetic_middle_pair,p95_nearest_rank_including_max_for_n10");
++        for (path, length) in copy_manifest {
++            println!("COPY_FILE,{},{}", serde_json::to_string(&path).unwrap(), length);
++        }
++        println!("RAW,case,phase,index,candidate_total_us,copy_us,operation_apply_us,dashboard_render_us,dashboard_write_us,full_temp_validation_us,cleanup_us,base_snapshot_us,plan_us,total_plan_us,candidate_ops,plan_ops,applicable,diagnostics,blocking,working_set_after_bytes,cumulative_process_peak_working_set_bytes,private_bytes_after");
++
++        let cases = ["active_create", "active_edit", "active_to_blocked"];
++        let mut all_memory_peak: Option<u64> = None;
++        for case in cases {
++            let mut measured = Vec::<Ac7RawSample>::with_capacity(SAMPLES);
++            for phase in ["warmup", "sample"] {
++                let count = if phase == "warmup" { WARMUPS } else { SAMPLES };
++                for index in 0..count {
++                    let ordinal = if phase == "warmup" { index } else { index + 1 };
++                    let request = match case {
++                        "active_create" => MutationRequest::create_work_item(create_request(
++                            &format!("WI083 AC7 baseline create {ordinal:02}"),
++                            DATE,
++                        )),
++                        "active_edit" => MutationRequest::edit_work_item(EditWorkItem::new(
++                            "083",
++                            WorkItemEdits::title(format!("WI083 AC7 baseline edit {ordinal:02}")),
++                            DATE,
++                        )),
++                        "active_to_blocked" => MutationRequest::transition_work_item(
++                            TransitionWorkItem::new("083", "blocked"),
++                        ),
++                        _ => unreachable!(),
++                    };
++                    *LAST_CANDIDATE_PHASE_MEASUREMENT.lock().unwrap() = None;
++                    let total_started = Instant::now();
++                    let snapshot_started = Instant::now();
++                    let snapshot = RepositorySession::open(&fixture).snapshot();
++                    let base_snapshot_us = snapshot_started.elapsed().as_micros();
++                    let plan_started = Instant::now();
++                    let plan = plan(&snapshot, request);
++                    let plan_us = plan_started.elapsed().as_micros();
++                    let total_us = total_started.elapsed().as_micros();
++                    let candidate = LAST_CANDIDATE_PHASE_MEASUREMENT
++                        .lock()
++                        .unwrap()
++                        .take()
++                        .expect("ordinary mutation plan must execute candidate validation");
++                    let blocking = plan.diagnostics.iter().filter(|item| item.blocking).count();
++                    let memory_after = ac7_process_memory();
++                    if let Some((_, peak, _)) = memory_after {
++                        all_memory_peak = Some(all_memory_peak.unwrap_or(0).max(peak));
++                    }
++                    let sample = Ac7RawSample {
++                        candidate,
++                        base_snapshot_us,
++                        plan_us,
++                        total_us,
++                        plan_operations: plan.file_operations.len(),
++                        diagnostics: plan.diagnostics.len(),
++                        blocking,
++                        applicable: plan.is_applicable(),
++                        memory_after,
++                    };
++                    println!(
++                        "RAW,{case},{phase},{ordinal},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}",
++                        sample.candidate.candidate_total_us,
++                        sample.candidate.candidate_copy_us,
++                        sample.candidate.candidate_operations_us,
++                        sample.candidate.dashboard_render_us,
++                        sample.candidate.dashboard_write_us,
++                        sample.candidate.full_validation_us,
++                        sample.candidate.cleanup_us,
++                        sample.base_snapshot_us,
++                        sample.plan_us,
++                        sample.total_us,
++                        sample.candidate.operation_count,
++                        sample.plan_operations,
++                        sample.applicable,
++                        sample.diagnostics,
++                        sample.blocking,
++                        sample.memory_after.map(|value| value.0).unwrap_or(0),
++                        sample.memory_after.map(|value| value.1).unwrap_or(0),
++                        sample.memory_after.map(|value| value.2).unwrap_or(0),
++                    );
++                    if phase == "sample" {
++                        measured.push(sample);
++                    }
++                }
++            }
++            assert_eq!(measured.len(), SAMPLES);
++            assert!(measured.iter().all(|sample| sample.candidate.candidate_copy_us > 0));
++            println!("CASE,{case},measured={},warmups={WARMUPS}", measured.len());
++            ac7_print_summary(case, "candidate_total_us", measured.iter().map(|s| s.candidate.candidate_total_us).collect());
++            ac7_print_summary(case, "candidate_copy_us", measured.iter().map(|s| s.candidate.candidate_copy_us).collect());
++            ac7_print_summary(case, "candidate_operation_apply_us", measured.iter().map(|s| s.candidate.candidate_operations_us).collect());
++            ac7_print_summary(case, "dashboard_render_us", measured.iter().map(|s| s.candidate.dashboard_render_us).collect());
++            ac7_print_summary(case, "dashboard_write_us", measured.iter().map(|s| s.candidate.dashboard_write_us).collect());
++            ac7_print_summary(case, "full_temp_validation_us", measured.iter().map(|s| s.candidate.full_validation_us).collect());
++            ac7_print_summary(case, "candidate_cleanup_us", measured.iter().map(|s| s.candidate.cleanup_us).collect());
++            ac7_print_summary(case, "outer_base_snapshot_us", measured.iter().map(|s| s.base_snapshot_us).collect());
++            ac7_print_summary(case, "outer_plan_us", measured.iter().map(|s| s.plan_us).collect());
++            ac7_print_summary(case, "outer_total_plan_us", measured.iter().map(|s| s.total_us).collect());
++        }
++        println!("MEMORY,cumulative_process_peak_working_set_bytes={}", all_memory_peak.unwrap_or(0));
++        println!("META,post_measurement_fixture_status_is_checked_by_caller; plan-only harness does not call apply");
++    }
++
+     #[test]
+     fn candidate_copy_includes_only_governed_semantic_build_inputs() {
+         let root = create_fixture_root_under(

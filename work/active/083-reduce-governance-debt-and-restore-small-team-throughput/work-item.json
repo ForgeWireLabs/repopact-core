@@ -73,7 +73,12 @@
         "20261126-wi083-coordinator-review-ci-failed",
         "20261126-wi083-coordinator-review-ci-fixture-regressions",
         "20261126-wi083-coordinator-review-ci-final",
-        "20261126T050959411867Z-wi076-ac6-engine-conformance"
+        "20261126T050959411867Z-wi076-ac6-engine-conformance",
+        "20261126-wi083-ac7-final-ci",
+        "20261126-wi083-ac7-final-ci-retry",
+        "20261126T183309135759Z-wi076-ac6-engine-conformance",
+        "20261126-wi083-ac7-clean-final-ci",
+        "20261126T191658572565Z-wi076-ac6-engine-conformance"
       ]
     },
     {
@@ -81,9 +86,18 @@
       "text": "Reuse WI022 comparative framework and the unrun WI082 research proposal where applicable. Record a matched evaluation protocol and thresholds before any study; leave unavailable or unauthorized comparative efficacy evidence explicitly pending and make no causal or productivity claim from one case.",
       "state": "pending",
       "evidence": []
+    },
+    {
+      "id": "AC-7",
+      "text": "On the exact post-WI079 main base, compare the original and single-candidate-snapshot mutation validation on identical representative operations after warmups and at least 10 samples per case. Record median/p95, snapshot count, phase times, bytes copied, peak memory if available, exact source/environment/commands, and failures. Require byte-identical normalized dashboards, identical ordered diagnostics and read-set/snapshot facts, and equivalent mutation outcomes across representative valid/invalid, stale/drift, cleanup/rollback, missing/stale-dashboard, malformed-record, nested-repository/worktree, symlink, and supported permission/I/O-failure cases. Keep repository copying and independent live post-state validation. Adopt only if equivalence holds, the pooled median candidate-validation time improves by at least 15%, and no representative case's p95 increases by more than 5%; otherwise retain the original runtime path and record the measured negative result.",
+      "state": "satisfied",
+      "evidence": [
+        "20261126-wi083-ac7-paired-overlay",
+        "20261126-wi083-ac7-focused-prototype"
+      ]
     }
   ],
   "created": "2026-11-25",
-  "updated": "2026-11-25",
+  "updated": "2026-11-26",
   "lead": "tooling-owner"
 }

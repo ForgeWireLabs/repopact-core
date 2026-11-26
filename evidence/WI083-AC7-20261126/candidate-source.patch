@@ -1,0 +1,281 @@
+diff --git a/rust/crates/repopact-mutation/src/lib.rs b/rust/crates/repopact-mutation/src/lib.rs
+index 8f79fe7..e16f5cb 100644
+--- a/rust/crates/repopact-mutation/src/lib.rs
++++ b/rust/crates/repopact-mutation/src/lib.rs
+@@ -8,7 +8,7 @@ use std::thread;
+ use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
+ 
+ use repopact_graph::{GraphEdge, RepositoryGraph};
+-use repopact_repository::{path_string, Repository, RepositorySnapshot};
++use repopact_repository::{path_string, Repository, RepositorySession, RepositorySnapshot};
+ use repopact_types::{
+     hex_digest, AcceptanceCriterion, LifecycleStatus, PathState, ReadFact, ReadSet,
+     RepositoryIdentity, Severity, WorkItem,
+@@ -1490,10 +1490,18 @@ fn validate_candidate(
+         for operation in operations {
+             apply_operation(&temporary, operation)?;
+         }
+-        let dashboard = repopact_validation::render_dashboard(&temporary)?;
++        let mut snapshot = RepositorySession::open(&temporary).snapshot();
++        let dashboard = repopact_validation::render_dashboard_snapshot(&snapshot)?;
+         let dashboard_path = temporary.join("audits/reports/dashboard.md");
+         fs::write(&dashboard_path, platform_text(&dashboard)).map_err(|error| error.to_string())?;
+-        let report = repopact_validation::validate(&temporary);
++        let report = if snapshot.refresh_materialized_dashboard() {
++            repopact_validation::validate_snapshot(&snapshot)
++        } else {
++            // The normal path has just written the generated file. If an
++            // unexpected filesystem race removes it, retain the original full
++            // snapshot behavior so missing-dashboard diagnostics stay exact.
++            repopact_validation::validate(&temporary)
++        };
+         let diagnostics = report
+             .diagnostics
+             .into_iter()
+@@ -2683,6 +2691,132 @@ mod tests {
+         (root, snapshot)
+     }
+ 
++    fn legacy_validate_candidate(
++        root: &Path,
++        operations: &[PathOperation],
++    ) -> Result<(String, Vec<MutationDiagnostic>), String> {
++        let stamp = SystemTime::now()
++            .duration_since(UNIX_EPOCH)
++            .map_err(|error| format!("cannot timestamp validation candidate: {error}"))?
++            .as_nanos();
++        let temporary =
++            create_candidate_temp_under(&std::env::temp_dir(), stamp, &CANDIDATE_TEMP_COUNTER)?;
++        let result = (|| {
++            copy_tree(root, &temporary)?;
++            for operation in operations {
++                apply_operation(&temporary, operation)?;
++            }
++            let dashboard = repopact_validation::render_dashboard(&temporary)?;
++            let dashboard_path = temporary.join("audits/reports/dashboard.md");
++            fs::write(&dashboard_path, platform_text(&dashboard))
++                .map_err(|error| error.to_string())?;
++            let report = repopact_validation::validate(&temporary);
++            let diagnostics = report
++                .diagnostics
++                .into_iter()
++                .map(|diagnostic| MutationDiagnostic {
++                    code: diagnostic.code,
++                    message: diagnostic.message,
++                    path: diagnostic.path,
++                    blocking: diagnostic.severity == Severity::Error,
++                    related_records: diagnostic.related_records.unwrap_or_default(),
++                })
++                .collect();
++            Ok((dashboard, diagnostics))
++        })();
++
++        match fs::remove_dir_all(&temporary) {
++            Ok(()) => result,
++            Err(error) => match result {
++                Ok(_) => Err(format!(
++                    "unable to remove validation candidate {temporary:?}: {error}"
++                )),
++                Err(cause) => Err(format!(
++                    "{cause}; unable to remove validation candidate {temporary:?}: {error}"
++                )),
++            },
++        }
++    }
++
++    #[test]
++    fn single_snapshot_candidate_matches_legacy_dashboard_and_diagnostics() {
++        let normal_operation = PathOperation::Write {
++            path: "work/active/001-one/README.md".to_owned(),
++            content: "# One\n\nUpdated intent.\n".to_owned(),
++        };
++
++        for scenario in [
++            "stale-dashboard",
++            "missing-dashboard",
++            "malformed-evidence",
++            "nested-repository",
++        ] {
++            let (root, _) = fixture();
++            let operations = match scenario {
++                "stale-dashboard" => vec![normal_operation.clone()],
++                "missing-dashboard" => {
++                    fs::remove_file(root.join("audits/reports/dashboard.md")).unwrap();
++                    vec![normal_operation.clone()]
++                }
++                "malformed-evidence" => {
++                    fs::create_dir_all(root.join("evidence/runs")).unwrap();
++                    let path = root.join("evidence/runs/20261126-ac7-malformed.json");
++                    fs::write(&path, "{not-json").unwrap();
++                    vec![normal_operation.clone()]
++                }
++                "nested-repository" => {
++                    fs::create_dir_all(root.join("vendor/nested/.git")).unwrap();
++                    fs::write(root.join("vendor/nested/.git/config"), "[core]\n").unwrap();
++                    fs::write(root.join("vendor/nested/AGENTS.md"), "nested contract\n").unwrap();
++                    let linked = root.join("vendor/linked-worktree");
++                    fs::create_dir_all(&linked).unwrap();
++                    let metadata = root.join("worktrees/linked-metadata");
++                    fs::create_dir_all(&metadata).unwrap();
++                    fs::write(
++                        linked.join(".git"),
++                        format!("gitdir: {}\n", metadata.display()),
++                    )
++                    .unwrap();
++                    fs::write(linked.join("AGENTS.md"), "linked worktree contract\n").unwrap();
++                    vec![normal_operation.clone()]
++                }
++                _ => unreachable!(),
++            };
++
++            let legacy = legacy_validate_candidate(&root, &operations);
++            let single_snapshot = validate_candidate(&root, &operations);
++            assert_eq!(single_snapshot, legacy, "scenario: {scenario}");
++            fs::remove_dir_all(root).unwrap();
++        }
++
++        let (root, _) = fixture();
++        let outside = root.with_extension("symlink-target");
++        fs::write(&outside, "outside candidate tree\n").unwrap();
++        #[cfg(windows)]
++        let link_result = std::os::windows::fs::symlink_file(&outside, root.join("external-link"));
++        #[cfg(unix)]
++        let link_result = std::os::unix::fs::symlink(&outside, root.join("external-link"));
++        if link_result.is_ok() {
++            let legacy = legacy_validate_candidate(&root, &[normal_operation.clone()]);
++            let single_snapshot = validate_candidate(&root, &[normal_operation]);
++            assert_eq!(single_snapshot, legacy, "scenario: symlink");
++        } else {
++            eprintln!("symlink equivalence skipped: host does not permit fixture symlink creation");
++        }
++        fs::remove_file(outside).unwrap();
++        fs::remove_dir_all(root).unwrap();
++
++        let (root, _) = fixture();
++        let failing_operation = PathOperation::Write {
++            path: "work/active/001-one/README.md/child.txt".to_owned(),
++            content: "cannot create a child beneath a file".to_owned(),
++        };
++        let legacy = legacy_validate_candidate(&root, &[failing_operation.clone()]);
++        let single_snapshot = validate_candidate(&root, &[failing_operation]);
++        assert_eq!(single_snapshot, legacy, "scenario: operation I/O failure");
++        fs::remove_dir_all(root).unwrap();
++    }
++
+     #[test]
+     fn candidate_temp_allocation_is_exclusive_and_preserves_collisions() {
+         let scratch_counter = AtomicU64::new(0);
+diff --git a/rust/crates/repopact-repository/src/lib.rs b/rust/crates/repopact-repository/src/lib.rs
+index f32781b..a945cc0 100644
+--- a/rust/crates/repopact-repository/src/lib.rs
++++ b/rust/crates/repopact-repository/src/lib.rs
+@@ -146,7 +146,7 @@ pub struct AssuranceMappingFile {
+     pub value: Result<Value, String>,
+ }
+ 
+-#[derive(Debug, Clone)]
++#[derive(Debug, Clone, PartialEq, Eq)]
+ pub struct IndexedRecord {
+     pub reference: RecordRef,
+     pub path: PathBuf,
+@@ -155,7 +155,7 @@ pub struct IndexedRecord {
+     pub front_matter: Result<BTreeMap<String, Value>, String>,
+ }
+ 
+-#[derive(Debug, Clone, Default)]
++#[derive(Debug, Clone, Default, PartialEq, Eq)]
+ pub struct RecordIndex {
+     pub work_items: Vec<IndexedRecord>,
+     pub evidence: Vec<IndexedRecord>,
+@@ -599,6 +599,51 @@ impl RepositorySnapshot {
+     pub fn token(&self) -> String {
+         self.read_set.token(&self.identity())
+     }
++
++    /// Reconcile the canonical generated dashboard after its rendered bytes
++    /// have been materialized in this snapshot's repository. Only the
++    /// dashboard index entry, text projection, source-path membership, and
++    /// matching read-set fact are refreshed; topology and every other indexed
++    /// record remain from the same immutable generation. Returns false without
++    /// changing the snapshot if the file is no longer present, so callers can
++    /// retain the full-reopen path for that exceptional case.
++    pub fn refresh_materialized_dashboard(&mut self) -> bool {
++        let path = self.repository.root.join("audits/reports/dashboard.md");
++        let relative = self.repository.relative_path(&path);
++        if !path.is_file() {
++            return false;
++        }
++
++        self.index.dashboard = Some(IndexedRecord::text(
++            RecordRef::new(RecordKind::Dashboard, relative.clone(), relative.clone()),
++            path.clone(),
++        ));
++        if let Some(text) = self
++            .index
++            .dashboard
++            .as_ref()
++            .and_then(|record| record.text.as_ref())
++        {
++            self.index.text_files.insert(path.clone(), text.clone());
++        } else {
++            self.index.text_files.remove(&path);
++        }
++        if !self.index.source_paths.contains(&path) {
++            self.index.source_paths.push(path.clone());
++        }
++        self.index
++            .source_paths
++            .sort_by(|left, right| path_string(left).cmp(&path_string(right)));
++        self.index.source_paths.dedup();
++
++        self.read_set.facts.retain(|fact| fact.path != relative);
++        self.read_set.facts.push(ReadFact {
++            path: relative,
++            expected: self.repository.path_state(&path),
++        });
++        self.read_set = ReadSet::new(std::mem::take(&mut self.read_set.facts));
++        true
++    }
+ }
+ 
+ impl Repository {
+@@ -1605,6 +1650,39 @@ mod tests {
+         fs::remove_dir_all(root).unwrap();
+     }
+ 
++    #[test]
++    fn materialized_dashboard_refresh_matches_a_fresh_snapshot() {
++        let root = temp_root("materialized-dashboard-refresh");
++        let dashboard = root.join("audits/reports/dashboard.md");
++        fs::create_dir_all(dashboard.parent().unwrap()).unwrap();
++
++        for initial in [None, Some("stale dashboard\n")] {
++            if let Some(contents) = initial {
++                fs::write(&dashboard, contents).unwrap();
++            } else {
++                let _ = fs::remove_file(&dashboard);
++            }
++
++            let mut candidate = RepositorySession::open(&root).snapshot();
++            fs::write(&dashboard, "fresh dashboard\r\n").unwrap();
++            assert!(candidate.refresh_materialized_dashboard());
++
++            let reopened = RepositorySession::open(&root).snapshot();
++            assert_eq!(candidate.topology, reopened.topology);
++            assert_eq!(candidate.index, reopened.index);
++            assert_eq!(candidate.read_set, reopened.read_set);
++        }
++
++        let mut candidate = RepositorySession::open(&root).snapshot();
++        let original = candidate.clone();
++        fs::remove_file(&dashboard).unwrap();
++        assert!(!candidate.refresh_materialized_dashboard());
++        assert_eq!(candidate.topology, original.topology);
++        assert_eq!(candidate.index, original.index);
++        assert_eq!(candidate.read_set, original.read_set);
++        fs::remove_dir_all(root).unwrap();
++    }
++
+     #[test]
+     fn production_git_spawning_is_centralized_in_the_approved_helper() {
+         let source = include_str!("lib.rs");

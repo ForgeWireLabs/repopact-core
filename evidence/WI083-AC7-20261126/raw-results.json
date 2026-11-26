@@ -1,0 +1,903 @@
+{
+  "measurement": "mechanism timing of deterministic tutorial command sequences; no human task time, model time, productivity, or effectiveness measured",
+  "sources": {
+    "b9dec03ad59c2ef7d782eda9f2b3220747e8ba3c": {
+      "commit": "b9dec03ad59c2ef7d782eda9f2b3220747e8ba3c",
+      "tree": "a01027d89c3be3440067a80a32185d1a0db869f4",
+      "date": "2026-11-25",
+      "subject": "Merge WI079 AC-7 reference conformance and unavailable-step fixtures (#28)",
+      "tutorial_command_counts": {
+        "repopact_init": 1,
+        "repopact_new_work_item": 1,
+        "repopact_validate": 5,
+        "repopact_verify": 2,
+        "repopact_dashboard": 1
+      }
+    },
+    "559ed9a86a1c399826f9505e5412d11c54d099ab": {
+      "commit": "559ed9a86a1c399826f9505e5412d11c54d099ab",
+      "tree": "8be9c62cda36506623e828a267538e5d62849195",
+      "date": "2026-11-26",
+      "subject": "Merge WI079 closeout and WI082 research deferral (#29)",
+      "tutorial_command_counts": {
+        "repopact_init": 1,
+        "repopact_new_work_item": 1,
+        "repopact_validate": 3,
+        "repopact_verify": 1,
+        "repopact_dashboard": 1
+      }
+    }
+  },
+  "environment": {
+    "os": "Windows-10-10.0.19045-SP0",
+    "os_release": "10",
+    "python_version": "3.12.4 (tags/v3.12.4:8e8a4ba, Jun  6 2024, 19:30:16) [MSC v.1940 64 bit (AMD64)]",
+    "python_executable": "C:\\Projects\\repopact-core-wi083-tutorial-env-20261126\\Scripts\\python.exe",
+    "package_version": "3.1.4.dev0",
+    "package_source": "C:\\Projects\\repopact-core-wi083-tutorial-source-20261126\\repopact",
+    "engine_path": "C:\\Projects\\repopact-core-wi083-tutorial-env-20261126\\Scripts\\repopact-engine.exe",
+    "engine_sha256": "f9d67aa342f1782fb559e16a052ed83739362fa464d7bc1213d0e2231e2979ae",
+    "engine_metadata": {
+      "protocol": "repopact-engine",
+      "protocol_version": 2,
+      "product_version": "3.1.4.dev0",
+      "semantic_identity": "repopact-semantic-v1:sha256:a11c42f9a8129a186a44a0e7822d9f2edb1512a7bc13fbe945ede32d8acfb255",
+      "build_info": {
+        "source_revision": "559ed9a86a1c399826f9505e5412d11c54d099ab",
+        "rustc_version": "rustc 1.96.0 (ac68faa20 2026-05-25); binary: rustc; commit-hash: ac68faa20c58cbccd01ee7208bf3b6e93a7d7f96; commit-date: 2026-05-25; host: x86_64-pc-windows-msvc; release: 1.96.0; LLVM version: 22.1.2",
+        "target": "x86_64-pc-windows-msvc",
+        "profile": "release"
+      }
+    },
+    "jsonschema_version": "4.26.0",
+    "cargo_version": "cargo 1.96.0 (30a34c682 2026-05-25)",
+    "rustc_version": "rustc 1.96.0 (ac68faa20 2026-05-25)",
+    "cpu": "Intel64 Family 6 Model 94 Stepping 3, GenuineIntel",
+    "machine": "AMD64",
+    "harness_timeout_seconds": 180,
+    "model_calls": 0
+  },
+  "runs": [
+    {
+      "run_id": "pair-01-pre_wi083",
+      "pair": 1,
+      "side": "pre_wi083",
+      "execution_order_in_pair": 1,
+      "source_ref": "b9dec03ad59c2ef7d782eda9f2b3220747e8ba3c",
+      "fixture_container": "C:\\Projects\\repopact-core-wi083-tutorial-results-20261126\\fixtures\\pair-01-pre_wi083",
+      "commands": [
+        {
+          "label": "bootstrap",
+          "command": "repopact init --target ./my-project",
+          "argv": [
+            "C:\\Projects\\repopact-core-wi083-tutorial-env-20261126\\Scripts\\repopact.exe",
+            "init",
+            "--target",
+            "./my-project"
+          ],
+          "cwd": "C:\\Projects\\repopact-core-wi083-tutorial-results-20261126\\fixtures\\pair-01-pre_wi083",
+          "started_at_utc": "2026-11-26T16:16:59.726730+00:00",
+          "elapsed_ms": 878.741,
+          "returncode": 0,
+          "stdout": "Repository governance validation passed.\nBootstrapped a valid RepoPact at C:\\Projects\\repopact-core-wi083-tutorial-results-20261126\\fixtures\\pair-01-pre_wi083\\my-project\n",
+          "stderr": "",
+          "failure": null
+        },
+        {
+          "label": "validate-after-init",
+          "command": "repopact validate",
+          "argv": [
+            "C:\\Projects\\repopact-core-wi083-tutorial-env-20261126\\Scripts\\repopact.exe",
+            "validate"
+          ],
+          "cwd": "C:\\Projects\\repopact-core-wi083-tutorial-results-20261126\\fixtures\\pair-01-pre_wi083\\my-project",
+          "started_at_utc": "2026-11-26T16:17:00.619645+00:00",
+          "elapsed_ms": 732.334,
+          "returncode": 0,
+          "stdout": "Repository governance validation passed.\n",
+          "stderr": "",
+          "failure": null
+        },
+        {
+          "label": "validate-after-governance-edits",
+          "command": "repopact validate",
+          "argv": [
+            "C:\\Projects\\repopact-core-wi083-tutorial-env-20261126\\Scripts\\repopact.exe",
+            "validate"
+          ],
+          "cwd": "C:\\Projects\\repopact-core-wi083-tutorial-results-20261126\\fixtures\\pair-01-pre_wi083\\my-project",
+          "started_at_utc": "2026-11-26T16:17:01.353021+00:00",
+          "elapsed_ms": 683.631,
+          "returncode": 1,
+          "stdout": "ERROR [dashboard.stale] audits/reports/dashboard.md: generated dashboard is stale; run `repopact dashboard --root .` and commit the result\n\nValidation failed with 1 error(s).\n",
+          "stderr": "",
+          "failure": "command exited 1"
+        }
+      ],
+      "scripted_edits": [
+        {
+          "label": "inspect governance/frozen-surface.json; identify README.md as stable public contract",
+          "paths": [
+            "C:\\Projects\\repopact-core-wi083-tutorial-results-20261126\\fixtures\\pair-01-pre_wi083\\my-project\\governance\\frozen-surface.json"
+          ],
+          "changed": false
+        },
+        {
+          "label": "add INV-2 to invariants.json",
+          "paths": [
+            "C:\\Projects\\repopact-core-wi083-tutorial-results-20261126\\fixtures\\pair-01-pre_wi083\\my-project\\governance\\invariants.json"
+          ]
+        }
+      ],
+      "failure": {
+        "label": "validate-after-governance-edits",
+        "command": "repopact validate",
+        "reason": "command exited 1"
+      },
+      "harness_elapsed_ms": 2296.121,
+      "command_elapsed_ms_sum": 2294.706,
+      "repopact_cli_command_count": 3,
+      "direct_validate_count": 2,
+      "verify_count": 0,
+      "init_count": 1,
+      "new_count": 0,
+      "dashboard_count": 0,
+      "success": false
+    },
+    {
+      "run_id": "pair-01-post_wi083",
+      "pair": 1,
+      "side": "post_wi083",
+      "execution_order_in_pair": 2,
+      "source_ref": "559ed9a86a1c399826f9505e5412d11c54d099ab",
+      "fixture_container": "C:\\Projects\\repopact-core-wi083-tutorial-results-20261126\\fixtures\\pair-01-post_wi083",
+      "commands": [
+        {
+          "label": "bootstrap",
+          "command": "repopact init --target ./my-project",
+          "argv": [
+            "C:\\Projects\\repopact-core-wi083-tutorial-env-20261126\\Scripts\\repopact.exe",
+            "init",
+            "--target",
+            "./my-project"
+          ],
+          "cwd": "C:\\Projects\\repopact-core-wi083-tutorial-results-20261126\\fixtures\\pair-01-post_wi083",
+          "started_at_utc": "2026-11-26T16:17:02.027174+00:00",
+          "elapsed_ms": 781.303,
+          "returncode": 0,
+          "stdout": "Repository governance validation passed.\nBootstrapped a valid RepoPact at C:\\Projects\\repopact-core-wi083-tutorial-results-20261126\\fixtures\\pair-01-post_wi083\\my-project\n",
+          "stderr": "",
+          "failure": null
+        },
+        {
+          "label": "create-work-item",
+          "command": "repopact new work-item Wire up the health check",
+          "argv": [
+            "C:\\Projects\\repopact-core-wi083-tutorial-env-20261126\\Scripts\\repopact.exe",
+            "new",
+            "work-item",
+            "Wire up the health check"
+          ],
+          "cwd": "C:\\Projects\\repopact-core-wi083-tutorial-results-20261126\\fixtures\\pair-01-post_wi083\\my-project",
+          "started_at_utc": "2026-11-26T16:17:02.820828+00:00",
+          "elapsed_ms": 824.744,
+          "returncode": 0,
+          "stdout": "Created work/active/001-wire-up-the-health-check/work-item.json\n",
+          "stderr": "",
+          "failure": null
+        },
+        {
+          "label": "validate-before-implementation",
+          "command": "repopact validate",
+          "argv": [
+            "C:\\Projects\\repopact-core-wi083-tutorial-env-20261126\\Scripts\\repopact.exe",
+            "validate"
+          ],
+          "cwd": "C:\\Projects\\repopact-core-wi083-tutorial-results-20261126\\fixtures\\pair-01-post_wi083\\my-project",
+          "started_at_utc": "2026-11-26T16:17:03.648142+00:00",
+          "elapsed_ms": 671.396,
+          "returncode": 0,
+          "stdout": "Repository governance validation passed.\n",
+          "stderr": "",
+          "failure": null
+        },
+        {
+          "label": "verify-recorded-candidate",
+          "command": "repopact verify --evidence-work-item 001",
+          "argv": [
+            "C:\\Projects\\repopact-core-wi083-tutorial-env-20261126\\Scripts\\repopact.exe",
+            "verify",
+            "--evidence-work-item",
+            "001"
+          ],
+          "cwd": "C:\\Projects\\repopact-core-wi083-tutorial-results-20261126\\fixtures\\pair-01-post_wi083\\my-project",
+          "started_at_utc": "2026-11-26T16:17:04.320523+00:00",
+          "elapsed_ms": 1622.946,
+          "returncode": 0,
+          "stdout": "RepoPact verification profile: governance\nexecutor: local | platform: windows\ncoverage: host | satisfied=true | executed=1/1 required\n  PASS        validate (required) - command passed\nresult: PASS (0.67s)\nevidence: evidence/runs/20261126-161704-727241-1e0d8548-verify-governance.json\nThis proves the local profile invocation only; it does not prove remote admission enforcement.\n",
+          "stderr": "",
+          "failure": null
+        },
+        {
+          "label": "validate-after-evidence-link",
+          "command": "repopact validate",
+          "argv": [
+            "C:\\Projects\\repopact-core-wi083-tutorial-env-20261126\\Scripts\\repopact.exe",
+            "validate"
+          ],
+          "cwd": "C:\\Projects\\repopact-core-wi083-tutorial-results-20261126\\fixtures\\pair-01-post_wi083\\my-project",
+          "started_at_utc": "2026-11-26T16:17:05.945402+00:00",
+          "elapsed_ms": 692.18,
+          "returncode": 0,
+          "stdout": "Repository governance validation passed.\n",
+          "stderr": "",
+          "failure": null
+        },
+        {
+          "label": "regenerate-dashboard",
+          "command": "repopact dashboard",
+          "argv": [
+            "C:\\Projects\\repopact-core-wi083-tutorial-env-20261126\\Scripts\\repopact.exe",
+            "dashboard"
+          ],
+          "cwd": "C:\\Projects\\repopact-core-wi083-tutorial-results-20261126\\fixtures\\pair-01-post_wi083\\my-project",
+          "started_at_utc": "2026-11-26T16:17:06.627322+00:00",
+          "elapsed_ms": 646.243,
+          "returncode": 0,
+          "stdout": "Generated audits/reports/dashboard.md\n",
+          "stderr": "",
+          "failure": null
+        },
+        {
+          "label": "validate-completed-state",
+          "command": "repopact validate",
+          "argv": [
+            "C:\\Projects\\repopact-core-wi083-tutorial-env-20261126\\Scripts\\repopact.exe",
+            "validate"
+          ],
+          "cwd": "C:\\Projects\\repopact-core-wi083-tutorial-results-20261126\\fixtures\\pair-01-post_wi083\\my-project",
+          "started_at_utc": "2026-11-26T16:17:07.286760+00:00",
+          "elapsed_ms": 736.253,
+          "returncode": 0,
+          "stdout": "Repository governance validation passed.\n",
+          "stderr": "",
+          "failure": null
+        }
+      ],
+      "scripted_edits": [
+        {
+          "label": "inspect governance/frozen-surface.json; identify README.md as stable public contract",
+          "paths": [
+            "C:\\Projects\\repopact-core-wi083-tutorial-results-20261126\\fixtures\\pair-01-post_wi083\\my-project\\governance\\frozen-surface.json"
+          ],
+          "changed": false
+        },
+        {
+          "label": "add INV-2 to invariants.json",
+          "paths": [
+            "C:\\Projects\\repopact-core-wi083-tutorial-results-20261126\\fixtures\\pair-01-post_wi083\\my-project\\governance\\invariants.json"
+          ]
+        },
+        {
+          "label": "fill acceptance criterion and add intent context",
+          "paths": [
+            "C:\\Projects\\repopact-core-wi083-tutorial-results-20261126\\fixtures\\pair-01-post_wi083\\my-project\\work\\active\\001-wire-up-the-health-check\\work-item.json",
+            "C:\\Projects\\repopact-core-wi083-tutorial-results-20261126\\fixtures\\pair-01-post_wi083\\my-project\\work\\active\\001-wire-up-the-health-check\\README.md"
+          ]
+        },
+        {
+          "label": "add deterministic health-check implementation",
+          "paths": [
+            "C:\\Projects\\repopact-core-wi083-tutorial-results-20261126\\fixtures\\pair-01-post_wi083\\my-project\\src\\health.py"
+          ]
+        },
+        {
+          "label": "link successful profile evidence to AC-1",
+          "paths": [
+            "C:\\Projects\\repopact-core-wi083-tutorial-results-20261126\\fixtures\\pair-01-post_wi083\\my-project\\work\\active\\001-wire-up-the-health-check\\work-item.json"
+          ],
+          "evidence_path": "C:\\Projects\\repopact-core-wi083-tutorial-results-20261126\\fixtures\\pair-01-post_wi083\\my-project\\evidence\\runs\\20261126-161704-727241-1e0d8548-verify-governance.json",
+          "evidence_id": "20261126-161704-727241-1e0d8548-verify-governance",
+          "work_item_id": "001"
+        },
+        {
+          "label": "move completed work item, set status and documentation impact",
+          "paths": [
+            "C:\\Projects\\repopact-core-wi083-tutorial-results-20261126\\fixtures\\pair-01-post_wi083\\my-project\\work\\completed\\001-wire-up-the-health-check\\work-item.json",
+            "C:\\Projects\\repopact-core-wi083-tutorial-results-20261126\\fixtures\\pair-01-post_wi083\\my-project\\work\\completed\\001-wire-up-the-health-check\\README.md"
+          ]
+        }
+      ],
+      "failure": null,
+      "evidence_id": "20261126-161704-727241-1e0d8548-verify-governance",
+      "completed_work_item": "C:\\Projects\\repopact-core-wi083-tutorial-results-20261126\\fixtures\\pair-01-post_wi083\\my-project\\work\\completed\\001-wire-up-the-health-check",
+      "harness_elapsed_ms": 5984.285,
+      "command_elapsed_ms_sum": 5975.065,
+      "repopact_cli_command_count": 7,
+      "direct_validate_count": 3,
+      "verify_count": 1,
+      "init_count": 1,
+      "new_count": 1,
+      "dashboard_count": 1,
+      "success": true
+    },
+    {
+      "run_id": "pair-02-post_wi083",
+      "pair": 2,
+      "side": "post_wi083",
+      "execution_order_in_pair": 1,
+      "source_ref": "559ed9a86a1c399826f9505e5412d11c54d099ab",
+      "fixture_container": "C:\\Projects\\repopact-core-wi083-tutorial-results-20261126\\fixtures\\pair-02-post_wi083",
+      "commands": [
+        {
+          "label": "bootstrap",
+          "command": "repopact init --target ./my-project",
+          "argv": [
+            "C:\\Projects\\repopact-core-wi083-tutorial-env-20261126\\Scripts\\repopact.exe",
+            "init",
+            "--target",
+            "./my-project"
+          ],
+          "cwd": "C:\\Projects\\repopact-core-wi083-tutorial-results-20261126\\fixtures\\pair-02-post_wi083",
+          "started_at_utc": "2026-11-26T16:17:08.025101+00:00",
+          "elapsed_ms": 752.014,
+          "returncode": 0,
+          "stdout": "Repository governance validation passed.\nBootstrapped a valid RepoPact at C:\\Projects\\repopact-core-wi083-tutorial-results-20261126\\fixtures\\pair-02-post_wi083\\my-project\n",
+          "stderr": "",
+          "failure": null
+        },
+        {
+          "label": "create-work-item",
+          "command": "repopact new work-item Wire up the health check",
+          "argv": [
+            "C:\\Projects\\repopact-core-wi083-tutorial-env-20261126\\Scripts\\repopact.exe",
+            "new",
+            "work-item",
+            "Wire up the health check"
+          ],
+          "cwd": "C:\\Projects\\repopact-core-wi083-tutorial-results-20261126\\fixtures\\pair-02-post_wi083\\my-project",
+          "started_at_utc": "2026-11-26T16:17:08.778434+00:00",
+          "elapsed_ms": 818.97,
+          "returncode": 0,
+          "stdout": "Created work/active/001-wire-up-the-health-check/work-item.json\n",
+          "stderr": "",
+          "failure": null
+        },
+        {
+          "label": "validate-before-implementation",
+          "command": "repopact validate",
+          "argv": [
+            "C:\\Projects\\repopact-core-wi083-tutorial-env-20261126\\Scripts\\repopact.exe",
+            "validate"
+          ],
+          "cwd": "C:\\Projects\\repopact-core-wi083-tutorial-results-20261126\\fixtures\\pair-02-post_wi083\\my-project",
+          "started_at_utc": "2026-11-26T16:17:09.599208+00:00",
+          "elapsed_ms": 679.868,
+          "returncode": 0,
+          "stdout": "Repository governance validation passed.\n",
+          "stderr": "",
+          "failure": null
+        },
+        {
+          "label": "verify-recorded-candidate",
+          "command": "repopact verify --evidence-work-item 001",
+          "argv": [
+            "C:\\Projects\\repopact-core-wi083-tutorial-env-20261126\\Scripts\\repopact.exe",
+            "verify",
+            "--evidence-work-item",
+            "001"
+          ],
+          "cwd": "C:\\Projects\\repopact-core-wi083-tutorial-results-20261126\\fixtures\\pair-02-post_wi083\\my-project",
+          "started_at_utc": "2026-11-26T16:17:10.279831+00:00",
+          "elapsed_ms": 1650.067,
+          "returncode": 0,
+          "stdout": "RepoPact verification profile: governance\nexecutor: local | platform: windows\ncoverage: host | satisfied=true | executed=1/1 required\n  PASS        validate (required) - command passed\nresult: PASS (0.64s)\nevidence: evidence/runs/20261126-161710-717576-194070e5-verify-governance.json\nThis proves the local profile invocation only; it does not prove remote admission enforcement.\n",
+          "stderr": "",
+          "failure": null
+        },
+        {
+          "label": "validate-after-evidence-link",
+          "command": "repopact validate",
+          "argv": [
+            "C:\\Projects\\repopact-core-wi083-tutorial-env-20261126\\Scripts\\repopact.exe",
+            "validate"
+          ],
+          "cwd": "C:\\Projects\\repopact-core-wi083-tutorial-results-20261126\\fixtures\\pair-02-post_wi083\\my-project",
+          "started_at_utc": "2026-11-26T16:17:11.927387+00:00",
+          "elapsed_ms": 697.969,
+          "returncode": 0,
+          "stdout": "Repository governance validation passed.\n",
+          "stderr": "",
+          "failure": null
+        },
+        {
+          "label": "regenerate-dashboard",
+          "command": "repopact dashboard",
+          "argv": [
+            "C:\\Projects\\repopact-core-wi083-tutorial-env-20261126\\Scripts\\repopact.exe",
+            "dashboard"
+          ],
+          "cwd": "C:\\Projects\\repopact-core-wi083-tutorial-results-20261126\\fixtures\\pair-02-post_wi083\\my-project",
+          "started_at_utc": "2026-11-26T16:17:12.627714+00:00",
+          "elapsed_ms": 656.964,
+          "returncode": 0,
+          "stdout": "Generated audits/reports/dashboard.md\n",
+          "stderr": "",
+          "failure": null
+        },
+        {
+          "label": "validate-completed-state",
+          "command": "repopact validate",
+          "argv": [
+            "C:\\Projects\\repopact-core-wi083-tutorial-env-20261126\\Scripts\\repopact.exe",
+            "validate"
+          ],
+          "cwd": "C:\\Projects\\repopact-core-wi083-tutorial-results-20261126\\fixtures\\pair-02-post_wi083\\my-project",
+          "started_at_utc": "2026-11-26T16:17:13.289998+00:00",
+          "elapsed_ms": 670.233,
+          "returncode": 0,
+          "stdout": "Repository governance validation passed.\n",
+          "stderr": "",
+          "failure": null
+        }
+      ],
+      "scripted_edits": [
+        {
+          "label": "inspect governance/frozen-surface.json; identify README.md as stable public contract",
+          "paths": [
+            "C:\\Projects\\repopact-core-wi083-tutorial-results-20261126\\fixtures\\pair-02-post_wi083\\my-project\\governance\\frozen-surface.json"
+          ],
+          "changed": false
+        },
+        {
+          "label": "add INV-2 to invariants.json",
+          "paths": [
+            "C:\\Projects\\repopact-core-wi083-tutorial-results-20261126\\fixtures\\pair-02-post_wi083\\my-project\\governance\\invariants.json"
+          ]
+        },
+        {
+          "label": "fill acceptance criterion and add intent context",
+          "paths": [
+            "C:\\Projects\\repopact-core-wi083-tutorial-results-20261126\\fixtures\\pair-02-post_wi083\\my-project\\work\\active\\001-wire-up-the-health-check\\work-item.json",
+            "C:\\Projects\\repopact-core-wi083-tutorial-results-20261126\\fixtures\\pair-02-post_wi083\\my-project\\work\\active\\001-wire-up-the-health-check\\README.md"
+          ]
+        },
+        {
+          "label": "add deterministic health-check implementation",
+          "paths": [
+            "C:\\Projects\\repopact-core-wi083-tutorial-results-20261126\\fixtures\\pair-02-post_wi083\\my-project\\src\\health.py"
+          ]
+        },
+        {
+          "label": "link successful profile evidence to AC-1",
+          "paths": [
+            "C:\\Projects\\repopact-core-wi083-tutorial-results-20261126\\fixtures\\pair-02-post_wi083\\my-project\\work\\active\\001-wire-up-the-health-check\\work-item.json"
+          ],
+          "evidence_path": "C:\\Projects\\repopact-core-wi083-tutorial-results-20261126\\fixtures\\pair-02-post_wi083\\my-project\\evidence\\runs\\20261126-161710-717576-194070e5-verify-governance.json",
+          "evidence_id": "20261126-161710-717576-194070e5-verify-governance",
+          "work_item_id": "001"
+        },
+        {
+          "label": "move completed work item, set status and documentation impact",
+          "paths": [
+            "C:\\Projects\\repopact-core-wi083-tutorial-results-20261126\\fixtures\\pair-02-post_wi083\\my-project\\work\\completed\\001-wire-up-the-health-check\\work-item.json",
+            "C:\\Projects\\repopact-core-wi083-tutorial-results-20261126\\fixtures\\pair-02-post_wi083\\my-project\\work\\completed\\001-wire-up-the-health-check\\README.md"
+          ]
+        }
+      ],
+      "failure": null,
+      "evidence_id": "20261126-161710-717576-194070e5-verify-governance",
+      "completed_work_item": "C:\\Projects\\repopact-core-wi083-tutorial-results-20261126\\fixtures\\pair-02-post_wi083\\my-project\\work\\completed\\001-wire-up-the-health-check",
+      "harness_elapsed_ms": 5935.064,
+      "command_elapsed_ms_sum": 5926.085,
+      "repopact_cli_command_count": 7,
+      "direct_validate_count": 3,
+      "verify_count": 1,
+      "init_count": 1,
+      "new_count": 1,
+      "dashboard_count": 1,
+      "success": true
+    },
+    {
+      "run_id": "pair-02-pre_wi083",
+      "pair": 2,
+      "side": "pre_wi083",
+      "execution_order_in_pair": 2,
+      "source_ref": "b9dec03ad59c2ef7d782eda9f2b3220747e8ba3c",
+      "fixture_container": "C:\\Projects\\repopact-core-wi083-tutorial-results-20261126\\fixtures\\pair-02-pre_wi083",
+      "commands": [
+        {
+          "label": "bootstrap",
+          "command": "repopact init --target ./my-project",
+          "argv": [
+            "C:\\Projects\\repopact-core-wi083-tutorial-env-20261126\\Scripts\\repopact.exe",
+            "init",
+            "--target",
+            "./my-project"
+          ],
+          "cwd": "C:\\Projects\\repopact-core-wi083-tutorial-results-20261126\\fixtures\\pair-02-pre_wi083",
+          "started_at_utc": "2026-11-26T16:17:13.960942+00:00",
+          "elapsed_ms": 818.641,
+          "returncode": 0,
+          "stdout": "Repository governance validation passed.\nBootstrapped a valid RepoPact at C:\\Projects\\repopact-core-wi083-tutorial-results-20261126\\fixtures\\pair-02-pre_wi083\\my-project\n",
+          "stderr": "",
+          "failure": null
+        },
+        {
+          "label": "validate-after-init",
+          "command": "repopact validate",
+          "argv": [
+            "C:\\Projects\\repopact-core-wi083-tutorial-env-20261126\\Scripts\\repopact.exe",
+            "validate"
+          ],
+          "cwd": "C:\\Projects\\repopact-core-wi083-tutorial-results-20261126\\fixtures\\pair-02-pre_wi083\\my-project",
+          "started_at_utc": "2026-11-26T16:17:14.781112+00:00",
+          "elapsed_ms": 667.871,
+          "returncode": 0,
+          "stdout": "Repository governance validation passed.\n",
+          "stderr": "",
+          "failure": null
+        },
+        {
+          "label": "validate-after-governance-edits",
+          "command": "repopact validate",
+          "argv": [
+            "C:\\Projects\\repopact-core-wi083-tutorial-env-20261126\\Scripts\\repopact.exe",
+            "validate"
+          ],
+          "cwd": "C:\\Projects\\repopact-core-wi083-tutorial-results-20261126\\fixtures\\pair-02-pre_wi083\\my-project",
+          "started_at_utc": "2026-11-26T16:17:15.449827+00:00",
+          "elapsed_ms": 650.699,
+          "returncode": 1,
+          "stdout": "ERROR [dashboard.stale] audits/reports/dashboard.md: generated dashboard is stale; run `repopact dashboard --root .` and commit the result\n\nValidation failed with 1 error(s).\n",
+          "stderr": "",
+          "failure": "command exited 1"
+        }
+      ],
+      "scripted_edits": [
+        {
+          "label": "inspect governance/frozen-surface.json; identify README.md as stable public contract",
+          "paths": [
+            "C:\\Projects\\repopact-core-wi083-tutorial-results-20261126\\fixtures\\pair-02-pre_wi083\\my-project\\governance\\frozen-surface.json"
+          ],
+          "changed": false
+        },
+        {
+          "label": "add INV-2 to invariants.json",
+          "paths": [
+            "C:\\Projects\\repopact-core-wi083-tutorial-results-20261126\\fixtures\\pair-02-pre_wi083\\my-project\\governance\\invariants.json"
+          ]
+        }
+      ],
+      "failure": {
+        "label": "validate-after-governance-edits",
+        "command": "repopact validate",
+        "reason": "command exited 1"
+      },
+      "harness_elapsed_ms": 2138.446,
+      "command_elapsed_ms_sum": 2137.211,
+      "repopact_cli_command_count": 3,
+      "direct_validate_count": 2,
+      "verify_count": 0,
+      "init_count": 1,
+      "new_count": 0,
+      "dashboard_count": 0,
+      "success": false
+    },
+    {
+      "run_id": "pair-03-pre_wi083",
+      "pair": 3,
+      "side": "pre_wi083",
+      "execution_order_in_pair": 1,
+      "source_ref": "b9dec03ad59c2ef7d782eda9f2b3220747e8ba3c",
+      "fixture_container": "C:\\Projects\\repopact-core-wi083-tutorial-results-20261126\\fixtures\\pair-03-pre_wi083",
+      "commands": [
+        {
+          "label": "bootstrap",
+          "command": "repopact init --target ./my-project",
+          "argv": [
+            "C:\\Projects\\repopact-core-wi083-tutorial-env-20261126\\Scripts\\repopact.exe",
+            "init",
+            "--target",
+            "./my-project"
+          ],
+          "cwd": "C:\\Projects\\repopact-core-wi083-tutorial-results-20261126\\fixtures\\pair-03-pre_wi083",
+          "started_at_utc": "2026-11-26T16:17:16.095198+00:00",
+          "elapsed_ms": 733.171,
+          "returncode": 0,
+          "stdout": "Repository governance validation passed.\nBootstrapped a valid RepoPact at C:\\Projects\\repopact-core-wi083-tutorial-results-20261126\\fixtures\\pair-03-pre_wi083\\my-project\n",
+          "stderr": "",
+          "failure": null
+        },
+        {
+          "label": "validate-after-init",
+          "command": "repopact validate",
+          "argv": [
+            "C:\\Projects\\repopact-core-wi083-tutorial-env-20261126\\Scripts\\repopact.exe",
+            "validate"
+          ],
+          "cwd": "C:\\Projects\\repopact-core-wi083-tutorial-results-20261126\\fixtures\\pair-03-pre_wi083\\my-project",
+          "started_at_utc": "2026-11-26T16:17:16.828054+00:00",
+          "elapsed_ms": 619.602,
+          "returncode": 0,
+          "stdout": "Repository governance validation passed.\n",
+          "stderr": "",
+          "failure": null
+        },
+        {
+          "label": "validate-after-governance-edits",
+          "command": "repopact validate",
+          "argv": [
+            "C:\\Projects\\repopact-core-wi083-tutorial-env-20261126\\Scripts\\repopact.exe",
+            "validate"
+          ],
+          "cwd": "C:\\Projects\\repopact-core-wi083-tutorial-results-20261126\\fixtures\\pair-03-pre_wi083\\my-project",
+          "started_at_utc": "2026-11-26T16:17:17.456961+00:00",
+          "elapsed_ms": 643.139,
+          "returncode": 1,
+          "stdout": "ERROR [dashboard.stale] audits/reports/dashboard.md: generated dashboard is stale; run `repopact dashboard --root .` and commit the result\n\nValidation failed with 1 error(s).\n",
+          "stderr": "",
+          "failure": "command exited 1"
+        }
+      ],
+      "scripted_edits": [
+        {
+          "label": "inspect governance/frozen-surface.json; identify README.md as stable public contract",
+          "paths": [
+            "C:\\Projects\\repopact-core-wi083-tutorial-results-20261126\\fixtures\\pair-03-pre_wi083\\my-project\\governance\\frozen-surface.json"
+          ],
+          "changed": false
+        },
+        {
+          "label": "add INV-2 to invariants.json",
+          "paths": [
+            "C:\\Projects\\repopact-core-wi083-tutorial-results-20261126\\fixtures\\pair-03-pre_wi083\\my-project\\governance\\invariants.json"
+          ]
+        }
+      ],
+      "failure": {
+        "label": "validate-after-governance-edits",
+        "command": "repopact validate",
+        "reason": "command exited 1"
+      },
+      "harness_elapsed_ms": 1997.499,
+      "command_elapsed_ms_sum": 1995.912,
+      "repopact_cli_command_count": 3,
+      "direct_validate_count": 2,
+      "verify_count": 0,
+      "init_count": 1,
+      "new_count": 0,
+      "dashboard_count": 0,
+      "success": false
+    },
+    {
+      "run_id": "pair-03-post_wi083",
+      "pair": 3,
+      "side": "post_wi083",
+      "execution_order_in_pair": 2,
+      "source_ref": "559ed9a86a1c399826f9505e5412d11c54d099ab",
+      "fixture_container": "C:\\Projects\\repopact-core-wi083-tutorial-results-20261126\\fixtures\\pair-03-post_wi083",
+      "commands": [
+        {
+          "label": "bootstrap",
+          "command": "repopact init --target ./my-project",
+          "argv": [
+            "C:\\Projects\\repopact-core-wi083-tutorial-env-20261126\\Scripts\\repopact.exe",
+            "init",
+            "--target",
+            "./my-project"
+          ],
+          "cwd": "C:\\Projects\\repopact-core-wi083-tutorial-results-20261126\\fixtures\\pair-03-post_wi083",
+          "started_at_utc": "2026-11-26T16:17:18.102041+00:00",
+          "elapsed_ms": 722.614,
+          "returncode": 0,
+          "stdout": "Repository governance validation passed.\nBootstrapped a valid RepoPact at C:\\Projects\\repopact-core-wi083-tutorial-results-20261126\\fixtures\\pair-03-post_wi083\\my-project\n",
+          "stderr": "",
+          "failure": null
+        },
+        {
+          "label": "create-work-item",
+          "command": "repopact new work-item Wire up the health check",
+          "argv": [
+            "C:\\Projects\\repopact-core-wi083-tutorial-env-20261126\\Scripts\\repopact.exe",
+            "new",
+            "work-item",
+            "Wire up the health check"
+          ],
+          "cwd": "C:\\Projects\\repopact-core-wi083-tutorial-results-20261126\\fixtures\\pair-03-post_wi083\\my-project",
+          "started_at_utc": "2026-11-26T16:17:18.825671+00:00",
+          "elapsed_ms": 835.661,
+          "returncode": 0,
+          "stdout": "Created work/active/001-wire-up-the-health-check/work-item.json\n",
+          "stderr": "",
+          "failure": null
+        },
+        {
+          "label": "validate-before-implementation",
+          "command": "repopact validate",
+          "argv": [
+            "C:\\Projects\\repopact-core-wi083-tutorial-env-20261126\\Scripts\\repopact.exe",
+            "validate"
+          ],
+          "cwd": "C:\\Projects\\repopact-core-wi083-tutorial-results-20261126\\fixtures\\pair-03-post_wi083\\my-project",
+          "started_at_utc": "2026-11-26T16:17:19.664135+00:00",
+          "elapsed_ms": 662.939,
+          "returncode": 0,
+          "stdout": "Repository governance validation passed.\n",
+          "stderr": "",
+          "failure": null
+        },
+        {
+          "label": "verify-recorded-candidate",
+          "command": "repopact verify --evidence-work-item 001",
+          "argv": [
+            "C:\\Projects\\repopact-core-wi083-tutorial-env-20261126\\Scripts\\repopact.exe",
+            "verify",
+            "--evidence-work-item",
+            "001"
+          ],
+          "cwd": "C:\\Projects\\repopact-core-wi083-tutorial-results-20261126\\fixtures\\pair-03-post_wi083\\my-project",
+          "started_at_utc": "2026-11-26T16:17:20.328247+00:00",
+          "elapsed_ms": 1590.813,
+          "returncode": 0,
+          "stdout": "RepoPact verification profile: governance\nexecutor: local | platform: windows\ncoverage: host | satisfied=true | executed=1/1 required\n  PASS        validate (required) - command passed\nresult: PASS (0.62s)\nevidence: evidence/runs/20261126-161720-711864-64925c80-verify-governance.json\nThis proves the local profile invocation only; it does not prove remote admission enforcement.\n",
+          "stderr": "",
+          "failure": null
+        },
+        {
+          "label": "validate-after-evidence-link",
+          "command": "repopact validate",
+          "argv": [
+            "C:\\Projects\\repopact-core-wi083-tutorial-env-20261126\\Scripts\\repopact.exe",
+            "validate"
+          ],
+          "cwd": "C:\\Projects\\repopact-core-wi083-tutorial-results-20261126\\fixtures\\pair-03-post_wi083\\my-project",
+          "started_at_utc": "2026-11-26T16:17:21.920940+00:00",
+          "elapsed_ms": 677.036,
+          "returncode": 0,
+          "stdout": "Repository governance validation passed.\n",
+          "stderr": "",
+          "failure": null
+        },
+        {
+          "label": "regenerate-dashboard",
+          "command": "repopact dashboard",
+          "argv": [
+            "C:\\Projects\\repopact-core-wi083-tutorial-env-20261126\\Scripts\\repopact.exe",
+            "dashboard"
+          ],
+          "cwd": "C:\\Projects\\repopact-core-wi083-tutorial-results-20261126\\fixtures\\pair-03-post_wi083\\my-project",
+          "started_at_utc": "2026-11-26T16:17:22.594896+00:00",
+          "elapsed_ms": 660.57,
+          "returncode": 0,
+          "stdout": "Generated audits/reports/dashboard.md\n",
+          "stderr": "",
+          "failure": null
+        },
+        {
+          "label": "validate-completed-state",
+          "command": "repopact validate",
+          "argv": [
+            "C:\\Projects\\repopact-core-wi083-tutorial-env-20261126\\Scripts\\repopact.exe",
+            "validate"
+          ],
+          "cwd": "C:\\Projects\\repopact-core-wi083-tutorial-results-20261126\\fixtures\\pair-03-post_wi083\\my-project",
+          "started_at_utc": "2026-11-26T16:17:23.261794+00:00",
+          "elapsed_ms": 681.676,
+          "returncode": 0,
+          "stdout": "Repository governance validation passed.\n",
+          "stderr": "",
+          "failure": null
+        }
+      ],
+      "scripted_edits": [
+        {
+          "label": "inspect governance/frozen-surface.json; identify README.md as stable public contract",
+          "paths": [
+            "C:\\Projects\\repopact-core-wi083-tutorial-results-20261126\\fixtures\\pair-03-post_wi083\\my-project\\governance\\frozen-surface.json"
+          ],
+          "changed": false
+        },
+        {
+          "label": "add INV-2 to invariants.json",
+          "paths": [
+            "C:\\Projects\\repopact-core-wi083-tutorial-results-20261126\\fixtures\\pair-03-post_wi083\\my-project\\governance\\invariants.json"
+          ]
+        },
+        {
+          "label": "fill acceptance criterion and add intent context",
+          "paths": [
+            "C:\\Projects\\repopact-core-wi083-tutorial-results-20261126\\fixtures\\pair-03-post_wi083\\my-project\\work\\active\\001-wire-up-the-health-check\\work-item.json",
+            "C:\\Projects\\repopact-core-wi083-tutorial-results-20261126\\fixtures\\pair-03-post_wi083\\my-project\\work\\active\\001-wire-up-the-health-check\\README.md"
+          ]
+        },
+        {
+          "label": "add deterministic health-check implementation",
+          "paths": [
+            "C:\\Projects\\repopact-core-wi083-tutorial-results-20261126\\fixtures\\pair-03-post_wi083\\my-project\\src\\health.py"
+          ]
+        },
+        {
+          "label": "link successful profile evidence to AC-1",
+          "paths": [
+            "C:\\Projects\\repopact-core-wi083-tutorial-results-20261126\\fixtures\\pair-03-post_wi083\\my-project\\work\\active\\001-wire-up-the-health-check\\work-item.json"
+          ],
+          "evidence_path": "C:\\Projects\\repopact-core-wi083-tutorial-results-20261126\\fixtures\\pair-03-post_wi083\\my-project\\evidence\\runs\\20261126-161720-711864-64925c80-verify-governance.json",
+          "evidence_id": "20261126-161720-711864-64925c80-verify-governance",
+          "work_item_id": "001"
+        },
+        {
+          "label": "move completed work item, set status and documentation impact",
+          "paths": [
+            "C:\\Projects\\repopact-core-wi083-tutorial-results-20261126\\fixtures\\pair-03-post_wi083\\my-project\\work\\completed\\001-wire-up-the-health-check\\work-item.json",
+            "C:\\Projects\\repopact-core-wi083-tutorial-results-20261126\\fixtures\\pair-03-post_wi083\\my-project\\work\\completed\\001-wire-up-the-health-check\\README.md"
+          ]
+        }
+      ],
+      "failure": null,
+      "evidence_id": "20261126-161720-711864-64925c80-verify-governance",
+      "completed_work_item": "C:\\Projects\\repopact-core-wi083-tutorial-results-20261126\\fixtures\\pair-03-post_wi083\\my-project\\work\\completed\\001-wire-up-the-health-check",
+      "harness_elapsed_ms": 5840.959,
+      "command_elapsed_ms_sum": 5831.309,
+      "repopact_cli_command_count": 7,
+      "direct_validate_count": 3,
+      "verify_count": 1,
+      "init_count": 1,
+      "new_count": 1,
+      "dashboard_count": 1,
+      "success": true
+    }
+  ],
+  "summary": {
+    "by_side": {
+      "pre_wi083": {
+        "runs": 3,
+        "all_passed": false,
+        "median_command_elapsed_ms_sum": 2137.211,
+        "min_command_elapsed_ms_sum": 1995.912,
+        "max_command_elapsed_ms_sum": 2294.706,
+        "median_harness_elapsed_ms": 2138.446,
+        "median_cli_command_count": 3,
+        "median_direct_validate_count": 2,
+        "median_verify_count": 0
+      },
+      "post_wi083": {
+        "runs": 3,
+        "all_passed": true,
+        "median_command_elapsed_ms_sum": 5926.085,
+        "min_command_elapsed_ms_sum": 5831.309,
+        "max_command_elapsed_ms_sum": 5975.065,
+        "median_harness_elapsed_ms": 5935.064,
+        "median_cli_command_count": 7,
+        "median_direct_validate_count": 3,
+        "median_verify_count": 1
+      }
+    },
+    "paired_deltas": [
+      {
+        "pair": 1,
+        "pre_command_elapsed_ms_sum": 2294.706,
+        "post_command_elapsed_ms_sum": 5975.065,
+        "delta_ms_pre_minus_post": -3680.359,
+        "pre_command_count": 3,
+        "post_command_count": 7
+      },
+      {
+        "pair": 2,
+        "pre_command_elapsed_ms_sum": 2137.211,
+        "post_command_elapsed_ms_sum": 5926.085,
+        "delta_ms_pre_minus_post": -3788.874,
+        "pre_command_count": 3,
+        "post_command_count": 7
+      },
+      {
+        "pair": 3,
+        "pre_command_elapsed_ms_sum": 1995.912,
+        "post_command_elapsed_ms_sum": 5831.309,
+        "delta_ms_pre_minus_post": -3835.397,
+        "pre_command_count": 3,
+        "post_command_count": 7
+      }
+    ]
+  }
+}
