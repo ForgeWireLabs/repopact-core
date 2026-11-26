@@ -79,7 +79,7 @@ class OptionalSelfAuditVerificationBoundaryTests(unittest.TestCase):
     @staticmethod
     def sanitized_env() -> dict[str, str]:
         return {
-            **{key: value for key, value in os.environ.items() if not key.startswith("GIT_")},
+            **{key: value for key, value in os.environ.items() if not key.upper().startswith("GIT_")},
             "GIT_TERMINAL_PROMPT": "0",
             "GIT_OPTIONAL_LOCKS": "0",
         }

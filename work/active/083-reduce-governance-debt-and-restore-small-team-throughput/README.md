@@ -117,8 +117,16 @@ WI079 passed 10/10, and process-image provenance was complete on clean commit
 `7b4d1efa0bd856c42f4eec32951193f8a887b3f9`; evidence is
 `20261126-wi083-coordinator-review-legacy-python-comparator` with provenance
 `20261126T034610580481Z-wi076-ac6-engine-conformance`. The single final local
-`ci` profile remains to be run on the reconciled evidence candidate. AC-1 and
-AC-6 remain pending.
+`ci` profile first ran on clean commit
+`c175f19ab2828471727b0aea713e92e4fdeadef7`. It failed only the Python test
+step: 528 tests ran, with 14 errors and 8 skips, while validation, conformance,
+the Rust workspace, spec freshness, and frozen-surface checks passed. The
+failure record is `20261126-wi083-coordinator-review-ci-failed`; the traceback
+showed test Git subprocesses inheriting the runner's malformed indexed config.
+The remaining repository, admission, and storage fixtures now filter inherited
+`GIT_*` values without mutating the parent environment; focused coverage passed
+30/30. The final local `ci` profile remains to be run on the corrected fixture
+candidate. AC-1 and AC-6 remain pending.
 
 ## Closeout
 

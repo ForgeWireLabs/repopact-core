@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -16,6 +17,14 @@ from repopact.adapters import LauncherAdapter
 from repopact.dev_fixtures import open_fixture_repo, pin_work_item_status
 from repopact.guard import ProtectedGuard
 from repopact.platform_backends import TestingBackend
+
+
+def _git_env() -> dict[str, str]:
+    return {
+        key: value
+        for key, value in os.environ.items()
+        if not key.upper().startswith("GIT_")
+    }
 
 
 class SecurityCorrectionTests(unittest.TestCase):
@@ -122,16 +131,16 @@ class SecurityCorrectionTests(unittest.TestCase):
         self.assertFalse(denied.allowed); self.assertIsNone(child); self.assertFalse(marker.exists())
 
     def test_linked_worktree_uses_common_dir_registration(self):
-        subprocess.run(["git", "add", "governance"], cwd=self.root, check=True, capture_output=True)
-        subprocess.run(["git", "commit", "-m", "admission registration"], cwd=self.root, check=True, capture_output=True)
+        subprocess.run(["git", "add", "governance"], cwd=self.root, env=_git_env(), check=True, capture_output=True)
+        subprocess.run(["git", "commit", "-m", "admission registration"], cwd=self.root, env=_git_env(), check=True, capture_output=True)
         linked = self.tmp / "linked checkout"
-        subprocess.run(["git", "worktree", "add", "-b", "linked-test", str(linked), "HEAD"], cwd=self.root, check=True, capture_output=True)
+        subprocess.run(["git", "worktree", "add", "-b", "linked-test", str(linked), "HEAD"], cwd=self.root, env=_git_env(), check=True, capture_output=True)
         try:
             self.assertTrue(verify_receipt is not None)
             from repopact.admission import verify_registration
             self.assertTrue(verify_registration(linked, self.protected).allowed)
         finally:
-            subprocess.run(["git", "worktree", "remove", "--force", str(linked)], cwd=self.root, check=False, capture_output=True)
+            subprocess.run(["git", "worktree", "remove", "--force", str(linked)], cwd=self.root, env=_git_env(), check=False, capture_output=True)
 
     def test_new_session_cannot_reuse_lease(self):
         req = self.request(); rec = issue_receipt(req, self.signer); proof, lease = issue_lease(req, rec, self.root, self.protected)
