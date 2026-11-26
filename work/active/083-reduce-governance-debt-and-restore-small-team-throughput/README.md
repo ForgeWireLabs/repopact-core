@@ -92,10 +92,45 @@ and byte must match. The raw record retains actual IDs, timestamps, command
 timings, and outputs. No model calls are used. AC-6 remains pending and is not
 part of this batch.
 
-The canonical harness and resulting measurements will be linked under
+The canonical harness and resulting measurements are linked under
 `evidence/WI083-AC1-20261126/`; no source snapshot is copied. This is a
 mechanism-level command-sequence comparison only. It supports no human-time,
 productivity, effectiveness, causal, or historical-binary claim.
+
+### AC-1 result — 2026-11-26
+
+The preregistered run is recorded as
+`20261126-wi083-ac1-corrected-baseline-comparison`. Two warmups per side and
+ten alternating-order matched pairs completed (24 sequence runs total); all
+240 RepoPact CLI invocations exited 0 and no samples were excluded. Each
+corrected-baseline run used 13 commands (7 explicit verification commands:
+5 `validate`, 2 `verify`); each current run used 7 commands (4 explicit
+verification commands: 3 `validate`, 1 `verify`). The original historical
+source count remains 10 commands and 7 explicit verification commands.
+
+Across the ten measured runs per side, corrected-baseline CLI elapsed-time
+sums had a 10,235.011 ms median and 10,419.941 ms p95. Current-sequence sums
+had a 5,835.166 ms median and 5,939.742 ms p95. The paired corrected-minus-
+current delta had a 4,400.678 ms median and 4,570.877 ms p95. Percentiles use
+the preregistered nearest-rank calculation. These are same-engine command
+sequence timings only.
+
+The final-state equivalence check failed for every measured pair and both
+warmups. The sole mismatched path was
+`work/completed/001-wire-up-the-health-check/work-item.json`; all other paths
+matched after the preregistered generated-ID/time normalization. Raw evidence
+retains raw and normalized hashes for that path but not its contents, so it
+does not establish which field differs. No additional normalization or
+post-result sample was applied. AC-1 remains pending because comparable final
+governed state was not proven. The already-recorded literal replay was not
+repeated or rewritten. AC-6 remains pending.
+
+The storage preflight found 13,335,900,160 free bytes against the 12 GiB
+minimum. The exact engine, Python CLI, source identities, commands, errors,
+timings, state hashes, and raw command outputs are in
+`evidence/WI083-AC1-20261126/raw-results.json`.
+
+## Decisions
 
 ## Decisions
 
