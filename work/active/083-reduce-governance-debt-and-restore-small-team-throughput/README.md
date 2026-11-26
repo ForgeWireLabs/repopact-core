@@ -128,8 +128,13 @@ The remaining repository, admission, and storage fixtures now filter inherited
 `20261126-wi083-coordinator-review-ci-fixture-regressions` records 30/30 passes
 in 115.351 seconds on clean commit
 `10e42cfb3e5710a76d72e99e64262e68f1d4ac63`. The final local `ci` profile
-remains to be run on the reconciled evidence candidate. AC-1 and AC-6 remain
-pending.
+passed all five required steps and the optional frozen-surface report in
+2194.83 seconds on clean commit
+`aa0b12115641ce0eb8f224b258c594ee8b2380ee`. Evidence is
+`20261126-wi083-coordinator-review-ci-final`; conformance provenance
+`20261126T050959411867Z-wi076-ac6-engine-conformance` is complete and embeds
+the same source revision. AC-2 through AC-5 remain satisfied. AC-1 and AC-6
+remain pending.
 
 ## Closeout
 
