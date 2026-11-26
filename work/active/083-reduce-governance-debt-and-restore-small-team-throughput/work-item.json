@@ -51,7 +51,9 @@
       "id": "AC-5",
       "text": "Preserve declared CI coverage, the required legacy comparator, independent frozen checks, honest start/end candidate identities, negative outcomes, and transaction behavior. Regenerate governed artifacts and link exact local validation evidence without editing protected surfaces.",
       "state": "pending",
-      "evidence": []
+      "evidence": [
+        "20261126-wi083-legacy-python-comparator"
+      ]
     },
     {
       "id": "AC-6",

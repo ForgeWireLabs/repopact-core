@@ -1,0 +1,26 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261126-wi083-legacy-python-comparator",
+  "timestamp": "2026-11-26T00:05:38Z",
+  "work_item": "083",
+  "result": "passed",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": ".venv\\Scripts\\python.exe -m repopact.run_conformance --legacy-python",
+      "exit_code": 0,
+      "summary": "Canonical Rust conformance 43/43; legacy Python comparator 43/43; WI050 admission 8/8; WI079 reference corpus 10/10; canonical engine process-image provenance complete."
+    }
+  ],
+  "artifacts": [
+    "evidence/runs/20261126T000443353439Z-wi076-ac6-engine-conformance.json",
+    "conformance/manifest.json"
+  ],
+  "environment": {
+    "python": "3.12.4",
+    "platform": "Windows-10-10.0.19045-SP0",
+    "REPOPACT_ENGINE": "rust/target/debug/repopact-engine.exe",
+    "source_commit": "b01896a",
+    "source_tree_clean_at_start": true
+  }
+}
