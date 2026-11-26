@@ -54,9 +54,10 @@ ref advanced; the embedded source revision matched that commit. The canonical
 and legacy conformance comparison then passed 43/43 each, WI050 passed 8/8,
 WI079 passed 10/10, and process-image provenance was complete. This run is
 recorded as `20261126-wi083-current-legacy-python-comparator`, with provenance
-`20261126T010905966805Z-wi076-ac6-engine-conformance`. Both negative runs and
-the incomplete provenance record remain linked under AC-5. Exact-candidate
-full-profile evidence is still pending.
+`20261126T010905966805Z-wi076-ac6-engine-conformance`. Both failed profile
+records link under AC-5. The incomplete provenance artifact remains preserved
+as diagnostic history, not completion evidence. Exact-candidate full-profile
+evidence was still pending at this point.
 
 The third full `ci` run, `20261126-011205-922819-1a876a8c-verify-ci`, passed
 repository validation, conformance, the Rust workspace, spec freshness, and
@@ -73,8 +74,18 @@ After commit `c14a0b9`, the exact-revision legacy comparator was rerun and
 passed 43/43 in both implementations; WI050 passed 8/8, WI079 passed 10/10,
 and engine process-image provenance matched the clean source revision. This is
 recorded as `20261126-wi083-final-legacy-python-comparator`, with provenance
-`20261126T014817231543Z-wi076-ac6-engine-conformance`. The exact-candidate
-full profile is still pending.
+`20261126T014817231543Z-wi076-ac6-engine-conformance`.
+
+The final full `ci` profile, `20261126-014953-695892-0e9cd0cd-verify-ci`,
+passed all five required steps and the optional frozen-surface report in
+1894.516 seconds. It started clean at commit
+`3c5e098541f6f37e5ea1b61915cbe31c08639f68`; the end snapshot retained that
+commit and tree, with run-generated evidence making the working tree dirty.
+Conformance provenance
+`20261126T022053868434Z-wi076-ac6-engine-conformance` is complete and embeds
+the same source revision. AC-2 through AC-5 are now satisfied. AC-1 remains
+pending because tutorial elapsed time was not captured; AC-6 remains pending
+because this batch did not include a matched comparative efficacy study.
 
 ## Closeout
 

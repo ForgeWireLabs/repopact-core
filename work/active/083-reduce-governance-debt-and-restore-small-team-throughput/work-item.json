@@ -30,36 +30,43 @@
     {
       "id": "AC-2",
       "text": "Remove redundant verification invocations from the shipped tutorial and align new-repository instructions. Keep preflight after intent is recorded and current-state validation after governed ledger or evidence changes; explain when an already-passed declared check remains valid for the same relevant candidate.",
-      "state": "pending",
-      "evidence": []
+      "state": "satisfied",
+      "evidence": [
+        "20261125-wi083-measurements",
+        "20261126-014953-695892-0e9cd0cd-verify-ci"
+      ]
     },
     {
       "id": "AC-3",
       "text": "Use one validated verification contract/profile selection per invocation where safe. Preserve actual report/journal steps and fail-closed behavior for invalid or drifting policy, unknown profiles, unavailable required steps, interruption, and evidence-capture errors; add focused regression coverage for recorded and unrecorded default and explicit profiles.",
-      "state": "pending",
-      "evidence": []
+      "state": "satisfied",
+      "evidence": [
+        "20261126-014953-695892-0e9cd0cd-verify-ci"
+      ]
     },
     {
       "id": "AC-4",
       "text": "Measure ordinary mutation candidate snapshot/copy work. Implement a bounded reduction only if it preserves complete diagnostics, Git/worktree facts, stale read-set checks, frozen-surface checks, rollback, cleanup, and independent live post-state validation; otherwise record the measured blocker and defer the structural optimization.",
-      "state": "pending",
+      "state": "satisfied",
       "evidence": [
-        "20261125-wi083-measurements"
+        "20261125-wi083-measurements",
+        "20261126-014953-695892-0e9cd0cd-verify-ci"
       ]
     },
     {
       "id": "AC-5",
       "text": "Preserve declared CI coverage, the required legacy comparator, independent frozen checks, honest start/end candidate identities, negative outcomes, and transaction behavior. Regenerate governed artifacts and link exact local validation evidence without editing protected surfaces.",
-      "state": "pending",
+      "state": "satisfied",
       "evidence": [
         "20261126-wi083-legacy-python-comparator",
         "20261126-wi083-current-legacy-python-comparator",
         "20261126-wi083-final-legacy-python-comparator",
         "20261126-000614-018647-5e45898d-verify-ci",
         "20261126-003030-342440-95556594-verify-ci",
-        "20261126T005845093723Z-wi076-ac6-engine-conformance",
         "20261126-011205-922819-1a876a8c-verify-ci",
-        "20261126T014330886187Z-wi076-ac6-engine-conformance"
+        "20261126T014330886187Z-wi076-ac6-engine-conformance",
+        "20261126-014953-695892-0e9cd0cd-verify-ci",
+        "20261126T022053868434Z-wi076-ac6-engine-conformance"
       ]
     },
     {
