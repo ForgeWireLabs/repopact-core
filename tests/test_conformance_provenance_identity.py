@@ -129,7 +129,16 @@ class ConformanceProvenanceIdentityTests(unittest.TestCase):
             encoding="utf-8",
         )
         (progress / "20261124-ci.steps.jsonl.partial").write_text("", encoding="utf-8")
-        with patch.dict(os.environ, {ACTIVE_CAPTURE_ID_ENV: "20261124-ci"}):
+        with patch.dict(
+            os.environ,
+            {
+                ACTIVE_CAPTURE_ID_ENV: "20261124-ci",
+                "GIT_CONFIG_COUNT": "1",
+                "GIT_CONFIG_KEY_0": "core.worktree",
+                "GIT_CONFIG_VALUE_0": "",
+                "GIT_DIR": str(source / "missing-git-dir"),
+            },
+        ):
             clean = run_conformance._git_source_state(source)
         self.assertFalse(clean["dirty"])
         self.assertEqual("", clean["status_porcelain"])
@@ -141,7 +150,16 @@ class ConformanceProvenanceIdentityTests(unittest.TestCase):
             clean["ignored_runtime_artifacts"],
         )
 
-        with patch.dict(os.environ, {ACTIVE_CAPTURE_ID_ENV: "20261124-ci"}):
+        with patch.dict(
+            os.environ,
+            {
+                ACTIVE_CAPTURE_ID_ENV: "20261124-ci",
+                "GIT_CONFIG_COUNT": "1",
+                "GIT_CONFIG_KEY_0": "core.worktree",
+                "GIT_CONFIG_VALUE_0": "",
+                "GIT_DIR": str(source / "missing-git-dir"),
+            },
+        ):
             (source / "unrelated.txt").write_text("source change\n", encoding="utf-8")
             dirty = run_conformance._git_source_state(source)
             self.assertTrue(dirty["dirty"])

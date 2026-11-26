@@ -2,12 +2,14 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import shutil
 import subprocess
 import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -226,17 +228,24 @@ class FleetVerificationTests(unittest.TestCase):
     def test_duplicate_local_checkouts_collapse_to_one_remote_identity(self) -> None:
         discovery = Path(self.temp.name) / "checkouts"
         discovery.mkdir()
+        git_env = {
+            key: value
+            for key, value in os.environ.items()
+            if not key.upper().startswith("GIT_")
+        }
         for name in ("one", "two"):
             checkout = discovery / name
             checkout.mkdir()
-            subprocess.run(["git", "init", "-q"], cwd=checkout, check=True)
+            subprocess.run(["git", "init", "-q"], cwd=checkout, env=git_env, check=True)
             subprocess.run(
                 ["git", "remote", "add", "origin", "https://github.com/ForgeWireLabs/package-adopter.git"],
                 cwd=checkout,
+                env=git_env,
                 check=True,
             )
             (checkout / "requirements-repopact.txt").write_text("repopact==2.2.0\n", encoding="utf-8")
-        grouped, candidates, errors = fleet_verify.discover_local_consumers([discovery])
+        with patch.dict(os.environ, git_env, clear=True):
+            grouped, candidates, errors = fleet_verify.discover_local_consumers([discovery])
         self.assertEqual(2, len(grouped["forgewirelabs/package-adopter"]))
         self.assertEqual(1, len(candidates))
         self.assertEqual((), errors)

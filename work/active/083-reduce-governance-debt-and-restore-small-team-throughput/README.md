@@ -58,6 +58,19 @@ recorded as `20261126-wi083-current-legacy-python-comparator`, with provenance
 the incomplete provenance record remain linked under AC-5. Exact-candidate
 full-profile evidence is still pending.
 
+The third full `ci` run, `20261126-011205-922819-1a876a8c-verify-ci`, passed
+repository validation, conformance, the Rust workspace, spec freshness, and
+the frozen-surface check. Four Python tests still inherited the malformed
+Git environment: source-state evidence returned no status, and fleet/graph
+fixtures could not initialize local Git repositories. The passing conformance
+provenance is `20261126T014330886187Z-wi076-ac6-engine-conformance`.
+`run_conformance` now removes inherited `GIT_*` values when measuring local
+source state; the fleet and graph test helpers likewise isolate their local
+Git commands. This third negative profile and its successful conformance
+record remain linked under AC-5. After the repair, the affected provenance,
+fleet, and graph-merge tests passed 10/10 under the injected host environment.
+The exact-candidate full profile is still pending.
+
 ## Closeout
 
 Every satisfied criterion needs linked evidence in `work-item.json`. Keep unavailable research pending. Regenerate the dashboard after governed changes. Submit one validated draft PR; do not merge, approve, or release.
