@@ -27,6 +27,76 @@ The first CLI create attempt timed out at its 30-second limit after dispatch. Th
 
 Before implementation, verified `origin/main` at `559ed9a86a1c399826f9505e5412d11c54d099ab`, tree `8be9c62cda36506623e828a267538e5d62849195`. PR #29 is merged; WI079 and the first WI083 batch are integrated. Added prospective AC-7 to the existing canonical WI083 JSON while leaving AC-4, AC-1/AC-6, and all historical evidence unchanged. The authorized slice is a matched original-versus-single-candidate-snapshot experiment. The runtime copy and independent live post-state validation remain required. The pre-registered adoption gate requires exact equivalence, at least 15% improvement in pooled median candidate-validation time, and no representative case with p95 more than 5% above baseline. No source implementation had started when AC-7 was registered.
 
+## AC-1 corrected-baseline comparison preregistration — 2026-11-26
+
+This prospective amendment was recorded before collecting any new tutorial
+timings. The literal replay remains preserved in
+`evidence/WI083-AC7-20261126/raw-results.json` and
+`evidence/WI083-AC7-20261126/interpretation.md`: the historical instructions
+failed `dashboard.stale` in 3/3 runs and the updated instructions completed
+3/3. Those observations will not be rerun, replaced, or represented as a
+completed historical tutorial.
+
+The new comparison is a **corrected-baseline command-sequence comparison**.
+The historical source is tutorial `docs/adopt-repopact.md` at commit
+`b9dec03ad59c2ef7d782eda9f2b3220747e8ba3c`, tree
+`a01027d89c3be3440067a80a32185d1a0db869f4`, Git blob
+`b47c922147d8798d936279d88f0725e04d9a5282`, content SHA-256
+`db6c850b8936f5da3b0f7c37dc4fa3014a2ebf43e325daa83d0ab76a7951a9e8`.
+The current successful source is that tutorial at integrated main commit
+`733e23a8a091727908dbd3c690fb7169f91b7287`, tree
+`656543a1472f29b1380227621fe842231179264b`, Git blob
+`871065f026d64e96df80ffb417eb181e92c23987`, content SHA-256
+`9e5c161bb4082ca15236dfa2bba36ca98a75d684985a607579725412f0e745da`.
+
+The corrected baseline retains every historical step and inserts exactly
+three `repopact dashboard` commands immediately before the validations made
+stale by the preceding edits: after the invariant edit, after the new work
+item and acceptance-criterion/README edits, and after linking the verification
+evidence. Each refresh makes the derived dashboard current before the existing
+validation; no historical command is removed. Thus original tutorial counts
+remain init 1, new 1, validate 5, verify 2, dashboard 1 (10 explicit RepoPact
+invocations; 7 explicit verification invocations). Corrected-baseline counts
+are init 1, new 1, validate 5, verify 2, dashboard 4 (13 total; 7
+verification invocations). Current tutorial counts are init 1, new 1, validate
+3, verify 1, dashboard 1 (7 total; 4 verification invocations). Counts treat
+each CLI invocation once and exclude any internal validation performed by
+`init`; verification counts mean explicit `validate` plus `verify` commands.
+
+Both sides use the identical scripted governance edit, work-item creation and
+acceptance-criterion text, health-check source edit, evidence link, and
+completion transition. The primary comparison uses the same installed Python
+CLI, one already-built compatible canonical engine, toolchain, host, and
+repository fixture path for both sides within each pair. Engine build source is
+`805f86ccf46d2311bbe19121cad22904b5993c9d`; executable SHA-256 is
+`63a78d027472020dd6d1aa3a6e2a7d49ed092f529dcf1efa77283a8e1d0ca81b`; recorded
+semantic identity is
+`repopact-semantic-v1:sha256:a11c42f9a8129a186a44a0e7822d9f2edb1512a7bc13fbe945ede32d8acfb255`.
+The runtime-source delta from that build revision to integrated main is empty.
+The build profile is debug, target `x86_64-pc-windows-msvc`, Rust/Cargo
+1.96.0; Python is 3.12.4, RepoPact is 3.1.4.dev0, and jsonschema is 4.26.0.
+This same-engine comparison isolates the documented command-sequence change;
+it is not a historical-binary performance comparison.
+
+The fixed sample plan is two warmup runs per side followed by ten matched
+pairs, alternating which side runs first within each pair. Preserve every
+command's argv, output, error, exit code, and elapsed time; report CLI-command
+totals separately from verification-command counts, per-sequence sum median
+and p95, per-command median and p95, and paired deltas. No sample exclusions
+are planned; any failure is retained and keeps AC-1 pending. Final file-tree
+equivalence is checked on each completed pair. Only the generated evidence ID
+(in the evidence filename, manifest root `id`, and acceptance-criterion
+reference), generated timestamps in that verification manifest, and generated
+duration/elapsed fields in that manifest may be normalized. Every other path
+and byte must match. The raw record retains actual IDs, timestamps, command
+timings, and outputs. No model calls are used. AC-6 remains pending and is not
+part of this batch.
+
+The canonical harness and resulting measurements will be linked under
+`evidence/WI083-AC1-20261126/`; no source snapshot is copied. This is a
+mechanism-level command-sequence comparison only. It supports no human-time,
+productivity, effectiveness, causal, or historical-binary claim.
+
 ## Decisions
 
 - A successful declared profile run can satisfy the same check for the same relevant candidate if no relevant inputs have changed since it ran. Focused tests during iteration do not replace the final required profile.
