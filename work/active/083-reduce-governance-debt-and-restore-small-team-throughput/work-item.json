@@ -52,7 +52,8 @@
       "text": "Preserve declared CI coverage, the required legacy comparator, independent frozen checks, honest start/end candidate identities, negative outcomes, and transaction behavior. Regenerate governed artifacts and link exact local validation evidence without editing protected surfaces.",
       "state": "pending",
       "evidence": [
-        "20261126-wi083-legacy-python-comparator"
+        "20261126-wi083-legacy-python-comparator",
+        "20261126-000614-018647-5e45898d-verify-ci"
       ]
     },
     {

@@ -30,6 +30,18 @@ The first CLI create attempt timed out at its 30-second limit after dispatch. Th
 - Do not reuse executable evidence based on commit/tree or a doc-only assumption. Do not add a cache unless a complete relevant read set and all execution inputs are proven.
 - Leave matched productivity/effectiveness research as an explicit pending outcome, using WI022 and the open WI082 proposal rather than claiming a result from this batch.
 
+## Validation repair
+
+The first full `ci` evidence run is preserved as
+`20261126-000614-018647-5e45898d-verify-ci` and failed: 207 Python fixture
+setups saw a malformed inherited `GIT_CONFIG_*` block after the self-audit
+override test, and conformance found an engine built from the prior commit
+`b01896a` while the checkout was `2b1c20d`. The self-audit test now clears the
+runner-only indexed Git config after testing that override, with a regression
+check for `git ls-files`; the focused sequence passed 42/42. The final engine
+will be rebuilt from the exact committed candidate before the full profile is
+rerun. The failed evidence and step log will remain in the history.
+
 ## Closeout
 
 Every satisfied criterion needs linked evidence in `work-item.json`. Keep unavailable research pending. Regenerate the dashboard after governed changes. Submit one validated draft PR; do not merge, approve, or release.

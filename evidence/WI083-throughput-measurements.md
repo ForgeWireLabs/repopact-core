@@ -85,3 +85,15 @@ source digest
 same documentation digest, so only the source snapshot was refreshed. The next
 canonical validation passed. Final full-profile and legacy-comparator results
 are recorded in their own evidence runs.
+
+The first full evidence-bearing `ci` attempt is preserved as
+`20261126-000614-018647-5e45898d-verify-ci`. It ran all declared steps, but the
+Python suite reported 207 fixture setup errors after
+`test_inherited_git_overrides_cannot_redirect_candidate` restored the host's
+indexed Git environment; child Git reported `missing config value
+GIT_CONFIG_VALUE_0`. Canonical conformance also reported that the engine was
+built at `b01896a` while the checkout was `2b1c20d`. Rust workspace tests, SPEC
+freshness, and the frozen-surface report passed. The test cleanup now removes
+the runner's indexed `GIT_CONFIG_*` block after exercising the hostile override,
+and the focused sequence passed all 42 self-audit and verify-status tests. The
+failed evidence record and its captured step log remain unchanged.
