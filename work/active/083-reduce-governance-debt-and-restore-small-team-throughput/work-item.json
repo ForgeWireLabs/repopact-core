@@ -70,7 +70,8 @@
         "20261126-wi083-coordinator-review-focused",
         "20261126-wi083-coordinator-review-legacy-python-comparator",
         "20261126T034610580481Z-wi076-ac6-engine-conformance",
-        "20261126-wi083-coordinator-review-ci-failed"
+        "20261126-wi083-coordinator-review-ci-failed",
+        "20261126-wi083-coordinator-review-ci-fixture-regressions"
       ]
     },
     {

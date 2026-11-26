@@ -124,9 +124,12 @@ the Rust workspace, spec freshness, and frozen-surface checks passed. The
 failure record is `20261126-wi083-coordinator-review-ci-failed`; the traceback
 showed test Git subprocesses inheriting the runner's malformed indexed config.
 The remaining repository, admission, and storage fixtures now filter inherited
-`GIT_*` values without mutating the parent environment; focused coverage passed
-30/30. The final local `ci` profile remains to be run on the corrected fixture
-candidate. AC-1 and AC-6 remain pending.
+`GIT_*` values without mutating the parent environment. Focused evidence
+`20261126-wi083-coordinator-review-ci-fixture-regressions` records 30/30 passes
+in 115.351 seconds on clean commit
+`10e42cfb3e5710a76d72e99e64262e68f1d4ac63`. The final local `ci` profile
+remains to be run on the reconciled evidence candidate. AC-1 and AC-6 remain
+pending.
 
 ## Closeout
 
