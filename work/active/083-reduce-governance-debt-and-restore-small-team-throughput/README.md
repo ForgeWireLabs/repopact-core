@@ -196,3 +196,19 @@ provenance is complete. Canonical Rust 43/43, legacy Python 43/43, WI050 8/8,
 and WI079 reference 10/10 passed. Evidence ID
 `20261126T183309135759Z-wi076-ac6-engine-conformance` is linked under AC-5;
 its raw output is `evidence/WI083-AC7-20261126/legacy-comparator-final.txt`.
+
+## Final clean-candidate validation — 2026-11-26
+
+After committing the WI083 measurement and comparator evidence, rebuilt the
+engine for commit `805f86ccf46d2311bbe19121cad22904b5993c9d` (tree
+`20867865b9b3e8e2ca196b887281d11b8f005651`) and ran the full local `ci`
+profile. All five required steps passed: repository validation, the full Python
+unit suite, canonical conformance, the Rust workspace, and SPEC freshness. The
+optional frozen-surface report also passed. Total profile duration was
+2,530.828 seconds. Start identity was clean at the commit/tree above; end
+identity retained that commit/tree and was dirty only because this run recorded
+its own evidence. Canonical conformance process-image provenance is complete
+at `20261126T191658572565Z-wi076-ac6-engine-conformance`. Profile evidence
+`20261126-wi083-ac7-clean-final-ci` and the conformance provenance are linked
+under AC-5. AC-1 and AC-6 remain pending; no productivity or comparative
+efficacy claim is made.
