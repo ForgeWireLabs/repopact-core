@@ -1,0 +1,96 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.31s
+     Running unittests src\lib.rs (C:\Projects\repopact-core-wi083-ac7-rust-target-20261126\debug\deps\repopact_mutation-6b33946978be6321.exe)
+
+running 1 test
+test tests::wi083_ac7_original_baseline_measurement ... META,fixture_root=C:\Projects\repopact-core-wi083-ac7-fixture-559ed9a-20261126,fixture_head=559ed9a86a1c399826f9505e5412d11c54d099ab
+META,measurement=plan_only_no_apply,candidate_logical_snapshots=2,outer_base_snapshot_count=1,total_logical_snapshots=3
+META,copied_files=1220,copied_bytes=19614984,warmups_per_case=2,samples_per_case=10
+META,percentile=median_arithmetic_middle_pair,p95_nearest_rank_including_max_for_n10
+RAW,case,phase,index,candidate_total_us,copy_us,operation_apply_us,dashboard_render_us,dashboard_write_us,full_temp_validation_us,cleanup_us,base_snapshot_us,plan_us,total_plan_us,candidate_ops,plan_ops,applicable,diagnostics,blocking,working_set_after_bytes,cumulative_process_peak_working_set_bytes,private_bytes_after
+RAW,active_create,warmup,0,9768321,1149317,1259,5512035,358,2779138,325863,2288490,10386741,12675233,2,3,true,0,0,43012096,88834048,35483648
+RAW,active_create,warmup,1,9660621,1144981,1212,5552930,772,2675732,284670,2031128,10301221,12332351,2,3,true,0,0,40775680,90603520,33538048
+RAW,active_create,sample,1,9963261,1171517,1658,5669309,523,2839766,280122,1990090,10589950,12580041,2,3,true,0,0,42921984,91021312,38502400
+RAW,active_create,sample,2,10552008,1184555,1249,5950493,417,3077973,336992,2080251,11332680,13412932,2,3,true,0,0,46358528,91045888,43548672
+RAW,active_create,sample,3,10372270,1288914,1489,5866582,383,2847954,366558,2331391,11011425,13342817,2,3,true,0,0,46309376,91115520,40837120
+RAW,active_create,sample,4,9731974,1137828,1664,5577943,465,2751521,262231,2043189,10414018,12457208,2,3,true,0,0,46301184,91516928,36990976
+RAW,active_create,sample,5,9342111,1246198,1777,5507716,422,2313948,271678,1969903,9895692,11865596,2,3,true,0,0,48513024,91877376,43675648
+RAW,active_create,sample,6,8421689,1022855,1202,4755605,387,2343546,297700,1923446,8978307,10901755,2,3,true,0,0,47779840,91877376,40013824
+RAW,active_create,sample,7,8430907,1052422,1224,4720159,413,2372351,283940,1874106,8988672,10862780,2,3,true,0,0,79278080,91877376,70131712
+RAW,active_create,sample,8,8725346,1055635,1117,5077950,441,2317274,272621,1939185,9282515,11221701,2,3,true,0,0,77271040,92192768,67633152
+RAW,active_create,sample,9,8357878,1044050,1269,4644915,397,2387356,279544,1927572,8928131,10855704,2,3,true,0,0,73613312,92192768,64319488
+RAW,active_create,sample,10,8482818,1080878,1267,4738980,388,2385451,275566,1977771,9042119,11019891,2,3,true,0,0,79257600,92192768,69824512
+CASE,active_create,measured=10,warmups=2
+SUMMARY,active_create,candidate_total_us,median_us=9033728,p95_nearest_rank_us=10552008
+SUMMARY,active_create,candidate_copy_us,median_us=1109353,p95_nearest_rank_us=1288914
+SUMMARY,active_create,candidate_operation_apply_us,median_us=1268,p95_nearest_rank_us=1777
+SUMMARY,active_create,dashboard_render_us,median_us=5292833,p95_nearest_rank_us=5950493
+SUMMARY,active_create,dashboard_write_us,median_us=415,p95_nearest_rank_us=523
+SUMMARY,active_create,full_temp_validation_us,median_us=2386403,p95_nearest_rank_us=3077973
+SUMMARY,active_create,candidate_cleanup_us,median_us=279833,p95_nearest_rank_us=366558
+SUMMARY,active_create,outer_base_snapshot_us,median_us=1973837,p95_nearest_rank_us=2331391
+SUMMARY,active_create,outer_plan_us,median_us=9589103,p95_nearest_rank_us=11332680
+SUMMARY,active_create,outer_total_plan_us,median_us=11543648,p95_nearest_rank_us=13412932
+RAW,active_edit,warmup,0,8416526,1053061,565,4714480,411,2365985,281711,1861250,13787267,15648517,1,2,true,0,0,83800064,92418048,71671808
+RAW,active_edit,warmup,1,8532559,1018438,494,4787684,380,2425460,299750,1868941,14152541,16021483,1,2,true,0,0,80531456,94691328,68861952
+RAW,active_edit,sample,1,8630472,1021090,501,4937730,376,2393910,276513,2072205,13794310,15866516,1,2,true,0,0,81514496,95064064,69353472
+RAW,active_edit,sample,2,8777816,1049348,522,4907331,388,2423835,396079,1943149,14588224,16531374,1,2,true,0,0,82403328,95117312,70266880
+RAW,active_edit,sample,3,8806971,1097006,651,5033132,425,2372058,303398,1852665,14060540,15913205,1,2,true,0,0,87826432,95121408,75812864
+RAW,active_edit,sample,4,10006460,1430351,897,5763263,392,2547242,263948,2561156,15366903,17928061,1,2,true,0,0,85680128,95121408,74076160
+RAW,active_edit,sample,5,8563592,1044028,594,4883285,403,2303300,331676,1910580,13713803,15624384,1,2,true,0,0,88297472,95285248,76513280
+RAW,active_edit,sample,6,8519717,1046129,546,4864795,465,2319073,288394,1914698,13845287,15759987,1,2,true,0,0,82857984,95285248,70799360
+RAW,active_edit,sample,7,8493947,1037506,527,4822686,467,2343193,289264,2029755,13709732,15739488,1,2,true,0,0,83972096,95518720,71868416
+RAW,active_edit,sample,8,8425246,1034219,503,4775725,357,2326521,287567,1886424,13608016,15494441,1,2,true,0,0,85647360,95518720,73809920
+RAW,active_edit,sample,9,8477226,1095901,744,4704047,433,2381371,294413,1859385,13787951,15647337,1,2,true,0,0,88080384,95518720,76382208
+RAW,active_edit,sample,10,8463264,1027841,484,4722194,436,2389924,321996,1869579,13673235,15542815,1,2,true,0,0,88813568,95739904,77107200
+CASE,active_edit,measured=10,warmups=2
+SUMMARY,active_edit,candidate_total_us,median_us=8541654,p95_nearest_rank_us=10006460
+SUMMARY,active_edit,candidate_copy_us,median_us=1045078,p95_nearest_rank_us=1430351
+SUMMARY,active_edit,candidate_operation_apply_us,median_us=536,p95_nearest_rank_us=897
+SUMMARY,active_edit,dashboard_render_us,median_us=4874040,p95_nearest_rank_us=5763263
+SUMMARY,active_edit,dashboard_write_us,median_us=414,p95_nearest_rank_us=467
+SUMMARY,active_edit,full_temp_validation_us,median_us=2376714,p95_nearest_rank_us=2547242
+SUMMARY,active_edit,candidate_cleanup_us,median_us=291838,p95_nearest_rank_us=396079
+SUMMARY,active_edit,outer_base_snapshot_us,median_us=1912639,p95_nearest_rank_us=2561156
+SUMMARY,active_edit,outer_plan_us,median_us=13791130,p95_nearest_rank_us=15366903
+SUMMARY,active_edit,outer_total_plan_us,median_us=15749737,p95_nearest_rank_us=17928061
+RAW,active_to_blocked,warmup,0,8382878,1072635,2153,4735128,420,2283632,288593,1849818,13655942,15505780,2,3,true,0,0,90288128,95875072,78557184
+RAW,active_to_blocked,warmup,1,8398327,1049495,2004,4758520,444,2298855,288700,1914580,13579761,15494342,2,3,true,0,0,88379392,95875072,76410880
+RAW,active_to_blocked,sample,1,8416493,1041491,2036,4734915,435,2313148,324130,1911501,13762541,15674043,2,3,true,0,0,88088576,95875072,76152832
+RAW,active_to_blocked,sample,2,8383372,1070462,2153,4670300,438,2353450,286280,1949186,13566043,15515231,2,3,true,0,0,60596224,95875072,55783424
+RAW,active_to_blocked,sample,3,8475133,1021807,1978,4801957,452,2359932,288689,1854981,13649049,15504031,2,3,true,0,0,87142400,96161792,75333632
+RAW,active_to_blocked,sample,4,8606185,1075378,2504,4887126,421,2322575,317867,1871848,13714538,15586388,2,3,true,0,0,81293312,96161792,69451776
+RAW,active_to_blocked,sample,5,8402002,1044751,2015,4739620,453,2330226,284617,1916182,13607746,15523929,2,3,true,0,0,82378752,96161792,70447104
+RAW,active_to_blocked,sample,6,8585499,1129653,2159,4846005,432,2320378,286503,1962544,13840392,15802937,2,3,true,0,0,87728128,96161792,75677696
+RAW,active_to_blocked,sample,7,8433986,1040093,2041,4755622,391,2341018,294504,1871150,13659035,15530186,2,3,true,0,0,79745024,96161792,67559424
+RAW,active_to_blocked,sample,8,8798883,1037146,2054,4906343,517,2552972,299541,1851224,14154625,16005850,2,3,true,0,0,86278144,96161792,74313728
+RAW,active_to_blocked,sample,9,10213806,1521522,4007,5897272,431,2543553,246668,2105819,15588705,17694524,2,3,true,0,0,84164608,96161792,72331264
+RAW,active_to_blocked,sample,10,8566812,1044984,2530,4858655,424,2382330,277590,1873023,13835773,15708797,2,3,true,0,0,89542656,96190464,77557760
+CASE,active_to_blocked,measured=10,warmups=2
+SUMMARY,active_to_blocked,candidate_total_us,median_us=8520972,p95_nearest_rank_us=10213806
+SUMMARY,active_to_blocked,candidate_copy_us,median_us=1044867,p95_nearest_rank_us=1521522
+SUMMARY,active_to_blocked,candidate_operation_apply_us,median_us=2103,p95_nearest_rank_us=4007
+SUMMARY,active_to_blocked,dashboard_render_us,median_us=4823981,p95_nearest_rank_us=5897272
+SUMMARY,active_to_blocked,dashboard_write_us,median_us=433,p95_nearest_rank_us=517
+SUMMARY,active_to_blocked,full_temp_validation_us,median_us=2347234,p95_nearest_rank_us=2552972
+SUMMARY,active_to_blocked,candidate_cleanup_us,median_us=287596,p95_nearest_rank_us=324130
+SUMMARY,active_to_blocked,outer_base_snapshot_us,median_us=1892262,p95_nearest_rank_us=2105819
+SUMMARY,active_to_blocked,outer_plan_us,median_us=13738539,p95_nearest_rank_us=15588705
+SUMMARY,active_to_blocked,outer_total_plan_us,median_us=15630215,p95_nearest_rank_us=17694524
+MEMORY,cumulative_process_peak_working_set_bytes=96190464
+META,post_measurement_fixture_status_is_checked_by_caller; plan-only harness does not call apply
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 32 filtered out; finished in 527.13s
+
+     Running tests\remote_provider_governance_boundary.rs (C:\Projects\repopact-core-wi083-ac7-rust-target-20261126\debug\deps\remote_provider_governance_boundary-a5fa40ce039d7d42.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 3 filtered out; finished in 0.00s
+
+     Running tests\verification_post_validation.rs (C:\Projects\repopact-core-wi083-ac7-rust-target-20261126\debug\deps\verification_post_validation-b58ce280b47863ea.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s
+

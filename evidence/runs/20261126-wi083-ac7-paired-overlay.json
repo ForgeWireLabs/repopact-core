@@ -1,0 +1,64 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261126-wi083-ac7-paired-overlay",
+  "timestamp": "2026-11-26T17:30:46Z",
+  "work_item": "083",
+  "result": "failed",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "powershell -File evidence/WI083-AC7-20261126/paired-overlay-baseline-command-20261126.ps1",
+      "exit_code": 0,
+      "summary": "Original candidate validation harness: 2 warmups + 10 samples in each of three cases; 30 applicable plans, zero diagnostics/blockers."
+    },
+    {
+      "command": "powershell -File evidence/WI083-AC7-20261126/candidate-overlay-command-20261126.ps1",
+      "exit_code": 0,
+      "summary": "Single-snapshot candidate harness: same fixture and per-file manifest, same sample schedule; 30 applicable plans, zero diagnostics/blockers. Gate failed: pooled median improved 4.283% (<15%) and active-create p95 increased 41.5% (>5%)."
+    }
+  ],
+  "artifacts": [
+    "evidence/WI083-AC7-20261126/README.md",
+    "evidence/WI083-AC7-20261126/paired-overlay-baseline-raw.txt",
+    "evidence/WI083-AC7-20261126/paired-overlay-candidate-raw.txt",
+    "evidence/WI083-AC7-20261126/paired-overlay-comparison-summary.txt",
+    "evidence/WI083-AC7-20261126/paired-overlay-file-length-manifest.csv",
+    "evidence/WI083-AC7-20261126/paired-overlay-baseline-command-20261126.ps1",
+    "evidence/WI083-AC7-20261126/candidate-overlay-command-20261126.ps1",
+    "evidence/WI083-AC7-20261126/candidate-overlay-source.patch"
+  ],
+  "environment": {
+    "source_revision": "559ed9a86a1c399826f9505e5412d11c54d099ab",
+    "source_tree": "8be9c62cda36506623e828a267538e5d62849195",
+    "os": "Windows 10 Pro build 19045 x64",
+    "cpu": "Intel Core i7-6820HQ, 4 cores / 8 threads",
+    "rust": "rustc 1.96.0; cargo 1.96.0",
+    "profile": "Cargo unoptimized test profile with test-only instrumentation",
+    "fixture": {
+      "files": 1220,
+      "bytes": 19624629,
+      "per_file_manifest_identical": true
+    },
+    "candidate_source_sha256": {
+      "rust/crates/repopact-repository/src/lib.rs": "21C614B3AEEEF6F2462FA125C260A2CBA0AA1FE3D0D433A422BF0ADBDDFDB3F9",
+      "rust/crates/repopact-mutation/src/lib.rs": "444059C5D78DCFCEBCF66A4E770BB52C6F559BD6C610D25C66219AF8DE3226B2"
+    },
+    "logical_snapshots_per_plan": {
+      "baseline": 3,
+      "candidate": 2
+    },
+    "peak_working_set_bytes": {
+      "baseline": 96481280,
+      "candidate": 96575488
+    },
+    "pooled_median_ms": {
+      "baseline": 9549.364,
+      "candidate": 9140.374,
+      "improvement_percent": 4.283
+    },
+    "representative_p95_regression_percent": {
+      "active_create": 41.5
+    },
+    "decision": "Retained the original runtime path because the pre-registered performance gate failed. Repository copying and independent live post-state validation remain in the original production path."
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261126-wi083-ac7-focused-prototype",
+  "timestamp": "2026-11-26T17:30:46Z",
+  "work_item": "083",
+  "result": "passed",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "cargo test --locked --manifest-path rust/Cargo.toml -p repopact-repository materialized_dashboard_refresh_matches_a_fresh_snapshot -- --nocapture",
+      "exit_code": 0,
+      "summary": "Dashboard index/text/read-set refresh equals a fresh snapshot (1 test passed)."
+    },
+    {
+      "command": "cargo test --locked --manifest-path rust/Cargo.toml -p repopact-mutation single_snapshot_candidate_matches_legacy_dashboard_and_diagnostics -- --nocapture",
+      "exit_code": 0,
+      "summary": "Prototype candidate validation/dashboard/diagnostics equivalence matrix passed (1 test); supported symlink case ran."
+    }
+  ],
+  "artifacts": [
+    "evidence/WI083-AC7-20261126/focused-prototype-regressions.txt",
+    "evidence/WI083-AC7-20261126/candidate-source.patch",
+    "evidence/WI083-AC7-20261126/candidate-mutation-lib.rs",
+    "evidence/WI083-AC7-20261126/candidate-repository-lib.rs"
+  ],
+  "environment": {
+    "source_revision": "559ed9a86a1c399826f9505e5412d11c54d099ab",
+    "rust": "rustc 1.96.0; cargo 1.96.0",
+    "scope": "Tests exercised a temporary prototype before source restoration; no prototype runtime code is included in the final candidate. They establish validation equivalence, not an applied mutation or independent live post-state result."
+  }
+}

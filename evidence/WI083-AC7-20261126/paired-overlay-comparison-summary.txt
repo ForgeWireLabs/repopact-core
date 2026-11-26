@@ -1,0 +1,16 @@
+fixture_copy_manifest_files=1220
+fixture_copy_manifest_bytes=19624629
+fixture_copy_manifest_identical_in_A_and_B=true
+case,baseline_candidate_validation_median_us,candidate_validation_median_us,reduction_percent,baseline_p95_us,candidate_p95_us
+active_create,8543164.5,10132900.5,-18.608,8686662,12301085
+active_edit,9549363.5,9291299.0,2.702,12958396,10610265
+active_to_blocked,11353594.0,8234638.5,27.471,13001532,9424424
+all_30_samples,9549363.5,9140374.0,4.283,12958396,11344890
+baseline_measured_samples=30
+baseline_all_applicable=True
+baseline_diagnostic_total=0
+baseline_blocking_total=0
+candidate_measured_samples=30
+candidate_all_applicable=True
+candidate_diagnostic_total=0
+candidate_blocking_total=0
