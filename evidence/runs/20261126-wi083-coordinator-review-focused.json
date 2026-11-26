@@ -1,0 +1,77 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261126-wi083-coordinator-review-focused",
+  "timestamp": "2026-11-26T03:40:51Z",
+  "work_item": "083",
+  "result": "passed",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "python -m unittest tests.test_engine_build_provenance tests.test_self_audit.CandidateAuditTests.test_inherited_git_overrides_cannot_redirect_candidate tests.test_verification.VerificationRunnerTests.test_candidate_identity_uses_explicit_root_with_hostile_git_environment tests.test_verification.VerificationRunnerTests.test_missing_candidate_revision_cannot_be_reported_as_clean tests.test_conformance_provenance_identity.ConformanceProvenanceIdentityTests.test_source_identity_ignores_only_current_live_capture_pair -v",
+      "exit_code": 0,
+      "summary": "5/5 passed on the committed candidate. Cargo no-op build was 113.4 ms; build script count stayed at 1 with no packed-refs file present."
+    },
+    {
+      "command": "python -m unittest tests.test_self_audit.CandidateAuditTests.test_inherited_git_overrides_cannot_redirect_candidate tests.test_research_metadata tests.test_verify_status -v",
+      "exit_code": 0,
+      "summary": "25/25 passed with self-audit first; malformed inherited Git configuration remained present in the parent process."
+    },
+    {
+      "command": "python -m unittest tests.test_verify_status tests.test_research_metadata tests.test_self_audit.CandidateAuditTests.test_inherited_git_overrides_cannot_redirect_candidate -v",
+      "exit_code": 0,
+      "summary": "25/25 passed with self-audit last; the parent Git environment and empty values were preserved."
+    },
+    {
+      "command": "python -m unittest tests.test_verification tests.test_conformance_provenance_identity -v",
+      "exit_code": 0,
+      "summary": "29/29 passed, including explicit-root candidate identity under hostile Git overrides and source revision discovery under hostile overrides."
+    },
+    {
+      "command": "python -m pip install -e \".[dev]\"",
+      "exit_code": 0,
+      "summary": "Editable package installation and native Rust build passed."
+    },
+    {
+      "command": "cargo fmt --manifest-path rust/Cargo.toml --all -- --check",
+      "exit_code": 0,
+      "summary": "Rust formatting check passed."
+    },
+    {
+      "command": "python scripts/generate_engine_semantic_identity.py --check",
+      "exit_code": 0,
+      "summary": "Generated semantic input identity is current."
+    },
+    {
+      "command": "repopact check-frozen --base origin/main",
+      "exit_code": 0,
+      "summary": "No frozen-surface changes detected."
+    }
+  ],
+  "artifacts": [
+    "tests/test_engine_build_provenance.py",
+    "tests/test_self_audit.py",
+    "tests/test_verification.py",
+    "tests/test_conformance_provenance_identity.py",
+    "rust/apps/repopact-engine/build_support.rs"
+  ],
+  "environment": {
+    "executor": "local",
+    "platform": "Windows 10",
+    "python": "3.12.4",
+    "git": "2.53.0.windows.3",
+    "cargo": "1.96.0 (30a34c682 2026-05-25)",
+    "rustc": "1.96.0 (ac68faa20 2026-05-25)",
+    "candidate": {
+      "commit": "cf7ed4e25db9ebffefcfc5fde194646574eed246",
+      "tree": "6586a7d8f2f70e449d50558a952cb26b6a300908",
+      "dirty": false
+    },
+    "host_git_environment": "Host GIT_* overrides, including empty indexed values, remained unchanged; child Git calls were isolated by the tested paths.",
+    "cargo_noop_measurement": {
+      "elapsed_milliseconds": 113.4,
+      "build_script_runs_before": 1,
+      "build_script_runs_after": 1,
+      "packed_refs_file_present": false
+    }
+  }
+}

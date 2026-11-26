@@ -87,6 +87,33 @@ the same source revision. AC-2 through AC-5 are now satisfied. AC-1 remains
 pending because tutorial elapsed time was not captured; AC-6 remains pending
 because this batch did not include a matched comparative efficacy study.
 
+## Coordinator review corrections
+
+Coordinator review of draft PR #31 found that the engine build script inherited
+Git overrides, watched a missing `packed-refs` path, and needed to keep refresh
+behavior across loose and packed refs. Git discovery now removes inherited
+`GIT_*` variables, watches only existing files plus the active ref's nearest
+existing parent directory, and keeps the worktree-specific `HEAD` dependency.
+The Cargo regression covers hostile overrides, branch advance, pack/unpack
+refresh, linked detached worktrees, and a no-op build with no `packed-refs`
+file. The measured no-op build was 113.4 ms and did not rerun the build script.
+
+The same review found a self-audit test that deleted the parent process's
+`GIT_CONFIG_*` variables after a scoped override. The test now asserts that the
+complete parent Git environment, including empty values, is restored and
+sanitizes its later fixture Git call. Candidate identity in
+`verification._git_value` now ignores inherited Git overrides and leaves
+`dirty` unknown if the commit, tree, or status cannot be read. The conformance
+provenance regression also verifies the exact source revision with hostile Git
+overrides present.
+
+Focused evidence `20261126-wi083-coordinator-review-focused` records the
+exact-source regressions, both test orders, editable Rust build, formatting,
+semantic identity, and frozen-surface checks on commit
+`cf7ed4e25db9ebffefcfc5fde194646574eed246`. The full local `ci` profile and the
+required legacy comparator remain to be rerun once against the corrected
+candidate. AC-1 and AC-6 remain pending.
+
 ## Closeout
 
 Every satisfied criterion needs linked evidence in `work-item.json`. Keep unavailable research pending. Regenerate the dashboard after governed changes. Submit one validated draft PR; do not merge, approve, or release.

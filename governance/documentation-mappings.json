@@ -80,8 +80,8 @@
       ],
       "description": "The installation and packaging guide explains semantic identity, same-process admission, exact runtime dependency checks, migration, no-replay handling for uncertain outcomes, wheel payload and packaged-engine verification, the separate WI079 self-audit reference corpus, and the limits of executable provenance.",
       "snapshot": {
-        "source_digest": "b2d1f27f2201d108a30409d3378c44fd0a2afd64ea9652823d32897130cd007c",
-        "documentation_digest": "bacccfce123cba5d6e417a7e984ac00b3b4838451dfb55f07c5a648829826fc1"
+        "source_digest": "1aad0dae99710bd5a07140bba7f903aac9c17569414456828a308fd15db4c7ac",
+        "documentation_digest": "a8bc0c1ef6847f544c2083ecd07dbd54cfd751f5f2f447ce99d1bc03e4e521a3"
       }
     },
     {
