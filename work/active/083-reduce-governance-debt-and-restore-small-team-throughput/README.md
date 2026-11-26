@@ -49,8 +49,14 @@ regression; the affected fixture and research-metadata modules passed 30/30.
 The same run found Cargo had reused source-revision metadata from `2b1c20d` at
 checkout `ec070bf`. The engine build now tracks `HEAD`, the active branch ref,
 and packed refs, so a checkout advance rebuilds the embedded source revision.
-Both negative runs and the incomplete provenance record remain linked under
-AC-5. Rebuild and exact-candidate full-profile evidence are still pending.
+After commit `e86bb27`, Cargo rebuilt the engine automatically when the branch
+ref advanced; the embedded source revision matched that commit. The canonical
+and legacy conformance comparison then passed 43/43 each, WI050 passed 8/8,
+WI079 passed 10/10, and process-image provenance was complete. This run is
+recorded as `20261126-wi083-current-legacy-python-comparator`, with provenance
+`20261126T010905966805Z-wi076-ac6-engine-conformance`. Both negative runs and
+the incomplete provenance record remain linked under AC-5. Exact-candidate
+full-profile evidence is still pending.
 
 ## Closeout
 
