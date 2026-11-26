@@ -1,0 +1,92 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261125-079-pr29-preflight-attempts",
+  "timestamp": "2026-11-25T23:38:26Z",
+  "work_item": "079",
+  "result": "passed",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "python -m pip install -e .[dev] (initial exact-source checkout)",
+      "exit_code": 1,
+      "summary": "Build stopped because canonical semantic identity was stale; preserved in preflight-attempts/editable-dev-install.log and corrected through reviewed generator update."
+    },
+    {
+      "command": "python scripts/generate_engine_semantic_identity.py --update",
+      "exit_code": 0,
+      "summary": "Canonical semantic manifest and identity regenerated after source review."
+    },
+    {
+      "command": "python -m pip install -e .[dev] (after canonical regeneration)",
+      "exit_code": 0,
+      "summary": "Editable development install succeeded; preserved canonical install log."
+    },
+    {
+      "command": "python -m unittest tests.test_self_audit.CandidateAuditTests.test_net_reversal_does_not_hide_review_layers",
+      "exit_code": 0,
+      "summary": "New net-diff reversal regression passed."
+    },
+    {
+      "command": "python -m unittest tests.test_self_audit.CandidateAuditTests.test_cli_rejects_unhashable_finding_status_without_traceback",
+      "exit_code": 0,
+      "summary": "New malformed finding-status regression passed."
+    },
+    {
+      "command": "python -m unittest discover -s tests -p test_self_audit.py -v (first attempt)",
+      "exit_code": 1,
+      "summary": "34 passed; one errored because jsonschema was missing from the local environment, not because of an assertion failure."
+    },
+    {
+      "command": "python -m pip install jsonschema>=4.20",
+      "exit_code": 0,
+      "summary": "Installed declared runtime dependency into the isolated test environment."
+    },
+    {
+      "command": "python -m unittest discover -s tests -p test_self_audit.py -v (retry)",
+      "exit_code": 0,
+      "summary": "35/35 passed."
+    },
+    {
+      "command": "python -m unittest tests.test_self_audit_verification_boundary -v",
+      "exit_code": 0,
+      "summary": "7/7 passed."
+    },
+    {
+      "command": "python -m unittest tests.test_self_audit_conformance -v",
+      "exit_code": 0,
+      "summary": "3/3 passed."
+    }
+  ],
+  "artifacts": [
+    "evidence/runs/20261125-079-pr29-preflight-attempts/editable-dev-install.log",
+    "evidence/runs/20261125-079-pr29-preflight-attempts/editable-dev-install.exit",
+    "evidence/runs/20261125-079-pr29-preflight-attempts/editable-dev-install-canonical.log",
+    "evidence/runs/20261125-079-pr29-preflight-attempts/editable-dev-install-canonical.exit",
+    "evidence/runs/20261125-079-pr29-preflight-attempts/regression-net-reversal.log",
+    "evidence/runs/20261125-079-pr29-preflight-attempts/regression-net-reversal.exit",
+    "evidence/runs/20261125-079-pr29-preflight-attempts/regression-status-type.log",
+    "evidence/runs/20261125-079-pr29-preflight-attempts/regression-status-type.exit",
+    "evidence/runs/20261125-079-pr29-preflight-attempts/self-audit-35.log",
+    "evidence/runs/20261125-079-pr29-preflight-attempts/self-audit-35.exit",
+    "evidence/runs/20261125-079-pr29-preflight-attempts/install-jsonschema.log",
+    "evidence/runs/20261125-079-pr29-preflight-attempts/install-jsonschema.exit",
+    "evidence/runs/20261125-079-pr29-preflight-attempts/self-audit-35-retry.log",
+    "evidence/runs/20261125-079-pr29-preflight-attempts/self-audit-35-retry.exit",
+    "evidence/runs/20261125-079-pr29-preflight-attempts/boundary-7.log",
+    "evidence/runs/20261125-079-pr29-preflight-attempts/boundary-7.exit",
+    "evidence/runs/20261125-079-pr29-preflight-attempts/corpus-3.log",
+    "evidence/runs/20261125-079-pr29-preflight-attempts/corpus-3.exit",
+    "evidence/runs/20261125-079-pr29-final-local-ci.stdout.log",
+    "evidence/runs/20261125-079-pr29-engine-build.log"
+  ],
+  "environment": {
+    "focused_candidate_at_start": {
+      "commit": "daa94e8ddc264212a7e1c372b5c935c95c522ab5",
+      "tree": "eba436807784d81052e376a4555ca0d96e451810",
+      "dirty": false
+    },
+    "host": "Windows",
+    "python": "CPython 3.12.4",
+    "disposition": "Failed setup attempts are preserved beside successful retries; all results are reported separately."
+  }
+}

@@ -1,6 +1,6 @@
 # 079 — Agent Pre-Completion Assurance and Verifiable Self-Audit Evidence
 
-> **Status:** active (operator-authorized engineering as of 2026-11-22); not completed or release-cleared.
+> **Status:** completed 2026-11-25; release and publication gates remain unchanged.
 > **Lead:** governance-owner. **Affected:** governance, tooling, evidence, docs, work.
 > **Depends on:** none. **Created:** 2026-11-22.
 
@@ -46,7 +46,7 @@ This is **not** a rewrite of [WI044](../../proposed/044-typed-capability-complet
 - No retroactive rewriting of completed work/evidence or required migration of legacy adopters.
 - No immediate universal enforcement by merely adding `AGENTS.md` text.
 
-## Current branch implementation and evidence (historical snapshots through 2026-11-25)
+## Implementation and validation history (historical snapshots through 2026-11-25)
 
 The operator authorized WI079 engineering after the initial proposal. The draft contains a **read-only, opt-in Python candidate fingerprint helper**, top-level `repopact self-audit` CLI dispatch, 31 focused test methods, an [adopter guide](../../../docs/guides/pre-completion-assurance.md), a [design reconciliation](design-reconciliation.md), and a [preregistered comparison protocol](../../../research/wi079-self-audit-benchmark-protocol.md).
 
@@ -63,11 +63,11 @@ The operator authorized WI079 engineering after the initial proposal. The draft 
 
 ## Known process deviation and outstanding approval
 
-The initial exploratory helper was committed before the complete option comparison/design reconciliation was written. The order is preserved here instead of being backdated or represented as a preregistered implementation decision. AC-2 therefore remains pending and requires explicit technical review of the selected minimal pilot before any binding Rust/schema contract is implemented. Existing source experiments do not authorize new protected-surface changes.
+The initial exploratory helper was committed before the complete option comparison/design reconciliation was written. The order is preserved here instead of being backdated or represented as a preregistered implementation decision. AC-2 was pending at that checkpoint; the later explicit operator disposition is recorded in Decision 0079. Any binding Rust/schema contract requires prospective design approval. Existing source experiments do not authorize new protected-surface changes.
 
 ## Closeout requirements
 
-The ten criteria in `work-item.json` remain pending. Before any canonical schema, binding completion-policy, or other protected semantic change, record architectural approval in the existing governance workflow. Completion requires criterion-linked concrete evidence, documented limits and negative cases, resolved documentation-impact state, canonical RepoPact validation, and generator-produced dashboard/spec updates (never hand-edited). A draft work item alone is not an executable assurance feature.
+The criterion states in `work-item.json` are authoritative. The following closeout requirements remain applicable. Before any canonical schema, binding completion-policy, or other protected semantic change, record architectural approval in the existing governance workflow. Completion requires criterion-linked concrete evidence, documented limits and negative cases, resolved documentation-impact state, canonical RepoPact validation, and generator-produced dashboard/spec updates (never hand-edited). A draft work item alone is not an executable assurance feature.
 
 ## Subsequent integration and criterion review — 2026-11-25
 
@@ -75,3 +75,20 @@ The ten criteria in `work-item.json` remain pending. Before any canonical schema
 - Independent remote source/evidence review `20261125-079-criterion-source-and-evidence-review` supports AC-1, AC-3, AC-4, AC-5 and AC-6 **satisfied** on this **draft candidate**, not yet on main. AC-2's historical implementation-before-design requirement remains pending and may not be backdated. The fresh-repair regression passed first (1/1), followed by self-audit 33/33, boundary 6/6, and exact-source local CI on `94e65a032da546f6a88c0f0d9cc9d48fd5a398a4` (516 Python passed/4 skipped; Rust workspace 98 passed; conformance 43/43; WI050 8/8). AC-7 remains **pending**: its matrix identifies no WI079-profile unavailable-executable fixture and no WI079 self-audit conformance fixtures. AC-8 (protected authority), AC-9 (benchmark **NOT RUN**) and AC-10 (final closeout) remain pending.
 - The [criterion reconciliation](criterion-evidence-reconciliation-2026-11-25.md) records reviewed evidence and hard boundaries. The independent review **does not** grant formal second-principal GitHub approval or H14 enforcement.
 - Canonical dashboard regeneration and exact-source local CI have passed for PR #27; this does not close AC-7's remaining fixture gaps. The historical WI080 Rust failure remains blocked and unproven; CI stays local-only through 2026-12-01 inclusive.
+
+## PR #28 integration and AC-7 disposition — 2026-11-25
+
+PR #28 merged as `b9dec03ad59c2ef7d782eda9f2b3220747e8ba3c`. Both remaining AC-7 fixture gaps passed; technical review 6065238331 accepts AC-7 evidence. This draft stages six satisfied criteria and four pending, with no runtime change. See [AC-7 acceptance and remaining scope decisions](ac7-acceptance-disposition-2026-11-25.md). The earlier all-pending and missing-fixture descriptions are historical checkpoints. AC-2/8/9/10 remain pending; the study is NOT RUN and protected enforcement is not claimed.
+
+## Operator-authorized disposition and final validation candidate — 2026-11-25
+
+[Decision 0079](../../../decisions/0079-wi079-optional-assurance-and-research-deferral.md) records the operator's approval of the four recommended dispositions. AC-2 is waived for the preserved historical ordering deviation; AC-8 is satisfied only for the actual exercised optional local profile (no protected gate); AC-9 is waived and transferred to [proposed WI082](../../proposed/082-evaluate-self-audit-and-independent-review-effectiveness/README.md), original protocol NOT RUN. AC-7 is satisfied based on review 6065238331 and PR28 exact-source evidence. AC-10 remains pending final canonical validation and lifecycle closeout. This candidate has seven satisfied, two waived, one pending. WI079 stays active until AC-10 is evidenced.
+
+The final source review reproduced a net-diff path omission when staged and unstaged changes cancel and an unhandled unhashable finding status. The scoped source repair retains the union of committed, staged and unstaged paths and rejects malformed status values cleanly. Two new regression methods require execution; earlier PR28 test evidence does not cover the changed source. Final documentation impact is recorded as affected. See `20261125-079-operator-disposition-and-documentation-review` and the disposition note. No model experiment, mandatory gate, hosted CI/CD, publication or release authorized.
+
+
+## Final validation and lifecycle — 2026-11-25
+
+The final closeout is recorded in [criterion-linked evidence](final-closeout-2026-11-25.md) and machine evidence `20261125-079-pr29-closeout-review`. The exact-source local CI run `20261125-079-pr29-final-local-ci` passed all five required steps and the optional frozen-surface report. Its clean candidate-at-start was `7c451c7da22616869816e2513c4404c6b01a0cb9` / `70878e28e0d2a8f65d4cb3569b9ae6144b20f4b6`; the matching engine and conformance provenance report the same source revision. Focused evidence, canonical outputs, and preserved initial failures are linked from the closeout record.
+
+AC-10 is satisfied. AC-2 and AC-9 remain waived under Decision 0079. WI082 remains proposed with all five criteria pending; the preregistered comparison protocol is still NOT RUN. WI079 is completed and the entire item directory is in `work/completed/`. No hosted CI/CD, merge, publication, release, or WI080 change occurred.

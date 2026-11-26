@@ -1,0 +1,58 @@
+{
+  "$schema": "../../../repopact/schemas/work-item.schema.json",
+  "id": "082",
+  "title": "Evaluate structured self-audit and independent review effectiveness",
+  "status": "proposed",
+  "owner_scope": "governance",
+  "affected_scopes": [
+    "governance",
+    "work",
+    "evidence",
+    "docs",
+    "tooling"
+  ],
+  "depends_on": [
+    "079"
+  ],
+  "provenance": "concrete",
+  "preflight": {
+    "created_before_work_started": true,
+    "created_at": "2026-11-25T21:38:46.486Z",
+    "note": "Operator authorized the separate proposed research item as part of WI079 disposition. Existing prospective protocol is preserved; this registration authorizes no experiment, fixture execution, paid model calls, service, or spend."
+  },
+  "acceptance_criteria": [
+    {
+      "id": "AC-1",
+      "text": "Before experimental execution, obtain explicit operator authorization and resource ceilings; preregister and freeze twelve matched task fixtures, golden tests, independent adjudication rubric, model/version, prompts, tools, budgets, seeds and condition order under the preserved WI079 protocol. Record any prospective amendment without rewriting the original protocol.",
+      "state": "pending",
+      "evidence": []
+    },
+    {
+      "id": "AC-2",
+      "text": "Run matched ordinary verification, bounded structured self-audit, and fresh-context independent-review conditions on the fixed tasks. Preserve raw candidates, actual tool invocations and outcomes; report skipped, unavailable, aborted and inconclusive trials without fabricated passes.",
+      "state": "pending",
+      "evidence": []
+    },
+    {
+      "id": "AC-3",
+      "text": "Measure escaped seeded defects with denominators, false findings on clean controls, regressions, task success, unnecessary churn, latency, tokens and observable cost. Preserve missing data as not measured; independently adjudicate and compare conditions with low-power limitations.",
+      "state": "pending",
+      "evidence": []
+    },
+    {
+      "id": "AC-4",
+      "text": "Publish a durable internal analysis with the complete result/evidence manifest, adverse and null outcomes, and appropriately qualified claims. Do not infer that structural self-report freshness replaces independent review or provides protected enforcement.",
+      "state": "pending",
+      "evidence": []
+    },
+    {
+      "id": "AC-5",
+      "text": "Reconcile the results with WI079's optional design and adjacent H14/WI044 questions. Record whether further research or a separately authorized protected policy is justified; do not change enforcement or publication status automatically. Complete only with concrete linked evidence and resolved documentation impact.",
+      "state": "pending",
+      "evidence": []
+    }
+  ],
+  "created": "2026-11-25",
+  "updated": "2026-11-25",
+  "lead": "governance-owner"
+}

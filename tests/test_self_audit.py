@@ -116,6 +116,34 @@ class CandidateAuditTests(unittest.TestCase):
         self.assertNotEqual(self.base, candidate["head_commit"])
         self.assertIn("alpha.txt", candidate["changed_paths"])
 
+    def test_net_reversal_does_not_hide_review_layers(self):
+        path = self.root / "alpha.txt"
+        for layer in ("staged", "committed-staged-reversal", "committed-unstaged-reversal"):
+            with self.subTest(layer=layer):
+                self.git("reset", "--hard", self.base)
+                path.write_text("intermediate change\n", encoding="utf-8")
+                self.git("add", "alpha.txt")
+                if layer.startswith("committed"):
+                    self.git("commit", "-qm", "intermediate change")
+                path.write_text("alpha\n", encoding="utf-8")
+                if layer == "committed-staged-reversal":
+                    self.git("add", "alpha.txt")
+
+                # The old net-diff algorithm sees no changes at all.
+                self.assertEqual("", self.git("diff", "--name-only", self.base, "--"))
+                record = self_audit.report_template(self.root, self.base)
+                self.assertEqual(["alpha.txt"], record["candidate"]["changed_paths"])
+                self.assertEqual(["alpha.txt"], [
+                    state["path"] for state in record["candidate"]["content_states"]
+                ])
+                record["review"].update(outcome="pass", actor="agent", reviewed_paths=[])
+                with self.assertRaisesRegex(self_audit.SelfAuditError, "reviewed paths"):
+                    self_audit.inspect_report(self.root, record)
+                record["review"]["reviewed_paths"] = ["alpha.txt"]
+                result = self_audit.inspect_report(self.root, record)
+                self.assertEqual("self-report-current", result["result"])
+                self.assertEqual("instruction-only", result["assurance"])
+
     def test_dirty_content_and_index_drift_invalidate_report(self):
         (self.root / "alpha.txt").write_text("one\n", encoding="utf-8")
         report = self_audit.report_template(self.root, self.base)
@@ -250,6 +278,32 @@ class CandidateAuditTests(unittest.TestCase):
         )
         with self.assertRaisesRegex(self_audit.SelfAuditError, "finding fields"):
             self_audit.inspect_report(self.root, report)
+
+    def test_cli_rejects_unhashable_finding_status_without_traceback(self):
+        from contextlib import redirect_stdout
+        from io import StringIO
+
+        (self.root / "alpha.txt").write_text("modified\n", encoding="utf-8")
+        report = self_audit.report_template(self.root, self.base)
+        report["review"].update(
+            outcome="pass", actor="agent", reviewed_paths=["alpha.txt"],
+            findings=[{"path": "alpha.txt", "status": [], "scenario": "example"}],
+        )
+        path = Path(self.temp.name) / "review.json"
+        for invalid in ([], {}, ["fixed"]):
+            with self.subTest(status=invalid):
+                report["review"]["findings"][0]["status"] = invalid
+                path.write_text(json.dumps(report), encoding="utf-8")
+                output = StringIO()
+                with redirect_stdout(output):
+                    exit_code = self_audit.main([
+                        "check", "--root", str(self.root), "--report", str(path),
+                    ])
+                self.assertEqual(1, exit_code)
+                result = json.loads(output.getvalue())
+                self.assertEqual("fail", result["result"])
+                self.assertIn("unresolved or invalid finding", result["message"])
+                self.assertNotIn("assurance", result)
 
     def test_cli_rejects_non_object_report_without_traceback(self):
         from contextlib import redirect_stdout

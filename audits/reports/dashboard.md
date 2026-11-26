@@ -13,19 +13,19 @@
 | Scope contracts | 5 |
 | Audit registry entries | 5 |
 | Audit findings | 3 |
-| Decision records | 78 |
+| Decision records | 79 |
 | Policy records | 2 |
-| Evidence runs | 324 |
+| Evidence runs | 333 |
 
 ## Work
 
 | Status | Count |
 | --- | ---: |
-| proposed | 3 |
-| active | 11 |
+| proposed | 4 |
+| active | 10 |
 | blocked | 2 |
 | deferred | 1 |
-| completed | 65 |
+| completed | 66 |
 
 ## Audit freshness
 
@@ -42,7 +42,6 @@ All audit scopes are within their review cadence.
 - 067: GitHub Repository Provider, Secure User Authorization, and Remote Repository Import (active)
 - 074: Extract RepoPact Core and Independent Workbench (active)
 - 077: Verify RepoPact proposal reliability on the ForgeWire proving ground (active)
-- 079: Agent Pre-Completion Assurance and Verifiable Self-Audit Evidence (active)
 - 083: Reduce governance debt and restore small-team throughput (active)
 - 032: Restore remote cross-platform governance enforcement (blocked)
 - 080: Remediate Pre-Existing Validation Failures and Restore Green Local Baseline (blocked)

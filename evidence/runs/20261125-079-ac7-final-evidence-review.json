@@ -1,0 +1,45 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261125-079-ac7-final-evidence-review",
+  "timestamp": "2026-11-25T21:30:35.729Z",
+  "work_item": "079",
+  "result": "passed",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "Static technical review of AC-7 criterion, complete matrix, PR27/PR28 focused and clean-source CI records, reference conformance outcomes, unavailable-executable fixture, and post-test diff through GitHub",
+      "exit_code": 0,
+      "summary": "All AC-7 classes now have linked fixture/evidence coverage. PR27 fresh repair and existing frozen/scope/runner cases; PR28 unavailable actual required step, ten reference vectors, and failed-vector aggregation. No tests rerun during this review."
+    }
+  ],
+  "artifacts": [
+    "work/active/079-agent-pre-completion-assurance-and-verifiable-self-audit/ac7-test-coverage-matrix-2026-11-25.md",
+    "evidence/runs/20261125-079-pr27-ac7-focused.json",
+    "evidence/runs/20261125-079-pr27-exact-local-ci.json",
+    "evidence/runs/20261125-079-pr28-ac7-focused.json",
+    "evidence/runs/20261125-079-pr28-exact-local-ci.json",
+    "evidence/runs/20261125T210423501522Z-wi076-ac6-engine-conformance.json",
+    "tests/test_self_audit_verification_boundary.py",
+    "tests/test_self_audit_conformance.py",
+    "repopact/self_audit_conformance.py"
+  ],
+  "environment": {
+    "review_kind": "static source/evidence review; result passed for AC-7 only, not a new CI run or independent second-principal approval",
+    "reviewed_pr": 28,
+    "review_comment_id": 6065238331,
+    "reviewed_pr_head": "53cc5d2320ff80b1f3414adf8fbd8428a9552c52",
+    "tested_source": "de2aa0e09001dbcdc6fdaab63f51c2b612a5b8e3",
+    "tested_tree": "5ff5cc9ea28bfed7490cd8851e16534a16a7fd0c",
+    "merged_main": "b9dec03ad59c2ef7d782eda9f2b3220747e8ba3c",
+    "merged_tree": "a01027d89c3be3440067a80a32185d1a0db869f4",
+    "observed_focused": "33 self-audit, 7 boundary, 3 corpus tests passed",
+    "observed_conformance": "43/43 canonical Rust; 8/8 WI050; 10/10 WI079 reference; complete process-image provenance",
+    "limitations": "instruction-only self-report; same-principal forgery/bypass possible; no protected gate or benchmark result",
+    "pending": [
+      "AC-2",
+      "AC-8",
+      "AC-9",
+      "AC-10"
+    ]
+  }
+}

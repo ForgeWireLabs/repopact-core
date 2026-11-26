@@ -2,7 +2,7 @@
   "$schema": "../../../repopact/schemas/work-item.schema.json",
   "id": "079",
   "title": "Agent Pre-Completion Assurance and Verifiable Self-Audit Evidence",
-  "status": "active",
+  "status": "completed",
   "owner_scope": "governance",
   "affected_scopes": [
     "governance",
@@ -30,8 +30,10 @@
     {
       "id": "AC-2",
       "text": "Compare instruction-only templates, typed review evidence, and optional completion-policy verification, including assurance claims, failure behavior, costs, compatibility, and operator authority; record the chosen design before implementation.",
-      "state": "pending",
-      "evidence": []
+      "state": "waived",
+      "evidence": [
+        "20261125-079-operator-disposition-and-documentation-review"
+      ]
     },
     {
       "id": "AC-3",
@@ -92,7 +94,7 @@
     {
       "id": "AC-7",
       "text": "Add positive/negative regression and conformance fixtures for clean passes, repaired defects, forged/missing/stale evidence, changed working trees, omitted untracked files, failed or unavailable checks, frozen/scope violations, and false independent-approval claims.",
-      "state": "pending",
+      "state": "satisfied",
       "evidence": [
         "20261122-wi079-isolated-self-audit-24",
         "20261122-wi079-windows-focused-regression",
@@ -107,37 +109,66 @@
         "20261125-079-pr27-ac7-focused",
         "20261125-079-pr27-exact-local-ci",
         "20261125-079-pr28-ac7-focused",
-        "20261125-079-pr28-exact-local-ci"
+        "20261125-079-pr28-exact-local-ci",
+        "20261125-079-ac7-final-evidence-review"
       ]
     },
     {
       "id": "AC-8",
       "text": "Prove the actual invocation, coverage, and effectiveness of any claimed completion check on supported integration boundaries, including attempted completion without current evidence. Treat instruction-only integrations and same-principal bypass risks accurately.",
-      "state": "pending",
+      "state": "satisfied",
       "evidence": [
         "20261125-079-pr26-optional-boundary-focused",
-        "20261125-079-pr26-clean-exact-head-ci"
+        "20261125-079-pr26-clean-exact-head-ci",
+        "20261125-079-pr28-ac7-focused",
+        "20261125-079-pr28-exact-local-ci",
+        "20261125-079-operator-disposition-and-documentation-review"
       ]
     },
     {
       "id": "AC-9",
       "text": "Preregister and compare ordinary verification, structured self-audit, and independent review on fixed tasks; measure escaped defects, false positives, churn, cost, and task success without assuming self-audit replaces independent reviewers.",
-      "state": "pending",
+      "state": "waived",
       "evidence": [
-        "20261125-079-protocol-static-review"
+        "20261125-079-protocol-static-review",
+        "20261125-079-operator-disposition-and-documentation-review"
       ]
     },
     {
       "id": "AC-10",
       "text": "Document adopter and nested-AGENTS.md guidance; link the 2026-11-22 draft rollout, reconcile documentation impacts and generated artifacts, and close only with criterion-linked concrete evidence.",
-      "state": "pending",
+      "state": "satisfied",
       "evidence": [
         "20261122-wi079-windows-focused-regression",
-        "20261124-079-pr25-documentation-review"
+        "20261124-079-pr25-documentation-review",
+        "20261125-079-operator-disposition-and-documentation-review",
+        "20261125-079-pr28-exact-local-ci",
+        "20261125-079-pr29-final-local-ci",
+        "20261125-079-pr29-closeout-review"
       ]
     }
   ],
   "created": "2026-11-22",
   "updated": "2026-11-25",
-  "lead": "governance-owner"
+  "lead": "governance-owner",
+  "documentation_impact": {
+    "state": "affected",
+    "surfaces": [
+      "user_behavior",
+      "api_cli",
+      "configuration",
+      "architecture",
+      "operations",
+      "contributor_workflow",
+      "maturity_status",
+      "examples",
+      "generated"
+    ],
+    "evidence": [
+      "20261124-079-pr25-documentation-review",
+      "20261125-079-pr26-clean-exact-head-ci",
+      "20261125-079-pr28-exact-local-ci",
+      "20261125-079-operator-disposition-and-documentation-review"
+    ]
+  }
 }

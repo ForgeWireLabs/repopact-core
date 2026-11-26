@@ -1,0 +1,6 @@
+test_cli_rejects_unhashable_finding_status_without_traceback (tests.test_self_audit.CandidateAuditTests.test_cli_rejects_unhashable_finding_status_without_traceback) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 3.295s
+
+OK

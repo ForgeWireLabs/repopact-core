@@ -37,7 +37,7 @@ def _git(root: Path, *args: str) -> bytes:
             stdout=subprocess.PIPE,
             stderr=subprocess.DEVNULL,
             env={
-                **{key: value for key, value in os.environ.items() if not key.startswith("GIT_")},
+                **{key: value for key, value in os.environ.items() if not key.upper().startswith("GIT_")},
                 "GIT_TERMINAL_PROMPT": "0",
                 "GIT_OPTIONAL_LOCKS": "0",
             },
@@ -146,8 +146,9 @@ def _file_state(root: Path, rel: str) -> dict[str, Any]:
 def snapshot(root: Path, base_ref: str) -> dict[str, Any]:
     """Capture a conservative, bounded Git working-tree candidate identity.
 
-    HEAD and the entire index are represented separately. Working-tree paths
-    changed relative to base, plus nonignored untracked files, are content-hashed.
+    HEAD and the entire index are represented separately. The union of
+    base-to-HEAD, HEAD-to-index, and index-to-worktree changes plus nonignored
+    untracked files defines reviewed paths; current worktree bytes are hashed.
     Ignored files are outside this contract and must not be claimed reviewed.
     """
     try:
@@ -166,10 +167,15 @@ def snapshot(root: Path, base_ref: str) -> dict[str, Any]:
     head = _git(root, "rev-parse", "--verify", "HEAD^{commit}").strip().decode("ascii")
     gitdir = os.fsdecode(_git(root, "rev-parse", "--absolute-git-dir").strip())
     index = _git(root, "ls-files", "--stage", "-z")
-    tracked = _paths(_git(
-        root, "diff", "--name-only", "-z", "--no-ext-diff",
-        "--no-textconv", "--no-renames", base, "--",
-    ))
+    # A net base-to-worktree diff can hide a staged edit that is reversed
+    # in the working tree, or a committed edit reversed in the index.
+    # Preserve the union of every review layer, not just the final net diff.
+    diff_flags = ("--name-only", "-z", "--no-ext-diff", "--no-textconv", "--no-renames")
+    tracked = (
+        _paths(_git(root, "diff", *diff_flags, base, head, "--"))
+        | _paths(_git(root, "diff", "--cached", *diff_flags, head, "--"))
+        | _paths(_git(root, "diff", *diff_flags, "--"))
+    )
     untracked = _paths(_git(root, "ls-files", "--others", "--exclude-standard", "-z"))
     status = _git(root, "status", "--porcelain=v1", "-z", "--untracked-files=all", "--ignore-submodules=none")
     changed = sorted(tracked | untracked)
@@ -261,7 +267,8 @@ def inspect_report(root: Path, record: dict[str, Any]) -> dict[str, Any]:
             raise SelfAuditError("FAIL: unresolved or invalid finding")
         if set(item) != {"path", "status", "scenario"}:
             raise SelfAuditError("INCOMPLETE: finding fields cannot carry approval assertions")
-        if item.get("status") not in {"fixed", "nonblocking"}:
+        finding_status = item.get("status")
+        if not isinstance(finding_status, str) or finding_status not in {"fixed", "nonblocking"}:
             raise SelfAuditError("FAIL: unresolved or invalid finding")
         if not isinstance(item.get("path"), str) or item["path"] not in covered:
             raise SelfAuditError("INCOMPLETE: finding location not in reviewed paths")

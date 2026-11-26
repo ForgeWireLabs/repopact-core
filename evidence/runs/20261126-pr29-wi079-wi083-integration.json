@@ -1,0 +1,104 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261126-pr29-wi079-wi083-integration",
+  "timestamp": "2026-11-26T15:33:39Z",
+  "work_item": "083",
+  "result": "passed",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "Focused overlap regressions: python -m unittest -v tests.test_self_audit tests.test_self_audit_verification_boundary tests.test_verification tests.test_engine_build_provenance tests.test_conformance_provenance_identity tests.test_dev_fixtures tests.test_admission_security",
+      "exit_code": 0,
+      "summary": "103 tests passed in 280.651 seconds on the merged source tree that became 543258d."
+    },
+    {
+      "command": "python -m repopact.verify_cli ci --root . (local profile)",
+      "exit_code": 0,
+      "summary": "All five required steps and optional frozen-surface report passed in 2350.45 seconds on clean source 543258d."
+    },
+    {
+      "command": "python -m repopact.run_conformance --legacy-python",
+      "exit_code": 0,
+      "summary": "Canonical Rust 43/43; Python compatibility comparator 43/43; WI050 8/8; WI079 10/10; complete process-image provenance at clean source a481b53."
+    },
+    {
+      "command": "repopact check-frozen --base origin/main",
+      "exit_code": 0,
+      "summary": "Independent check reported no frozen-surface changes."
+    },
+    {
+      "command": "repopact dashboard --root .",
+      "exit_code": 0,
+      "summary": "Canonical dashboard regenerated after integration evidence was added."
+    },
+    {
+      "command": "python scripts/generate_engine_semantic_identity.py --check",
+      "exit_code": 0,
+      "summary": "Merged semantic identity manifest is current."
+    },
+    {
+      "command": "repopact validate --root .",
+      "exit_code": 0,
+      "summary": "Governance validation passed with the integration evidence record present."
+    }
+  ],
+  "artifacts": [
+    "evidence/runs/20261126T152419011021Z-wi076-ac6-engine-conformance.json",
+    "evidence/runs/20261126T152944318842Z-wi076-ac6-engine-conformance.json",
+    "governance/verification.json",
+    "decisions/0079-wi079-optional-assurance-and-research-deferral.md",
+    "work/completed/079-agent-pre-completion-assurance-and-verifiable-self-audit/work-item.json",
+    "work/proposed/082-evaluate-self-audit-and-independent-review-effectiveness/work-item.json",
+    "work/active/083-reduce-governance-debt-and-restore-small-team-throughput/work-item.json"
+  ],
+  "environment": {
+    "executor": "local",
+    "platform": "Windows",
+    "pr": 29,
+    "branch": "work/079-ac7-acceptance-disposition-20261125",
+    "merge_candidate": {
+      "commit": "543258d05aa672a6f8822d3b1e0998788617dca9",
+      "tree": "8af8c2c545feadcd606b9a2c81892bc5962f6bc2",
+      "first_parent": "1d7a898e33fb040afdd8adbd04b5039771839307",
+      "second_parent": "4327e01220364ee185aef579e2f97678fcfd83ae"
+    },
+    "ci_profile": {
+      "source_commit": "543258d05aa672a6f8822d3b1e0998788617dca9",
+      "source_tree": "8af8c2c545feadcd606b9a2c81892bc5962f6bc2",
+      "required_steps_passed": 5,
+      "required_steps_total": 5,
+      "optional_frozen_report": "passed",
+      "duration_seconds": 2350.45
+    },
+    "legacy_comparator": {
+      "source_commit": "a481b53c57ef12044c574b757b836ad98c573d55",
+      "source_tree": "548290426a4f184e7e1226155ec052ede24e31e0",
+      "dirty": false
+    },
+    "semantic_identity": "repopact-semantic-v1:sha256:a11c42f9a8129a186a44a0e7822d9f2edb1512a7bc13fbe945ede32d8acfb255",
+    "engine": {
+      "source_revision": "3bfc2d2c2b40369a2f6297134f9c0d6c5c9567ae",
+      "semantic_identity": "repopact-semantic-v1:sha256:a11c42f9a8129a186a44a0e7822d9f2edb1512a7bc13fbe945ede32d8acfb255",
+      "profile": "release",
+      "provenance_status": "complete",
+      "executable_sha256": "46ae19212eb29a5c419a0ce8688a0d3d5a3af50cd4e85fc9a89e6584cc3fdfe2"
+    },
+    "merge_conflicts_resolved_by_canonical_refresh": [
+      "audits/reports/dashboard.md",
+      "build/semantic-input-manifest.json",
+      "governance/documentation-mappings.json",
+      "repopact/_semantic-input-manifest.json",
+      "repopact/_semantic_identity.json"
+    ],
+    "preserved_lifecycle": {
+      "WI079": "completed",
+      "WI082": "proposed",
+      "WI083": "active",
+      "Decision0079": "retained"
+    },
+    "hosted_workflows": "not_run",
+    "release_or_publication": "not_performed",
+    "final_ledger_check_head": "3bfc2d2c2b40369a2f6297134f9c0d6c5c9567ae",
+    "final_candidate_worktree_was_dirty_only_for_ledger": true
+  }
+}

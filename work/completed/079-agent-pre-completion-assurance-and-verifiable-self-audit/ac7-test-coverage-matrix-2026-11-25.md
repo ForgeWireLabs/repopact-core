@@ -122,3 +122,25 @@ If and only if all actual cases pass and the matrix is independently reviewed,
 AC-7 may be reconsidered for satisfaction. AC-2, AC-8, AC-9 and AC-10 remain
 pending. No comparative model calls, protected policy, hosted CI/CD, or release
 is authorized.
+
+## Final closeout source corrections — staged, NOT RUN
+
+The original AC-7 matrix and passing PR28 results remain historical evidence.
+The subsequent source review reproduced a net-diff omission for cancelling
+staged/unstaged edits and an unhashable finding-status exception. The staged
+correction uses the union of base-to-HEAD, HEAD-to-index and index-to-worktree
+paths; invalid non-string finding statuses produce the controlled FAIL/exit 1
+contract. New executable methods:
+
+- `test_net_reversal_does_not_hide_review_layers` (staged/unstaged,
+  committed/staged and committed/unstaged net reversals; omitted path rejected;
+  complete path declaration remains instruction-only).
+- `test_cli_rejects_unhashable_finding_status_without_traceback`
+  (list/dict/list-of-string values rejected as structured FAIL, no assurance).
+
+Review/reproduction evidence: `20261125-079-operator-disposition-and-documentation-review`.
+These methods are new and not yet run. Final closeout requires the complete
+35-method self-audit suite, seven boundary methods, three corpus methods,
+and actual local exact-source CI including all existing conformance vectors.
+No protected enforcement is claimed. AC-2/AC-9 waivers and AC-8 scoped
+acceptance are recorded separately in Decision 0079. AC-10 remains pending.
