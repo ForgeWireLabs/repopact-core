@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import io
 import json
 import os
 import sys
@@ -213,6 +214,118 @@ class VerificationCaptureTests(unittest.TestCase):
         state = json.loads(state_path.read_text(encoding="utf-8"))
         self.assertEqual("partial", state["status"])
         self.assertEqual("storage-failed", state["phase"])
+
+
+    def test_contract_is_loaded_once_for_recorded_and_unrecorded_runs(self) -> None:
+        original_loader = verification._load_contract
+        scenarios = [
+            (False, None),
+            (False, "ci"),
+            (True, None),
+            (True, "ci"),
+        ]
+        for index, (record_evidence, explicit_profile) in enumerate(scenarios):
+            with self.subTest(record_evidence=record_evidence, explicit_profile=explicit_profile):
+                args = ["--root", str(self.root), "--json"]
+                if explicit_profile:
+                    args.insert(0, explicit_profile)
+                evidence_id = f"single-load-{index}"
+                if record_evidence:
+                    args.extend(["--evidence-work-item", "081", "--evidence-id", evidence_id])
+
+                def expected_evidence_path(_root, _report, _work_item, *, evidence_id=None, **_kwargs):
+                    return f"evidence/runs/{evidence_id}.json"
+
+                cli_loader = patch("repopact.verify_cli._load_contract", wraps=original_loader)
+                runner_loader = patch("repopact.verification._load_contract", wraps=original_loader)
+                with cli_loader as cli_load, runner_loader as runner_load:
+                    with patch(
+                        "repopact.local_storage.disk_preflight",
+                        return_value={"ready": True, "volumes": []},
+                    ):
+                        with patch(
+                            "repopact.verify_cli.record_evidence",
+                            side_effect=expected_evidence_path,
+                        ):
+                            with patch("sys.stdout", io.StringIO()), patch("sys.stderr", io.StringIO()):
+                                result = verify_cli.main(args)
+
+                self.assertEqual(0, result)
+                self.assertEqual(1, cli_load.call_count + runner_load.call_count)
+                self.assertEqual(1 if record_evidence else 0, cli_load.call_count)
+                self.assertEqual(0 if record_evidence else 1, runner_load.call_count)
+
+    def test_recorded_run_refuses_verification_contract_drift(self) -> None:
+        evidence_id = "verification-contract-drift"
+        args = [
+            "ci",
+            "--root",
+            str(self.root),
+            "--json",
+            "--evidence-work-item",
+            "081",
+            "--evidence-id",
+            evidence_id,
+        ]
+        original_begin = verify_cli.CaptureJournal.begin
+
+        def begin_then_drift(*begin_args, **begin_kwargs):
+            journal = original_begin(*begin_args, **begin_kwargs)
+            config_path = self.root / "governance" / "verification.json"
+            config = json.loads(config_path.read_text(encoding="utf-8"))
+            config["profiles"]["ci"]["steps"][0]["argv"] = [
+                sys.executable,
+                "-c",
+                "print('changed-policy')",
+            ]
+            config_path.write_text(json.dumps(config), encoding="utf-8")
+            return journal
+
+        stdout = io.StringIO()
+        stderr = io.StringIO()
+        with patch(
+            "repopact.local_storage.disk_preflight",
+            return_value={"ready": True, "volumes": []},
+        ):
+            with patch(
+                "repopact.verify_cli.CaptureJournal.begin",
+                side_effect=begin_then_drift,
+            ):
+                with patch("sys.stdout", stdout), patch("sys.stderr", stderr):
+                    result = verify_cli.main(args)
+
+        self.assertEqual(2, result)
+        self.assertEqual("", stdout.getvalue())
+        self.assertIn("changed after profile selection", stderr.getvalue())
+        progress_dir = self.root / "evidence" / "runs" / ".in-progress"
+        state = json.loads((progress_dir / f"{evidence_id}.state.json").read_text(encoding="utf-8"))
+        self.assertEqual("recording-failed", state["phase"])
+        log_path = progress_dir / f"{evidence_id}.steps.jsonl.partial"
+        self.assertEqual(0, log_path.stat().st_size)
+        self.assertFalse((self.root / "evidence" / "runs" / f"{evidence_id}.json").exists())
+
+    def test_run_profile_rejects_unchecked_dictionary_handoff(self) -> None:
+        raw_config = verification.load_contract(self.root)
+        with self.assertRaisesRegex(
+            verification.VerificationConfigError,
+            "only a validated contract",
+        ):
+            verification.run_profile(self.root, "ci", _loaded_contract=raw_config)
+
+
+    def test_validated_contract_snapshot_cannot_be_reused_across_runs(self) -> None:
+        loaded = verification._load_contract(self.root)
+        with patch(
+            "repopact.local_storage.disk_preflight",
+            return_value={"ready": True, "volumes": []},
+        ):
+            first = verification.run_profile(self.root, "ci", _loaded_contract=loaded)
+        self.assertEqual("pass", first.status)
+        with self.assertRaisesRegex(
+            verification.VerificationConfigError,
+            "already used",
+        ):
+            verification.run_profile(self.root, "ci", _loaded_contract=loaded)
 
 
 if __name__ == "__main__":

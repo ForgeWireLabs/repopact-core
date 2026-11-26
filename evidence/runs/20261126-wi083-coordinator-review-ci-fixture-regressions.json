@@ -1,0 +1,38 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261126-wi083-coordinator-review-ci-fixture-regressions",
+  "timestamp": "2026-11-26T04:33:09Z",
+  "work_item": "083",
+  "result": "passed",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "cargo build --manifest-path rust/Cargo.toml --locked -p repopact-engine --bin repopact-engine",
+      "exit_code": 0,
+      "summary": "Rebuilt the worktree engine with source revision 10e42cfb3e5710a76d72e99e64262e68f1d4ac63."
+    },
+    {
+      "command": "$env:REPOPACT_ENGINE=rust/target/debug/repopact-engine.exe; python -m unittest tests.test_validate_repo.RepositoryValidationTests.test_nonconventional_linked_worktree_is_structurally_excluded tests.test_validate_repo.RepositoryValidationTests.test_conventional_forgewire_worktree_is_excluded tests.test_validate_repo.RepositoryValidationTests.test_stale_linked_worktree_git_file_is_excluded_without_git_registry tests.test_validate_repo.RepositoryValidationTests.test_independent_nested_repository_contract_remains_discoverable tests.test_validate_repo.RepositoryValidationTests.test_exact_tagged_release_tree_is_accepted tests.test_validate_repo.RepositoryValidationTests.test_later_package_source_requires_development_identity tests.test_validate_repo.RepositoryValidationTests.test_later_package_source_with_label_is_accepted tests.test_validate_repo.RepositoryValidationTests.test_check_frozen_detects_working_tree_change tests.test_validate_repo.RepositoryValidationTests.test_adopt_warns_on_gitignored_records tests.test_validate_repo.RepositoryValidationTests.test_takeover_delete_documents_and_deletes_when_git_recoverable tests.test_validate_repo.RepositoryValidationTests.test_takeover_delete_downgrades_when_dir_has_gitignored_files tests.test_admission_security.SecurityCorrectionTests.test_linked_worktree_uses_common_dir_registration tests.test_local_storage tests.test_self_audit_verification_boundary -v",
+      "exit_code": 0,
+      "summary": "30/30 passed in 115.351 s on the exact committed candidate. Covered every direct Git fixture path implicated by the failed profile."
+    }
+  ],
+  "artifacts": [
+    "tests/test_validate_repo.py",
+    "tests/test_admission_security.py",
+    "tests/test_local_storage.py",
+    "tests/test_self_audit_verification_boundary.py"
+  ],
+  "environment": {
+    "executor": "local",
+    "platform": "Windows 10",
+    "python": "3.12.4",
+    "REPOPACT_ENGINE": "rust/target/debug/repopact-engine.exe",
+    "candidate": {
+      "commit": "10e42cfb3e5710a76d72e99e64262e68f1d4ac63",
+      "tree": "b24c6f721c38668bfcee9b5232405c97998cca66",
+      "dirty": false
+    },
+    "host_git_environment": "Inherited GIT_* values were filtered only from test child processes; the operator environment was not mutated."
+  }
+}

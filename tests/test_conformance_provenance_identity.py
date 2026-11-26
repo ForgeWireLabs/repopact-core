@@ -27,6 +27,16 @@ class ConformanceProvenanceIdentityTests(unittest.TestCase):
         )
         self.recorded_at = "2026-11-23T14:48:21.583837Z"
 
+    def git(self, cwd: Path, *args: str) -> str:
+        env = {
+            key: value
+            for key, value in os.environ.items()
+            if not key.upper().startswith("GIT_")
+        }
+        return subprocess.check_output(
+            ["git", *args], cwd=cwd, env=env, text=True
+        ).strip()
+
     def payload(self) -> dict:
         return {
             "recorded_at": self.recorded_at,
@@ -107,12 +117,13 @@ class ConformanceProvenanceIdentityTests(unittest.TestCase):
     def test_source_identity_ignores_only_current_live_capture_pair(self):
         source = self.root / "source-state"
         source.mkdir()
-        subprocess.run(["git", "init", "-q"], cwd=source, check=True, capture_output=True)
-        subprocess.run(["git", "config", "--local", "user.email", "fixture@example.invalid"], cwd=source, check=True, capture_output=True)
-        subprocess.run(["git", "config", "--local", "user.name", "Fixture Source"], cwd=source, check=True, capture_output=True)
+        self.git(source, "init", "-q", "--initial-branch=main")
+        self.git(source, "config", "--local", "user.email", "fixture@example.invalid")
+        self.git(source, "config", "--local", "user.name", "Fixture Source")
         (source / "tracked.txt").write_text("committed source\n", encoding="utf-8")
-        subprocess.run(["git", "add", "tracked.txt"], cwd=source, check=True, capture_output=True)
-        subprocess.run(["git", "commit", "-q", "-m", "source"], cwd=source, check=True, capture_output=True)
+        self.git(source, "add", "tracked.txt")
+        self.git(source, "commit", "-q", "-m", "source")
+        expected_revision = self.git(source, "rev-parse", "--verify", "HEAD")
 
         progress = source / "evidence" / "runs" / ".in-progress"
         progress.mkdir(parents=True)
@@ -129,8 +140,18 @@ class ConformanceProvenanceIdentityTests(unittest.TestCase):
             encoding="utf-8",
         )
         (progress / "20261124-ci.steps.jsonl.partial").write_text("", encoding="utf-8")
-        with patch.dict(os.environ, {ACTIVE_CAPTURE_ID_ENV: "20261124-ci"}):
+        with patch.dict(
+            os.environ,
+            {
+                ACTIVE_CAPTURE_ID_ENV: "20261124-ci",
+                "GIT_CONFIG_COUNT": "1",
+                "GIT_CONFIG_KEY_0": "core.worktree",
+                "GIT_CONFIG_VALUE_0": "",
+                "GIT_DIR": str(source / "missing-git-dir"),
+            },
+        ):
             clean = run_conformance._git_source_state(source)
+        self.assertEqual(expected_revision, clean["revision"])
         self.assertFalse(clean["dirty"])
         self.assertEqual("", clean["status_porcelain"])
         self.assertEqual(
@@ -141,7 +162,16 @@ class ConformanceProvenanceIdentityTests(unittest.TestCase):
             clean["ignored_runtime_artifacts"],
         )
 
-        with patch.dict(os.environ, {ACTIVE_CAPTURE_ID_ENV: "20261124-ci"}):
+        with patch.dict(
+            os.environ,
+            {
+                ACTIVE_CAPTURE_ID_ENV: "20261124-ci",
+                "GIT_CONFIG_COUNT": "1",
+                "GIT_CONFIG_KEY_0": "core.worktree",
+                "GIT_CONFIG_VALUE_0": "",
+                "GIT_DIR": str(source / "missing-git-dir"),
+            },
+        ):
             (source / "unrelated.txt").write_text("source change\n", encoding="utf-8")
             dirty = run_conformance._git_source_state(source)
             self.assertTrue(dirty["dirty"])

@@ -3,6 +3,11 @@ use std::fs;
 use std::path::PathBuf;
 use std::process::Command;
 
+#[path = "build_support.rs"]
+mod build_support;
+
+use build_support::{git_revision, git_revision_inputs, valid_revision};
+
 fn main() {
     let manifest = PathBuf::from(std::env::var_os("CARGO_MANIFEST_DIR").unwrap());
     let root = manifest.join("../../..");
@@ -17,7 +22,14 @@ fn main() {
     println!("cargo:rerun-if-changed={}", identity_path.display());
     println!("cargo:rerun-if-changed={}", inputs_manifest_path.display());
     println!("cargo:rerun-if-changed={}", policy_path.display());
+    println!(
+        "cargo:rerun-if-changed={}",
+        manifest.join("build_support.rs").display()
+    );
     println!("cargo:rerun-if-changed={}", generator_path.display());
+    for path in git_revision_inputs(&root) {
+        println!("cargo:rerun-if-changed={}", path.display());
+    }
     watch_semantic_input_roots(&root, &policy_path);
 
     check_semantic_manifest(&root, &inputs_manifest_path, &identity_path);
@@ -94,23 +106,6 @@ fn watch_semantic_input_roots(root: &PathBuf, policy_path: &PathBuf) {
     ] {
         println!("cargo:rerun-if-changed={}", path.display());
     }
-}
-
-fn valid_revision(value: &str) -> bool {
-    value.len() == 40 && value.bytes().all(|byte| byte.is_ascii_hexdigit())
-}
-
-fn git_revision(root: &PathBuf) -> Option<String> {
-    let output = Command::new("git")
-        .args(["rev-parse", "--verify", "HEAD"])
-        .current_dir(root)
-        .output()
-        .ok()?;
-    if !output.status.success() {
-        return None;
-    }
-    let revision = String::from_utf8(output.stdout).ok()?.trim().to_owned();
-    valid_revision(&revision).then(|| revision.to_ascii_lowercase())
 }
 
 fn check_semantic_manifest(root: &PathBuf, manifest_path: &PathBuf, identity_path: &PathBuf) {

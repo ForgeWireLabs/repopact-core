@@ -1,6 +1,9 @@
 from __future__ import annotations
 
 import json
+import os
+import shutil
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -54,6 +57,69 @@ class VerificationRunnerTests(unittest.TestCase):
         directory.mkdir(parents=True)
         (directory / "work-item.json").write_text(
             json.dumps({"id": work_item}) + "\n", encoding="utf-8"
+        )
+
+    @unittest.skipUnless(shutil.which("git"), "Git required")
+    def test_candidate_identity_uses_explicit_root_with_hostile_git_environment(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp) / "candidate"
+            root.mkdir()
+            clean_env = {
+                key: value
+                for key, value in os.environ.items()
+                if not key.upper().startswith("GIT_")
+            }
+
+            def git(*args: str) -> str:
+                return subprocess.check_output(
+                    ["git", *args], cwd=root, env=clean_env, text=True
+                ).strip()
+
+            git("init", "-q", "--initial-branch=main")
+            git("config", "user.email", "candidate@example.invalid")
+            git("config", "user.name", "Candidate Fixture")
+            (root / "tracked.txt").write_text("candidate source\n", encoding="utf-8")
+            git("add", "tracked.txt")
+            git("commit", "-qm", "candidate")
+            expected_commit = git("rev-parse", "--verify", "HEAD")
+            expected_tree = git("rev-parse", "HEAD^{tree}")
+            original_git_env = {
+                key: value
+                for key, value in os.environ.items()
+                if key.upper().startswith("GIT_")
+            }
+            with unittest.mock.patch.dict(
+                os.environ,
+                {
+                    "GIT_DIR": str(root / "missing-git-dir"),
+                    "GIT_WORK_TREE": str(root / "redirected-worktree"),
+                    "GIT_INDEX_FILE": str(root / "redirected.index"),
+                    "GIT_CONFIG_COUNT": "1",
+                    "GIT_CONFIG_KEY_0": "core.worktree",
+                    "GIT_CONFIG_VALUE_0": "",
+                },
+            ):
+                identity = verification._candidate_identity(root)
+            self.assertEqual(
+                original_git_env,
+                {
+                    key: value
+                    for key, value in os.environ.items()
+                    if key.upper().startswith("GIT_")
+                },
+            )
+            self.assertEqual(
+                {"commit": expected_commit, "tree": expected_tree, "dirty": False},
+                identity,
+            )
+
+    def test_missing_candidate_revision_cannot_be_reported_as_clean(self):
+        with unittest.mock.patch.object(
+            verification, "_git_value", side_effect=[None, "a" * 40, ""]
+        ):
+            identity = verification._candidate_identity(Path("."))
+        self.assertEqual(
+            {"commit": None, "tree": "a" * 40, "dirty": None}, identity
         )
 
     def test_default_contract_is_local_first_and_hosted_off(self):

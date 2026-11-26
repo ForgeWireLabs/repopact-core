@@ -77,6 +77,17 @@ class RepositoryValidationTests(unittest.TestCase):
     def problems(self) -> list[str]:
         return [problem.message for problem in validate(self.root)]
 
+    @staticmethod
+    def git_env(overrides: dict[str, str] | None = None) -> dict[str, str]:
+        env = {
+            key: value
+            for key, value in os.environ.items()
+            if not key.upper().startswith("GIT_")
+        }
+        if overrides:
+            env.update(overrides)
+        return env
+
     def problems_with_severity(self) -> list[tuple[str, str]]:
         return [(problem.severity, problem.message) for problem in validate(self.root)]
 
@@ -105,13 +116,19 @@ class RepositoryValidationTests(unittest.TestCase):
             if data.pop("timestamp_basis", None) is not None:
                 evidence_path.write_text(json.dumps(data), encoding="utf-8")
         run = lambda args, **kwargs: subprocess.run(
-            args, cwd=self.root, check=True, capture_output=True, text=True, **kwargs
+            args,
+            cwd=self.root,
+            env=self.git_env(kwargs.pop("env", None)),
+            check=True,
+            capture_output=True,
+            text=True,
+            **kwargs,
         )
         run(["git", "init", "-q"])
         run(["git", "config", "user.email", "fixture@example.invalid"])
         run(["git", "config", "user.name", "RepoPact fixture"])
         run(["git", "add", "-A"])
-        env = os.environ.copy()
+        env = self.git_env()
         env["GIT_AUTHOR_DATE"] = timestamp
         env["GIT_COMMITTER_DATE"] = timestamp
         run(["git", "commit", "-qm", "fixture recording"], env=env)
@@ -354,7 +371,12 @@ class RepositoryValidationTests(unittest.TestCase):
         repo = self.temp_dir / name
         init_repo.bootstrap(repo)
         run = lambda *args: subprocess.run(
-            ["git", *args], cwd=repo, check=True, capture_output=True, text=True
+            ["git", *args],
+            cwd=repo,
+            env=self.git_env(),
+            check=True,
+            capture_output=True,
+            text=True,
         )
         run("init", "--initial-branch=main")
         run("config", "user.email", "test@example.invalid")
@@ -369,7 +391,7 @@ class RepositoryValidationTests(unittest.TestCase):
         try:
             subprocess.run(
                 ["git", "worktree", "add", "--detach", str(worktree), "HEAD"],
-                cwd=repo, check=True, capture_output=True, text=True,
+                cwd=repo, env=self.git_env(), check=True, capture_output=True, text=True,
             )
             contract = worktree / "AGENTS.md"
             self.assertTrue((worktree / ".git").is_file())
@@ -379,10 +401,10 @@ class RepositoryValidationTests(unittest.TestCase):
         finally:
             subprocess.run(
                 ["git", "worktree", "remove", "--force", str(worktree)],
-                cwd=repo, check=True, capture_output=True, text=True,
+                cwd=repo, env=self.git_env(), check=True, capture_output=True, text=True,
             )
             subprocess.run(["git", "worktree", "prune"], cwd=repo, check=True,
-                           capture_output=True, text=True)
+                           env=self.git_env(), capture_output=True, text=True)
 
     def test_conventional_forgewire_worktree_is_excluded(self) -> None:
         repo = self._seed_git_repo("conventional-worktree")
@@ -390,17 +412,17 @@ class RepositoryValidationTests(unittest.TestCase):
         try:
             subprocess.run(
                 ["git", "worktree", "add", "--detach", str(worktree), "HEAD"],
-                cwd=repo, check=True, capture_output=True, text=True,
+                cwd=repo, env=self.git_env(), check=True, capture_output=True, text=True,
             )
             self.assertNotIn(worktree / "AGENTS.md", repo_model.iter_contracts(repo))
             self.assertEqual([], [p.message for p in validate(repo)])
         finally:
             subprocess.run(
                 ["git", "worktree", "remove", "--force", str(worktree)],
-                cwd=repo, check=True, capture_output=True, text=True,
+                cwd=repo, env=self.git_env(), check=True, capture_output=True, text=True,
             )
             subprocess.run(["git", "worktree", "prune"], cwd=repo, check=True,
-                           capture_output=True, text=True)
+                           env=self.git_env(), capture_output=True, text=True)
 
     def test_stale_linked_worktree_git_file_is_excluded_without_git_registry(self) -> None:
         repo = self._seed_git_repo("stale-linked-worktree")
@@ -418,7 +440,7 @@ class RepositoryValidationTests(unittest.TestCase):
         nested.mkdir(parents=True)
         (nested / "AGENTS.md").write_text("# independent component\n", encoding="utf-8")
         subprocess.run(["git", "init", "-q", str(nested)], check=True,
-                       capture_output=True, text=True)
+                       env=self.git_env(), capture_output=True, text=True)
         registry = json.loads((repo / "audits" / "registry.json").read_text(encoding="utf-8"))
         registry["scopes"].append({
             "path": "vendor/component", "owner": "governance-owner",
@@ -1068,14 +1090,14 @@ class RepositoryValidationTests(unittest.TestCase):
                 )
         mappings_path.write_text(json.dumps(mappings, indent=2) + "\n", encoding="utf-8")
         generate_dashboard.write_dashboard(self.root)
-        subprocess.run(["git", "init", "--initial-branch=main"], cwd=self.root, check=True,
+        subprocess.run(["git", "init", "--initial-branch=main"], cwd=self.root, env=self.git_env(), check=True,
                        capture_output=True, text=True)
-        subprocess.run(["git", "config", "user.email", "test@example.invalid"], cwd=self.root, check=True)
-        subprocess.run(["git", "config", "user.name", "RepoPact Test"], cwd=self.root, check=True)
-        subprocess.run(["git", "add", "-A"], cwd=self.root, check=True)
+        subprocess.run(["git", "config", "user.email", "test@example.invalid"], cwd=self.root, env=self.git_env(), check=True)
+        subprocess.run(["git", "config", "user.name", "RepoPact Test"], cwd=self.root, env=self.git_env(), check=True)
+        subprocess.run(["git", "add", "-A"], cwd=self.root, env=self.git_env(), check=True)
         subprocess.run(["git", "commit", "-m", "stable"], cwd=self.root, check=True,
-                       capture_output=True, text=True)
-        subprocess.run(["git", "tag", "-a", "v9.9.9", "-m", "9.9.9"], cwd=self.root, check=True)
+                       env=self.git_env(), capture_output=True, text=True)
+        subprocess.run(["git", "tag", "-a", "v9.9.9", "-m", "9.9.9"], cwd=self.root, env=self.git_env(), check=True)
 
     def test_exact_tagged_release_tree_is_accepted(self) -> None:
         self._tag_identity_fixture()
@@ -1181,6 +1203,11 @@ class RepositoryValidationTests(unittest.TestCase):
         target = self.temp_dir / "seeded"
         init_repo.bootstrap(target)
         self.assertTrue((target / "work" / "proposed").is_dir())
+        readme = (target / "README.md").read_text(encoding="utf-8")
+        self.assertIn("python -m repopact.verify_cli governance", readme)
+        self.assertIn("--evidence-work-item NNN", readme)
+        self.assertIn("after governed record or evidence changes", readme)
+        self.assertNotIn("Run `repopact validate` to check", readme)
         self.assertEqual([], [p.message for p in validate(target)])
 
     def test_bootstrap_uses_installed_tooling_instead_of_vendoring_modules(self) -> None:
@@ -1290,7 +1317,7 @@ class RepositoryValidationTests(unittest.TestCase):
             json.dumps({"version": 1, "invariants": []}), encoding="utf-8")
         try:
             run = lambda *a: subprocess.run(["git", *a], cwd=repo, check=True,
-                                            capture_output=True, text=True)
+                                            env=self.git_env(), capture_output=True, text=True)
             run("init"); run("config", "user.email", "t@t"); run("config", "user.name", "t")
             run("add", "-A"); run("commit", "-m", "init")
         except (OSError, subprocess.CalledProcessError):
@@ -1357,7 +1384,7 @@ class RepositoryValidationTests(unittest.TestCase):
         import subprocess
         repo = self._seed_existing_repo()
         try:
-            run = lambda *a: subprocess.run(["git", *a], cwd=repo, check=True, capture_output=True, text=True)
+            run = lambda *a: subprocess.run(["git", *a], cwd=repo, env=self.git_env(), check=True, capture_output=True, text=True)
             run("init")
             # the classic collision: a broad `runs/` rule that also matches evidence/runs/
             (repo / ".gitignore").write_text("runs/\n", encoding="utf-8")
@@ -1598,7 +1625,7 @@ class RepositoryValidationTests(unittest.TestCase):
         (repo / "todos" / "12-search" / "DETAIL.md").write_text("# Detail only in todos\n", encoding="utf-8")
         plan_import.import_plan(repo)
         try:
-            run = lambda *a: subprocess.run(["git", *a], cwd=repo, check=True, capture_output=True, text=True)
+            run = lambda *a: subprocess.run(["git", *a], cwd=repo, env=self.git_env(), check=True, capture_output=True, text=True)
             run("init")
             run("-c", "user.email=t@t", "-c", "user.name=t", "add", "-A")
             run("-c", "user.email=t@t", "-c", "user.name=t", "commit", "-m", "seed")
@@ -1624,7 +1651,7 @@ class RepositoryValidationTests(unittest.TestCase):
         (repo / "todos" / "12-search" / "README.md").write_text("# Search\n", encoding="utf-8")
         plan_import.import_plan(repo)
         try:
-            run = lambda *a: subprocess.run(["git", *a], cwd=repo, check=True, capture_output=True, text=True)
+            run = lambda *a: subprocess.run(["git", *a], cwd=repo, env=self.git_env(), check=True, capture_output=True, text=True)
             run("init")
             # a present-but-ignored file under the plan dir: not in history, so deleting loses it
             (repo / ".gitignore").write_text("todos/12-search/out/\n", encoding="utf-8")

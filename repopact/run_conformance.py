@@ -159,8 +159,17 @@ def run_suite(command: str, manifest_path: Path = MANIFEST) -> list[CaseResult]:
 
 def _git_source_state(root: Path) -> dict[str, object]:
     def git(*args: str) -> str | None:
+        env = {
+            key: value
+            for key, value in os.environ.items()
+            if not key.upper().startswith("GIT_")
+        }
         result = subprocess.run(
-            ["git", "-C", str(root), *args], text=True, capture_output=True, check=False
+            ["git", "-C", str(root), *args],
+            env=env,
+            text=True,
+            capture_output=True,
+            check=False,
         )
         return result.stdout.strip() if result.returncode == 0 else None
 

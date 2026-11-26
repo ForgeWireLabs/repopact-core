@@ -31,6 +31,14 @@ python -m repopact.run_conformance --legacy-python
 python -m unittest discover -s tests -v
 ```
 
+A successfully executed declared profile can satisfy an identical required check
+for the same relevant candidate when no relevant input changed afterward. The
+`ci` profile includes canonical validation and Python unit tests. Its canonical
+conformance step does not replace the required legacy Python comparator. Focused
+iteration tests do not replace required completion coverage. Re-run canonical
+validation after governed ledger or evidence changes; rerun other steps only when
+their relevant inputs changed or a governing contract requires them.
+
 ## Traceability
 
 Maintain `repopact/_audit/inventory.md` and `repopact/_audit/alignment-report.md`

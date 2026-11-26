@@ -29,7 +29,7 @@ class LocalValidationStorageTests(unittest.TestCase):
         self.root.mkdir()
         (self.root / "rust").mkdir()
         (self.root / "evidence" / "runs").mkdir(parents=True)
-        env = {key: value for key, value in os.environ.items() if not key.startswith("GIT_")}
+        env = {key: value for key, value in os.environ.items() if not key.upper().startswith("GIT_")}
         subprocess.run(["git", "init", "-q"], cwd=self.root, env=env, check=True)
         subprocess.run(["git", "config", "user.email", "fixture@example.invalid"], cwd=self.root, env=env, check=True)
         subprocess.run(["git", "config", "user.name", "Local Storage Fixture"], cwd=self.root, env=env, check=True)

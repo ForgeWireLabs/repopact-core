@@ -492,7 +492,7 @@
     },
     {
       "path": "repopact/dev_fixtures.py",
-      "sha256": "2026f5a0ff77bd462d56e1731c86b73f35223b15f5c525c9ee11f2eaa98644c4"
+      "sha256": "be37b82c94b0be8b02f06421b4c3186289ee96113328d7df0729bd657fa96974"
     },
     {
       "path": "repopact/doctor.py",
@@ -544,7 +544,7 @@
     },
     {
       "path": "repopact/init_repo.py",
-      "sha256": "53346ca6b2e92844143a502404d7d18dcc3a8d6a8ca13751a0b1126a9aa27e1a"
+      "sha256": "e6523537dc3da28461020b9f394c1097ff223e415bcd169781c6f7e6ed996ca3"
     },
     {
       "path": "repopact/legacy_validate.py",
@@ -592,7 +592,7 @@
     },
     {
       "path": "repopact/run_conformance.py",
-      "sha256": "52ce371c7cfb5277f8e42d972ac6505d5210f4847cf470a1b35f54d71482f2f0"
+      "sha256": "485942cfc778adb03217e153e9fb9864a572b6a08f54a7ae87485f4067e97728"
     },
     {
       "path": "repopact/runtime-dependency-groups.json",
@@ -744,7 +744,7 @@
     },
     {
       "path": "repopact/verification.py",
-      "sha256": "5ac5656346197c38869c6322d040e86480c5db33016a4ad67cfc15e085aaed71"
+      "sha256": "098afe5fd7a7ac4960c55215a084f85c4421dba647752883a089ed1d085de66b"
     },
     {
       "path": "repopact/verification_capture.py",
@@ -752,7 +752,7 @@
     },
     {
       "path": "repopact/verify_cli.py",
-      "sha256": "eb10899c2e301a6ef619390d1eb1c630423fc2cc3bd9b1e3fb744dd53a3f6d4e"
+      "sha256": "1fe706f9bd6c5aa593001ae38b790ad745aae3d1f051e478888a9c0acb20ee31"
     },
     {
       "path": "repopact/verify_status.py",
@@ -772,7 +772,11 @@
     },
     {
       "path": "rust/apps/repopact-engine/build.rs",
-      "sha256": "1ed56478521e0f5a2e1b7517784256ea8f45b655230f1292e1382b2be8f79500"
+      "sha256": "19de0351e5ac542384f5d9adca3f6bab5c0e34f7700fae9c330ab467ccf85a2f"
+    },
+    {
+      "path": "rust/apps/repopact-engine/build_support.rs",
+      "sha256": "7919dd8e5725cfff26be738b0d0e7621c32d30f6c87b134a62273226a604ff98"
     },
     {
       "path": "rust/apps/repopact-engine/src/bin/repopact.rs",
@@ -1055,5 +1059,5 @@
       "sha256": "568ee233f91fcfc6afad4dfdb4fd6cbadd2761f0b795d91a089030c3b0b0bbb3"
     }
   ],
-  "semantic_identity": "repopact-semantic-v1:sha256:5298450478cb065378969da70c40851b457f16a95f0da89fd51afe3453db6f44"
+  "semantic_identity": "repopact-semantic-v1:sha256:ad1a48c70927d6bcf47e5cc11e48b01d7fa0bd1b2f57d15fd1a34c53034c7d0e"
 }
