@@ -111,8 +111,14 @@ Focused evidence `20261126-wi083-coordinator-review-focused` records the
 exact-source regressions, both test orders, editable Rust build, formatting,
 semantic identity, and frozen-surface checks on commit
 `cf7ed4e25db9ebffefcfc5fde194646574eed246`. The full local `ci` profile and the
-required legacy comparator remain to be rerun once against the corrected
-candidate. AC-1 and AC-6 remain pending.
+required legacy comparator are being reconciled on the corrected candidate.
+The legacy comparator passed 43/43 in both implementations, WI050 passed 8/8,
+WI079 passed 10/10, and process-image provenance was complete on clean commit
+`7b4d1efa0bd856c42f4eec32951193f8a887b3f9`; evidence is
+`20261126-wi083-coordinator-review-legacy-python-comparator` with provenance
+`20261126T034610580481Z-wi076-ac6-engine-conformance`. The single final local
+`ci` profile remains to be run on the reconciled evidence candidate. AC-1 and
+AC-6 remain pending.
 
 ## Closeout
 
