@@ -1,9 +1,12 @@
 from __future__ import annotations
 
 import json
+import os
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from repopact import graph_cli
 
@@ -131,10 +134,16 @@ class GraphReconcileMergeCliTests(unittest.TestCase):
     correctly end to end."""
 
     def setUp(self) -> None:
+        clean_git_env = {
+            key: value
+            for key, value in os.environ.items()
+            if not key.upper().startswith("GIT_")
+        }
+        env_patch = patch.dict(os.environ, clean_git_env, clear=True)
+        env_patch.start()
+        self.addCleanup(env_patch.stop)
         self._tmp = tempfile.TemporaryDirectory(prefix="repopact-reconcile-cli-")
         self.root = Path(self._tmp.name)
-        import subprocess
-
         self._git_available = (
             subprocess.run(["git", "--version"], capture_output=True).returncode == 0
         )
@@ -146,10 +155,19 @@ class GraphReconcileMergeCliTests(unittest.TestCase):
             '[package]\nname = "fixture"\n', encoding="utf-8"
         )
 
+        git_env = {
+            key: value
+            for key, value in os.environ.items()
+            if not key.upper().startswith("GIT_")
+        }
+
         def git(*args: str) -> None:
-            subprocess.run(["git", *args], cwd=self.root, check=True, capture_output=True)
+            subprocess.run(
+                ["git", *args], cwd=self.root, env=git_env, check=True, capture_output=True
+            )
 
         self._git = git
+        self._git_env = git_env
         git("init", "--quiet")
         git("config", "user.email", "test@example.invalid")
         git("config", "user.name", "Test")
@@ -186,7 +204,12 @@ class GraphReconcileMergeCliTests(unittest.TestCase):
         self._git("checkout", "-b", "branch-a")
         (self.root / "src" / "lib.rs").write_text("pub fn x() { /* a */ }\n", encoding="utf-8")
         self._git("commit", "-a", "--quiet", "-m", "a")
-        if subprocess.run(["git", "checkout", "main"], cwd=self.root, capture_output=True).returncode != 0:
+        if subprocess.run(
+            ["git", "checkout", "main"],
+            cwd=self.root,
+            env=self._git_env,
+            capture_output=True,
+        ).returncode != 0:
             self._git("checkout", "master")
         self._git("checkout", "-b", "branch-b")
         (self.root / "src" / "lib.rs").write_text("pub fn x() { /* b */ }\n", encoding="utf-8")
@@ -195,7 +218,10 @@ class GraphReconcileMergeCliTests(unittest.TestCase):
         import subprocess
 
         subprocess.run(
-            ["git", "merge", "--no-edit", "branch-b"], cwd=self.root, capture_output=True
+            ["git", "merge", "--no-edit", "branch-b"],
+            cwd=self.root,
+            env=self._git_env,
+            capture_output=True,
         )
         code = self.run_cli("reconcile-merge")
         self.assertEqual(code, 1)

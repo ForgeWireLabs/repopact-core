@@ -4,6 +4,7 @@ history this replaces.
 """
 from __future__ import annotations
 
+import os
 import subprocess
 import tempfile
 import unittest
@@ -68,6 +69,17 @@ def _init_synthetic_source(root: Path) -> None:
 
 class DevFixturesTests(unittest.TestCase):
     def setUp(self) -> None:
+        # Keep this module's synthetic-repository setup independent of Git
+        # overrides injected by the host runner. The dedicated regression case
+        # below applies a hostile block only around the inventory operation.
+        clean_git_env = {
+            key: value
+            for key, value in os.environ.items()
+            if not key.upper().startswith("GIT_")
+        }
+        env_patch = patch.dict(os.environ, clean_git_env, clear=True)
+        env_patch.start()
+        self.addCleanup(env_patch.stop)
         holder = tempfile.mkdtemp(prefix="repopact-dev-fixtures-test-")
         self.addCleanup(lambda: robust_rmtree(holder))
         self.source = Path(holder) / "source"
@@ -80,6 +92,22 @@ class DevFixturesTests(unittest.TestCase):
         dest = self.source.parent / "dest-tracked"
         materialize_source_tree(self.source, dest)
         self.assertEqual((dest / "tracked.txt").read_text(encoding="utf-8"), "tracked content v2 (uncommitted)\n")
+
+    def test_source_inventory_ignores_inherited_git_config_overrides(self) -> None:
+        # Some runners inject indexed Git config with empty credential values.
+        # That can break Git inventory commands even for an ordinary local repo.
+        with patch.dict(
+            "os.environ",
+            {
+                "GIT_CONFIG_COUNT": "1",
+                "GIT_CONFIG_KEY_0": "core.worktree",
+                "GIT_CONFIG_VALUE_0": "",
+                "GIT_DIR": str(self.source / "missing-git-dir"),
+            },
+        ):
+            paths = repository_source_files(self.source)
+        self.assertIn("tracked.txt", paths)
+        self.assertIn("untracked_new_file.py", paths)
 
     def test_untracked_non_ignored_file_participates(self) -> None:
         dest = self.source.parent / "dest-untracked"

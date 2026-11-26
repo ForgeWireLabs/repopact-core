@@ -37,7 +37,7 @@ def _git(root: Path, *args: str) -> bytes:
             stdout=subprocess.PIPE,
             stderr=subprocess.DEVNULL,
             env={
-                **{key: value for key, value in os.environ.items() if not key.startswith("GIT_")},
+                **{key: value for key, value in os.environ.items() if not key.upper().startswith("GIT_")},
                 "GIT_TERMINAL_PROMPT": "0",
                 "GIT_OPTIONAL_LOCKS": "0",
             },

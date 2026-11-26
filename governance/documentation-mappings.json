@@ -80,8 +80,8 @@
       ],
       "description": "The installation and packaging guide explains semantic identity, same-process admission, exact runtime dependency checks, migration, no-replay handling for uncertain outcomes, wheel payload and packaged-engine verification, the separate WI079 self-audit reference corpus, and the limits of executable provenance.",
       "snapshot": {
-        "source_digest": "555b50c8b77c83bc02779a955c7babc31b46aa092342cecb00c3bd1808418bbc",
-        "documentation_digest": "e5eb7f75354a7ddfed2369c3cb19c992c8f780912f6531f3611130767edfb3a5"
+        "source_digest": "21791d55f0ba6e03ea3c2b5b298b611ec16abc0fb03c7cf8879f6095abbafb29",
+        "documentation_digest": "a8bc0c1ef6847f544c2083ecd07dbd54cfd751f5f2f447ce99d1bc03e4e521a3"
       }
     },
     {
@@ -97,9 +97,9 @@
         "docs/guides/pre-completion-assurance.md",
         "repopact/templates/README.md"
       ],
-      "description": "The experimental self-audit CLI and opt-in instruction template explain freshness checks across committed, staged, unstaged, and nonignored untracked paths, controlled finding-status failures, and instruction-only limits.",
+      "description": "The experimental self-audit CLI and opt-in instruction template explain candidate snapshots and freshness checks across committed, staged, unstaged, and nonignored untracked paths, controlled finding-status failures, and instruction-only limits.",
       "snapshot": {
-        "source_digest": "ac5bb0651f9390f787295a57ccb15930a838b9712a830162150d23dd65c0a59f",
+        "source_digest": "602976b565254acf20c26742f6194db19a414238793f38423a42c005612a4324",
         "documentation_digest": "e37a66b4ce054f44f258a5070e84a35d0fa4aa93361c42d561fe6c6e67b32741"
       }
     }

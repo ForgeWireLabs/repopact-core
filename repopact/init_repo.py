@@ -154,9 +154,10 @@ def bootstrap(target: Path, today: date | None = None, *, client=None) -> Path:
         (target / empty).mkdir(parents=True, exist_ok=True)
 
     _write(target / "README.md",
-           "# Repository\n\nBootstrapped with RepoPact. Run `repopact validate` to check "
-           "the records, `python -m repopact.verify_cli governance` for the local verification profile, "
-           "and `repopact dashboard` to regenerate the derived projection.\n")
+           "# Repository\n\nBootstrapped with RepoPact. Run `python -m repopact.verify_cli governance` "
+           "for canonical validation; add `--evidence-work-item NNN` on the first candidate run "
+           "when you want durable evidence. Use `repopact validate` for a focused check or after "
+           "governed record or evidence changes, and `repopact dashboard` to regenerate the derived projection.\n")
     from .engine_client import write_dashboard_canonically
     write_dashboard_canonically(target, client=engine)
     return target

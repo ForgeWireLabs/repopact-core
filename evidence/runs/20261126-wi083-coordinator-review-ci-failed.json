@@ -1,0 +1,43 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261126-wi083-coordinator-review-ci-failed",
+  "timestamp": "2026-11-26T04:21:53Z",
+  "work_item": "083",
+  "result": "failed",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "$env:REPOPACT_ENGINE=rust/target/debug/repopact-engine.exe; repopact verify ci",
+      "exit_code": 1,
+      "summary": "Profile duration 2026.36 s. Validation, conformance, Rust workspace, spec freshness, and frozen-surface checks passed. Python unittest ran 528 tests with 14 errors and 8 skips; Git fixture subprocesses inherited malformed host indexed Git configuration."
+    }
+  ],
+  "artifacts": [
+    "evidence/runs/20261126T042053985064Z-wi076-ac6-engine-conformance.json",
+    "tests/test_validate_repo.py",
+    "tests/test_admission_security.py"
+  ],
+  "environment": {
+    "executor": "local",
+    "platform": "Windows 10",
+    "profile": "ci",
+    "candidate_at_start": {
+      "commit": "c175f19ab2828471727b0aea713e92e4fdeadef7",
+      "tree": "3c075eae53681ff968fcc3a23a2f85bf1b2ffaec",
+      "dirty": false
+    },
+    "duration_seconds": 2026.36,
+    "coverage": {
+      "required_steps": 5,
+      "required_steps_passed": 4,
+      "required_steps_failed": 1,
+      "optional_frozen_check": "passed"
+    },
+    "python_tests": {
+      "ran": 528,
+      "errors": 14,
+      "skipped": 8
+    },
+    "conformance_provenance": "20261126T042053985064Z-wi076-ac6-engine-conformance"
+  }
+}

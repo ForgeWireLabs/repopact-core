@@ -16,7 +16,7 @@ from .verification import (
     VerificationConfigError,
     _candidate_identity,
     _work_item_exists,
-    load_contract,
+    _load_contract,
     new_evidence_id,
     record_evidence,
     render_human,
@@ -62,8 +62,10 @@ def main(argv: list[str] | None = None) -> int:
         evidence_id = args.evidence_id
         candidate_at_start = None
         profile_name = args.profile
+        validated_contract = None
         if args.evidence_work_item:
-            contract = load_contract(root)
+            validated_contract = _load_contract(root)
+            contract = validated_contract.value
             profile_name = profile_name or contract.get("default_profile")
             if not profile_name:
                 raise VerificationConfigError("no verification profile supplied and no default_profile is declared")
@@ -92,6 +94,7 @@ def main(argv: list[str] | None = None) -> int:
                 profile_name,
                 progress_callback=journal.record_step if journal else None,
                 candidate_at_start=candidate_at_start,
+                _loaded_contract=validated_contract,
             )
         finally:
             if journal:

@@ -21,10 +21,9 @@ On macOS or Linux, use the corresponding `.venv/bin/` executables.
 ```powershell
 repopact init --target ./my-project
 cd ./my-project
-repopact validate
 ```
 
-You now have a valid governed repository with a root contract, governance records, lifecycle directories, packaged-schema references, and a minimal local-first verification contract.
+Initialization validates the seeded repository before it returns. You now have a valid governed repository with a root contract, governance records, lifecycle directories, packaged-schema references, and a minimal local-first verification contract.
 
 RepoPact tooling remains installed in the Python environment; the governed repository does not vendor a second copy of the implementation.
 
@@ -34,13 +33,7 @@ Open `governance/invariants.json` and inspect the seeded invariant. Add or revis
 
 Inspect `governance/frozen-surface.json` and identify a path or symbol that should require explicit operator review before it changes.
 
-Then run:
-
-```powershell
-repopact validate
-```
-
-The goal is not to add ceremony for its own sake. The governance records should describe boundaries that actually matter to the repository.
+The goal is not to add ceremony for its own sake. The governance records should describe boundaries that actually matter to the repository. Step 4 validates these edits together with the filled work item before implementation begins.
 
 ## 4. Capture work before implementation
 
@@ -52,7 +45,7 @@ RepoPact creates an active work-item directory under `work/active/` and stamps t
 
 Open its `work-item.json` and replace the starter acceptance criterion with one that can actually be checked. Use the sibling `README.md` for intent, context, tradeoffs, and implementation narrative.
 
-Run `repopact validate` again before doing the implementation.
+After filling the acceptance criterion, run `repopact validate` once before implementation. This check covers both the governance edits above and the active work item.
 
 ## 5. Do the work and run repository-defined verification
 
@@ -60,25 +53,24 @@ Make the implementation change, then run the repository's default verification
 profile. A newly initialized repository uses the `governance` profile, which
 runs canonical RepoPact validation. Other repositories may define profiles such
 as `quick`, `ci`, or `release` in `governance/verification.json`; use a profile
-that exists in the repository you are checking.
-
-```powershell
-repopact verify
-```
-
-A passing verification run is evidence about the checks that actually executed on this host. It does not automatically complete the work item or grant authority.
-
-For the initialized example, a successful run reports the `governance` profile,
-`executed=1/1 required`, and `result: PASS`. Timing and any other repository's
-step count depend on its local profile.
-
-When you are ready to preserve a real verification run as RepoPact evidence, run the profile again with the work-item id:
+that exists in the repository you are checking. When you want the candidate run
+saved as work-item evidence, include `--evidence-work-item NNN` on this first
+invocation:
 
 ```powershell
 repopact verify --evidence-work-item NNN
 ```
 
-Replace `NNN` with the work-item id RepoPact created.
+A passing verification run is evidence about the checks that actually executed
+on this host. It does not automatically complete the work item or grant
+authority. Replace `NNN` with the work-item id RepoPact created.
+
+Use the evidence flag on the first candidate run; there is no need to run an
+unrecorded pass and repeat it just to create evidence. A successful,
+evidence-bearing declared profile satisfies its identical checks for the same
+relevant candidate while the command, arguments, configuration, policy,
+dependencies, toolchain, platform, and other relevant inputs remain unchanged.
+Link the resulting evidence to the acceptance criterion it supports.
 
 RepoPact writes an immutable concrete evidence record under `evidence/runs/` and refreshes derived state as part of the write. If evidence recording cannot complete safely, it fails closed rather than leaving a partial record.
 

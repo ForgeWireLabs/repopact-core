@@ -75,6 +75,19 @@ repopact validate
 python -m unittest discover -s tests -v
 ```
 
+The declared `ci` profile in `governance/verification.json` runs the same
+canonical validation and Python unit tests, plus canonical conformance, locked
+Rust workspace tests, and SPEC freshness. A successful profile step satisfies
+the identical check for the same relevant candidate when no relevant inputs
+changed after it ran. Focused iteration tests do not replace required completion
+coverage.
+
+If work-item status, evidence, or dashboard records change after the profile,
+run `repopact validate` against the resulting state. Rerun other steps only when
+their relevant inputs changed or an applicable work item or contract requires
+it. The profile's frozen-surface report is optional; when a frozen check is
+required, run `repopact check-frozen --base <ref>` as instructed above.
+
 Regenerate `audits/reports/dashboard.md` after changing governed structure or
 work-item status. Run `repopact check-frozen` when a change may
 touch the frozen surface.
