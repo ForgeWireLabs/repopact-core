@@ -22,10 +22,11 @@
     {
       "id": "AC-1",
       "text": "Capture matched before/after counts and elapsed time for the shipped tutorial path and selected existing verification operations, with exact source, commands, environment, and failures. Distinguish command reduction from a productivity or effectiveness claim.",
-      "state": "pending",
+      "state": "satisfied",
       "evidence": [
         "20261125-wi083-measurements",
-        "20261126-wi083-ac1-corrected-baseline-comparison"
+        "20261126-wi083-ac1-corrected-baseline-comparison",
+        "20261126-wi083-ac1-retrospective-reconstruction"
       ]
     },
     {

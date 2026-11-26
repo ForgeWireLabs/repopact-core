@@ -87,3 +87,37 @@ remain applicable to unchanged checks. No build, unit suite, full profile, or
 legacy comparator was repeated. The repository's hosted governance workflow
 is opt-in through `REPOPACT_GITHUB_CI`; the repository currently has no Actions
 variables, so the draft PR will not dispatch hosted validation.
+
+## Final bounded reconciliation — 2026-11-26
+
+The read-only committed script
+`reconstruct_preflight_mismatch.py` was executed once from commit
+`2a81a5aed4df16193255342192249f40b6040582`. Its output is preserved in
+`reconstruction-results.json`. It verified all 24 reconstructed completed
+work-item JSON values against the original raw SHA-256 values and all 24
+against the original ID-normalized SHA-256 values. It found exactly one
+whole-second `preflight.created_at` value inside each recorded work-item
+creation command interval. Replacing that generated field alone, in this
+separately labeled retrospective check, produced the same normalized work-item
+hash for all 12 pairs:
+`bfb91cf012a80f853ac6bcf3c63a1f01ee452b39efc4ec90c53f82fb03cfd688`.
+
+The original preregistered comparison still records
+`all_sample_final_states_equivalent: false`; its raw results, harness, partial
+manifest, and protocol were preserved unchanged. This reconstruction does
+not turn that preregistered check into a pass. Taken together, the original
+matched command counts and timing evidence plus the independently identified
+generated timestamp difference establish comparable final governed state, so
+WI083 AC-1 is now satisfied on combined evidence. This supports no
+historical-binary, productivity, effectiveness, or causal claim. AC-6 remains
+pending and WI083 remains active.
+
+For assurance reuse, the successful local CI profile remains
+`20261126-wi083-ac7-clean-final-ci` at source
+`805f86ccf46d2311bbe19121cad22904b5993c9d`. The newer clean
+conformance/process-image provenance is
+`20261126T183309135759Z-wi076-ac6-engine-conformance` at source
+`6e79ce512bc5b99cd73ec2adde1136b720fb51ca`, with complete process-image
+provenance and the same semantic identity. The source-to-candidate delta since
+that clean comparator remains limited to evidence, work, and generated audit
+state; no runtime, test, or documentation source changed.

@@ -1,0 +1,77 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261126-wi083-ac1-retrospective-reconstruction",
+  "timestamp": "2026-11-26T23:43:49Z",
+  "work_item": "083",
+  "result": "passed",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "python evidence/WI083-AC1-20261126/reconstruct_preflight_mismatch.py",
+      "exit_code": 0,
+      "summary": "Read-only reconstruction against the pinned original raw blob: 24/24 raw hashes and original normalized hashes verified; exactly one preflight.created_at timestamp matched per run interval; 12/12 retrospective pair states shared the common hash bfb91cf012a80f853ac6bcf3c63a1f01ee452b39efc4ec90c53f82fb03cfd688. This is retrospective evidence, not a preregistered equivalence pass."
+    }
+  ],
+  "artifacts": [
+    "evidence/WI083-AC1-20261126/reconstruct_preflight_mismatch.py",
+    "evidence/WI083-AC1-20261126/reconstruction-results.json",
+    "evidence/WI083-AC1-20261126/raw-results.json",
+    "evidence/WI083-AC1-20261126/compare_tutorial_sequences.py",
+    "evidence/WI083-AC1-20261126/README.md",
+    "evidence/runs/20261126-wi083-ac1-corrected-baseline-comparison.json",
+    "evidence/WI083-AC7-20261126/interpretation.md",
+    "work/active/083-reduce-governance-debt-and-restore-small-team-throughput/README.md"
+  ],
+  "environment": {
+    "analysis_kind": "read-only retrospective hash reconstruction; no fixtures or benchmark commands executed",
+    "reconstruction_script": {
+      "commit": "2a81a5aed4df16193255342192249f40b6040582",
+      "tree": "2a57ce160e932df72c6a417b3b5ba14d841e9ca9",
+      "python": "3.12.4",
+      "dependencies": "Python standard library only",
+      "output_sha256": "4df5a20c710ecfe5219f14344aa7d06240a4fd748e18c9a3dafea6b1631f4bb8"
+    },
+    "original_measurement": {
+      "candidate_commit": "d6b65737027e189690511a2c0726cf00b5b18686",
+      "candidate_tree": "3fd2b72e753e198dc35f74d30daca8420202d3bd",
+      "preregistration_commit": "1d6462a6e13e0501efd83800db92588cca206854",
+      "partial_manifest_id": "20261126-wi083-ac1-corrected-baseline-comparison",
+      "raw_sha256": "da59922853927c5f8cc12ffe1b68324e19c127cb225049acc4f6d16eddb17d74",
+      "raw_git_blob": "d75aee969f19c819e6bab8fd91cd5bb206035f63",
+      "historical_tutorial": {
+        "commit": "b9dec03ad59c2ef7d782eda9f2b3220747e8ba3c",
+        "tree": "a01027d89c3be3440067a80a32185d1a0db869f4",
+        "blob": "b47c922147d8798d936279d88f0725e04d9a5282",
+        "sha256": "db6c850b8936f5da3b0f7c37dc4fa3014a2ebf43e325daa83d0ab76a7951a9e8"
+      },
+      "current_tutorial": {
+        "commit": "733e23a8a091727908dbd3c690fb7169f91b7287",
+        "tree": "656543a1472f29b1380227621fe842231179264b",
+        "blob": "871065f026d64e96df80ffb417eb181e92c23987",
+        "sha256": "9e5c161bb4082ca15236dfa2bba36ca98a75d684985a607579725412f0e745da"
+      },
+      "engine": {
+        "source_revision": "805f86ccf46d2311bbe19121cad22904b5993c9d",
+        "sha256": "63a78d027472020dd6d1aa3a6e2a7d49ed092f529dcf1efa77283a8e1d0ca81b",
+        "semantic_identity": "repopact-semantic-v1:sha256:a11c42f9a8129a186a44a0e7822d9f2edb1512a7bc13fbe945ede32d8acfb255"
+      }
+    },
+    "results": {
+      "raw_hash_matches": 24,
+      "original_normalized_hash_matches": 24,
+      "retrospective_equivalent_pairs": 12,
+      "command_count_reconfirmed": 240,
+      "unique_create_command_interval_timestamp_per_run": true,
+      "retrospective_only_field": "preflight.created_at",
+      "common_retrospective_sha256": "bfb91cf012a80f853ac6bcf3c63a1f01ee452b39efc4ec90c53f82fb03cfd688",
+      "preregistered_result_rewritten": false
+    },
+    "reused_assurance": {
+      "local_ci_evidence": "20261126-wi083-ac7-clean-final-ci",
+      "clean_conformance_provenance": "20261126T183309135759Z-wi076-ac6-engine-conformance",
+      "clean_conformance_source": "6e79ce512bc5b99cd73ec2adde1136b720fb51ca",
+      "clean_engine_sha256": "91921335f97b180c94aa0a4361d6635080b203d17ea4b370080813adbac7ebcd",
+      "semantic_identity": "repopact-semantic-v1:sha256:a11c42f9a8129a186a44a0e7822d9f2edb1512a7bc13fbe945ede32d8acfb255"
+    }
+  }
+}

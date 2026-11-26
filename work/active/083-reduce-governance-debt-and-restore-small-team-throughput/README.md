@@ -317,3 +317,29 @@ at `20261126T191658572565Z-wi076-ac6-engine-conformance`. Profile evidence
 `20261126-wi083-ac7-clean-final-ci` and the conformance provenance are linked
 under AC-5. AC-1 and AC-6 remain pending; no productivity or comparative
 efficacy claim is made.
+
+## AC-1 bounded reconciliation — 2026-11-26
+
+The original corrected-baseline comparison and its partial evidence record
+remain byte-identical; the preregistered final-state equivalence check remains
+recorded as failed. The committed read-only reconstruction script
+`evidence/WI083-AC1-20261126/reconstruct_preflight_mismatch.py` was executed
+once. It verified all 24 raw work-item hashes, all 24 originally normalized
+hashes, and 12/12 retrospective pairs. The only previously unidentified field
+was the generated `preflight.created_at` timestamp. Replacing that field in
+the separate retrospective analysis yields the common hash
+`bfb91cf012a80f853ac6bcf3c63a1f01ee452b39efc4ec90c53f82fb03cfd688`.
+
+The original command counts and timings, combined with this forensic
+reconstruction of the sole generated timestamp difference, establish
+comparable final governed state. AC-1 is satisfied by both evidence records:
+`20261126-wi083-ac1-corrected-baseline-comparison` and
+`20261126-wi083-ac1-retrospective-reconstruction`. The result is not a
+preregistered equivalence pass and does not support historical-binary,
+productivity, effectiveness, or causal claims. AC-6 remains pending; WI083
+remains active.
+
+The newer clean local conformance provenance used for reuse is
+`20261126T183309135759Z-wi076-ac6-engine-conformance` at source
+`6e79ce512bc5b99cd73ec2adde1136b720fb51ca`. The source-to-candidate change
+does not touch runtime, test, or documentation inputs.
