@@ -178,3 +178,12 @@ reason: the source commit alone did not identify the dirty working tree. No
 source or test failure occurred. These failed attempts remain linked under
 AC-5; the final clean-revision full profile and legacy comparator are still
 required.
+
+The first explicit legacy-comparator attempt is preserved as
+`20261126T183025085Z-wi083-ac7-legacy-comparator` with its captured console
+output in `evidence/WI083-AC7-20261126/legacy-comparator-first-attempt-incomplete.txt`.
+All 43 canonical and 43 compatibility cases, WI050 8/8, and WI079 10/10 passed;
+provenance correctly remained incomplete because the executable's embedded
+source revision was `559ed9a` while the clean checkout had advanced to
+`f9cf6a2`. The engine will be rebuilt against the finalized candidate commit
+before the successful comparator and final profile.
