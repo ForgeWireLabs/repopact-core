@@ -1,0 +1,66 @@
+{
+  "$schema": "../../../repopact/schemas/work-item.schema.json",
+  "id": "083",
+  "title": "Reduce governance debt and restore small-team throughput",
+  "status": "active",
+  "owner_scope": "tooling",
+  "affected_scopes": [
+    "tooling",
+    "docs",
+    "governance",
+    "work",
+    "evidence"
+  ],
+  "depends_on": [],
+  "provenance": "concrete",
+  "preflight": {
+    "created_before_work_started": true,
+    "created_at": "2026-11-25T23:35:37Z",
+    "note": "Before implementation, verified main at b9dec03ad59c2ef7d782eda9f2b3220747e8ba3c and open draft PR #29 at daa94e8ddc264212a7e1c372b5c935c95c522ab5, which contains the proposed WI082. Created WI083 through the canonical Rust-engine work.create path on a detached local worktree of that exact candidate so the allocator skipped WI082; only the generated WI083 directory is carried to this main-based branch, and no PR #29 branch change was made. Implementation had not started."
+  },
+  "acceptance_criteria": [
+    {
+      "id": "AC-1",
+      "text": "Capture matched before/after counts and elapsed time for the shipped tutorial path and selected existing verification operations, with exact source, commands, environment, and failures. Distinguish command reduction from a productivity or effectiveness claim.",
+      "state": "pending",
+      "evidence": [
+        "20261125-wi083-measurements"
+      ]
+    },
+    {
+      "id": "AC-2",
+      "text": "Remove redundant verification invocations from the shipped tutorial and align new-repository instructions. Keep preflight after intent is recorded and current-state validation after governed ledger or evidence changes; explain when an already-passed declared check remains valid for the same relevant candidate.",
+      "state": "pending",
+      "evidence": []
+    },
+    {
+      "id": "AC-3",
+      "text": "Use one validated verification contract/profile selection per invocation where safe. Preserve actual report/journal steps and fail-closed behavior for invalid or drifting policy, unknown profiles, unavailable required steps, interruption, and evidence-capture errors; add focused regression coverage for recorded and unrecorded default and explicit profiles.",
+      "state": "pending",
+      "evidence": []
+    },
+    {
+      "id": "AC-4",
+      "text": "Measure ordinary mutation candidate snapshot/copy work. Implement a bounded reduction only if it preserves complete diagnostics, Git/worktree facts, stale read-set checks, frozen-surface checks, rollback, cleanup, and independent live post-state validation; otherwise record the measured blocker and defer the structural optimization.",
+      "state": "pending",
+      "evidence": [
+        "20261125-wi083-measurements"
+      ]
+    },
+    {
+      "id": "AC-5",
+      "text": "Preserve declared CI coverage, the required legacy comparator, independent frozen checks, honest start/end candidate identities, negative outcomes, and transaction behavior. Regenerate governed artifacts and link exact local validation evidence without editing protected surfaces.",
+      "state": "pending",
+      "evidence": []
+    },
+    {
+      "id": "AC-6",
+      "text": "Reuse WI022 comparative framework and the unrun WI082 research proposal where applicable. Record a matched evaluation protocol and thresholds before any study; leave unavailable or unauthorized comparative efficacy evidence explicitly pending and make no causal or productivity claim from one case.",
+      "state": "pending",
+      "evidence": []
+    }
+  ],
+  "created": "2026-11-25",
+  "updated": "2026-11-25",
+  "lead": "tooling-owner"
+}

@@ -1181,6 +1181,11 @@ class RepositoryValidationTests(unittest.TestCase):
         target = self.temp_dir / "seeded"
         init_repo.bootstrap(target)
         self.assertTrue((target / "work" / "proposed").is_dir())
+        readme = (target / "README.md").read_text(encoding="utf-8")
+        self.assertIn("python -m repopact.verify_cli governance", readme)
+        self.assertIn("--evidence-work-item NNN", readme)
+        self.assertIn("after governed record or evidence changes", readme)
+        self.assertNotIn("Run `repopact validate` to check", readme)
         self.assertEqual([], [p.message for p in validate(target)])
 
     def test_bootstrap_uses_installed_tooling_instead_of_vendoring_modules(self) -> None:

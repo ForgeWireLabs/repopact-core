@@ -15,9 +15,12 @@ is `SPEC.md` at the repository root (governance scope), not here.
 
 ## Required checks
 
-```powershell
-repopact validate
-```
+Run `repopact validate` for documentation changes unless the repository's
+successful declared verification profile has already run its equivalent
+canonical validation on the same relevant candidate and no relevant inputs have
+changed since. Documentation can be a test input, so a docs-only change does not
+by itself make prior test evidence reusable. Revalidate after governed ledger or
+evidence changes because they change the current repository state.
 
 ## Traceability
 

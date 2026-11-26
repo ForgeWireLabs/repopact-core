@@ -1,0 +1,47 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261125-wi083-measurements",
+  "timestamp": "2026-11-25T23:59:51Z",
+  "work_item": "083",
+  "result": "passed",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "python evidence\\wi083-contract-load-benchmark.py --baseline b9dec03 --warmups 10 --samples 5 --iterations 250",
+      "exit_code": 0,
+      "summary": "5-sample contract handling benchmark: baseline median 12.1296 ms; candidate median 6.6822 ms; config and schema hashes are in the measurement artifact."
+    },
+    {
+      "command": "$env:CARGO_TARGET_DIR='C:\\Projects\\repopact-core-wi083-rust-target-20261125'; cargo test --locked --manifest-path rust\\Cargo.toml -p repopact-mutation measure_wi083_baseline_candidate_copy -- --nocapture",
+      "exit_code": 0,
+      "summary": "Temporary probe passed (1 passed, 32 filtered); copy_tree timed 2,137 ms and validate_candidate 9,167 ms with a 2,092-byte probe addition."
+    },
+    {
+      "command": "repopact documentation snapshot engine-semantic-compatibility",
+      "exit_code": 0,
+      "summary": "Reviewed mapped guide and refreshed source digest to 838e8e78b56706010965a75857a49cfe26baabf5edf3d723bc808f2a5fd3657a; documentation digest stayed unchanged."
+    },
+    {
+      "command": "repopact validate (first check after semantic-identity refresh)",
+      "exit_code": 1,
+      "summary": "Reported only the stale engine-semantic-compatibility source snapshot; refreshed through the canonical snapshot workflow and reran validation successfully."
+    },
+    {
+      "command": "repopact validate (after documentation mapping refresh)",
+      "exit_code": 0,
+      "summary": "Repository governance validation passed."
+    }
+  ],
+  "artifacts": [
+    "evidence/WI083-throughput-measurements.md",
+    "evidence/wi083-contract-load-benchmark.py"
+  ],
+  "environment": {
+    "python": "3.12.4",
+    "python_platform": "Windows-10-10.0.19045-SP0",
+    "rust_host": "Windows; OS build, CPU, and load conditions not recorded",
+    "cargo": "1.96.0 (30a34c682 2026-05-25)",
+    "rustc": "1.96.0 (ac68faa20 2026-05-25)",
+    "limitations": "No end-to-end tutorial elapsed-time observation; no uninstrumented production mutation timing; temporary Rust probe source was removed after the test."
+  }
+}

@@ -8,6 +8,7 @@ secrets, or remote admission state.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import re
@@ -43,6 +44,17 @@ def new_evidence_id(profile: str) -> str:
         raise VerificationConfigError(f"invalid verification profile id {profile!r}")
     stamp = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S-%f")
     return f"{stamp}-{uuid.uuid4().hex[:8]}-verify-{profile}"
+
+
+@dataclass
+class _LoadedContract:
+    """One validated contract snapshot for one local verification invocation."""
+
+    root: Path
+    value: dict[str, Any]
+    source_digest: str
+    schema_digest: str
+    consumed: bool = False
 
 
 @dataclass(frozen=True)
@@ -172,7 +184,7 @@ def _schema_bytes(root: Path) -> bytes:
     return files("repopact").joinpath("schemas", SCHEMA_NAME).read_bytes()
 
 
-def load_contract(root: Path) -> dict[str, Any]:
+def _load_contract(root: Path) -> _LoadedContract:
     root = root.resolve()
     path = root / CONFIG_REL
     if not path.is_file():
@@ -180,16 +192,46 @@ def load_contract(root: Path) -> dict[str, Any]:
             f"missing {CONFIG_REL.as_posix()}; run `repopact init/adopt` with a current RepoPact or add a typed verification contract"
         )
     try:
-        value = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as exc:
+        raw = path.read_bytes()
+        value = json.loads(raw.decode("utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
         raise VerificationConfigError(f"cannot read {CONFIG_REL.as_posix()}: {exc}") from exc
     try:
-        schema = json.loads(_schema_bytes(root))
+        schema_raw = _schema_bytes(root)
+        schema = json.loads(schema_raw)
         jsonschema.Draft202012Validator(schema).validate(value)
     except (OSError, json.JSONDecodeError, jsonschema.ValidationError) as exc:
         raise VerificationConfigError(f"invalid {CONFIG_REL.as_posix()}: {exc}") from exc
     _validate_semantics(root, value)
-    return value
+    return _LoadedContract(
+        root,
+        value,
+        hashlib.sha256(raw).hexdigest(),
+        hashlib.sha256(schema_raw).hexdigest(),
+    )
+
+
+def load_contract(root: Path) -> dict[str, Any]:
+    """Return a validated contract without retaining it across invocations."""
+    return _load_contract(root).value
+
+
+def _assert_contract_unchanged(loaded: _LoadedContract) -> None:
+    try:
+        current = (loaded.root / CONFIG_REL).read_bytes()
+        current_schema = _schema_bytes(loaded.root)
+    except OSError as exc:
+        raise VerificationConfigError(
+            f"cannot recheck {CONFIG_REL.as_posix()} and its schema before execution: {exc}"
+        ) from exc
+    if (
+        hashlib.sha256(current).hexdigest() != loaded.source_digest
+        or hashlib.sha256(current_schema).hexdigest() != loaded.schema_digest
+    ):
+        raise VerificationConfigError(
+            f"{CONFIG_REL.as_posix()} or its schema changed after profile selection; "
+            "refusing to execute a stale profile"
+        )
 
 
 def _validate_semantics(root: Path, value: dict[str, Any]) -> None:
@@ -569,19 +611,30 @@ def run_profile(
     *,
     progress_callback=None,
     candidate_at_start: dict[str, Any] | None = None,
+    _loaded_contract: _LoadedContract | None = None,
 ) -> VerificationReport:
     root = root.resolve()
-    contract = load_contract(root)
+    if _loaded_contract is None:
+        loaded_contract = _load_contract(root)
+    elif type(_loaded_contract) is not _LoadedContract or _loaded_contract.root != root:
+        raise VerificationConfigError("run_profile accepts only a validated contract for this repository root")
+    else:
+        loaded_contract = _loaded_contract
+    if loaded_contract.consumed:
+        raise VerificationConfigError("validated verification contract snapshot was already used")
+    loaded_contract.consumed = True
+    contract = loaded_contract.value
     name = profile_name or contract.get("default_profile")
     if not name:
         raise VerificationConfigError("no verification profile supplied and no default_profile is declared")
     profiles = contract["profiles"]
     if name not in profiles:
         raise VerificationConfigError(f"unknown verification profile {name!r}")
+    profile = profiles[name]
+    _assert_contract_unchanged(loaded_contract)
     platform = current_platform()
     started = time.monotonic()
     results: list[StepResult] = []
-    profile = profiles[name]
     candidate_at_start = candidate_at_start or _candidate_identity(root)
     storage_preflight: dict[str, Any] | None = None
     if name == "ci":
