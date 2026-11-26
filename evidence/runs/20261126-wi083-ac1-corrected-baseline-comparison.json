@@ -1,0 +1,92 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261126-wi083-ac1-corrected-baseline-comparison",
+  "timestamp": "2026-11-26T20:03:50Z",
+  "work_item": "083",
+  "result": "partial",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "python evidence/WI083-AC1-20261126/compare_tutorial_sequences.py --run",
+      "exit_code": 1,
+      "summary": "Two warmups per side and ten matched pairs completed; all 240 CLI commands passed with no exclusions. AC-1 remains pending because the completed work-item JSON differed after registered normalization in every pair."
+    }
+  ],
+  "artifacts": [
+    "evidence/WI083-AC1-20261126/README.md",
+    "evidence/WI083-AC1-20261126/compare_tutorial_sequences.py",
+    "evidence/WI083-AC1-20261126/raw-results.json",
+    "evidence/WI083-AC7-20261126/raw-results.json",
+    "evidence/WI083-AC7-20261126/interpretation.md",
+    "work/active/083-reduce-governance-debt-and-restore-small-team-throughput/README.md"
+  ],
+  "environment": {
+    "comparison_candidate": {
+      "base_commit": "733e23a8a091727908dbd3c690fb7169f91b7287",
+      "preregistration_commit": "1d6462a6e13e0501efd83800db92588cca206854",
+      "preregistration_tree": "1018d5f399605f6f794929204676cca382c6443d"
+    },
+    "engine": {
+      "source_revision": "805f86ccf46d2311bbe19121cad22904b5993c9d",
+      "sha256": "63a78d027472020dd6d1aa3a6e2a7d49ed092f529dcf1efa77283a8e1d0ca81b",
+      "semantic_identity": "repopact-semantic-v1:sha256:a11c42f9a8129a186a44a0e7822d9f2edb1512a7bc13fbe945ede32d8acfb255",
+      "profile": "debug",
+      "target": "x86_64-pc-windows-msvc"
+    },
+    "python_cli": {
+      "version": "3.12.4",
+      "package": "3.1.4.dev0",
+      "source_revision": "b54d564d10bc4806190ed2ef3cbbb01280d2e6d1",
+      "jsonschema": "4.26.0"
+    },
+    "rust_toolchain": "Rust/Cargo 1.96.0",
+    "os": "Windows 10 build 19045",
+    "model_calls": 0,
+    "sample_plan": {
+      "warmups_per_side": 2,
+      "matched_pairs": 10,
+      "sample_exclusions": 0
+    },
+    "command_counts_per_sample": {
+      "corrected_baseline": {
+        "total_cli": 13,
+        "validate": 5,
+        "verify": 2,
+        "dashboard": 4,
+        "init": 1,
+        "new": 1
+      },
+      "current": {
+        "total_cli": 7,
+        "validate": 3,
+        "verify": 1,
+        "dashboard": 1,
+        "init": 1,
+        "new": 1
+      }
+    },
+    "timing_ms": {
+      "corrected_baseline_median_command_sum": 10235.011,
+      "corrected_baseline_p95_command_sum": 10419.941,
+      "current_median_command_sum": 5835.166,
+      "current_p95_command_sum": 5939.742,
+      "paired_delta_median_corrected_minus_current": 4400.678,
+      "paired_delta_p95_corrected_minus_current": 4570.877,
+      "p95_method": "nearest rank"
+    },
+    "final_state_equivalence": {
+      "passed": false,
+      "mismatched_path_in_all_10_sample_pairs_and_both_warmups": "work/completed/001-wire-up-the-health-check/work-item.json",
+      "all_other_paths_matched_after_preregistered_normalization": true,
+      "mismatch_content_retained": false
+    },
+    "raw_results_sha256": "da59922853927c5f8cc12ffe1b68324e19c127cb225049acc4f6d16eddb17d74",
+    "harness_sha256": "a29b2f7711430b0057847e26dc802b5d75b5a370f9d3fd7b4edfc42b6d96d1a6",
+    "literal_replay": {
+      "reused_from": "evidence/WI083-AC7-20261126/raw-results.json",
+      "historical_failure_runs": 3,
+      "current_success_runs": 3,
+      "repeated": false
+    }
+  }
+}

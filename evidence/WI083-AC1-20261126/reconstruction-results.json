@@ -1,0 +1,180 @@
+{
+  "analysis": "retrospective hash reconstruction, not a preregistered pass",
+  "source_commit": "d6b65737027e189690511a2c0726cf00b5b18686",
+  "raw_sha256": "da59922853927c5f8cc12ffe1b68324e19c127cb225049acc4f6d16eddb17d74",
+  "raw_matches": 24,
+  "original_normalized_matches": 24,
+  "retrospective_equivalent_pairs": 12,
+  "command_count": 240,
+  "secondary_normalized_sha256": "bfb91cf012a80f853ac6bcf3c63a1f01ee452b39efc4ec90c53f82fb03cfd688",
+  "records": [
+    {
+      "run": "warmup-01-corrected_baseline",
+      "preflight_created_at": "2026-11-26T19:58:46Z",
+      "original_raw_hash_verified": true,
+      "original_normalized_hash_verified": true,
+      "secondary_normalized_sha256": "bfb91cf012a80f853ac6bcf3c63a1f01ee452b39efc4ec90c53f82fb03cfd688"
+    },
+    {
+      "run": "warmup-01-current",
+      "preflight_created_at": "2026-11-26T19:58:56Z",
+      "original_raw_hash_verified": true,
+      "original_normalized_hash_verified": true,
+      "secondary_normalized_sha256": "bfb91cf012a80f853ac6bcf3c63a1f01ee452b39efc4ec90c53f82fb03cfd688"
+    },
+    {
+      "run": "warmup-02-current",
+      "preflight_created_at": "2026-11-26T19:59:04Z",
+      "original_raw_hash_verified": true,
+      "original_normalized_hash_verified": true,
+      "secondary_normalized_sha256": "bfb91cf012a80f853ac6bcf3c63a1f01ee452b39efc4ec90c53f82fb03cfd688"
+    },
+    {
+      "run": "warmup-02-corrected_baseline",
+      "preflight_created_at": "2026-11-26T19:59:13Z",
+      "original_raw_hash_verified": true,
+      "original_normalized_hash_verified": true,
+      "secondary_normalized_sha256": "bfb91cf012a80f853ac6bcf3c63a1f01ee452b39efc4ec90c53f82fb03cfd688"
+    },
+    {
+      "run": "pair-01-corrected_baseline",
+      "preflight_created_at": "2026-11-26T19:59:23Z",
+      "original_raw_hash_verified": true,
+      "original_normalized_hash_verified": true,
+      "secondary_normalized_sha256": "bfb91cf012a80f853ac6bcf3c63a1f01ee452b39efc4ec90c53f82fb03cfd688"
+    },
+    {
+      "run": "pair-01-current",
+      "preflight_created_at": "2026-11-26T19:59:32Z",
+      "original_raw_hash_verified": true,
+      "original_normalized_hash_verified": true,
+      "secondary_normalized_sha256": "bfb91cf012a80f853ac6bcf3c63a1f01ee452b39efc4ec90c53f82fb03cfd688"
+    },
+    {
+      "run": "pair-02-current",
+      "preflight_created_at": "2026-11-26T19:59:38Z",
+      "original_raw_hash_verified": true,
+      "original_normalized_hash_verified": true,
+      "secondary_normalized_sha256": "bfb91cf012a80f853ac6bcf3c63a1f01ee452b39efc4ec90c53f82fb03cfd688"
+    },
+    {
+      "run": "pair-02-corrected_baseline",
+      "preflight_created_at": "2026-11-26T19:59:45Z",
+      "original_raw_hash_verified": true,
+      "original_normalized_hash_verified": true,
+      "secondary_normalized_sha256": "bfb91cf012a80f853ac6bcf3c63a1f01ee452b39efc4ec90c53f82fb03cfd688"
+    },
+    {
+      "run": "pair-03-corrected_baseline",
+      "preflight_created_at": "2026-11-26T19:59:56Z",
+      "original_raw_hash_verified": true,
+      "original_normalized_hash_verified": true,
+      "secondary_normalized_sha256": "bfb91cf012a80f853ac6bcf3c63a1f01ee452b39efc4ec90c53f82fb03cfd688"
+    },
+    {
+      "run": "pair-03-current",
+      "preflight_created_at": "2026-11-26T20:00:04Z",
+      "original_raw_hash_verified": true,
+      "original_normalized_hash_verified": true,
+      "secondary_normalized_sha256": "bfb91cf012a80f853ac6bcf3c63a1f01ee452b39efc4ec90c53f82fb03cfd688"
+    },
+    {
+      "run": "pair-04-current",
+      "preflight_created_at": "2026-11-26T20:00:10Z",
+      "original_raw_hash_verified": true,
+      "original_normalized_hash_verified": true,
+      "secondary_normalized_sha256": "bfb91cf012a80f853ac6bcf3c63a1f01ee452b39efc4ec90c53f82fb03cfd688"
+    },
+    {
+      "run": "pair-04-corrected_baseline",
+      "preflight_created_at": "2026-11-26T20:00:18Z",
+      "original_raw_hash_verified": true,
+      "original_normalized_hash_verified": true,
+      "secondary_normalized_sha256": "bfb91cf012a80f853ac6bcf3c63a1f01ee452b39efc4ec90c53f82fb03cfd688"
+    },
+    {
+      "run": "pair-05-corrected_baseline",
+      "preflight_created_at": "2026-11-26T20:00:29Z",
+      "original_raw_hash_verified": true,
+      "original_normalized_hash_verified": true,
+      "secondary_normalized_sha256": "bfb91cf012a80f853ac6bcf3c63a1f01ee452b39efc4ec90c53f82fb03cfd688"
+    },
+    {
+      "run": "pair-05-current",
+      "preflight_created_at": "2026-11-26T20:00:37Z",
+      "original_raw_hash_verified": true,
+      "original_normalized_hash_verified": true,
+      "secondary_normalized_sha256": "bfb91cf012a80f853ac6bcf3c63a1f01ee452b39efc4ec90c53f82fb03cfd688"
+    },
+    {
+      "run": "pair-06-current",
+      "preflight_created_at": "2026-11-26T20:00:43Z",
+      "original_raw_hash_verified": true,
+      "original_normalized_hash_verified": true,
+      "secondary_normalized_sha256": "bfb91cf012a80f853ac6bcf3c63a1f01ee452b39efc4ec90c53f82fb03cfd688"
+    },
+    {
+      "run": "pair-06-corrected_baseline",
+      "preflight_created_at": "2026-11-26T20:00:51Z",
+      "original_raw_hash_verified": true,
+      "original_normalized_hash_verified": true,
+      "secondary_normalized_sha256": "bfb91cf012a80f853ac6bcf3c63a1f01ee452b39efc4ec90c53f82fb03cfd688"
+    },
+    {
+      "run": "pair-07-corrected_baseline",
+      "preflight_created_at": "2026-11-26T20:01:01Z",
+      "original_raw_hash_verified": true,
+      "original_normalized_hash_verified": true,
+      "secondary_normalized_sha256": "bfb91cf012a80f853ac6bcf3c63a1f01ee452b39efc4ec90c53f82fb03cfd688"
+    },
+    {
+      "run": "pair-07-current",
+      "preflight_created_at": "2026-11-26T20:01:10Z",
+      "original_raw_hash_verified": true,
+      "original_normalized_hash_verified": true,
+      "secondary_normalized_sha256": "bfb91cf012a80f853ac6bcf3c63a1f01ee452b39efc4ec90c53f82fb03cfd688"
+    },
+    {
+      "run": "pair-08-current",
+      "preflight_created_at": "2026-11-26T20:01:16Z",
+      "original_raw_hash_verified": true,
+      "original_normalized_hash_verified": true,
+      "secondary_normalized_sha256": "bfb91cf012a80f853ac6bcf3c63a1f01ee452b39efc4ec90c53f82fb03cfd688"
+    },
+    {
+      "run": "pair-08-corrected_baseline",
+      "preflight_created_at": "2026-11-26T20:01:23Z",
+      "original_raw_hash_verified": true,
+      "original_normalized_hash_verified": true,
+      "secondary_normalized_sha256": "bfb91cf012a80f853ac6bcf3c63a1f01ee452b39efc4ec90c53f82fb03cfd688"
+    },
+    {
+      "run": "pair-09-corrected_baseline",
+      "preflight_created_at": "2026-11-26T20:01:33Z",
+      "original_raw_hash_verified": true,
+      "original_normalized_hash_verified": true,
+      "secondary_normalized_sha256": "bfb91cf012a80f853ac6bcf3c63a1f01ee452b39efc4ec90c53f82fb03cfd688"
+    },
+    {
+      "run": "pair-09-current",
+      "preflight_created_at": "2026-11-26T20:01:42Z",
+      "original_raw_hash_verified": true,
+      "original_normalized_hash_verified": true,
+      "secondary_normalized_sha256": "bfb91cf012a80f853ac6bcf3c63a1f01ee452b39efc4ec90c53f82fb03cfd688"
+    },
+    {
+      "run": "pair-10-current",
+      "preflight_created_at": "2026-11-26T20:01:48Z",
+      "original_raw_hash_verified": true,
+      "original_normalized_hash_verified": true,
+      "secondary_normalized_sha256": "bfb91cf012a80f853ac6bcf3c63a1f01ee452b39efc4ec90c53f82fb03cfd688"
+    },
+    {
+      "run": "pair-10-corrected_baseline",
+      "preflight_created_at": "2026-11-26T20:01:56Z",
+      "original_raw_hash_verified": true,
+      "original_normalized_hash_verified": true,
+      "secondary_normalized_sha256": "bfb91cf012a80f853ac6bcf3c63a1f01ee452b39efc4ec90c53f82fb03cfd688"
+    }
+  ]
+}
