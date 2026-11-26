@@ -69,7 +69,12 @@ source state; the fleet and graph test helpers likewise isolate their local
 Git commands. This third negative profile and its successful conformance
 record remain linked under AC-5. After the repair, the affected provenance,
 fleet, and graph-merge tests passed 10/10 under the injected host environment.
-The exact-candidate full profile is still pending.
+After commit `c14a0b9`, the exact-revision legacy comparator was rerun and
+passed 43/43 in both implementations; WI050 passed 8/8, WI079 passed 10/10,
+and engine process-image provenance matched the clean source revision. This is
+recorded as `20261126-wi083-final-legacy-python-comparator`, with provenance
+`20261126T014817231543Z-wi076-ac6-engine-conformance`. The exact-candidate
+full profile is still pending.
 
 ## Closeout
 
