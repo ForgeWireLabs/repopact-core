@@ -737,6 +737,12 @@ def run_profile(
 
 def _git_value(root: Path, args: list[str]) -> str | None:
     try:
+        env = {
+            key: value
+            for key, value in os.environ.items()
+            if not key.upper().startswith("GIT_")
+        }
+        env.update({"GIT_TERMINAL_PROMPT": "0", "GIT_OPTIONAL_LOCKS": "0"})
         result = subprocess.run(
             ["git", *args],
             cwd=root,
@@ -747,7 +753,7 @@ def _git_value(root: Path, args: list[str]) -> str | None:
             errors="replace",
             check=False,
             timeout=5,
-            env={**os.environ, "GIT_TERMINAL_PROMPT": "0", "GIT_OPTIONAL_LOCKS": "0"},
+            env=env,
         )
     except (OSError, subprocess.TimeoutExpired):
         return None
@@ -761,7 +767,11 @@ def _candidate_identity(root: Path) -> dict[str, Any]:
     return {
         "commit": commit,
         "tree": tree,
-        "dirty": None if dirty_output is None else bool(dirty_output),
+        "dirty": (
+            None
+            if commit is None or tree is None or dirty_output is None
+            else bool(dirty_output)
+        ),
     }
 
 

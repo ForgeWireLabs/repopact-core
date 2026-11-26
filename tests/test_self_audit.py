@@ -34,7 +34,7 @@ class CandidateAuditTests(unittest.TestCase):
 
     def git(self, *args: str) -> str:
         env = {
-            **{key: value for key, value in os.environ.items() if not key.startswith("GIT_")},
+            **{key: value for key, value in os.environ.items() if not key.upper().startswith("GIT_")},
             "GIT_TERMINAL_PROMPT": "0",
             "GIT_OPTIONAL_LOCKS": "0",
         }
@@ -57,18 +57,16 @@ class CandidateAuditTests(unittest.TestCase):
             "GIT_CONFIG_KEY_0": "core.worktree",
             "GIT_CONFIG_VALUE_0": str(self.root / "redirected-worktree"),
         }
-        try:
-            with patch.dict(os.environ, conflicting):
-                self.assertEqual(baseline, self.candidate())
-                result = self_audit.inspect_report(self.root, report)
-        finally:
-            # On Windows, restoring an empty indexed Git config value can leave
-            # GIT_CONFIG_COUNT inconsistent for later child processes. These
-            # runner-only credentials/config entries are not needed by local
-            # unit tests; clear the block before the next test starts.
-            for name in tuple(os.environ):
-                if name.startswith("GIT_CONFIG_"):
-                    os.environ.pop(name, None)
+        original_git_env = {
+            key: value for key, value in os.environ.items() if key.upper().startswith("GIT_")
+        }
+        with patch.dict(os.environ, conflicting):
+            self.assertEqual(baseline, self.candidate())
+            result = self_audit.inspect_report(self.root, report)
+        self.assertEqual(
+            original_git_env,
+            {key: value for key, value in os.environ.items() if key.upper().startswith("GIT_")},
+        )
 
         # Keep a regression check for the exact child-process operation used
         # when later tests materialize fixtures from this checkout.
@@ -78,6 +76,11 @@ class CandidateAuditTests(unittest.TestCase):
             cwd=source_root,
             check=True,
             capture_output=True,
+            env={
+                **{key: value for key, value in os.environ.items() if not key.upper().startswith("GIT_")},
+                "GIT_TERMINAL_PROMPT": "0",
+                "GIT_OPTIONAL_LOCKS": "0",
+            },
         )
         self.assertTrue(tracked.stdout)
         self.assertEqual("self-report-current", result["result"])
