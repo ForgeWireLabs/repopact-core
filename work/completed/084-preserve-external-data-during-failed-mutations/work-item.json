@@ -2,7 +2,7 @@
   "$schema": "../../../repopact/schemas/work-item.schema.json",
   "id": "084",
   "title": "Preserve external data during failed mutations",
-  "status": "active",
+  "status": "completed",
   "owner_scope": "tooling",
   "affected_scopes": [
     "tooling",
@@ -103,7 +103,7 @@
     {
       "id": "AC-7",
       "text": "Reconcile captured preimages and observed roots with original plan read facts and checked root states, reject unreadable or ambiguous observations as distinct from absence, and recheck applicable facts before the first write. Deterministic post-stale-check/pre-capture edits, direct file-read failure, captured-state mismatch, and exact rollback assertions prove fail-closed behavior while preserving external bytes.",
-      "state": "pending",
+      "state": "satisfied",
       "evidence": [
         "20261127-084-wi084-corrections-focused",
         "20261127-084-wi084-corrections-final-ci-validated",

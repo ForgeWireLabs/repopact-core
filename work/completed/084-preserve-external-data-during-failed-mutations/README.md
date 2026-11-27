@@ -1,6 +1,6 @@
 # 084 — Preserve external data during failed mutations
 
-> **Status**: active
+> **Status**: completed
 > **Owner scope**: tooling
 > **Affected scopes**: tooling, governance, work, evidence
 > **Depends on**: none
@@ -87,4 +87,8 @@ WI084 was reopened through the canonical lifecycle before runtime edits. Only th
 
 `capture_preimages_with` now retains full `Preimages` values for the existing before, middle, and after checked passes, including every root and directory/file entry. It rejects unless the captured middle entries exactly match both surrounding observations; it adds no traversal pass and does not change `PathState` or the read-set contract.
 
-Before the correction, the deterministic file test returned the middle `BBBB` bytes between two `AAAA` observations. The empty-directory test returned a middle snapshot containing a child directory absent from both boundary observations. After the correction, all 45 mutation crate tests passed, including those negative cases, a stable-file positive case, and unchanged sentinel bytes. Focused evidence: `20261127-084-wi084-preimage-consistency-focused`. The applicable local CI profile and explicit legacy comparator remain to be recorded for this runtime change.
+Before the correction, the deterministic file test returned the middle `BBBB` bytes between two `AAAA` observations. The empty-directory test returned a middle snapshot containing a child directory absent from both boundary observations. After the correction, all 45 mutation crate tests passed, including those negative cases, a stable-file positive case, and unchanged sentinel bytes. Focused evidence: `20261127-084-wi084-preimage-consistency-focused`. The focused preimage-consistency regression record is linked below. The existing local CI profile and explicit legacy comparator remain linked in the prior correction closeout and were reused for this bounded change.
+
+## Final bounded reconciliation
+
+AC-7 is satisfied by the full-preimage equality check and the deterministic regression results in 20261127-084-wi084-preimage-consistency-focused (45/45 mutation crate tests passed). This includes rejection of the A/A–B/B–A/A file sequence and an empty-directory mismatch, acceptance of stable observations, and preservation of the sentinel. Existing successful local CI and legacy comparator evidence from the preceding correction closeout remains linked and was reused; no full validation profile or comparator rerun was needed for this scoped comparison fix. The canonical lifecycle completed WI084. Post-transition canonical validation, frozen-surface verification, semantic identity, formatting, and diff checks passed on the reconciled tree.
