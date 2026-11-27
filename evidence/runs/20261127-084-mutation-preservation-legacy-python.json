@@ -1,0 +1,76 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261127-084-mutation-preservation-legacy-python",
+  "timestamp": "2026-11-27T15:52:55Z",
+  "timestamp_basis": "git-recording",
+  "work_item": "084",
+  "result": "passed",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "'C:\\Projects\\repopact-core-wi083-optimization-venv-20261126\\Scripts\\python.exe' -m repopact.run_conformance --legacy-python --provenance-out 'D:\\Projects\\repopact-core-mutation-preservation-temp-20261127\\wi076-legacy-python-084-final-20261127.json'",
+      "exit_code": 0,
+      "summary": "legacy-python-conformance: passed - canonical Rust, WI050/WI079, and legacy Python comparator passed"
+    }
+  ],
+  "artifacts": [
+    "evidence/runs/20261127-084-mutation-preservation-legacy-python.capture.txt",
+    "rust/crates/repopact-mutation/src/lib.rs"
+  ],
+  "environment": {
+    "platform": "windows",
+    "executor": "local",
+    "candidate": {
+      "commit": "43feb13df512c9cd397a0668bc1f403f491ee37f",
+      "tree": "f1e268cc6bf39a15a8e7bd555d5c8fd825c9727d",
+      "dirty": true
+    },
+    "candidate_at_start": {
+      "commit": "43feb13df512c9cd397a0668bc1f403f491ee37f",
+      "tree": "f1e268cc6bf39a15a8e7bd555d5c8fd825c9727d",
+      "dirty": false
+    },
+    "validation_storage": null,
+    "relevant_environment": {
+      "CARGO_TARGET_DIR": "D:\\Projects\\repopact-core-mutation-preservation-final-20261127\\rust\\target",
+      "REPOPACT_ENGINE": "D:\\Projects\\repopact-core-mutation-preservation-final-20261127\\rust\\target\\debug\\repopact-engine.exe"
+    },
+    "verification": {
+      "profile": "legacy-python-conformance",
+      "status": "pass",
+      "exit_code": 0,
+      "duration_seconds": 59.176224,
+      "coverage": {
+        "mode": "host",
+        "satisfied": true,
+        "host_ready": true,
+        "all_declared_executed": true,
+        "required_total": 1,
+        "required_executed": 1,
+        "required_passed": 1,
+        "required_failed": 0,
+        "required_errors": 0,
+        "required_unavailable": 0,
+        "required_not_applicable": 0,
+        "declared_platforms": [],
+        "required_platforms": [],
+        "missing_platforms": [],
+        "capabilities": {
+          "cargo": "available"
+        }
+      },
+      "steps": [
+        {
+          "id": "legacy-python-conformance",
+          "status": "passed",
+          "required": true,
+          "applicable": true,
+          "capability": null,
+          "platforms": [],
+          "exit_code": 0,
+          "summary": "canonical Rust, WI050/WI079, and legacy Python comparator passed"
+        }
+      ]
+    }
+  }
+}
