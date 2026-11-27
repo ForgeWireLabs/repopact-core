@@ -35,7 +35,8 @@
       "state": "pending",
       "evidence": [
         "20261127-084-mutation-preservation-focused-rust-corrected",
-        "20261127-084-mutation-preservation-final-ci-validated"
+        "20261127-084-mutation-preservation-final-ci-validated",
+        "20261127-084-wi084-corrections-focused"
       ]
     },
     {
@@ -44,7 +45,8 @@
       "state": "pending",
       "evidence": [
         "20261127-084-mutation-preservation-focused-rust-corrected",
-        "20261127-084-mutation-preservation-final-ci-validated"
+        "20261127-084-mutation-preservation-final-ci-validated",
+        "20261127-084-wi084-corrections-focused"
       ]
     },
     {
@@ -53,7 +55,8 @@
       "state": "pending",
       "evidence": [
         "20261127-084-mutation-preservation-focused-rust-corrected",
-        "20261127-084-mutation-preservation-final-ci-validated"
+        "20261127-084-mutation-preservation-final-ci-validated",
+        "20261127-084-wi084-corrections-focused"
       ]
     },
     {
@@ -62,7 +65,8 @@
       "state": "pending",
       "evidence": [
         "20261127-084-mutation-preservation-focused-rust-corrected",
-        "20261127-084-mutation-preservation-final-ci-validated"
+        "20261127-084-mutation-preservation-final-ci-validated",
+        "20261127-084-wi084-corrections-focused"
       ]
     },
     {
@@ -80,13 +84,13 @@
       "id": "AC-6",
       "text": "Reject multiply-linked regular files and unsupported reparse points at targeted roots, captured descendants, and rollback ownership rechecks; fail closed when link metadata is unavailable or unsupported. A same-volume hard-link outside sentinel remains byte-for-byte unchanged, with a host-supported junction/reparse negative case where available, and no new filesystem dependency is introduced.",
       "state": "pending",
-      "evidence": []
+      "evidence": ["20261127-084-wi084-corrections-focused"]
     },
     {
       "id": "AC-7",
       "text": "Reconcile captured preimages and observed roots with original plan read facts and checked root states, reject unreadable or ambiguous observations as distinct from absence, and recheck applicable facts before the first write. Deterministic post-stale-check/pre-capture edits, direct file-read failure, captured-state mismatch, and exact rollback assertions prove fail-closed behavior while preserving external bytes.",
       "state": "pending",
-      "evidence": []
+      "evidence": ["20261127-084-wi084-corrections-focused"]
     }
   ],
   "created": "2026-11-26",

@@ -31,6 +31,14 @@ The tooling owner leads changes to mutation implementation and focused tests, pl
 
 The [bounded coordinator review](https://github.com/ForgeWireLabs/repopact-core/pull/34#issuecomment-7224414238) reopened WI084 before runtime changes. It identified that hard-linked regular files can alias an outside sentinel even when bytes match, Windows reparse points extend beyond symlinks, and capture can accept state changed after the initial stale-plan check by seeding its expected state from the new capture. AC-1 through AC-5 retain their prior evidence links and are pending revalidation where the corrections overlap; AC-6 and AC-7 track the new containment and reconciliation regressions. Earlier successes and failures remain recorded.
 
+## Reopened correction implementation
+
+Captured regular files now require exactly one hard link. Unix uses `nlink`; Windows queries link information from an open file handle and fails closed if that query fails. Path-chain and captured-entry checks reject Windows reparse points as well as symlinks. The same containment checks run again before rollback restores transaction-owned paths.
+
+The executor compares captured paths with the original plan read facts, uses checked observations that distinguish unreadable paths from absent ones, and rechecks all plan facts immediately before the first write. Rollback is reported as complete only when a fresh capture exactly matches the original preimage. No guarantee is made against an external writer after the final observation.
+
+Focused evidence `20261127-084-wi084-corrections-focused` records 42 mutation tests passing, including direct and descendant hard-link sentinels, a hard link introduced before rollback, a valid edit between stale checking and capture, injected file-read failure, exact restoration, and an actual Windows junction. The final local CI profile and legacy comparator remain to be recorded for this reopening.
+
 ## Closeout
 
 Preflight: registered as WI084 against main `298828de6ae91f34dedd4f7cc6d98587f0959704`, tree `5fd33f98201f0ff313a199dc99ba74d0fb21ca8f`, before runtime edits. The dirty original checkout and PR #15 branch were not changed.

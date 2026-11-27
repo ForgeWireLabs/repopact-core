@@ -263,6 +263,8 @@ pub struct ApplyOptions {
     pub fail_after_operation: Option<usize>,
     pub external_drift_at: Option<usize>,
     pub external_drift_path: Option<String>,
+    /// Test seam for a write between the initial stale check and preimage capture.
+    pub external_drift_after_initial_check: Option<String>,
 }
 
 impl ApplyOptions {
@@ -1764,18 +1766,57 @@ pub fn apply(plan: &MutationPlan, options: &ApplyOptions) -> MutationResult {
         ));
         return result;
     }
-    if let Some(stale) = stale_read_fact(&repository, &plan.read_set) {
-        result.diagnostics.push(
-            MutationDiagnostic::error(
+    match stale_read_fact(&repository, &plan.read_set) {
+        Ok(Some(stale)) => {
+            result.diagnostics.push(
+                MutationDiagnostic::error(
+                    "mutation.plan-stale",
+                    format!(
+                        "plan read fact for '{}' no longer matches; re-plan before apply",
+                        stale.path
+                    ),
+                )
+                .at(stale.path),
+            );
+            return result;
+        }
+        Err(error) => {
+            result.diagnostics.push(MutationDiagnostic::error(
                 "mutation.plan-stale",
-                format!(
-                    "plan read fact for '{}' no longer matches; re-plan before apply",
-                    stale.path
-                ),
-            )
-            .at(stale.path),
-        );
-        return result;
+                format!("unable to safely verify the plan read set: {error}"),
+            ));
+            return result;
+        }
+        Ok(None) => {}
+    }
+
+    if let Some(path) = options.external_drift_after_initial_check.as_deref() {
+        let relative = Path::new(path);
+        if let Err(error) = validate_relative_path(relative) {
+            result.diagnostics.push(MutationDiagnostic::error(
+                "mutation.preimage-failed",
+                format!("invalid injected drift path: {error}"),
+            ));
+            return result;
+        }
+        if let Err(error) = validate_path_chain(repository.root(), relative) {
+            result.diagnostics.push(MutationDiagnostic::error(
+                "mutation.preimage-failed",
+                format!("unsafe injected drift path: {error}"),
+            ));
+            return result;
+        }
+        let absolute = repository.root().join(relative);
+        if let Err(error) = fs::write(
+            &absolute,
+            br#"{"id":"001","title":"External edit","status":"active","owner_scope":"governance","affected_scopes":[],"depends_on":[],"acceptance_criteria":[{"id":"AC-1","text":"prove","state":"pending","evidence":[]}],"created":"2026-01-01","updated":"2026-01-02"}"#,
+        ) {
+            result.diagnostics.push(MutationDiagnostic::error(
+                "mutation.preimage-failed",
+                format!("unable to inject external drift after stale check: {error}"),
+            ));
+            return result;
+        }
     }
 
     let roots = match operation_roots(plan, &repository) {
@@ -1798,6 +1839,44 @@ pub fn apply(plan: &MutationPlan, options: &ApplyOptions) -> MutationResult {
             return result;
         }
     };
+    if let Some(stale) = stale_read_fact_in_preimages(&repository, &plan.read_set, &preimages) {
+        result.diagnostics.push(
+            MutationDiagnostic::error(
+                "mutation.plan-stale",
+                format!(
+                    "captured state for plan read fact '{}' no longer matches; re-plan before apply",
+                    stale.path
+                ),
+            )
+            .at(stale.path),
+        );
+        return result;
+    }
+    match stale_read_fact(&repository, &plan.read_set) {
+        Ok(Some(stale)) => {
+            result.diagnostics.push(
+                MutationDiagnostic::error(
+                    "mutation.plan-stale",
+                    format!(
+                        "plan read fact for '{}' changed before the first write; re-plan before apply",
+                        stale.path
+                    ),
+                )
+                .at(stale.path),
+            );
+            return result;
+        }
+        Err(error) => {
+            result.diagnostics.push(MutationDiagnostic::error(
+                "mutation.plan-stale",
+                format!(
+                    "unable to safely recheck the plan read set before the first write: {error}"
+                ),
+            ));
+            return result;
+        }
+        Ok(None) => {}
+    }
     let mut expected = plan
         .file_operations
         .iter()
@@ -2071,7 +2150,16 @@ fn apply_proposal(
     let fresh = repository.session().snapshot();
     result.metrics.snapshot_ms += snapshot_started.elapsed().as_millis();
     let stale_started = Instant::now();
-    let stale_plan = stale_read_fact(&repository, &plan.read_set).is_some();
+    let stale_plan = match stale_read_fact(&repository, &plan.read_set) {
+        Ok(stale) => stale.is_some(),
+        Err(error) => {
+            result.diagnostics.push(MutationDiagnostic::error(
+                "mutation.plan-stale",
+                format!("unable to safely verify proposal read facts: {error}"),
+            ));
+            return result;
+        }
+    };
     result.metrics.stale_check_ms = stale_started.elapsed().as_millis();
     let planned_id = plan
         .file_operations
@@ -2266,11 +2354,19 @@ where
             file.sync_all().map_err(|error| error.to_string())?;
         }
         before_publish();
-        if let Some(stale) = stale_read_fact(repository, &plan.read_set) {
-            return Err(format!(
-                "proposal read fact '{}' changed after validation",
-                stale.path
-            ));
+        match stale_read_fact(repository, &plan.read_set) {
+            Ok(Some(stale)) => {
+                return Err(format!(
+                    "proposal read fact '{}' changed after validation",
+                    stale.path
+                ));
+            }
+            Err(error) => {
+                return Err(format!(
+                    "cannot safely recheck proposal read facts: {error}"
+                ));
+            }
+            Ok(None) => {}
         }
         if fs::symlink_metadata(&destination).is_ok() {
             return Err("proposal destination appeared before atomic commit".to_owned());
@@ -2348,8 +2444,7 @@ fn ensure_safe_repository_directory(root: &Path, relative: &Path) -> Result<Path
     for component in relative.components() {
         current.push(component.as_os_str());
         match fs::symlink_metadata(&current) {
-            Ok(metadata) if metadata.file_type().is_dir() && !metadata.file_type().is_symlink() => {
-            }
+            Ok(metadata) if metadata.file_type().is_dir() && !is_symlink_or_reparse(&metadata) => {}
             Ok(_) => {
                 return Err(format!(
                     "repository path '{}' is not a regular directory",
@@ -2362,7 +2457,7 @@ fn ensure_safe_repository_directory(root: &Path, relative: &Path) -> Result<Path
                     Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists => {
                         let metadata =
                             fs::symlink_metadata(&current).map_err(|error| error.to_string())?;
-                        if !metadata.file_type().is_dir() || metadata.file_type().is_symlink() {
+                        if !metadata.file_type().is_dir() || is_symlink_or_reparse(&metadata) {
                             return Err(format!(
                                 "repository path '{}' is not a regular directory",
                                 path_string(&current)
@@ -2442,12 +2537,42 @@ fn failure_with_rollback(
     result
 }
 
-fn stale_read_fact(repository: &Repository, read_set: &ReadSet) -> Option<ReadFact> {
-    read_set
-        .facts
-        .iter()
-        .find(|fact| repository.path_state(&repository.root().join(&fact.path)) != fact.expected)
-        .cloned()
+fn stale_read_fact(
+    repository: &Repository,
+    read_set: &ReadSet,
+) -> Result<Option<ReadFact>, String> {
+    for fact in &read_set.facts {
+        let actual = checked_read_fact_state(repository, Path::new(&fact.path))?;
+        if actual != fact.expected {
+            return Ok(Some(fact.clone()));
+        }
+    }
+    Ok(None)
+}
+
+fn stale_read_fact_in_preimages(
+    repository: &Repository,
+    read_set: &ReadSet,
+    preimages: &Preimages,
+) -> Option<ReadFact> {
+    read_set.facts.iter().find_map(|fact| {
+        preimages
+            .state_for(repository, Path::new(&fact.path))
+            .filter(|actual| actual != &fact.expected)
+            .map(|_| fact.clone())
+    })
+}
+
+fn checked_read_fact_state(repository: &Repository, relative: &Path) -> Result<PathState, String> {
+    let mut read_file = |path: &Path| fs::read(path);
+    let mut read_directory = |path: &Path| fs::read_dir(path);
+    observe_path_state(
+        repository.root(),
+        relative,
+        &mut read_file,
+        &mut read_directory,
+        false,
+    )
 }
 
 fn operation_roots(plan: &MutationPlan, repository: &Repository) -> Result<Vec<PathBuf>, String> {
@@ -2486,7 +2611,7 @@ fn checked_operation_roots(
             validate_relative_path(relative)?;
             let absolute = repository.root().join(relative);
             match fs::symlink_metadata(&absolute) {
-                Ok(metadata) if metadata.file_type().is_symlink() => {
+                Ok(metadata) if is_symlink_or_reparse(&metadata) => {
                     return Err(format!(
                         "parent '{}' is a symlink or reparse point",
                         path_string(relative)
@@ -2554,7 +2679,7 @@ fn validate_path_chain(root: &Path, relative: &Path) -> Result<(), String> {
         match fs::symlink_metadata(&current) {
             Ok(metadata) => {
                 let kind = metadata.file_type();
-                if kind.is_symlink() {
+                if is_symlink_or_reparse(&metadata) {
                     return Err(format!(
                         "'{}' contains a symlink or reparse point",
                         path_string(&current)
@@ -2580,6 +2705,77 @@ fn validate_path_chain(root: &Path, relative: &Path) -> Result<(), String> {
     Ok(())
 }
 
+fn is_symlink_or_reparse(metadata: &fs::Metadata) -> bool {
+    if metadata.file_type().is_symlink() {
+        return true;
+    }
+    #[cfg(windows)]
+    {
+        use std::os::windows::fs::MetadataExt;
+        use windows_sys::Win32::Storage::FileSystem::FILE_ATTRIBUTE_REPARSE_POINT;
+        return metadata.file_attributes() & FILE_ATTRIBUTE_REPARSE_POINT != 0;
+    }
+    #[cfg(not(windows))]
+    {
+        false
+    }
+}
+
+fn ensure_single_link(path: &Path, metadata: &fs::Metadata) -> Result<(), String> {
+    #[cfg(unix)]
+    let link_count = {
+        use std::os::unix::fs::MetadataExt;
+        metadata.nlink()
+    };
+    #[cfg(windows)]
+    let link_count = {
+        use std::os::windows::io::AsRawHandle;
+        use windows_sys::Win32::Storage::FileSystem::{
+            GetFileInformationByHandle, BY_HANDLE_FILE_INFORMATION, FILE_ATTRIBUTE_DIRECTORY,
+            FILE_ATTRIBUTE_REPARSE_POINT,
+        };
+        let _ = metadata;
+        let file = File::open(path).map_err(|error| {
+            format!(
+                "cannot inspect file links for '{}': {error}",
+                path_string(path)
+            )
+        })?;
+        let mut information = BY_HANDLE_FILE_INFORMATION::default();
+        let succeeded =
+            unsafe { GetFileInformationByHandle(file.as_raw_handle(), &mut information) };
+        if succeeded == 0 {
+            return Err(format!(
+                "cannot obtain file link information for '{}': {}",
+                path_string(path),
+                std::io::Error::last_os_error()
+            ));
+        }
+        if information.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY != 0
+            || information.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT != 0
+        {
+            return Err(format!(
+                "'{}' changed type while its link count was inspected",
+                path_string(path)
+            ));
+        }
+        information.nNumberOfLinks as u64
+    };
+    #[cfg(not(any(unix, windows)))]
+    let link_count = {
+        let _ = (path, metadata);
+        return Err("regular-file link count is unsupported on this platform".to_owned());
+    };
+
+    if link_count != 1 {
+        return Err(format!(
+            "'{}' has {link_count} hard links; refusing an external alias",
+            path_string(path)
+        ));
+    }
+    Ok(())
+}
+
 fn operation_paths(operation: &PathOperation) -> Vec<PathBuf> {
     match operation {
         PathOperation::Write { path, .. } => vec![PathBuf::from(path)],
@@ -2595,12 +2791,7 @@ fn operation_drift(
 ) -> Option<String> {
     operation_paths(operation)
         .into_iter()
-        .find(|path| {
-            current
-                .state_for(repository, path)
-                .unwrap_or(PathState::Absent)
-                != expected.get(path).cloned().unwrap_or(PathState::Absent)
-        })
+        .find(|path| current.state_for(repository, path) != expected.get(path).cloned())
         .map(|path| path_string(&path))
 }
 
@@ -2622,6 +2813,10 @@ impl Preimages {
     }
 
     fn state_for(&self, repository: &Repository, path: &Path) -> Option<PathState> {
+        self.state_for_root(repository.root(), path)
+    }
+
+    fn state_for_root(&self, repository_root: &Path, path: &Path) -> Option<PathState> {
         if !self.covers(path) {
             return None;
         }
@@ -2636,7 +2831,7 @@ impl Preimages {
                     .iter()
                     .filter_map(|(candidate, entry)| match entry {
                         PreimageEntry::File(bytes) if candidate.starts_with(path) => {
-                            Some((path_string(&repository.root().join(candidate)), bytes))
+                            Some((path_string(&repository_root.join(candidate)), bytes))
                         }
                         _ => None,
                     })
@@ -2684,10 +2879,9 @@ fn capture_preimages_with(
     let before_states = roots
         .iter()
         .map(|path| {
-            validate_path_chain(repository.root(), path)?;
             Ok((
                 path.clone(),
-                repository.path_state(&repository.root().join(path)),
+                observe_path_state(repository.root(), path, read_file, read_directory, true)?,
             ))
         })
         .collect::<Result<BTreeMap<_, _>, String>>()?;
@@ -2698,21 +2892,47 @@ fn capture_preimages_with(
             &mut preimages,
             read_file,
             read_directory,
+            true,
         )?;
     }
     let after_states = roots
         .iter()
         .map(|path| {
-            (
+            Ok((
                 path.clone(),
-                repository.path_state(&repository.root().join(path)),
-            )
+                observe_path_state(repository.root(), path, read_file, read_directory, true)?,
+            ))
         })
-        .collect::<BTreeMap<_, _>>();
+        .collect::<Result<BTreeMap<_, _>, String>>()?;
     if before_states != after_states {
         return Err("target state changed while its complete preimage was captured".to_owned());
     }
     Ok(preimages)
+}
+
+fn observe_path_state(
+    repository_root: &Path,
+    relative: &Path,
+    read_file: &mut dyn FnMut(&Path) -> std::io::Result<Vec<u8>>,
+    read_directory: &mut dyn FnMut(&Path) -> std::io::Result<fs::ReadDir>,
+    check_link_count: bool,
+) -> Result<PathState, String> {
+    validate_path_chain(repository_root, relative)?;
+    let mut observation = Preimages {
+        roots: BTreeSet::from([relative.to_path_buf()]),
+        entries: BTreeMap::new(),
+    };
+    capture_preimage_path(
+        repository_root,
+        relative,
+        &mut observation,
+        read_file,
+        read_directory,
+        check_link_count,
+    )?;
+    observation
+        .state_for_root(repository_root, relative)
+        .ok_or_else(|| format!("cannot observe path state for '{}'", path_string(relative)))
 }
 
 fn capture_preimage_path(
@@ -2721,6 +2941,7 @@ fn capture_preimage_path(
     preimages: &mut Preimages,
     read_file: &mut dyn FnMut(&Path) -> std::io::Result<Vec<u8>>,
     read_directory: &mut dyn FnMut(&Path) -> std::io::Result<fs::ReadDir>,
+    check_link_count: bool,
 ) -> Result<Option<u8>, String> {
     validate_relative_path(relative)?;
     let absolute = repository_root.join(relative);
@@ -2735,13 +2956,16 @@ fn capture_preimage_path(
         }
     };
     let kind = metadata.file_type();
-    if kind.is_symlink() {
+    if is_symlink_or_reparse(&metadata) {
         return Err(format!(
             "'{}' is a symlink or reparse point",
             path_string(&absolute)
         ));
     }
     if kind.is_file() {
+        if check_link_count {
+            ensure_single_link(&absolute, &metadata)?;
+        }
         let first = read_file(&absolute).map_err(|error| {
             format!("cannot read preimage '{}': {error}", path_string(&absolute))
         })?;
@@ -2751,11 +2975,14 @@ fn capture_preimage_path(
                 path_string(&absolute)
             )
         })?;
-        if !middle_metadata.file_type().is_file() || middle_metadata.file_type().is_symlink() {
+        if !middle_metadata.file_type().is_file() || is_symlink_or_reparse(&middle_metadata) {
             return Err(format!(
                 "preimage '{}' changed type while it was read",
                 path_string(&absolute)
             ));
+        }
+        if check_link_count {
+            ensure_single_link(&absolute, &middle_metadata)?;
         }
         let second = read_file(&absolute).map_err(|error| {
             format!(
@@ -2774,12 +3001,15 @@ fn capture_preimage_path(
             || second.len() as u64 != middle_metadata.len()
             || final_metadata.len() != middle_metadata.len()
             || !final_metadata.file_type().is_file()
-            || final_metadata.file_type().is_symlink()
+            || is_symlink_or_reparse(&final_metadata)
         {
             return Err(format!(
                 "preimage '{}' changed while it was read",
                 path_string(&absolute)
             ));
+        }
+        if check_link_count {
+            ensure_single_link(&absolute, &final_metadata)?;
         }
         insert_preimage(
             preimages,
@@ -2804,6 +3034,7 @@ fn capture_preimage_path(
             preimages,
             read_file,
             read_directory,
+            check_link_count,
         )?
         else {
             return Err(format!(
@@ -2842,18 +3073,20 @@ fn directory_signature(
                 path_string(path)
             )
         })?;
-        let kind = entry.file_type().map_err(|error| {
+        let entry_path = entry.path();
+        let metadata = fs::symlink_metadata(&entry_path).map_err(|error| {
             format!(
                 "cannot inspect directory entry '{}': {error}",
-                path_string(&entry.path())
+                path_string(&entry_path)
             )
         })?;
-        if kind.is_symlink() {
+        if is_symlink_or_reparse(&metadata) {
             return Err(format!(
                 "'{}' is a symlink or reparse point",
-                path_string(&entry.path())
+                path_string(&entry_path)
             ));
         }
+        let kind = metadata.file_type();
         let kind = if kind.is_dir() {
             1
         } else if kind.is_file() {
@@ -2861,7 +3094,7 @@ fn directory_signature(
         } else {
             return Err(format!(
                 "'{}' has an unsupported filesystem type",
-                path_string(&entry.path())
+                path_string(&entry_path)
             ));
         };
         signature.push((entry.file_name(), kind));
@@ -3039,7 +3272,21 @@ fn restore_operation(repository: &Repository, record: &UndoRecord) -> Result<(),
                 .map_err(|error| format!("cannot reverse move '{}': {error}", path_string(&to)))?;
         }
     }
-    remove_created_empty_directories(repository, &record.before, &record.after)
+    remove_created_empty_directories(repository, &record.before, &record.after)?;
+    let restored = capture_preimages(
+        repository,
+        &record.before.roots.iter().cloned().collect::<Vec<_>>(),
+    )?;
+    if restored != record.before {
+        return Err(format!(
+            "restored preimage for '{}' does not exactly match the captured before-state",
+            operation_paths(&record.operation)
+                .first()
+                .map(|path| path_string(path))
+                .unwrap_or_else(|| "unknown path".to_owned())
+        ));
+    }
+    Ok(())
 }
 
 fn remove_created_empty_directories(
@@ -3071,7 +3318,7 @@ fn remove_created_empty_directories(
                     path_string(&absolute)
                 ));
             }
-            Ok(metadata) if metadata.file_type().is_symlink() || !metadata.file_type().is_dir() => {
+            Ok(metadata) if is_symlink_or_reparse(&metadata) || !metadata.file_type().is_dir() => {
                 return Err(format!(
                     "created directory '{}' changed type during rollback",
                     path_string(&absolute)
@@ -3197,6 +3444,8 @@ mod tests {
     #[cfg(windows)]
     use std::os::windows::fs::symlink_dir;
     use std::path::PathBuf;
+    #[cfg(windows)]
+    use std::process::Command;
     use std::sync::atomic::{AtomicU64, Ordering};
     use std::sync::mpsc;
     use std::time::Duration;
@@ -3851,6 +4100,32 @@ mod tests {
     }
 
     #[test]
+    fn failed_preimage_file_read_is_not_treated_as_an_absent_file() {
+        let (root, _) = fixture();
+        let protected = root.join("work/active/001-one/work-item.json");
+        let bytes_before = fs::read(&protected).unwrap();
+        let repository = Repository::open(&root);
+        let mut read_file = |_path: &Path| {
+            Err(std::io::Error::new(
+                std::io::ErrorKind::PermissionDenied,
+                "injected file read failure",
+            ))
+        };
+        let mut read_directory = |path: &Path| fs::read_dir(path);
+        let error = capture_preimages_with(
+            &repository,
+            &[PathBuf::from("work/active/001-one/work-item.json")],
+            &mut read_file,
+            &mut read_directory,
+        )
+        .unwrap_err();
+
+        assert!(error.contains("injected file read failure"), "{error}");
+        assert_eq!(fs::read(&protected).unwrap(), bytes_before);
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
     fn directory_move_with_symlink_is_rejected_before_mutation() {
         let (root, _) = fixture();
         let outside = root.with_extension("outside-sentinel");
@@ -3887,6 +4162,209 @@ mod tests {
 
         fs::remove_dir_all(root).unwrap();
         fs::remove_dir_all(outside).unwrap();
+    }
+
+    #[test]
+    fn directory_move_rejects_descendant_hard_link_alias() {
+        let (root, snapshot) = fixture();
+        let descendant = root.join("work/active/001-one/extra.md");
+        let outside = root.with_extension("outside-descendant-hard-link");
+        let before = fs::read(&descendant).unwrap();
+        let plan = plan(
+            &snapshot,
+            MutationRequest::transition_work_item(TransitionWorkItem::new("001", "blocked")),
+        );
+        assert!(plan.is_applicable(), "{:?}", plan.diagnostics);
+        fs::hard_link(&descendant, &outside).expect("create same-volume descendant alias");
+
+        let result = plan.apply();
+        let sentinel_after = fs::read(&outside).unwrap();
+        let descendant_after = fs::read(&descendant).unwrap();
+        fs::remove_file(&outside).unwrap();
+        fs::remove_dir_all(&root).unwrap();
+
+        assert!(
+            !result.success,
+            "captured hard-linked descendants must fail closed: {result:?}"
+        );
+        assert!(
+            !result.rolled_back,
+            "no transaction write may start: {result:?}"
+        );
+        assert_eq!(sentinel_after, before);
+        assert_eq!(descendant_after, before);
+        assert!(
+            result.diagnostics.iter().any(|diagnostic| {
+                diagnostic.code == "mutation.preimage-failed"
+                    && diagnostic.message.contains("hard link")
+            }),
+            "{result:?}"
+        );
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn directory_move_with_junction_is_rejected_before_mutation() {
+        let (root, snapshot) = fixture();
+        let outside = root.with_extension("outside-junction-sentinel");
+        fs::create_dir_all(&outside).unwrap();
+        let sentinel = outside.join("keep.txt");
+        fs::write(&sentinel, b"outside data must survive").unwrap();
+        let junction = root.join("work/active/001-one/outside-junction");
+        let junction_literal = format!("'{}'", junction.to_string_lossy().replace('\'', "''"));
+        let outside_literal = format!("'{}'", outside.to_string_lossy().replace('\'', "''"));
+        let created = Command::new("powershell.exe")
+            .args(["-NoProfile", "-NonInteractive", "-Command"])
+            .arg(format!(
+                "New-Item -ItemType Junction -Path {junction_literal} -Target {outside_literal} -ErrorAction Stop | Out-Null"
+            ))
+            .output()
+            .expect("run the Windows junction helper");
+        if !created.status.success() {
+            eprintln!(
+                "junction regression skipped because this Windows host could not create the junction: {}",
+                String::from_utf8_lossy(&created.stderr).trim()
+            );
+            fs::remove_dir_all(&root).unwrap();
+            fs::remove_dir_all(&outside).unwrap();
+            return;
+        }
+        eprintln!("junction regression exercised a real Windows junction");
+
+        let plan = plan(
+            &snapshot,
+            MutationRequest::transition_work_item(TransitionWorkItem::new("001", "blocked")),
+        );
+        assert!(plan.is_applicable(), "{:?}", plan.diagnostics);
+        let result = plan.apply();
+        let sentinel_after = fs::read(&sentinel).unwrap();
+        fs::remove_dir(&junction).unwrap();
+        fs::remove_dir_all(&root).unwrap();
+        fs::remove_dir_all(&outside).unwrap();
+
+        assert!(!result.success, "junction must fail closed: {result:?}");
+        assert!(!result.rolled_back, "no operation may start: {result:?}");
+        assert_eq!(sentinel_after, b"outside data must survive");
+        assert!(
+            result.diagnostics.iter().any(|item| {
+                item.code == "mutation.preimage-failed"
+                    && (item.message.contains("reparse") || item.message.contains("symlink"))
+            }),
+            "{result:?}"
+        );
+    }
+
+    #[test]
+    fn edit_rejects_hard_link_alias_before_overwriting_external_sentinel() {
+        let (root, snapshot) = fixture();
+        let work_record = root.join("work/active/001-one/work-item.json");
+        let outside = root.with_extension("outside-hard-link-sentinel");
+        let plan = plan(
+            &snapshot,
+            MutationRequest::edit_work_item(EditWorkItem::new(
+                "001",
+                WorkItemEdits::title("Edited title"),
+                "2026-01-03",
+            )),
+        );
+        assert!(plan.is_applicable(), "{:?}", plan.diagnostics);
+        fs::hard_link(&work_record, &outside).expect("create same-volume hard-link sentinel");
+        let sentinel_before = fs::read(&outside).unwrap();
+
+        let result = plan.apply();
+        let work_record_after = fs::read(&work_record).unwrap();
+        let sentinel_after = fs::read(&outside).unwrap();
+        fs::remove_file(&outside).unwrap();
+        fs::remove_dir_all(&root).unwrap();
+
+        assert!(
+            !result.success,
+            "hard-linked mutation target must fail closed: {result:?}"
+        );
+        assert!(
+            !result.rolled_back,
+            "no transaction write may start: {result:?}"
+        );
+        assert_eq!(work_record_after, sentinel_before);
+        assert_eq!(sentinel_after, sentinel_before);
+        assert!(
+            result.diagnostics.iter().any(|diagnostic| {
+                diagnostic.code == "mutation.preimage-failed"
+                    && diagnostic.message.contains("hard link")
+            }),
+            "{result:?}"
+        );
+    }
+
+    #[test]
+    fn rollback_recheck_preserves_a_new_hard_linked_after_state() {
+        let (root, _) = fixture();
+        let repository = Repository::open(&root);
+        let relative = "work/active/001-one/work-item.json";
+        let path = root.join(relative);
+        let outside = root.with_extension("outside-rollback-hard-link");
+        let before = capture_preimages(&repository, &[PathBuf::from(relative)]).unwrap();
+        let operation = PathOperation::Write {
+            path: relative.to_owned(),
+            content: "transaction after-state\n".to_owned(),
+        };
+        let after = project_operation(&repository, &before, &operation).unwrap();
+        apply_operation(&root, &operation).unwrap();
+        let owned_after = fs::read(&path).unwrap();
+        fs::hard_link(&path, &outside).expect("create after-state alias before rollback recheck");
+        let record = UndoRecord {
+            operation,
+            before,
+            after,
+        };
+
+        let error = restore_operation(&repository, &record).unwrap_err();
+        let target_after = fs::read(&path).unwrap();
+        let sentinel_after = fs::read(&outside).unwrap();
+        fs::remove_file(&outside).unwrap();
+        fs::remove_dir_all(&root).unwrap();
+
+        assert!(error.contains("hard link"), "{error}");
+        assert_eq!(target_after, owned_after);
+        assert_eq!(sentinel_after, owned_after);
+    }
+
+    #[test]
+    fn edit_rejects_valid_external_change_between_stale_check_and_capture() {
+        let (root, snapshot) = fixture();
+        let relative = "work/active/001-one/work-item.json";
+        let path = root.join(relative);
+        let plan = plan(
+            &snapshot,
+            MutationRequest::edit_work_item(EditWorkItem::new(
+                "001",
+                WorkItemEdits::title("Planned edit"),
+                "2026-01-03",
+            )),
+        );
+        assert!(plan.is_applicable(), "{:?}", plan.diagnostics);
+        let result = plan.apply_with_options(&ApplyOptions {
+            external_drift_after_initial_check: Some(relative.to_owned()),
+            ..ApplyOptions::default()
+        });
+        let external_after = fs::read(&path).unwrap();
+        let value: Value = serde_json::from_slice(&external_after).unwrap();
+        fs::remove_dir_all(root).unwrap();
+
+        assert!(!result.success, "captured plan input changed: {result:?}");
+        assert!(
+            !result.rolled_back,
+            "no transaction write may start: {result:?}"
+        );
+        assert_eq!(value["title"], "External edit");
+        assert_eq!(value["updated"], "2026-01-02");
+        assert!(
+            result.diagnostics.iter().any(|diagnostic| {
+                diagnostic.code == "mutation.plan-stale"
+                    && diagnostic.message.contains("captured state")
+            }),
+            "{result:?}"
+        );
     }
 
     #[test]
