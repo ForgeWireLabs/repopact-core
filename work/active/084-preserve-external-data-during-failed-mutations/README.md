@@ -31,4 +31,16 @@ Preflight: registered as WI084 against main `298828de6ae91f34dedd4f7cc6d98587f09
 
 Scope is limited to complete checked preimage capture, fail-closed handling for unsafe or ambiguous paths, and rollback of transaction-owned state. Preserve proposal semantics, plan identity/read-set checks, mutation locking, stale checks, and independent postvalidation. No crash/power-loss or arbitrary concurrent-writer guarantees are claimed.
 
-Link actual evidence to every acceptance criterion before closeout. Keep this work item active until those links are recorded; regenerate the dashboard after governed changes.
+## Implementation and validation
+
+The mutation executor captures complete checked preimages while holding the mutation lock, rejects incomplete or unsafe captures before writing, and verifies transaction-owned after-state before rollback. Rollback restores or removes only paths the transaction can prove it owns; changed or ambiguous state is preserved and reported as recovery required. Existing plan identity/read-set, locking, stale-plan, postvalidation, and proposal behavior remain in place.
+
+`docs/guides/governance-recovery.md`, the audit inventory, alignment report, and documentation mapping snapshot were updated. The documented guarantee remains limited to ordinary in-process transaction rollback; process-death, power-loss, and arbitrary-writer recovery are not claimed.
+
+Acceptance evidence:
+
+- `20261127-084-mutation-preservation-focused-rust-corrected` — 36 mutation tests passed, including preimage failures, exact restoration, external drift, symlink/move cases, and transaction preservation.
+- `20261127-084-mutation-preservation-legacy-python` — canonical Rust conformance 43/43, Python compatibility comparator 43/43, WI050 8/8, and WI079 10/10.
+- `20261127-084-mutation-preservation-final-ci-validated` — all required CI profile stages passed on a clean exact-head checkout, including Python tests, Rust workspace, canonical validation, conformance, spec freshness, and frozen-surface verification.
+
+Earlier failed validation attempts remain preserved as evidence. The completed profile ran with a D: repository and Cargo target and C: fixture temp; its exact head was `834994f90b54b5df25fd4abc9a66cc2e6a6ba7cb` before evidence reconciliation. The dashboard is regenerated from committed evidence only.
