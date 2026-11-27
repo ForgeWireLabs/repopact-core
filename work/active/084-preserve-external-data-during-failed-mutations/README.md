@@ -81,3 +81,10 @@ The initial profile failure, provenance-only retry, and interrupted attempts rem
 The coordinator's follow-up review on PR #34 identified one missing local comparison in `capture_preimages_with`: it checks that the surrounding root observations match, but did not compare the complete middle preimage entries against them. This can accept A/A during the first observation, B/B during capture, and A/A during the final observation. Root digests also omit empty directories, so the comparison must include complete entries and roots.
 
 WI084 was reopened through the canonical lifecycle before runtime edits. Only the existing AC-7 is pending; its prior evidence and all other acceptance criteria remain unchanged. The correction is limited to the existing three checked passes and deterministic regressions for changing reads, stable reads, and empty-directory mismatch. No additional traversal pass or public `PathState` change is in scope.
+
+
+### AC-7 comparison correction
+
+`capture_preimages_with` now retains full `Preimages` values for the existing before, middle, and after checked passes, including every root and directory/file entry. It rejects unless the captured middle entries exactly match both surrounding observations; it adds no traversal pass and does not change `PathState` or the read-set contract.
+
+Before the correction, the deterministic file test returned the middle `BBBB` bytes between two `AAAA` observations. The empty-directory test returned a middle snapshot containing a child directory absent from both boundary observations. After the correction, all 45 mutation crate tests passed, including those negative cases, a stable-file positive case, and unchanged sentinel bytes. Focused evidence: `20261127-084-wi084-preimage-consistency-focused`. The applicable local CI profile and explicit legacy comparator remain to be recorded for this runtime change.

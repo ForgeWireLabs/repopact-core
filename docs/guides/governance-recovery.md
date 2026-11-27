@@ -46,7 +46,9 @@ authorize bypassing protected mutations.
    Ordinary typed mutations also capture a checked preimage under the
    repository mutation lock before their first write. Captured bytes are checked
    against the plan's original read facts, and those facts are checked again
-   immediately before the first write. Incomplete reads, ambiguous path state,
+   immediately before the first write. The complete captured roots and entries
+   must also match both surrounding checked observations, including empty
+   directories. Incomplete reads, ambiguous path state,
    hard-linked regular files, and symlink or reparse-point paths fail closed
    with `mutation.preimage-failed` or `mutation.plan-stale`. The same checks run
    when rollback revalidates transaction-owned state. A later failure is marked

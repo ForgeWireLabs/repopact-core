@@ -2872,40 +2872,39 @@ fn capture_preimages_with(
     read_directory: &mut dyn FnMut(&Path) -> std::io::Result<fs::ReadDir>,
 ) -> Result<Preimages, String> {
     let roots = prune_roots(roots.to_vec());
+    let before =
+        capture_preimages_once(repository.root(), &roots, read_file, read_directory, true)?;
+    let preimages =
+        capture_preimages_once(repository.root(), &roots, read_file, read_directory, true)?;
+    let after = capture_preimages_once(repository.root(), &roots, read_file, read_directory, true)?;
+    if before != preimages || preimages != after {
+        return Err("target state changed while its complete preimage was captured".to_owned());
+    }
+    Ok(preimages)
+}
+
+fn capture_preimages_once(
+    repository_root: &Path,
+    roots: &[PathBuf],
+    read_file: &mut dyn FnMut(&Path) -> std::io::Result<Vec<u8>>,
+    read_directory: &mut dyn FnMut(&Path) -> std::io::Result<fs::ReadDir>,
+    check_link_count: bool,
+) -> Result<Preimages, String> {
+    let roots = prune_roots(roots.to_vec());
     let mut preimages = Preimages {
         roots: roots.iter().cloned().collect(),
         entries: BTreeMap::new(),
     };
-    let before_states = roots
-        .iter()
-        .map(|path| {
-            Ok((
-                path.clone(),
-                observe_path_state(repository.root(), path, read_file, read_directory, true)?,
-            ))
-        })
-        .collect::<Result<BTreeMap<_, _>, String>>()?;
     for path in &roots {
+        validate_path_chain(repository_root, path)?;
         capture_preimage_path(
-            repository.root(),
+            repository_root,
             path,
             &mut preimages,
             read_file,
             read_directory,
-            true,
+            check_link_count,
         )?;
-    }
-    let after_states = roots
-        .iter()
-        .map(|path| {
-            Ok((
-                path.clone(),
-                observe_path_state(repository.root(), path, read_file, read_directory, true)?,
-            ))
-        })
-        .collect::<Result<BTreeMap<_, _>, String>>()?;
-    if before_states != after_states {
-        return Err("target state changed while its complete preimage was captured".to_owned());
     }
     Ok(preimages)
 }
@@ -2917,15 +2916,9 @@ fn observe_path_state(
     read_directory: &mut dyn FnMut(&Path) -> std::io::Result<fs::ReadDir>,
     check_link_count: bool,
 ) -> Result<PathState, String> {
-    validate_path_chain(repository_root, relative)?;
-    let mut observation = Preimages {
-        roots: BTreeSet::from([relative.to_path_buf()]),
-        entries: BTreeMap::new(),
-    };
-    capture_preimage_path(
+    let observation = capture_preimages_once(
         repository_root,
-        relative,
-        &mut observation,
+        &[relative.to_path_buf()],
         read_file,
         read_directory,
         check_link_count,
@@ -4122,6 +4115,112 @@ mod tests {
 
         assert!(error.contains("injected file read failure"), "{error}");
         assert_eq!(fs::read(&protected).unwrap(), bytes_before);
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn preimage_capture_rejects_a_a_b_b_a_a_file_observations_before_mutation() {
+        let (root, _) = fixture();
+        let target = root.join("captured-file");
+        let sentinel = root.join("outside-sentinel");
+        fs::write(&target, b"AAAA").unwrap();
+        fs::write(&sentinel, b"keep external bytes").unwrap();
+        let repository = Repository::open(&root);
+        let mut read_count = 0;
+        let mut read_file = |_path: &Path| {
+            read_count += 1;
+            let bytes = match read_count {
+                1 | 2 | 5 | 6 => b"AAAA".as_slice(),
+                3 | 4 => b"BBBB".as_slice(),
+                _ => panic!("capture made an unexpected number of file reads"),
+            };
+            Ok(bytes.to_vec())
+        };
+        let mut read_directory = |path: &Path| fs::read_dir(path);
+
+        let result = capture_preimages_with(
+            &repository,
+            &[PathBuf::from("captured-file")],
+            &mut read_file,
+            &mut read_directory,
+        );
+
+        let error = result.expect_err("middle B/B preimage must disagree with A/A boundaries");
+        assert!(error.contains("target state changed"), "{error}");
+        assert_eq!(read_count, 6);
+        assert_eq!(fs::read(&target).unwrap(), b"AAAA");
+        assert_eq!(fs::read(&sentinel).unwrap(), b"keep external bytes");
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn preimage_capture_accepts_stable_file_observations() {
+        let (root, _) = fixture();
+        let target = root.join("captured-file");
+        fs::write(&target, b"stable bytes").unwrap();
+        let repository = Repository::open(&root);
+        let mut read_file = |path: &Path| fs::read(path);
+        let mut read_directory = |path: &Path| fs::read_dir(path);
+
+        let preimages = capture_preimages_with(
+            &repository,
+            &[PathBuf::from("captured-file")],
+            &mut read_file,
+            &mut read_directory,
+        )
+        .unwrap();
+
+        assert_eq!(
+            preimages.entries.get(Path::new("captured-file")),
+            Some(&PreimageEntry::File(b"stable bytes".to_vec()))
+        );
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn preimage_capture_rejects_empty_directory_added_only_to_middle_snapshot() {
+        let (root, _) = fixture();
+        let relative = PathBuf::from("capture-root");
+        let target = root.join(&relative);
+        let transient_empty = target.join("empty-during-capture");
+        let sentinel = root.join("outside-sentinel");
+        fs::create_dir(&target).unwrap();
+        fs::write(&sentinel, b"keep external bytes").unwrap();
+        let repository = Repository::open(&root);
+        let mut read_file = |path: &Path| fs::read(path);
+        let mut root_reads = 0;
+        let mut read_directory = |path: &Path| {
+            if path.ends_with("capture-root") {
+                root_reads += 1;
+                match root_reads {
+                    3 => fs::create_dir(&transient_empty)?,
+                    5 => fs::remove_dir(&transient_empty)?,
+                    _ => {}
+                }
+                match root_reads {
+                    1 | 2 | 5 | 6 => assert!(!transient_empty.exists()),
+                    3 | 4 => assert!(transient_empty.is_dir()),
+                    _ => panic!("capture made an unexpected number of root observations"),
+                }
+            }
+            fs::read_dir(path)
+        };
+
+        let result = capture_preimages_with(
+            &repository,
+            &[relative],
+            &mut read_file,
+            &mut read_directory,
+        );
+
+        assert_eq!(
+            root_reads, 6,
+            "unexpected root observation count for {target:?}"
+        );
+        let error = result.expect_err("middle empty-directory entry must disagree with boundaries");
+        assert!(error.contains("target state changed"), "{error}");
+        assert!(!transient_empty.exists());
+        assert_eq!(fs::read(&sentinel).unwrap(), b"keep external bytes");
         fs::remove_dir_all(root).unwrap();
     }
 

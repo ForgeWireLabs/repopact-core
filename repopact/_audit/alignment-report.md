@@ -470,6 +470,16 @@
   ForgeWire-scale measurements; the Core benchmark does not satisfy those
   acceptance criteria.
 
+## 2026-11-27 preimage observation consistency follow-up
+
+- The same three checked passes now retain complete `Preimages` roots and
+  entries and require the middle capture to equal both boundary observations.
+  This rejects A/A-B/B-A/A file reads and middle-only empty directories that a
+  root `PathState` digest does not represent.
+- Regression coverage includes those negative cases and a stable-file positive
+  case. No fourth traversal, public `PathState` change, or new recovery claim is
+  introduced.
+
 ## 2026-11-26 mutation data-preservation repair
 
 - Ordinary typed mutations now capture complete preimages under the existing

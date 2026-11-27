@@ -106,7 +106,8 @@
       "state": "pending",
       "evidence": [
         "20261127-084-wi084-corrections-focused",
-        "20261127-084-wi084-corrections-final-ci-validated"
+        "20261127-084-wi084-corrections-final-ci-validated",
+        "20261127-084-wi084-preimage-consistency-focused"
       ]
     }
   ],
