@@ -1,6 +1,6 @@
 # 084 — Preserve external data during failed mutations
 
-> **Status**: completed
+> **Status**: active
 > **Owner scope**: tooling
 > **Affected scopes**: tooling, governance, work, evidence
 > **Depends on**: none
@@ -24,6 +24,12 @@ The tooling owner leads changes to mutation implementation and focused tests, pl
 - **AC-3** — Rollback changes only transaction-owned after-state, preserves external and unowned bytes/directories, reports conflicts as recovery-required failures, and never reports success or false `rolled_back` when restoration is unproven.
 - **AC-4** — Focused regression coverage verifies create/edit/transition success; capture failures; injected failures before and after writes/moves; external drift before operation zero and during apply; subtrees, unrelated content, and symlink/reparse outside sentinels.
 - **AC-5** — Record focused tests, the required local validation profile and legacy comparator, dashboard reconciliation, canonical validation, and frozen-surface check while preserving plan identity/read-set/lock/stale checks/postvalidation/proposal semantics. No process-death, power-loss, or arbitrary uncooperative-writer recovery claim.
+- **AC-6** — Reject multiply-linked regular files and unsupported reparse points at targeted roots, captured descendants, and rollback ownership rechecks; fail closed when link metadata is unavailable or unsupported. A same-volume hard-link outside sentinel remains byte-for-byte unchanged, with a host-supported junction/reparse negative case where available, and no new filesystem dependency is introduced.
+- **AC-7** — Reconcile captured preimages and observed roots with original plan read facts and checked root states, reject unreadable or ambiguous observations as distinct from absence, and recheck applicable facts before the first write. Deterministic post-stale-check/pre-capture edits, direct file-read failure, captured-state mismatch, and exact rollback assertions prove fail-closed behavior while preserving external bytes.
+
+## Coordinator review reopening
+
+The [bounded coordinator review](https://github.com/ForgeWireLabs/repopact-core/pull/34#issuecomment-7224414238) reopened WI084 before runtime changes. It identified that hard-linked regular files can alias an outside sentinel even when bytes match, Windows reparse points extend beyond symlinks, and capture can accept state changed after the initial stale-plan check by seeding its expected state from the new capture. AC-1 through AC-5 retain their prior evidence links and are pending revalidation where the corrections overlap; AC-6 and AC-7 track the new containment and reconciliation regressions. Earlier successes and failures remain recorded.
 
 ## Closeout
 
