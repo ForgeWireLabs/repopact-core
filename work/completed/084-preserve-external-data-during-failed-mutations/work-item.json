@@ -23,7 +23,9 @@
       "20261127-084-mutation-preservation-legacy-python",
       "20261127-084-wi084-corrections-final-ci-validated",
       "20261127-084-wi084-corrections-legacy-python",
-      "20261127-084-wi084-corrections-closeout"
+      "20261127-084-wi084-corrections-closeout",
+      "20261127-084-wi084-preimage-final-ci",
+      "20261127-084-wi084-preimage-final-legacy-python"
     ]
   },
   "preflight": {
@@ -88,7 +90,9 @@
         "20261127-084-wi084-corrections-focused",
         "20261127-084-wi084-corrections-final-ci-validated",
         "20261127-084-wi084-corrections-legacy-python",
-        "20261127-084-wi084-corrections-closeout"
+        "20261127-084-wi084-corrections-closeout",
+        "20261127-084-wi084-preimage-final-ci",
+        "20261127-084-wi084-preimage-final-legacy-python"
       ]
     },
     {
@@ -107,7 +111,9 @@
       "evidence": [
         "20261127-084-wi084-corrections-focused",
         "20261127-084-wi084-corrections-final-ci-validated",
-        "20261127-084-wi084-preimage-consistency-focused"
+        "20261127-084-wi084-preimage-consistency-focused",
+        "20261127-084-wi084-preimage-final-ci",
+        "20261127-084-wi084-preimage-final-legacy-python"
       ]
     }
   ],
