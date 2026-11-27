@@ -1,0 +1,1 @@
+{"exit_code": 1, "status": "failed", "stderr_tail": "", "stdout_tail": "ERROR [dashboard.stale] audits/reports/dashboard.md: generated dashboard is stale; run `repopact dashboard --root .` and commit the result\n\nValidation failed with 1 error(s).\n", "step": "validate", "summary": "command exited 1"}
