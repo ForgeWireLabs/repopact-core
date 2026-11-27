@@ -1,0 +1,76 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261127-084-mutation-preservation-focused-rust-corrected",
+  "timestamp": "2026-11-27T15:49:27Z",
+  "timestamp_basis": "git-recording",
+  "work_item": "084",
+  "result": "passed",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "cargo test --locked --manifest-path rust/Cargo.toml -p repopact-mutation --lib -- --test-threads=1",
+      "exit_code": 0,
+      "summary": "mutation-rust-focused: passed - 36 mutation tests passed"
+    }
+  ],
+  "artifacts": [
+    "evidence/runs/20261127-084-mutation-preservation-focused-rust-corrected.capture.txt",
+    "rust/crates/repopact-mutation/src/lib.rs"
+  ],
+  "environment": {
+    "platform": "windows",
+    "executor": "local",
+    "candidate": {
+      "commit": "7b62221d04eaff40f47424d09e0e716db6855548",
+      "tree": "595334c8d22e5667912621742939693447c2869a",
+      "dirty": true
+    },
+    "candidate_at_start": {
+      "commit": "7b62221d04eaff40f47424d09e0e716db6855548",
+      "tree": "595334c8d22e5667912621742939693447c2869a",
+      "dirty": true
+    },
+    "validation_storage": null,
+    "relevant_environment": {
+      "CARGO_TARGET_DIR": "D:\\Projects\\repopact-core-mutation-preservation-final-20261127\\rust\\target",
+      "REPOPACT_ENGINE": "D:\\Projects\\repopact-core-mutation-preservation-final-20261127\\rust\\target\\debug\\repopact-engine.exe"
+    },
+    "verification": {
+      "profile": "mutation-rust-focused",
+      "status": "pass",
+      "exit_code": 0,
+      "duration_seconds": 30.988953,
+      "coverage": {
+        "mode": "host",
+        "satisfied": true,
+        "host_ready": true,
+        "all_declared_executed": true,
+        "required_total": 1,
+        "required_executed": 1,
+        "required_passed": 1,
+        "required_failed": 0,
+        "required_errors": 0,
+        "required_unavailable": 0,
+        "required_not_applicable": 0,
+        "declared_platforms": [],
+        "required_platforms": [],
+        "missing_platforms": [],
+        "capabilities": {
+          "cargo": "available"
+        }
+      },
+      "steps": [
+        {
+          "id": "mutation-rust-focused",
+          "status": "passed",
+          "required": true,
+          "applicable": true,
+          "capability": null,
+          "platforms": [],
+          "exit_code": 0,
+          "summary": "36 mutation tests passed"
+        }
+      ]
+    }
+  }
+}

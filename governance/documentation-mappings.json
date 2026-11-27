@@ -80,8 +80,23 @@
       ],
       "description": "The installation and packaging guide explains semantic identity, same-process admission, exact runtime dependency checks, migration, no-replay handling for uncertain outcomes, wheel payload and packaged-engine verification, the separate WI079 self-audit reference corpus, and the limits of executable provenance.",
       "snapshot": {
-        "source_digest": "21791d55f0ba6e03ea3c2b5b298b611ec16abc0fb03c7cf8879f6095abbafb29",
+        "source_digest": "667ccab31de86f7b6a30a7f858913951e39a772927375acf644e5491c4ae664e",
         "documentation_digest": "a8bc0c1ef6847f544c2083ecd07dbd54cfd751f5f2f447ce99d1bc03e4e521a3"
+      }
+    },
+    {
+      "id": "mutation-transaction-safety",
+      "kind": "manual",
+      "source_paths": [
+        "rust/crates/repopact-mutation/src/lib.rs"
+      ],
+      "documentation_paths": [
+        "docs/guides/governance-recovery.md"
+      ],
+      "description": "The recovery guide explains plan-fact reconciliation, path containment checks, hard-link and reparse rejection, and exact rollback confirmation for ordinary mutation transactions.",
+      "snapshot": {
+        "source_digest": "ba0ba489f27609cf02de9433b8fde97e13fb0ff7ff1fc97c9188af3633a620fb",
+        "documentation_digest": "4ea265ffbf2eea4bfd0c47604bdae40760258e5916a9f0f0a61e1064d9f54d4b"
       }
     },
     {

@@ -263,6 +263,8 @@ pub struct ApplyOptions {
     pub fail_after_operation: Option<usize>,
     pub external_drift_at: Option<usize>,
     pub external_drift_path: Option<String>,
+    /// Test seam for a write between the initial stale check and preimage capture.
+    pub external_drift_after_initial_check: Option<String>,
 }
 
 impl ApplyOptions {
@@ -1764,12 +1766,85 @@ pub fn apply(plan: &MutationPlan, options: &ApplyOptions) -> MutationResult {
         ));
         return result;
     }
-    if let Some(stale) = stale_read_fact(&repository, &plan.read_set) {
+    match stale_read_fact(&repository, &plan.read_set) {
+        Ok(Some(stale)) => {
+            result.diagnostics.push(
+                MutationDiagnostic::error(
+                    "mutation.plan-stale",
+                    format!(
+                        "plan read fact for '{}' no longer matches; re-plan before apply",
+                        stale.path
+                    ),
+                )
+                .at(stale.path),
+            );
+            return result;
+        }
+        Err(error) => {
+            result.diagnostics.push(MutationDiagnostic::error(
+                "mutation.plan-stale",
+                format!("unable to safely verify the plan read set: {error}"),
+            ));
+            return result;
+        }
+        Ok(None) => {}
+    }
+
+    if let Some(path) = options.external_drift_after_initial_check.as_deref() {
+        let relative = Path::new(path);
+        if let Err(error) = validate_relative_path(relative) {
+            result.diagnostics.push(MutationDiagnostic::error(
+                "mutation.preimage-failed",
+                format!("invalid injected drift path: {error}"),
+            ));
+            return result;
+        }
+        if let Err(error) = validate_path_chain(repository.root(), relative) {
+            result.diagnostics.push(MutationDiagnostic::error(
+                "mutation.preimage-failed",
+                format!("unsafe injected drift path: {error}"),
+            ));
+            return result;
+        }
+        let absolute = repository.root().join(relative);
+        if let Err(error) = fs::write(
+            &absolute,
+            br#"{"id":"001","title":"External edit","status":"active","owner_scope":"governance","affected_scopes":[],"depends_on":[],"acceptance_criteria":[{"id":"AC-1","text":"prove","state":"pending","evidence":[]}],"created":"2026-01-01","updated":"2026-01-02"}"#,
+        ) {
+            result.diagnostics.push(MutationDiagnostic::error(
+                "mutation.preimage-failed",
+                format!("unable to inject external drift after stale check: {error}"),
+            ));
+            return result;
+        }
+    }
+
+    let roots = match operation_roots(plan, &repository) {
+        Ok(roots) => roots,
+        Err(error) => {
+            result.diagnostics.push(MutationDiagnostic::error(
+                "mutation.preimage-failed",
+                format!("unable to establish safe mutation paths: {error}"),
+            ));
+            return result;
+        }
+    };
+    let preimages = match capture_preimages(&repository, &roots) {
+        Ok(preimages) => preimages,
+        Err(error) => {
+            result.diagnostics.push(MutationDiagnostic::error(
+                "mutation.preimage-failed",
+                format!("unable to capture complete mutation preimage: {error}"),
+            ));
+            return result;
+        }
+    };
+    if let Some(stale) = stale_read_fact_in_preimages(&repository, &plan.read_set, &preimages) {
         result.diagnostics.push(
             MutationDiagnostic::error(
                 "mutation.plan-stale",
                 format!(
-                    "plan read fact for '{}' no longer matches; re-plan before apply",
+                    "captured state for plan read fact '{}' no longer matches; re-plan before apply",
                     stale.path
                 ),
             )
@@ -1777,18 +1852,45 @@ pub fn apply(plan: &MutationPlan, options: &ApplyOptions) -> MutationResult {
         );
         return result;
     }
-
-    let roots = operation_roots(plan, &repository);
-    let preimages = capture_preimages(&repository, &roots);
-    let mut expected = roots
+    match stale_read_fact(&repository, &plan.read_set) {
+        Ok(Some(stale)) => {
+            result.diagnostics.push(
+                MutationDiagnostic::error(
+                    "mutation.plan-stale",
+                    format!(
+                        "plan read fact for '{}' changed before the first write; re-plan before apply",
+                        stale.path
+                    ),
+                )
+                .at(stale.path),
+            );
+            return result;
+        }
+        Err(error) => {
+            result.diagnostics.push(MutationDiagnostic::error(
+                "mutation.plan-stale",
+                format!(
+                    "unable to safely recheck the plan read set before the first write: {error}"
+                ),
+            ));
+            return result;
+        }
+        Ok(None) => {}
+    }
+    let mut expected = plan
+        .file_operations
         .iter()
+        .flat_map(operation_paths)
+        .collect::<BTreeSet<_>>()
+        .into_iter()
         .map(|path| {
-            (
-                path.clone(),
-                repository.path_state(&repository.root().join(path)),
-            )
+            let state = preimages
+                .state_for(&repository, &path)
+                .expect("every planned operation path is covered by its preimage roots");
+            (path, state)
         })
         .collect::<BTreeMap<_, _>>();
+    let mut undo = Vec::<UndoRecord>::new();
     for (index, operation) in plan.file_operations.iter().enumerate() {
         if options.external_drift_at == Some(index) {
             if let Some(path) = options.external_drift_path.as_deref() {
@@ -1799,43 +1901,130 @@ pub fn apply(plan: &MutationPlan, options: &ApplyOptions) -> MutationResult {
                 if let Err(error) = fs::write(&absolute, b"external drift injected during apply") {
                     return failure_with_rollback(
                         &repository,
-                        &roots,
-                        &preimages,
+                        undo,
                         result,
                         format!("unable to inject external drift: {error}"),
+                        None,
                     );
                 }
             }
         }
+        let operation_roots = match checked_operation_roots(operation, &repository) {
+            Ok(roots) => roots,
+            Err(error) => {
+                return failure_with_rollback(
+                    &repository,
+                    undo,
+                    result,
+                    format!("unable to recheck operation paths before operation {index}: {error}"),
+                    None,
+                );
+            }
+        };
+        let before = match capture_preimages(&repository, &operation_roots) {
+            Ok(before) => before,
+            Err(error) => {
+                return failure_with_rollback(
+                    &repository,
+                    undo,
+                    result,
+                    format!("unable to recheck preimage before operation {index}: {error}"),
+                    None,
+                );
+            }
+        };
+        if let Some(stale_path) = operation_drift(operation, &repository, &before, &expected) {
+            return failure_with_rollback(
+                &repository,
+                undo,
+                result,
+                format!("target '{stale_path}' changed during apply; refusing to merge external content"),
+                None,
+            );
+        }
         if options.fail_before_operation == Some(index) {
             return failure_with_rollback(
                 &repository,
-                &roots,
-                &preimages,
+                undo,
                 result,
                 format!("failure injected before operation {index}"),
+                None,
             );
         }
-        if let Some(stale_path) = operation_drift(operation, &repository, &expected) {
-            return failure_with_rollback(&repository, &roots, &preimages, result, format!("target '{stale_path}' changed during apply; refusing to merge external content"));
-        }
-        if let Err(error) = apply_operation(repository.root(), operation) {
+        let expected_after = match project_operation(&repository, &before, operation) {
+            Ok(after) => after,
+            Err(error) => {
+                return failure_with_rollback(
+                    &repository,
+                    undo,
+                    result,
+                    format!("operation {index} cannot be applied safely: {error}"),
+                    None,
+                );
+            }
+        };
+        let apply_result = apply_operation(repository.root(), operation);
+        let after = match capture_preimages(&repository, &operation_roots) {
+            Ok(after) => after,
+            Err(error) => {
+                return failure_with_rollback(
+                    &repository,
+                    undo,
+                    result,
+                    format!("unable to verify operation {index} after apply: {error}"),
+                    Some(format!(
+                        "operation {index} after-state could not be inspected; recovery is required and its paths were left untouched"
+                    )),
+                );
+            }
+        };
+        if after.entries != expected_after.entries {
+            let unchanged = after.entries == before.entries;
+            let apply_message = match apply_result {
+                Err(error) => format!("apply failed: {error}"),
+                Ok(()) => format!("operation {index} produced an unexpected after-state"),
+            };
             return failure_with_rollback(
                 &repository,
-                &roots,
-                &preimages,
+                undo,
                 result,
-                format!("apply failed: {error}"),
+                apply_message,
+                (!unchanged).then(|| {
+                    format!(
+                        "operation {index} after-state does not match the transaction's projected state; recovery is required and the uncertain paths were left untouched"
+                    )
+                }),
             );
         }
-        refresh_expected_paths(&repository, &mut expected, operation_paths(operation));
+        let changed = after.entries != before.entries;
+        if changed {
+            undo.push(UndoRecord {
+                operation: operation.clone(),
+                before,
+                after: expected_after,
+            });
+        }
+        if let Err(error) = apply_result {
+            return failure_with_rollback(
+                &repository,
+                undo,
+                result,
+                format!("apply failed: {error}"),
+                None,
+            );
+        }
+        for (path, state) in &mut expected {
+            if let Some(observed) = after.state_for(&repository, path) {
+                *state = observed;
+            }
+        }
         if options.fail_after_operation == Some(index) {
             return failure_with_rollback(
                 &repository,
-                &roots,
-                &preimages,
+                undo,
                 result,
                 format!("failure injected after operation {index}"),
+                None,
             );
         }
     }
@@ -1849,10 +2038,10 @@ pub fn apply(plan: &MutationPlan, options: &ApplyOptions) -> MutationResult {
             .join("; ");
         return failure_with_rollback(
             &repository,
-            &roots,
-            &preimages,
+            undo,
             result,
             format!("post-state validation failed: {messages}"),
+            None,
         );
     }
     result.success = true;
@@ -1961,7 +2150,16 @@ fn apply_proposal(
     let fresh = repository.session().snapshot();
     result.metrics.snapshot_ms += snapshot_started.elapsed().as_millis();
     let stale_started = Instant::now();
-    let stale_plan = stale_read_fact(&repository, &plan.read_set).is_some();
+    let stale_plan = match stale_read_fact(&repository, &plan.read_set) {
+        Ok(stale) => stale.is_some(),
+        Err(error) => {
+            result.diagnostics.push(MutationDiagnostic::error(
+                "mutation.plan-stale",
+                format!("unable to safely verify proposal read facts: {error}"),
+            ));
+            return result;
+        }
+    };
     result.metrics.stale_check_ms = stale_started.elapsed().as_millis();
     let planned_id = plan
         .file_operations
@@ -2156,11 +2354,19 @@ where
             file.sync_all().map_err(|error| error.to_string())?;
         }
         before_publish();
-        if let Some(stale) = stale_read_fact(repository, &plan.read_set) {
-            return Err(format!(
-                "proposal read fact '{}' changed after validation",
-                stale.path
-            ));
+        match stale_read_fact(repository, &plan.read_set) {
+            Ok(Some(stale)) => {
+                return Err(format!(
+                    "proposal read fact '{}' changed after validation",
+                    stale.path
+                ));
+            }
+            Err(error) => {
+                return Err(format!(
+                    "cannot safely recheck proposal read facts: {error}"
+                ));
+            }
+            Ok(None) => {}
         }
         if fs::symlink_metadata(&destination).is_ok() {
             return Err("proposal destination appeared before atomic commit".to_owned());
@@ -2238,8 +2444,7 @@ fn ensure_safe_repository_directory(root: &Path, relative: &Path) -> Result<Path
     for component in relative.components() {
         current.push(component.as_os_str());
         match fs::symlink_metadata(&current) {
-            Ok(metadata) if metadata.file_type().is_dir() && !metadata.file_type().is_symlink() => {
-            }
+            Ok(metadata) if metadata.file_type().is_dir() && !is_symlink_or_reparse(&metadata) => {}
             Ok(_) => {
                 return Err(format!(
                     "repository path '{}' is not a regular directory",
@@ -2252,7 +2457,7 @@ fn ensure_safe_repository_directory(root: &Path, relative: &Path) -> Result<Path
                     Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists => {
                         let metadata =
                             fs::symlink_metadata(&current).map_err(|error| error.to_string())?;
-                        if !metadata.file_type().is_dir() || metadata.file_type().is_symlink() {
+                        if !metadata.file_type().is_dir() || is_symlink_or_reparse(&metadata) {
                             return Err(format!(
                                 "repository path '{}' is not a regular directory",
                                 path_string(&current)
@@ -2303,55 +2508,272 @@ fn atomic_write_projection(path: &Path, content: &[u8]) -> Result<bool, String> 
 
 fn failure_with_rollback(
     repository: &Repository,
-    roots: &[PathBuf],
-    preimages: &Preimages,
+    mut undo: Vec<UndoRecord>,
     mut result: MutationResult,
     message: String,
+    ownership_conflict: Option<String>,
 ) -> MutationResult {
     result
         .diagnostics
         .push(MutationDiagnostic::error("mutation.apply-failed", message));
-    match restore_preimages(repository, roots, preimages) {
-        Ok(()) => result.rolled_back = true,
-        Err(error) => result
-            .diagnostics
-            .push(MutationDiagnostic::error("mutation.rollback-failed", error)),
+    let had_owned_changes = !undo.is_empty();
+    let mut errors = ownership_conflict.into_iter().collect::<Vec<_>>();
+    while let Some(record) = undo.pop() {
+        if let Err(error) = restore_operation(repository, &record) {
+            errors.push(error);
+        }
+    }
+    if had_owned_changes && errors.is_empty() {
+        result.rolled_back = true;
+    } else {
+        result.rolled_back = false;
+    }
+    for error in errors {
+        result.diagnostics.push(MutationDiagnostic::error(
+            "mutation.rollback-failed",
+            format!("recovery required; no unowned after-state was overwritten: {error}"),
+        ));
     }
     result
 }
 
-fn stale_read_fact(repository: &Repository, read_set: &ReadSet) -> Option<ReadFact> {
-    read_set
-        .facts
-        .iter()
-        .find(|fact| repository.path_state(&repository.root().join(&fact.path)) != fact.expected)
-        .cloned()
+fn stale_read_fact(
+    repository: &Repository,
+    read_set: &ReadSet,
+) -> Result<Option<ReadFact>, String> {
+    for fact in &read_set.facts {
+        let actual = checked_read_fact_state(repository, Path::new(&fact.path))?;
+        if actual != fact.expected {
+            return Ok(Some(fact.clone()));
+        }
+    }
+    Ok(None)
 }
 
-fn operation_roots(plan: &MutationPlan, repository: &Repository) -> Vec<PathBuf> {
+fn stale_read_fact_in_preimages(
+    repository: &Repository,
+    read_set: &ReadSet,
+    preimages: &Preimages,
+) -> Option<ReadFact> {
+    read_set.facts.iter().find_map(|fact| {
+        preimages
+            .state_for(repository, Path::new(&fact.path))
+            .filter(|actual| actual != &fact.expected)
+            .map(|_| fact.clone())
+    })
+}
+
+fn checked_read_fact_state(repository: &Repository, relative: &Path) -> Result<PathState, String> {
+    let mut read_file = |path: &Path| fs::read(path);
+    let mut read_directory = |path: &Path| fs::read_dir(path);
+    observe_path_state(
+        repository.root(),
+        relative,
+        &mut read_file,
+        &mut read_directory,
+        false,
+    )
+}
+
+fn operation_roots(plan: &MutationPlan, repository: &Repository) -> Result<Vec<PathBuf>, String> {
     let mut roots = BTreeSet::new();
     for operation in &plan.file_operations {
-        match operation {
-            PathOperation::Write { path, .. } => {
-                let file = PathBuf::from(path);
-                roots.insert(file.clone());
-                if let Some(parent) = file
-                    .parent()
-                    .filter(|parent| !parent.as_os_str().is_empty())
-                {
-                    let absolute = repository.root().join(parent);
-                    if repository.path_state(&absolute) == PathState::Absent {
-                        roots.insert(parent.to_path_buf());
-                    }
+        for path in checked_operation_roots(operation, repository)? {
+            roots.insert(path);
+        }
+    }
+    Ok(prune_roots(roots.into_iter().collect()))
+}
+
+fn checked_operation_roots(
+    operation: &PathOperation,
+    repository: &Repository,
+) -> Result<Vec<PathBuf>, String> {
+    let mut roots = BTreeSet::new();
+    let (paths, create_parent_for): (Vec<PathBuf>, Vec<PathBuf>) = match operation {
+        PathOperation::Write { path, .. } => {
+            let path = PathBuf::from(path);
+            (vec![path.clone()], vec![path])
+        }
+        PathOperation::Move { from, to } => {
+            let from = PathBuf::from(from);
+            let to = PathBuf::from(to);
+            (vec![from, to.clone()], vec![to])
+        }
+    };
+    for path in &paths {
+        validate_path_chain(repository.root(), path)?;
+        roots.insert(path.clone());
+    }
+    for path in create_parent_for {
+        let mut parent = path.parent();
+        while let Some(relative) = parent.filter(|value| !value.as_os_str().is_empty()) {
+            validate_relative_path(relative)?;
+            let absolute = repository.root().join(relative);
+            match fs::symlink_metadata(&absolute) {
+                Ok(metadata) if is_symlink_or_reparse(&metadata) => {
+                    return Err(format!(
+                        "parent '{}' is a symlink or reparse point",
+                        path_string(relative)
+                    ));
+                }
+                Ok(metadata) if metadata.file_type().is_dir() => break,
+                Ok(_) => {
+                    return Err(format!(
+                        "parent '{}' is not a regular directory",
+                        path_string(relative)
+                    ));
+                }
+                Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+                    roots.insert(relative.to_path_buf());
+                }
+                Err(error) => {
+                    return Err(format!(
+                        "cannot inspect parent '{}': {error}",
+                        path_string(relative)
+                    ));
                 }
             }
-            PathOperation::Move { from, to } => {
-                roots.insert(PathBuf::from(from));
-                roots.insert(PathBuf::from(to));
+            parent = relative.parent();
+        }
+    }
+    Ok(prune_roots(roots.into_iter().collect()))
+}
+
+fn prune_roots(mut roots: Vec<PathBuf>) -> Vec<PathBuf> {
+    roots.sort_by_key(|path| (path.components().count(), path.clone()));
+    let mut retained = Vec::<PathBuf>::new();
+    for path in roots {
+        if !retained.iter().any(|parent| path.starts_with(parent)) {
+            retained.push(path);
+        }
+    }
+    retained
+}
+
+fn validate_relative_path(path: &Path) -> Result<(), String> {
+    if path.as_os_str().is_empty() || path.is_absolute() {
+        return Err(format!(
+            "'{}' is not a repository-relative path",
+            path_string(path)
+        ));
+    }
+    if path
+        .components()
+        .any(|component| !matches!(component, std::path::Component::Normal(_)))
+    {
+        return Err(format!(
+            "'{}' contains an ambiguous or escaping path component",
+            path_string(path)
+        ));
+    }
+    Ok(())
+}
+
+fn validate_path_chain(root: &Path, relative: &Path) -> Result<(), String> {
+    validate_relative_path(relative)?;
+    let components = relative.components().collect::<Vec<_>>();
+    let mut current = root.to_path_buf();
+    for (index, component) in components.iter().enumerate() {
+        current.push(component.as_os_str());
+        match fs::symlink_metadata(&current) {
+            Ok(metadata) => {
+                let kind = metadata.file_type();
+                if is_symlink_or_reparse(&metadata) {
+                    return Err(format!(
+                        "'{}' contains a symlink or reparse point",
+                        path_string(&current)
+                    ));
+                }
+                let is_last = index + 1 == components.len();
+                if (!is_last && !kind.is_dir()) || (is_last && !kind.is_dir() && !kind.is_file()) {
+                    return Err(format!(
+                        "'{}' has an unsupported path type",
+                        path_string(&current)
+                    ));
+                }
+            }
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
+            Err(error) => {
+                return Err(format!(
+                    "cannot inspect '{}': {error}",
+                    path_string(&current)
+                ));
             }
         }
     }
-    roots.into_iter().collect()
+    Ok(())
+}
+
+fn is_symlink_or_reparse(metadata: &fs::Metadata) -> bool {
+    if metadata.file_type().is_symlink() {
+        return true;
+    }
+    #[cfg(windows)]
+    {
+        use std::os::windows::fs::MetadataExt;
+        use windows_sys::Win32::Storage::FileSystem::FILE_ATTRIBUTE_REPARSE_POINT;
+        return metadata.file_attributes() & FILE_ATTRIBUTE_REPARSE_POINT != 0;
+    }
+    #[cfg(not(windows))]
+    {
+        false
+    }
+}
+
+fn ensure_single_link(path: &Path, metadata: &fs::Metadata) -> Result<(), String> {
+    #[cfg(unix)]
+    let link_count = {
+        use std::os::unix::fs::MetadataExt;
+        metadata.nlink()
+    };
+    #[cfg(windows)]
+    let link_count = {
+        use std::os::windows::io::AsRawHandle;
+        use windows_sys::Win32::Storage::FileSystem::{
+            GetFileInformationByHandle, BY_HANDLE_FILE_INFORMATION, FILE_ATTRIBUTE_DIRECTORY,
+            FILE_ATTRIBUTE_REPARSE_POINT,
+        };
+        let _ = metadata;
+        let file = File::open(path).map_err(|error| {
+            format!(
+                "cannot inspect file links for '{}': {error}",
+                path_string(path)
+            )
+        })?;
+        let mut information = BY_HANDLE_FILE_INFORMATION::default();
+        let succeeded =
+            unsafe { GetFileInformationByHandle(file.as_raw_handle(), &mut information) };
+        if succeeded == 0 {
+            return Err(format!(
+                "cannot obtain file link information for '{}': {}",
+                path_string(path),
+                std::io::Error::last_os_error()
+            ));
+        }
+        if information.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY != 0
+            || information.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT != 0
+        {
+            return Err(format!(
+                "'{}' changed type while its link count was inspected",
+                path_string(path)
+            ));
+        }
+        information.nNumberOfLinks as u64
+    };
+    #[cfg(not(any(unix, windows)))]
+    let link_count = {
+        let _ = (path, metadata);
+        return Err("regular-file link count is unsupported on this platform".to_owned());
+    };
+
+    if link_count != 1 {
+        return Err(format!(
+            "'{}' has {link_count} hard links; refusing an external alias",
+            path_string(path)
+        ));
+    }
+    Ok(())
 }
 
 fn operation_paths(operation: &PathOperation) -> Vec<PathBuf> {
@@ -2364,123 +2786,546 @@ fn operation_paths(operation: &PathOperation) -> Vec<PathBuf> {
 fn operation_drift(
     operation: &PathOperation,
     repository: &Repository,
+    current: &Preimages,
     expected: &BTreeMap<PathBuf, PathState>,
 ) -> Option<String> {
     operation_paths(operation)
         .into_iter()
-        .find(|path| {
-            repository.path_state(&repository.root().join(path))
-                != expected.get(path).cloned().unwrap_or(PathState::Absent)
-        })
+        .find(|path| current.state_for(repository, path) != expected.get(path).cloned())
         .map(|path| path_string(&path))
 }
 
-fn refresh_expected_paths(
-    repository: &Repository,
-    expected: &mut BTreeMap<PathBuf, PathState>,
-    paths: Vec<PathBuf>,
-) {
-    for path in paths {
-        let absolute = repository.root().join(&path);
-        expected.insert(path, repository.path_state(&absolute));
-        if absolute.is_dir() {
-            for file in repository.files_under(&absolute) {
-                expected.insert(
-                    PathBuf::from(repository.relative_path(&file)),
-                    repository.path_state(&file),
-                );
-            }
-        }
-    }
+#[derive(Debug, Clone, PartialEq, Eq)]
+enum PreimageEntry {
+    File(Vec<u8>),
+    Directory,
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
 struct Preimages {
-    files: BTreeMap<PathBuf, Vec<u8>>,
-    directories: BTreeSet<PathBuf>,
+    roots: BTreeSet<PathBuf>,
+    entries: BTreeMap<PathBuf, PreimageEntry>,
 }
 
-fn capture_preimages(repository: &Repository, roots: &[PathBuf]) -> Preimages {
-    let mut preimages = Preimages::default();
-    for root in roots {
-        let absolute = repository.root().join(root);
-        if absolute.is_file() {
-            if let Ok(bytes) = fs::read(&absolute) {
-                preimages.files.insert(root.clone(), bytes);
+impl Preimages {
+    fn covers(&self, path: &Path) -> bool {
+        self.roots.iter().any(|root| path.starts_with(root))
+    }
+
+    fn state_for(&self, repository: &Repository, path: &Path) -> Option<PathState> {
+        self.state_for_root(repository.root(), path)
+    }
+
+    fn state_for_root(&self, repository_root: &Path, path: &Path) -> Option<PathState> {
+        if !self.covers(path) {
+            return None;
+        }
+        match self.entries.get(path) {
+            Some(PreimageEntry::File(bytes)) => Some(PathState::Present {
+                digest: hex_digest(Sha256::digest(bytes)),
+                kind: "file".to_owned(),
+            }),
+            Some(PreimageEntry::Directory) => {
+                let mut files = self
+                    .entries
+                    .iter()
+                    .filter_map(|(candidate, entry)| match entry {
+                        PreimageEntry::File(bytes) if candidate.starts_with(path) => {
+                            Some((path_string(&repository_root.join(candidate)), bytes))
+                        }
+                        _ => None,
+                    })
+                    .collect::<Vec<_>>();
+                files.sort_by(|left, right| left.0.cmp(&right.0));
+                let mut hasher = Sha256::new();
+                for (name, bytes) in files {
+                    hasher.update(name.as_bytes());
+                    hasher.update(Sha256::digest(bytes));
+                }
+                Some(PathState::Present {
+                    digest: hex_digest(hasher.finalize()),
+                    kind: "directory".to_owned(),
+                })
             }
-        } else if absolute.is_dir() {
-            collect_preimage_tree(repository.root(), &absolute, &mut preimages);
+            None => Some(PathState::Absent),
         }
     }
-    preimages
 }
 
-fn collect_preimage_tree(root: &Path, current: &Path, preimages: &mut Preimages) {
-    let relative = current.strip_prefix(root).unwrap_or(current).to_path_buf();
-    preimages.directories.insert(relative);
-    let Ok(entries) = fs::read_dir(current) else {
-        return;
-    };
-    for entry in entries.flatten() {
-        let path = entry.path();
-        if entry.file_type().map(|kind| kind.is_dir()).unwrap_or(false) {
-            collect_preimage_tree(root, &path, preimages);
-        } else if entry
-            .file_type()
-            .map(|kind| kind.is_file())
-            .unwrap_or(false)
-        {
-            if let Ok(bytes) = fs::read(&path) {
-                preimages.files.insert(
-                    path.strip_prefix(root).unwrap_or(&path).to_path_buf(),
-                    bytes,
-                );
-            }
-        }
-    }
+#[derive(Debug, Clone)]
+struct UndoRecord {
+    operation: PathOperation,
+    before: Preimages,
+    after: Preimages,
 }
 
-fn restore_preimages(
+fn capture_preimages(repository: &Repository, roots: &[PathBuf]) -> Result<Preimages, String> {
+    let mut read_file = |path: &Path| fs::read(path);
+    let mut read_directory = |path: &Path| fs::read_dir(path);
+    capture_preimages_with(repository, roots, &mut read_file, &mut read_directory)
+}
+
+fn capture_preimages_with(
     repository: &Repository,
     roots: &[PathBuf],
-    preimages: &Preimages,
-) -> Result<(), String> {
-    let mut removal = roots
-        .iter()
-        .map(|root| repository.root().join(root))
-        .collect::<Vec<_>>();
-    removal.sort_by_key(|path| std::cmp::Reverse(path.components().count()));
-    removal.dedup();
-    for path in removal {
-        remove_path(&path)?;
+    read_file: &mut dyn FnMut(&Path) -> std::io::Result<Vec<u8>>,
+    read_directory: &mut dyn FnMut(&Path) -> std::io::Result<fs::ReadDir>,
+) -> Result<Preimages, String> {
+    let roots = prune_roots(roots.to_vec());
+    let before =
+        capture_preimages_once(repository.root(), &roots, read_file, read_directory, true)?;
+    let preimages =
+        capture_preimages_once(repository.root(), &roots, read_file, read_directory, true)?;
+    let after = capture_preimages_once(repository.root(), &roots, read_file, read_directory, true)?;
+    if before != preimages || preimages != after {
+        return Err("target state changed while its complete preimage was captured".to_owned());
     }
-    let mut directories = preimages
-        .directories
-        .iter()
-        .map(|path| repository.root().join(path))
-        .collect::<Vec<_>>();
-    directories.sort_by_key(|path| path.components().count());
-    for path in directories {
-        fs::create_dir_all(path).map_err(|error| error.to_string())?;
+    Ok(preimages)
+}
+
+fn capture_preimages_once(
+    repository_root: &Path,
+    roots: &[PathBuf],
+    read_file: &mut dyn FnMut(&Path) -> std::io::Result<Vec<u8>>,
+    read_directory: &mut dyn FnMut(&Path) -> std::io::Result<fs::ReadDir>,
+    check_link_count: bool,
+) -> Result<Preimages, String> {
+    let roots = prune_roots(roots.to_vec());
+    let mut preimages = Preimages {
+        roots: roots.iter().cloned().collect(),
+        entries: BTreeMap::new(),
+    };
+    for path in &roots {
+        validate_path_chain(repository_root, path)?;
+        capture_preimage_path(
+            repository_root,
+            path,
+            &mut preimages,
+            read_file,
+            read_directory,
+            check_link_count,
+        )?;
     }
-    for (relative, bytes) in &preimages.files {
-        let path = repository.root().join(relative);
-        if let Some(parent) = path.parent() {
-            fs::create_dir_all(parent).map_err(|error| error.to_string())?;
+    Ok(preimages)
+}
+
+fn observe_path_state(
+    repository_root: &Path,
+    relative: &Path,
+    read_file: &mut dyn FnMut(&Path) -> std::io::Result<Vec<u8>>,
+    read_directory: &mut dyn FnMut(&Path) -> std::io::Result<fs::ReadDir>,
+    check_link_count: bool,
+) -> Result<PathState, String> {
+    let observation = capture_preimages_once(
+        repository_root,
+        &[relative.to_path_buf()],
+        read_file,
+        read_directory,
+        check_link_count,
+    )?;
+    observation
+        .state_for_root(repository_root, relative)
+        .ok_or_else(|| format!("cannot observe path state for '{}'", path_string(relative)))
+}
+
+fn capture_preimage_path(
+    repository_root: &Path,
+    relative: &Path,
+    preimages: &mut Preimages,
+    read_file: &mut dyn FnMut(&Path) -> std::io::Result<Vec<u8>>,
+    read_directory: &mut dyn FnMut(&Path) -> std::io::Result<fs::ReadDir>,
+    check_link_count: bool,
+) -> Result<Option<u8>, String> {
+    validate_relative_path(relative)?;
+    let absolute = repository_root.join(relative);
+    let metadata = match fs::symlink_metadata(&absolute) {
+        Ok(metadata) => metadata,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(None),
+        Err(error) => {
+            return Err(format!(
+                "cannot inspect '{}': {error}",
+                path_string(&absolute)
+            ));
         }
-        fs::write(path, bytes).map_err(|error| error.to_string())?;
+    };
+    let kind = metadata.file_type();
+    if is_symlink_or_reparse(&metadata) {
+        return Err(format!(
+            "'{}' is a symlink or reparse point",
+            path_string(&absolute)
+        ));
+    }
+    if kind.is_file() {
+        if check_link_count {
+            ensure_single_link(&absolute, &metadata)?;
+        }
+        let first = read_file(&absolute).map_err(|error| {
+            format!("cannot read preimage '{}': {error}", path_string(&absolute))
+        })?;
+        let middle_metadata = fs::symlink_metadata(&absolute).map_err(|error| {
+            format!(
+                "cannot recheck preimage '{}': {error}",
+                path_string(&absolute)
+            )
+        })?;
+        if !middle_metadata.file_type().is_file() || is_symlink_or_reparse(&middle_metadata) {
+            return Err(format!(
+                "preimage '{}' changed type while it was read",
+                path_string(&absolute)
+            ));
+        }
+        if check_link_count {
+            ensure_single_link(&absolute, &middle_metadata)?;
+        }
+        let second = read_file(&absolute).map_err(|error| {
+            format!(
+                "cannot verify preimage '{}': {error}",
+                path_string(&absolute)
+            )
+        })?;
+        let final_metadata = fs::symlink_metadata(&absolute).map_err(|error| {
+            format!(
+                "cannot recheck preimage '{}': {error}",
+                path_string(&absolute)
+            )
+        })?;
+        if first != second
+            || first.len() as u64 != metadata.len()
+            || second.len() as u64 != middle_metadata.len()
+            || final_metadata.len() != middle_metadata.len()
+            || !final_metadata.file_type().is_file()
+            || is_symlink_or_reparse(&final_metadata)
+        {
+            return Err(format!(
+                "preimage '{}' changed while it was read",
+                path_string(&absolute)
+            ));
+        }
+        if check_link_count {
+            ensure_single_link(&absolute, &final_metadata)?;
+        }
+        insert_preimage(
+            preimages,
+            relative.to_path_buf(),
+            PreimageEntry::File(first),
+        )?;
+        return Ok(Some(2));
+    }
+    if !kind.is_dir() {
+        return Err(format!(
+            "'{}' has an unsupported filesystem type",
+            path_string(&absolute)
+        ));
+    }
+    insert_preimage(preimages, relative.to_path_buf(), PreimageEntry::Directory)?;
+    let before = directory_signature(&absolute, read_directory)?;
+    for (name, expected_kind) in &before {
+        let child = relative.join(name);
+        let Some(actual_kind) = capture_preimage_path(
+            repository_root,
+            &child,
+            preimages,
+            read_file,
+            read_directory,
+            check_link_count,
+        )?
+        else {
+            return Err(format!(
+                "entry '{}' disappeared during preimage capture",
+                path_string(&repository_root.join(&child))
+            ));
+        };
+        if actual_kind != *expected_kind {
+            return Err(format!(
+                "entry '{}' changed type during preimage capture",
+                path_string(&repository_root.join(&child))
+            ));
+        }
+    }
+    let after = directory_signature(&absolute, read_directory)?;
+    if before != after {
+        return Err(format!(
+            "directory '{}' changed during preimage capture",
+            path_string(&absolute)
+        ));
+    }
+    Ok(Some(1))
+}
+
+fn directory_signature(
+    path: &Path,
+    read_directory: &mut dyn FnMut(&Path) -> std::io::Result<fs::ReadDir>,
+) -> Result<Vec<(std::ffi::OsString, u8)>, String> {
+    let entries = read_directory(path)
+        .map_err(|error| format!("cannot enumerate '{}': {error}", path_string(path)))?;
+    let mut signature = Vec::new();
+    for entry in entries {
+        let entry = entry.map_err(|error| {
+            format!(
+                "cannot read directory entry in '{}': {error}",
+                path_string(path)
+            )
+        })?;
+        let entry_path = entry.path();
+        let metadata = fs::symlink_metadata(&entry_path).map_err(|error| {
+            format!(
+                "cannot inspect directory entry '{}': {error}",
+                path_string(&entry_path)
+            )
+        })?;
+        if is_symlink_or_reparse(&metadata) {
+            return Err(format!(
+                "'{}' is a symlink or reparse point",
+                path_string(&entry_path)
+            ));
+        }
+        let kind = metadata.file_type();
+        let kind = if kind.is_dir() {
+            1
+        } else if kind.is_file() {
+            2
+        } else {
+            return Err(format!(
+                "'{}' has an unsupported filesystem type",
+                path_string(&entry_path)
+            ));
+        };
+        signature.push((entry.file_name(), kind));
+    }
+    signature.sort_by(|left, right| left.0.cmp(&right.0));
+    Ok(signature)
+}
+
+fn insert_preimage(
+    preimages: &mut Preimages,
+    path: PathBuf,
+    entry: PreimageEntry,
+) -> Result<(), String> {
+    if let Some(existing) = preimages.entries.insert(path.clone(), entry.clone()) {
+        if existing != entry {
+            return Err(format!(
+                "conflicting preimage observations for '{}'",
+                path_string(&path)
+            ));
+        }
     }
     Ok(())
 }
 
-fn remove_path(path: &Path) -> Result<(), String> {
-    if path.is_dir() {
-        fs::remove_dir_all(path).map_err(|error| error.to_string())
-    } else if path.exists() {
-        fs::remove_file(path).map_err(|error| error.to_string())
-    } else {
-        Ok(())
+fn project_operation(
+    repository: &Repository,
+    before: &Preimages,
+    operation: &PathOperation,
+) -> Result<Preimages, String> {
+    let mut after = before.clone();
+    match operation {
+        PathOperation::Write { path, content } => {
+            let path = PathBuf::from(path);
+            match before.state_for(repository, &path) {
+                Some(PathState::Absent) => {}
+                Some(PathState::Present { kind, .. }) if kind == "file" => {}
+                Some(PathState::Present { kind, .. }) => {
+                    return Err(format!("write target '{}' is a {kind}", path_string(&path)));
+                }
+                None => {
+                    return Err(format!(
+                        "write target '{}' was not captured",
+                        path_string(&path)
+                    ))
+                }
+            }
+            add_created_parent_directories(repository, before, &mut after, &path);
+            after
+                .entries
+                .insert(path, PreimageEntry::File(content.as_bytes().to_vec()));
+        }
+        PathOperation::Move { from, to } => {
+            let from = PathBuf::from(from);
+            let to = PathBuf::from(to);
+            if from == to || from.starts_with(&to) || to.starts_with(&from) {
+                return Err("move source and destination overlap".to_owned());
+            }
+            if !matches!(
+                before.state_for(repository, &from),
+                Some(PathState::Present { .. })
+            ) {
+                return Err(format!("move source '{}' is absent", path_string(&from)));
+            }
+            if before.state_for(repository, &to) != Some(PathState::Absent) {
+                return Err(format!(
+                    "move destination '{}' already exists",
+                    path_string(&to)
+                ));
+            }
+            add_created_parent_directories(repository, before, &mut after, &to);
+            let moved = before
+                .entries
+                .iter()
+                .filter(|(path, _)| path.starts_with(&from))
+                .map(|(path, entry)| {
+                    let suffix = path.strip_prefix(&from).expect("prefix was checked");
+                    (to.join(suffix), entry.clone())
+                })
+                .collect::<Vec<_>>();
+            if moved.is_empty() {
+                return Err(format!(
+                    "move source '{}' has no captured entries",
+                    path_string(&from)
+                ));
+            }
+            after
+                .entries
+                .retain(|path, _| !path.starts_with(&from) && !path.starts_with(&to));
+            for (path, entry) in moved {
+                after.entries.insert(path, entry);
+            }
+        }
     }
+    Ok(after)
+}
+
+fn add_created_parent_directories(
+    repository: &Repository,
+    before: &Preimages,
+    after: &mut Preimages,
+    target: &Path,
+) {
+    let mut parents = target
+        .parent()
+        .into_iter()
+        .flat_map(Path::ancestors)
+        .filter(|path| !path.as_os_str().is_empty())
+        .collect::<Vec<_>>();
+    parents.reverse();
+    for parent in parents {
+        if before.state_for(repository, parent) == Some(PathState::Absent) {
+            after
+                .entries
+                .insert(parent.to_path_buf(), PreimageEntry::Directory);
+        }
+    }
+}
+
+fn restore_operation(repository: &Repository, record: &UndoRecord) -> Result<(), String> {
+    let current = capture_preimages(
+        repository,
+        &record.after.roots.iter().cloned().collect::<Vec<_>>(),
+    )?;
+    if current.entries != record.after.entries {
+        return Err(format!(
+            "operation after-state for '{}' no longer matches its owned result",
+            operation_paths(&record.operation)
+                .first()
+                .map(|path| path_string(path))
+                .unwrap_or_else(|| "unknown path".to_owned())
+        ));
+    }
+    match &record.operation {
+        PathOperation::Write { path, .. } => {
+            let path = PathBuf::from(path);
+            let absolute = repository.root().join(&path);
+            match record.before.entries.get(&path) {
+                Some(PreimageEntry::File(bytes)) => {
+                    fs::write(&absolute, bytes).map_err(|error| {
+                        format!("cannot restore file '{}': {error}", path_string(&absolute))
+                    })?;
+                }
+                Some(PreimageEntry::Directory) => {
+                    return Err(format!(
+                        "write target '{}' was a directory",
+                        path_string(&path)
+                    ));
+                }
+                None if record.before.state_for(repository, &path) == Some(PathState::Absent) => {
+                    fs::remove_file(&absolute).map_err(|error| {
+                        format!(
+                            "cannot remove transaction-created file '{}': {error}",
+                            path_string(&absolute)
+                        )
+                    })?;
+                }
+                None => {
+                    return Err(format!(
+                        "preimage for '{}' is incomplete",
+                        path_string(&path)
+                    ))
+                }
+            }
+        }
+        PathOperation::Move { from, to } => {
+            let from = repository.root().join(from);
+            let to = repository.root().join(to);
+            if fs::symlink_metadata(&from).is_ok() {
+                return Err(format!(
+                    "move source '{}' is occupied during rollback",
+                    path_string(&from)
+                ));
+            }
+            fs::rename(&to, &from)
+                .map_err(|error| format!("cannot reverse move '{}': {error}", path_string(&to)))?;
+        }
+    }
+    remove_created_empty_directories(repository, &record.before, &record.after)?;
+    let restored = capture_preimages(
+        repository,
+        &record.before.roots.iter().cloned().collect::<Vec<_>>(),
+    )?;
+    if restored != record.before {
+        return Err(format!(
+            "restored preimage for '{}' does not exactly match the captured before-state",
+            operation_paths(&record.operation)
+                .first()
+                .map(|path| path_string(path))
+                .unwrap_or_else(|| "unknown path".to_owned())
+        ));
+    }
+    Ok(())
+}
+
+fn remove_created_empty_directories(
+    repository: &Repository,
+    before: &Preimages,
+    after: &Preimages,
+) -> Result<(), String> {
+    let mut created = after
+        .entries
+        .iter()
+        .filter_map(|(path, entry)| {
+            if *entry == PreimageEntry::Directory
+                && before.state_for(repository, path) == Some(PathState::Absent)
+            {
+                Some(path.clone())
+            } else {
+                None
+            }
+        })
+        .collect::<Vec<_>>();
+    created.sort_by_key(|path| std::cmp::Reverse(path.components().count()));
+    for relative in created {
+        let absolute = repository.root().join(&relative);
+        match fs::symlink_metadata(&absolute) {
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => continue,
+            Err(error) => {
+                return Err(format!(
+                    "cannot inspect created directory '{}': {error}",
+                    path_string(&absolute)
+                ));
+            }
+            Ok(metadata) if is_symlink_or_reparse(&metadata) || !metadata.file_type().is_dir() => {
+                return Err(format!(
+                    "created directory '{}' changed type during rollback",
+                    path_string(&absolute)
+                ));
+            }
+            Ok(_) => fs::remove_dir(&absolute).map_err(|error| {
+                format!(
+                    "created directory '{}' is no longer empty or cannot be removed: {error}",
+                    path_string(&absolute)
+                )
+            })?,
+        }
+    }
+    Ok(())
 }
 
 fn digest_state(state: &PathState) -> String {
@@ -2585,8 +3430,15 @@ fn has_wi050_surface(root: &Path) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+
     use repopact_repository::RepositorySession;
+    #[cfg(unix)]
+    use std::os::unix::fs::symlink;
+    #[cfg(windows)]
+    use std::os::windows::fs::symlink_dir;
     use std::path::PathBuf;
+    #[cfg(windows)]
+    use std::process::Command;
     use std::sync::atomic::{AtomicU64, Ordering};
     use std::sync::mpsc;
     use std::time::Duration;
@@ -3061,6 +3913,33 @@ mod tests {
     }
 
     #[test]
+    fn injected_failure_after_file_write_restores_exact_preimage() {
+        let (root, snapshot) = fixture();
+        let path = root.join("work/active/001-one/work-item.json");
+        let before = fs::read(&path).unwrap();
+        let plan = plan(
+            &snapshot,
+            MutationRequest::edit_work_item(EditWorkItem::new(
+                "001",
+                WorkItemEdits {
+                    title: Some("Temporary write".to_owned()),
+                    ..WorkItemEdits::default()
+                },
+                "2026-01-03",
+            )),
+        );
+        let result = plan.apply_with_options(&ApplyOptions::fail_after(0));
+
+        assert!(!result.success, "{result:?}");
+        assert!(
+            result.rolled_back,
+            "owned file write should restore exactly"
+        );
+        assert_eq!(fs::read(&path).unwrap(), before);
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
     fn pending_completion_is_blocked_by_candidate_validation_before_apply() {
         let (root, snapshot) = fixture();
         let plan = plan(
@@ -3120,7 +3999,7 @@ mod tests {
     }
 
     #[test]
-    fn drift_during_apply_is_rejected_and_rolled_back() {
+    fn external_drift_before_first_operation_is_preserved() {
         let (root, snapshot) = fixture();
         let plan = plan(
             &snapshot,
@@ -3131,9 +4010,460 @@ mod tests {
             "work/active/002-a-new-thing/work-item.json",
         ));
         assert!(!result.success);
-        assert!(result.rolled_back);
-        assert!(!root.join("work/active/002-a-new-thing").exists());
+        assert!(!result.rolled_back, "no transaction write occurred");
+        let external = root.join("work/active/002-a-new-thing/work-item.json");
+        assert_eq!(
+            fs::read(external).unwrap(),
+            b"external drift injected during apply",
+            "rollback must not delete a target the transaction never wrote"
+        );
         fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn external_edit_to_previously_written_target_is_preserved_as_recovery_conflict() {
+        let (root, snapshot) = fixture();
+        let plan = plan(
+            &snapshot,
+            MutationRequest::create_work_item(create_request("A New Thing", "2026-01-02")),
+        );
+        assert!(
+            plan.file_operations.len() >= 2,
+            "test requires a later failure point"
+        );
+        let first_path = match &plan.file_operations[0] {
+            PathOperation::Write { path, .. } => path.clone(),
+            PathOperation::Move { .. } => panic!("create plan should begin with a write"),
+        };
+        let external = b"external drift injected during apply";
+        let result = plan.apply_with_options(&ApplyOptions {
+            fail_before_operation: Some(1),
+            external_drift_at: Some(1),
+            external_drift_path: Some(first_path.clone()),
+            ..ApplyOptions::default()
+        });
+
+        assert!(!result.success, "{result:?}");
+        assert!(
+            !result.rolled_back,
+            "the transaction no longer owns the changed target"
+        );
+        assert!(
+            result
+                .diagnostics
+                .iter()
+                .any(|item| item.code == "mutation.rollback-failed"
+                    && item.message.contains("recovery required")),
+            "{result:?}"
+        );
+        assert_eq!(fs::read(root.join(first_path)).unwrap(), external);
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn failed_preimage_enumeration_is_not_treated_as_an_absent_directory() {
+        let (root, _) = fixture();
+        let repository = Repository::open(&root);
+        let protected = root.join("work/active/001-one");
+        let mut read_file = |path: &Path| fs::read(path);
+        let mut fail_enumeration = true;
+        let mut read_directory = |_path: &Path| {
+            if fail_enumeration {
+                fail_enumeration = false;
+                Err(std::io::Error::new(
+                    std::io::ErrorKind::PermissionDenied,
+                    "injected enumeration failure",
+                ))
+            } else {
+                fs::read_dir(_path)
+            }
+        };
+        let error = capture_preimages_with(
+            &repository,
+            &[PathBuf::from("work/active/001-one")],
+            &mut read_file,
+            &mut read_directory,
+        )
+        .unwrap_err();
+
+        assert!(error.contains("cannot enumerate"), "{error}");
+        assert!(protected.join("work-item.json").is_file());
+        assert_eq!(fs::read(protected.join("extra.md")).unwrap(), b"history\n");
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn failed_preimage_file_read_is_not_treated_as_an_absent_file() {
+        let (root, _) = fixture();
+        let protected = root.join("work/active/001-one/work-item.json");
+        let bytes_before = fs::read(&protected).unwrap();
+        let repository = Repository::open(&root);
+        let mut read_file = |_path: &Path| {
+            Err(std::io::Error::new(
+                std::io::ErrorKind::PermissionDenied,
+                "injected file read failure",
+            ))
+        };
+        let mut read_directory = |path: &Path| fs::read_dir(path);
+        let error = capture_preimages_with(
+            &repository,
+            &[PathBuf::from("work/active/001-one/work-item.json")],
+            &mut read_file,
+            &mut read_directory,
+        )
+        .unwrap_err();
+
+        assert!(error.contains("injected file read failure"), "{error}");
+        assert_eq!(fs::read(&protected).unwrap(), bytes_before);
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn preimage_capture_rejects_a_a_b_b_a_a_file_observations_before_mutation() {
+        let (root, _) = fixture();
+        let target = root.join("captured-file");
+        let sentinel = root.join("outside-sentinel");
+        fs::write(&target, b"AAAA").unwrap();
+        fs::write(&sentinel, b"keep external bytes").unwrap();
+        let repository = Repository::open(&root);
+        let mut read_count = 0;
+        let mut read_file = |_path: &Path| {
+            read_count += 1;
+            let bytes = match read_count {
+                1 | 2 | 5 | 6 => b"AAAA".as_slice(),
+                3 | 4 => b"BBBB".as_slice(),
+                _ => panic!("capture made an unexpected number of file reads"),
+            };
+            Ok(bytes.to_vec())
+        };
+        let mut read_directory = |path: &Path| fs::read_dir(path);
+
+        let result = capture_preimages_with(
+            &repository,
+            &[PathBuf::from("captured-file")],
+            &mut read_file,
+            &mut read_directory,
+        );
+
+        let error = result.expect_err("middle B/B preimage must disagree with A/A boundaries");
+        assert!(error.contains("target state changed"), "{error}");
+        assert_eq!(read_count, 6);
+        assert_eq!(fs::read(&target).unwrap(), b"AAAA");
+        assert_eq!(fs::read(&sentinel).unwrap(), b"keep external bytes");
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn preimage_capture_accepts_stable_file_observations() {
+        let (root, _) = fixture();
+        let target = root.join("captured-file");
+        fs::write(&target, b"stable bytes").unwrap();
+        let repository = Repository::open(&root);
+        let mut read_file = |path: &Path| fs::read(path);
+        let mut read_directory = |path: &Path| fs::read_dir(path);
+
+        let preimages = capture_preimages_with(
+            &repository,
+            &[PathBuf::from("captured-file")],
+            &mut read_file,
+            &mut read_directory,
+        )
+        .unwrap();
+
+        assert_eq!(
+            preimages.entries.get(Path::new("captured-file")),
+            Some(&PreimageEntry::File(b"stable bytes".to_vec()))
+        );
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn preimage_capture_rejects_empty_directory_added_only_to_middle_snapshot() {
+        let (root, _) = fixture();
+        let relative = PathBuf::from("capture-root");
+        let target = root.join(&relative);
+        let transient_empty = target.join("empty-during-capture");
+        let sentinel = root.join("outside-sentinel");
+        fs::create_dir(&target).unwrap();
+        fs::write(&sentinel, b"keep external bytes").unwrap();
+        let repository = Repository::open(&root);
+        let mut read_file = |path: &Path| fs::read(path);
+        let mut root_reads = 0;
+        let mut read_directory = |path: &Path| {
+            if path.ends_with("capture-root") {
+                root_reads += 1;
+                match root_reads {
+                    3 => fs::create_dir(&transient_empty)?,
+                    5 => fs::remove_dir(&transient_empty)?,
+                    _ => {}
+                }
+                match root_reads {
+                    1 | 2 | 5 | 6 => assert!(!transient_empty.exists()),
+                    3 | 4 => assert!(transient_empty.is_dir()),
+                    _ => panic!("capture made an unexpected number of root observations"),
+                }
+            }
+            fs::read_dir(path)
+        };
+
+        let result = capture_preimages_with(
+            &repository,
+            &[relative],
+            &mut read_file,
+            &mut read_directory,
+        );
+
+        assert_eq!(
+            root_reads, 6,
+            "unexpected root observation count for {target:?}"
+        );
+        let error = result.expect_err("middle empty-directory entry must disagree with boundaries");
+        assert!(error.contains("target state changed"), "{error}");
+        assert!(!transient_empty.exists());
+        assert_eq!(fs::read(&sentinel).unwrap(), b"keep external bytes");
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn directory_move_with_symlink_is_rejected_before_mutation() {
+        let (root, _) = fixture();
+        let outside = root.with_extension("outside-sentinel");
+        fs::create_dir_all(&outside).unwrap();
+        let sentinel = outside.join("keep.txt");
+        fs::write(&sentinel, b"outside data must survive").unwrap();
+        let link = root.join("work/active/001-one/outside-link");
+        #[cfg(unix)]
+        symlink(&outside, &link).unwrap();
+        #[cfg(windows)]
+        symlink_dir(&outside, &link).unwrap();
+
+        let snapshot = RepositorySession::open(&root).snapshot();
+        let plan = plan(
+            &snapshot,
+            MutationRequest::transition_work_item(TransitionWorkItem::new("001", "blocked")),
+        );
+        assert!(plan.is_applicable(), "{:?}", plan.diagnostics);
+        let result = plan.apply_with_options(&ApplyOptions::fail_after(0));
+
+        assert!(!result.success, "unsafe preimage capture must fail closed");
+        assert!(
+            !result.rolled_back,
+            "no operation may start before capture completes"
+        );
+        assert!(root.join("work/active/001-one/outside-link").exists());
+        assert_eq!(fs::read(&sentinel).unwrap(), b"outside data must survive");
+        assert!(
+            result.diagnostics.iter().any(|item| {
+                item.code == "mutation.preimage-failed" && item.message.contains("symlink")
+            }),
+            "{result:?}"
+        );
+
+        fs::remove_dir_all(root).unwrap();
+        fs::remove_dir_all(outside).unwrap();
+    }
+
+    #[test]
+    fn directory_move_rejects_descendant_hard_link_alias() {
+        let (root, snapshot) = fixture();
+        let descendant = root.join("work/active/001-one/extra.md");
+        let outside = root.with_extension("outside-descendant-hard-link");
+        let before = fs::read(&descendant).unwrap();
+        let plan = plan(
+            &snapshot,
+            MutationRequest::transition_work_item(TransitionWorkItem::new("001", "blocked")),
+        );
+        assert!(plan.is_applicable(), "{:?}", plan.diagnostics);
+        fs::hard_link(&descendant, &outside).expect("create same-volume descendant alias");
+
+        let result = plan.apply();
+        let sentinel_after = fs::read(&outside).unwrap();
+        let descendant_after = fs::read(&descendant).unwrap();
+        fs::remove_file(&outside).unwrap();
+        fs::remove_dir_all(&root).unwrap();
+
+        assert!(
+            !result.success,
+            "captured hard-linked descendants must fail closed: {result:?}"
+        );
+        assert!(
+            !result.rolled_back,
+            "no transaction write may start: {result:?}"
+        );
+        assert_eq!(sentinel_after, before);
+        assert_eq!(descendant_after, before);
+        assert!(
+            result.diagnostics.iter().any(|diagnostic| {
+                diagnostic.code == "mutation.preimage-failed"
+                    && diagnostic.message.contains("hard link")
+            }),
+            "{result:?}"
+        );
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn directory_move_with_junction_is_rejected_before_mutation() {
+        let (root, snapshot) = fixture();
+        let outside = root.with_extension("outside-junction-sentinel");
+        fs::create_dir_all(&outside).unwrap();
+        let sentinel = outside.join("keep.txt");
+        fs::write(&sentinel, b"outside data must survive").unwrap();
+        let junction = root.join("work/active/001-one/outside-junction");
+        let junction_literal = format!("'{}'", junction.to_string_lossy().replace('\'', "''"));
+        let outside_literal = format!("'{}'", outside.to_string_lossy().replace('\'', "''"));
+        let created = Command::new("powershell.exe")
+            .args(["-NoProfile", "-NonInteractive", "-Command"])
+            .arg(format!(
+                "New-Item -ItemType Junction -Path {junction_literal} -Target {outside_literal} -ErrorAction Stop | Out-Null"
+            ))
+            .output()
+            .expect("run the Windows junction helper");
+        if !created.status.success() {
+            eprintln!(
+                "junction regression skipped because this Windows host could not create the junction: {}",
+                String::from_utf8_lossy(&created.stderr).trim()
+            );
+            fs::remove_dir_all(&root).unwrap();
+            fs::remove_dir_all(&outside).unwrap();
+            return;
+        }
+        eprintln!("junction regression exercised a real Windows junction");
+
+        let plan = plan(
+            &snapshot,
+            MutationRequest::transition_work_item(TransitionWorkItem::new("001", "blocked")),
+        );
+        assert!(plan.is_applicable(), "{:?}", plan.diagnostics);
+        let result = plan.apply();
+        let sentinel_after = fs::read(&sentinel).unwrap();
+        fs::remove_dir(&junction).unwrap();
+        fs::remove_dir_all(&root).unwrap();
+        fs::remove_dir_all(&outside).unwrap();
+
+        assert!(!result.success, "junction must fail closed: {result:?}");
+        assert!(!result.rolled_back, "no operation may start: {result:?}");
+        assert_eq!(sentinel_after, b"outside data must survive");
+        assert!(
+            result.diagnostics.iter().any(|item| {
+                item.code == "mutation.preimage-failed"
+                    && (item.message.contains("reparse") || item.message.contains("symlink"))
+            }),
+            "{result:?}"
+        );
+    }
+
+    #[test]
+    fn edit_rejects_hard_link_alias_before_overwriting_external_sentinel() {
+        let (root, snapshot) = fixture();
+        let work_record = root.join("work/active/001-one/work-item.json");
+        let outside = root.with_extension("outside-hard-link-sentinel");
+        let plan = plan(
+            &snapshot,
+            MutationRequest::edit_work_item(EditWorkItem::new(
+                "001",
+                WorkItemEdits::title("Edited title"),
+                "2026-01-03",
+            )),
+        );
+        assert!(plan.is_applicable(), "{:?}", plan.diagnostics);
+        fs::hard_link(&work_record, &outside).expect("create same-volume hard-link sentinel");
+        let sentinel_before = fs::read(&outside).unwrap();
+
+        let result = plan.apply();
+        let work_record_after = fs::read(&work_record).unwrap();
+        let sentinel_after = fs::read(&outside).unwrap();
+        fs::remove_file(&outside).unwrap();
+        fs::remove_dir_all(&root).unwrap();
+
+        assert!(
+            !result.success,
+            "hard-linked mutation target must fail closed: {result:?}"
+        );
+        assert!(
+            !result.rolled_back,
+            "no transaction write may start: {result:?}"
+        );
+        assert_eq!(work_record_after, sentinel_before);
+        assert_eq!(sentinel_after, sentinel_before);
+        assert!(
+            result.diagnostics.iter().any(|diagnostic| {
+                diagnostic.code == "mutation.preimage-failed"
+                    && diagnostic.message.contains("hard link")
+            }),
+            "{result:?}"
+        );
+    }
+
+    #[test]
+    fn rollback_recheck_preserves_a_new_hard_linked_after_state() {
+        let (root, _) = fixture();
+        let repository = Repository::open(&root);
+        let relative = "work/active/001-one/work-item.json";
+        let path = root.join(relative);
+        let outside = root.with_extension("outside-rollback-hard-link");
+        let before = capture_preimages(&repository, &[PathBuf::from(relative)]).unwrap();
+        let operation = PathOperation::Write {
+            path: relative.to_owned(),
+            content: "transaction after-state\n".to_owned(),
+        };
+        let after = project_operation(&repository, &before, &operation).unwrap();
+        apply_operation(&root, &operation).unwrap();
+        let owned_after = fs::read(&path).unwrap();
+        fs::hard_link(&path, &outside).expect("create after-state alias before rollback recheck");
+        let record = UndoRecord {
+            operation,
+            before,
+            after,
+        };
+
+        let error = restore_operation(&repository, &record).unwrap_err();
+        let target_after = fs::read(&path).unwrap();
+        let sentinel_after = fs::read(&outside).unwrap();
+        fs::remove_file(&outside).unwrap();
+        fs::remove_dir_all(&root).unwrap();
+
+        assert!(error.contains("hard link"), "{error}");
+        assert_eq!(target_after, owned_after);
+        assert_eq!(sentinel_after, owned_after);
+    }
+
+    #[test]
+    fn edit_rejects_valid_external_change_between_stale_check_and_capture() {
+        let (root, snapshot) = fixture();
+        let relative = "work/active/001-one/work-item.json";
+        let path = root.join(relative);
+        let plan = plan(
+            &snapshot,
+            MutationRequest::edit_work_item(EditWorkItem::new(
+                "001",
+                WorkItemEdits::title("Planned edit"),
+                "2026-01-03",
+            )),
+        );
+        assert!(plan.is_applicable(), "{:?}", plan.diagnostics);
+        let result = plan.apply_with_options(&ApplyOptions {
+            external_drift_after_initial_check: Some(relative.to_owned()),
+            ..ApplyOptions::default()
+        });
+        let external_after = fs::read(&path).unwrap();
+        let value: Value = serde_json::from_slice(&external_after).unwrap();
+        fs::remove_dir_all(root).unwrap();
+
+        assert!(!result.success, "captured plan input changed: {result:?}");
+        assert!(
+            !result.rolled_back,
+            "no transaction write may start: {result:?}"
+        );
+        assert_eq!(value["title"], "External edit");
+        assert_eq!(value["updated"], "2026-01-02");
+        assert!(
+            result.diagnostics.iter().any(|diagnostic| {
+                diagnostic.code == "mutation.plan-stale"
+                    && diagnostic.message.contains("captured state")
+            }),
+            "{result:?}"
+        );
     }
 
     #[test]

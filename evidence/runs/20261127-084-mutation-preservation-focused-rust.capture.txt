@@ -1,0 +1,6 @@
+COMMAND: cargo test --locked -p repopact-mutation --lib -- --test-threads=1
+EXIT_CODE: 101
+--- stdout ---
+
+--- stderr ---
+error: could not find `Cargo.toml` in `D:\Projects\repopact-core-mutation-preservation-final-candidate-20261127` or any parent directory

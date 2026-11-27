@@ -1,0 +1,159 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261127-084-mutation-preservation-final-ci-corrected",
+  "timestamp": "2026-11-27T15:24:20Z",
+  "timestamp_basis": "git-recording",
+  "work_item": "084",
+  "result": "failed",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "'C:\\Projects\\repopact-core-wi083-optimization-venv-20261126\\Scripts\\python.exe' -m repopact.cli validate --root 'D:\\Projects\\repopact-core-mutation-preservation-final-20261127'",
+      "exit_code": 1,
+      "summary": "validate: failed - command exited 1"
+    },
+    {
+      "command": "cargo test --workspace --locked --manifest-path rust/Cargo.toml",
+      "exit_code": 101,
+      "summary": "rust-workspace: failed - command exited 101"
+    },
+    {
+      "command": "builtin:spec_freshness",
+      "exit_code": 0,
+      "summary": "spec-freshness: passed - SPEC.md derived blocks are current"
+    },
+    {
+      "command": "'C:\\Projects\\repopact-core-wi083-optimization-venv-20261126\\Scripts\\python.exe' -m repopact.cli check-frozen --root 'D:\\Projects\\repopact-core-mutation-preservation-final-20261127' --base origin/main",
+      "exit_code": 0,
+      "summary": "frozen-surface-report: passed - command passed"
+    }
+  ],
+  "artifacts": [
+    "evidence/runs/20261127-084-mutation-preservation-final-ci-corrected.capture.jsonl"
+  ],
+  "environment": {
+    "platform": "windows",
+    "executor": "local",
+    "candidate": {
+      "commit": "a984f739d14dd2d8b2ec4006ebab1ee93dbd5113",
+      "tree": "7575b27ec43554ac19c334eb2fbf381cabf15530",
+      "dirty": true
+    },
+    "candidate_at_start": {
+      "commit": "a984f739d14dd2d8b2ec4006ebab1ee93dbd5113",
+      "tree": "7575b27ec43554ac19c334eb2fbf381cabf15530",
+      "dirty": false
+    },
+    "validation_storage": {
+      "ready": true,
+      "minimum_free_bytes_per_volume": 12884901888,
+      "cargo_target_dir": "D:\\Projects\\repopact-core-mutation-preservation-final-20261127\\rust\\target",
+      "volumes": [
+        {
+          "volume": "d:",
+          "checked_path": "D:\\Projects\\repopact-core-mutation-preservation-final-20261127",
+          "purposes": [
+            "repository-and-evidence",
+            "cargo-target"
+          ],
+          "total_bytes": 500000878592,
+          "used_bytes": 353420562432,
+          "free_bytes": 146580316160,
+          "ready": true,
+          "required_free_bytes": 12884901888
+        }
+      ]
+    },
+    "relevant_environment": {
+      "CARGO_TARGET_DIR": null,
+      "REPOPACT_ENGINE": "D:\\Projects\\repopact-core-mutation-preservation-validation-20261127\\rust\\target\\debug\\repopact-engine.exe"
+    },
+    "verification": {
+      "profile": "ci",
+      "status": "error",
+      "exit_code": 2,
+      "duration_seconds": 45045.485,
+      "coverage": {
+        "mode": "host",
+        "satisfied": true,
+        "host_ready": true,
+        "all_declared_executed": true,
+        "required_total": 5,
+        "required_executed": 5,
+        "required_passed": 1,
+        "required_failed": 2,
+        "required_errors": 2,
+        "required_unavailable": 0,
+        "required_not_applicable": 0,
+        "declared_platforms": [],
+        "required_platforms": [],
+        "missing_platforms": [],
+        "capabilities": {
+          "cargo": "available"
+        }
+      },
+      "steps": [
+        {
+          "id": "validate",
+          "status": "failed",
+          "required": true,
+          "applicable": true,
+          "capability": null,
+          "platforms": [],
+          "exit_code": 1,
+          "summary": "command exited 1"
+        },
+        {
+          "id": "python-tests",
+          "status": "error",
+          "required": true,
+          "applicable": true,
+          "capability": null,
+          "platforms": [],
+          "exit_code": null,
+          "summary": "timed out after 3000s"
+        },
+        {
+          "id": "conformance",
+          "status": "error",
+          "required": true,
+          "applicable": true,
+          "capability": null,
+          "platforms": [],
+          "exit_code": null,
+          "summary": "timed out after 900s"
+        },
+        {
+          "id": "rust-workspace",
+          "status": "failed",
+          "required": true,
+          "applicable": true,
+          "capability": "cargo",
+          "platforms": [],
+          "exit_code": 101,
+          "summary": "command exited 101"
+        },
+        {
+          "id": "spec-freshness",
+          "status": "passed",
+          "required": true,
+          "applicable": true,
+          "capability": null,
+          "platforms": [],
+          "exit_code": 0,
+          "summary": "SPEC.md derived blocks are current"
+        },
+        {
+          "id": "frozen-surface-report",
+          "status": "passed",
+          "required": false,
+          "applicable": true,
+          "capability": null,
+          "platforms": [],
+          "exit_code": 0,
+          "summary": "command passed"
+        }
+      ]
+    }
+  }
+}

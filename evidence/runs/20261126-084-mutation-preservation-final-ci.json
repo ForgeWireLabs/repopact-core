@@ -1,0 +1,136 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261126-084-mutation-preservation-final-ci",
+  "timestamp": "2026-11-27T01:42:52Z",
+  "timestamp_basis": "git-recording",
+  "work_item": "084",
+  "result": "partial",
+  "provenance": "concrete",
+  "commands": [],
+  "artifacts": [],
+  "environment": {
+    "platform": "windows",
+    "executor": "local",
+    "candidate": {
+      "commit": "298828de6ae91f34dedd4f7cc6d98587f0959704",
+      "tree": "5fd33f98201f0ff313a199dc99ba74d0fb21ca8f",
+      "dirty": true
+    },
+    "candidate_at_start": {
+      "commit": "298828de6ae91f34dedd4f7cc6d98587f0959704",
+      "tree": "5fd33f98201f0ff313a199dc99ba74d0fb21ca8f",
+      "dirty": true
+    },
+    "validation_storage": {
+      "ready": false,
+      "minimum_free_bytes_per_volume": 12884901888,
+      "cargo_target_dir": "C:\\Projects\\repopact-core-wi083-optimization-20261126\\rust\\target",
+      "volumes": [
+        {
+          "volume": "c:",
+          "checked_path": "C:\\Projects\\repopact-core-mutation-preservation-20261127",
+          "purposes": [
+            "repository-and-evidence",
+            "cargo-target"
+          ],
+          "total_bytes": 511532040192,
+          "used_bytes": 498999431168,
+          "free_bytes": 12532609024,
+          "ready": false,
+          "required_free_bytes": 12884901888
+        }
+      ]
+    },
+    "relevant_environment": {
+      "CARGO_TARGET_DIR": "C:\\Projects\\repopact-core-wi083-optimization-20261126\\rust\\target",
+      "REPOPACT_ENGINE": "C:\\Projects\\repopact-core-wi083-optimization-20261126\\rust\\target\\debug\\repopact-engine.exe"
+    },
+    "verification": {
+      "profile": "ci",
+      "status": "incomplete",
+      "exit_code": 2,
+      "duration_seconds": 0.0,
+      "coverage": {
+        "mode": "host",
+        "satisfied": false,
+        "host_ready": false,
+        "all_declared_executed": false,
+        "required_total": 5,
+        "required_executed": 0,
+        "required_passed": 0,
+        "required_failed": 0,
+        "required_errors": 0,
+        "required_unavailable": 5,
+        "required_not_applicable": 0,
+        "declared_platforms": [],
+        "required_platforms": [],
+        "missing_platforms": [],
+        "capabilities": {
+          "cargo": "unavailable"
+        }
+      },
+      "steps": [
+        {
+          "id": "validate",
+          "status": "unavailable",
+          "required": true,
+          "applicable": true,
+          "capability": null,
+          "platforms": [],
+          "exit_code": null,
+          "summary": "not run: local CI storage preflight failed: c:: 12532609024 bytes free, 12884901888 required"
+        },
+        {
+          "id": "python-tests",
+          "status": "unavailable",
+          "required": true,
+          "applicable": true,
+          "capability": null,
+          "platforms": [],
+          "exit_code": null,
+          "summary": "not run: local CI storage preflight failed: c:: 12532609024 bytes free, 12884901888 required"
+        },
+        {
+          "id": "conformance",
+          "status": "unavailable",
+          "required": true,
+          "applicable": true,
+          "capability": null,
+          "platforms": [],
+          "exit_code": null,
+          "summary": "not run: local CI storage preflight failed: c:: 12532609024 bytes free, 12884901888 required"
+        },
+        {
+          "id": "rust-workspace",
+          "status": "unavailable",
+          "required": true,
+          "applicable": true,
+          "capability": "cargo",
+          "platforms": [],
+          "exit_code": null,
+          "summary": "not run: local CI storage preflight failed: c:: 12532609024 bytes free, 12884901888 required"
+        },
+        {
+          "id": "spec-freshness",
+          "status": "unavailable",
+          "required": true,
+          "applicable": true,
+          "capability": null,
+          "platforms": [],
+          "exit_code": null,
+          "summary": "not run: local CI storage preflight failed: c:: 12532609024 bytes free, 12884901888 required"
+        },
+        {
+          "id": "frozen-surface-report",
+          "status": "unavailable",
+          "required": false,
+          "applicable": true,
+          "capability": null,
+          "platforms": [],
+          "exit_code": null,
+          "summary": "not run: local CI storage preflight failed: c:: 12532609024 bytes free, 12884901888 required"
+        }
+      ]
+    }
+  }
+}

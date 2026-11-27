@@ -1,0 +1,51 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "artifacts": [
+    "evidence/runs/20261127-084-wi084-corrections-legacy-python.capture.txt",
+    "evidence/runs/20261127T200136235312Z-wi076-ac6-engine-conformance.json"
+  ],
+  "commands": [
+    {
+      "command": "python -m repopact.run_conformance --legacy-python",
+      "exit_code": 0,
+      "summary": "Canonical Rust conformance 43/43; explicit Python compatibility comparator 43/43; WI050 admission 8/8; WI079 reference corpus 10/10 (instruction-only); process-image provenance complete."
+    }
+  ],
+  "environment": {
+    "candidate_at_start": {
+      "commit": "f05788d0b80392ceb3ab72baddee2a75f48a7191",
+      "dirty": false,
+      "tree": "edbf5d0eb7fc03ca5192245b9165bb47ca8ac93c"
+    },
+    "conformance": {
+      "canonical_rust": {
+        "failed": 0,
+        "passed": 43
+      },
+      "python_legacy_comparator": {
+        "failed": 0,
+        "passed": 43
+      },
+      "wi050_admission": {
+        "failed": 0,
+        "passed": 8
+      },
+      "wi079_reference_corpus": {
+        "assurance": "instruction-only",
+        "failed": 0,
+        "passed": 10
+      }
+    },
+    "engine_provenance": {
+      "path": "evidence/runs/20261127T200136235312Z-wi076-ac6-engine-conformance.json",
+      "status": "complete"
+    },
+    "executor": "local",
+    "platform": "windows"
+  },
+  "id": "20261127-084-wi084-corrections-legacy-python",
+  "provenance": "concrete",
+  "result": "passed",
+  "timestamp": "2026-11-27T20:10:33Z",
+  "work_item": "084"
+}

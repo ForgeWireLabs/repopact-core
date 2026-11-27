@@ -1,0 +1,44 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "artifacts": [
+    "evidence/runs/20261127-084-wi084-corrections-final-ci-clean.capture.jsonl"
+  ],
+  "commands": [
+    {
+      "command": "governance/verification.json profile ci step validate",
+      "exit_code": 0,
+      "summary": "command passed; profile did not complete: Interrupted after the validate step passed because its candidate snapshot included the preceding abandoned capture marker; this partial observation is archived before the clean rerun."
+    }
+  ],
+  "environment": {
+    "verification": {
+      "candidate_at_start": {
+        "commit": "6045832c8b8f39b4c2ac577dac5f9daaeb587a73",
+        "dirty": true,
+        "tree": "f319bcc0fa6077f9379e6f8ff3f21d372948e434"
+      },
+      "captured_steps": [
+        {
+          "exit_code": 0,
+          "status": "passed",
+          "stderr_tail": "",
+          "stdout_tail": "Repository governance validation passed.\n",
+          "step": "validate",
+          "summary": "command passed"
+        }
+      ],
+      "diagnostic": "Interrupted after the validate step passed because its candidate snapshot included the preceding abandoned capture marker; this partial observation is archived before the clean rerun.",
+      "profile": "ci",
+      "relevant_environment": {
+        "CARGO_TARGET_DIR": "D:\\Projects\\repopact-core-mutation-preservation-final-20261127\\rust\\target",
+        "REPOPACT_ENGINE": "D:\\Projects\\repopact-core-mutation-preservation-final-20261127\\rust\\target\\debug\\repopact-engine.exe"
+      },
+      "started_at": "2026-11-27T19:15:12.862424Z",
+      "status": "partial"
+    }
+  },
+  "id": "20261127-084-wi084-corrections-final-ci-clean",
+  "result": "partial",
+  "timestamp": "2026-11-27T19:17:39.250059Z",
+  "work_item": "084"
+}

@@ -555,7 +555,9 @@ class EngineClientSemanticAdmissionTests(unittest.TestCase):
             "result": "partial",
             "exit_code": 1,
         }
-        with tempfile.TemporaryDirectory() as temporary:
+        with tempfile.TemporaryDirectory(
+            dir=Path(__file__).resolve().parents[1]
+        ) as temporary:
             destination = Path(temporary) / "run.json"
             run_conformance._write_provenance(payload, destination)
             record = json.loads(destination.read_text(encoding="utf-8"))

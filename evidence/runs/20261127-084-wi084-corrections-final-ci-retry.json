@@ -1,0 +1,44 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "artifacts": [
+    "evidence/runs/20261127-084-wi084-corrections-final-ci-retry.capture.jsonl"
+  ],
+  "commands": [
+    {
+      "command": "governance/verification.json profile ci step validate",
+      "exit_code": 1,
+      "summary": "command exited 1; profile did not complete: Interrupted after the required validate step failed because the generated dashboard snapshot was stale; the dashboard was subsequently regenerated."
+    }
+  ],
+  "environment": {
+    "verification": {
+      "candidate_at_start": {
+        "commit": "78ec4d6b9b7f95f9b6e8cba34ec099b73f131b74",
+        "dirty": false,
+        "tree": "93f42db3c554f34814ab8446f6dae541b21aa9af"
+      },
+      "captured_steps": [
+        {
+          "exit_code": 1,
+          "status": "failed",
+          "stderr_tail": "",
+          "stdout_tail": "ERROR [dashboard.stale] audits/reports/dashboard.md: generated dashboard is stale; run `repopact dashboard --root .` and commit the result\n\nValidation failed with 1 error(s).\n",
+          "step": "validate",
+          "summary": "command exited 1"
+        }
+      ],
+      "diagnostic": "Interrupted after the required validate step failed because the generated dashboard snapshot was stale; the dashboard was subsequently regenerated.",
+      "profile": "ci",
+      "relevant_environment": {
+        "CARGO_TARGET_DIR": "D:\\Projects\\repopact-core-mutation-preservation-final-20261127\\rust\\target",
+        "REPOPACT_ENGINE": "D:\\Projects\\repopact-core-mutation-preservation-final-20261127\\rust\\target\\debug\\repopact-engine.exe"
+      },
+      "started_at": "2026-11-27T19:11:26.593901Z",
+      "status": "partial"
+    }
+  },
+  "id": "20261127-084-wi084-corrections-final-ci-retry",
+  "result": "partial",
+  "timestamp": "2026-11-27T19:17:39.128843Z",
+  "work_item": "084"
+}

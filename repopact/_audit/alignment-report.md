@@ -469,3 +469,33 @@
   `SPEC.md`. WI077 remains open for its actual Fabric reproduction and
   ForgeWire-scale measurements; the Core benchmark does not satisfy those
   acceptance criteria.
+
+## 2026-11-27 preimage observation consistency follow-up
+
+- The same three checked passes now retain complete `Preimages` roots and
+  entries and require the middle capture to equal both boundary observations.
+  This rejects A/A-B/B-A/A file reads and middle-only empty directories that a
+  root `PathState` digest does not represent.
+- Regression coverage includes those negative cases and a stable-file positive
+  case. No fourth traversal, public `PathState` change, or new recovery claim is
+  introduced.
+
+## 2026-11-26 mutation data-preservation repair
+
+- Ordinary typed mutations now capture complete preimages under the existing
+  repository lock. File reads are checked twice, directory enumeration and
+  entry/type errors are propagated, and symlink/reparse or unsupported paths
+  fail before writes. Preimage capture also checks that observed target state
+  remained stable across the capture.
+- Failed operations unwind in reverse order only when the live state still
+  matches that operation's projected after-state. Newly created files are
+  removed individually; created directories are removed only when empty;
+  moved trees are renamed back only when their full observed contents still
+  match. External drift or uncertain partial I/O is left intact and reported
+  as `mutation.rollback-failed` with recovery required.
+- Regression tests cover external drift before operation zero, external edits
+  to transaction-written targets, failed preimage enumeration, symlink escape
+  sentinels, exact write rollback, and exact transition-subtree rollback.
+  Decision0040 still governs the contract: this does not add durable journals
+  or process-death/power-loss recovery, and it does not claim safety from every
+  uncooperative writer racing inside a filesystem operation.

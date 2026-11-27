@@ -43,6 +43,22 @@ authorize bypassing protected mutations.
    atomic visibility during normal operation. The containing directories are
    not synced after rename and Windows write-through is not requested, so this
    implementation does not promise survival of sudden power loss.
+   Ordinary typed mutations also capture a checked preimage under the
+   repository mutation lock before their first write. Captured bytes are checked
+   against the plan's original read facts, and those facts are checked again
+   immediately before the first write. The complete captured roots and entries
+   must also match both surrounding checked observations, including empty
+   directories. Incomplete reads, ambiguous path state,
+   hard-linked regular files, and symlink or reparse-point paths fail closed
+   with `mutation.preimage-failed` or `mutation.plan-stale`. The same checks run
+   when rollback revalidates transaction-owned state. A later failure is marked
+   `rolled_back` only after a fresh capture exactly matches the original
+   preimage. If a failure reports `mutation.rollback-failed`, the observed
+   after-state no longer proves transaction ownership; RepoPact leaves those
+   paths intact and reports that recovery is required. Inspect affected paths
+   before retrying. These checks detect drift observed during ordinary
+   execution; they do not guarantee safety against a writer after the last
+   observation, or provide process-death or power-loss recovery.
 5. **Derived-state inconsistency.** A stale or missing dashboard is a
    maintenance diagnostic for proposal admission. After the source change,
    run `repopact dashboard` and `repopact validate`; never edit generated
