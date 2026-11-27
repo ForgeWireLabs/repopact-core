@@ -2,7 +2,7 @@
   "$schema": "../../../repopact/schemas/work-item.schema.json",
   "id": "084",
   "title": "Preserve external data during failed mutations",
-  "status": "active",
+  "status": "completed",
   "owner_scope": "tooling",
   "affected_scopes": ["tooling", "governance", "work", "evidence"],
   "depends_on": [],
@@ -64,7 +64,8 @@
       "evidence": [
         "20261127-084-mutation-preservation-focused-rust-corrected",
         "20261127-084-mutation-preservation-legacy-python",
-        "20261127-084-mutation-preservation-final-ci-validated"
+        "20261127-084-mutation-preservation-final-ci-validated",
+        "20261127-084-mutation-preservation-closeout-validate"
       ]
     }
   ],

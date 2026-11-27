@@ -1,6 +1,6 @@
 # 084 — Preserve external data during failed mutations
 
-> **Status**: active
+> **Status**: completed
 > **Owner scope**: tooling
 > **Affected scopes**: tooling, governance, work, evidence
 > **Depends on**: none
@@ -42,5 +42,8 @@ Acceptance evidence:
 - `20261127-084-mutation-preservation-focused-rust-corrected` — 36 mutation tests passed, including preimage failures, exact restoration, external drift, symlink/move cases, and transaction preservation.
 - `20261127-084-mutation-preservation-legacy-python` — canonical Rust conformance 43/43, Python compatibility comparator 43/43, WI050 8/8, and WI079 10/10.
 - `20261127-084-mutation-preservation-final-ci-validated` — all required CI profile stages passed on a clean exact-head checkout, including Python tests, Rust workspace, canonical validation, conformance, spec freshness, and frozen-surface verification.
+- `20261127-084-mutation-preservation-closeout-validate` — quick canonical validation passed with all acceptance criteria and documentation impact linked.
 
 Earlier failed validation attempts remain preserved as evidence. The completed profile ran with a D: repository and Cargo target and C: fixture temp; its exact head was `834994f90b54b5df25fd4abc9a66cc2e6a6ba7cb` before evidence reconciliation. The dashboard is regenerated from committed evidence only.
+
+WI084 is complete: all five acceptance criteria link concrete evidence, the affected recovery and audit documentation is reconciled, and post-closeout canonical validation, frozen-surface verification, and semantic-input freshness checks passed.

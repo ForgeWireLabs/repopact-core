@@ -1,0 +1,71 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261127-084-mutation-preservation-closeout-validate",
+  "timestamp": "2026-11-27T16:56:29Z",
+  "timestamp_basis": "git-recording",
+  "work_item": "084",
+  "result": "passed",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "'C:\\Projects\\repopact-core-wi083-optimization-venv-20261126\\Scripts\\python.exe' -m repopact.cli validate --root 'D:\\Projects\\repopact-core-mutation-preservation-final-candidate-20261127'",
+      "exit_code": 0,
+      "summary": "validate: passed - command passed"
+    }
+  ],
+  "artifacts": [],
+  "environment": {
+    "platform": "windows",
+    "executor": "local",
+    "candidate": {
+      "commit": "68393af18cdb77299100691db03caff6da4ead93",
+      "tree": "5b8de1dbebe966867208ea718abb635fe0f68cd6",
+      "dirty": true
+    },
+    "candidate_at_start": {
+      "commit": "68393af18cdb77299100691db03caff6da4ead93",
+      "tree": "5b8de1dbebe966867208ea718abb635fe0f68cd6",
+      "dirty": false
+    },
+    "validation_storage": null,
+    "relevant_environment": {
+      "CARGO_TARGET_DIR": null,
+      "REPOPACT_ENGINE": "D:\\Projects\\repopact-core-mutation-preservation-final-20261127\\rust\\target\\debug\\repopact-engine.exe"
+    },
+    "verification": {
+      "profile": "quick",
+      "status": "pass",
+      "exit_code": 0,
+      "duration_seconds": 5.266,
+      "coverage": {
+        "mode": "host",
+        "satisfied": true,
+        "host_ready": true,
+        "all_declared_executed": true,
+        "required_total": 1,
+        "required_executed": 1,
+        "required_passed": 1,
+        "required_failed": 0,
+        "required_errors": 0,
+        "required_unavailable": 0,
+        "required_not_applicable": 0,
+        "declared_platforms": [],
+        "required_platforms": [],
+        "missing_platforms": [],
+        "capabilities": {}
+      },
+      "steps": [
+        {
+          "id": "validate",
+          "status": "passed",
+          "required": true,
+          "applicable": true,
+          "capability": null,
+          "platforms": [],
+          "exit_code": 0,
+          "summary": "command passed"
+        }
+      ]
+    }
+  }
+}
