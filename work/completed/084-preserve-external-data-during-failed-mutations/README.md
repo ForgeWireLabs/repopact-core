@@ -1,6 +1,6 @@
 # 084 — Preserve external data during failed mutations
 
-> **Status**: active
+> **Status**: completed
 > **Owner scope**: tooling
 > **Affected scopes**: tooling, governance, work, evidence
 > **Depends on**: none
@@ -37,9 +37,9 @@ Captured regular files now require exactly one hard link. Unix uses `nlink`; Win
 
 The executor compares captured paths with the original plan read facts, uses checked observations that distinguish unreadable paths from absent ones, and rechecks all plan facts immediately before the first write. Rollback is reported as complete only when a fresh capture exactly matches the original preimage. No guarantee is made against an external writer after the final observation.
 
-Focused evidence `20261127-084-wi084-corrections-focused` records 42 mutation tests passing, including direct and descendant hard-link sentinels, a hard link introduced before rollback, a valid edit between stale checking and capture, injected file-read failure, exact restoration, and an actual Windows junction. The final local CI profile and legacy comparator remain to be recorded for this reopening.
+Focused evidence `20261127-084-wi084-corrections-focused` records 42 mutation tests passing, including direct and descendant hard-link sentinels, a hard link introduced before rollback, a valid edit between stale checking and capture, injected file-read failure, exact restoration, and an actual Windows junction. The final local CI profile and explicit legacy comparator for this reopening are recorded in the reopened correction closeout below.
 
-## Closeout
+## Prior closeout (before coordinator reopening)
 
 Preflight: registered as WI084 against main `298828de6ae91f34dedd4f7cc6d98587f0959704`, tree `5fd33f98201f0ff313a199dc99ba74d0fb21ca8f`, before runtime edits. The dirty original checkout and PR #15 branch were not changed.
 
@@ -60,4 +60,17 @@ Acceptance evidence:
 
 Earlier failed validation attempts remain preserved as evidence. The completed profile ran with a D: repository and Cargo target and C: fixture temp; its exact head was `834994f90b54b5df25fd4abc9a66cc2e6a6ba7cb` before evidence reconciliation. The dashboard is regenerated from committed evidence only.
 
-WI084 is complete: all five acceptance criteria link concrete evidence, the affected recovery and audit documentation is reconciled, and post-closeout canonical validation, frozen-surface verification, and semantic-input freshness checks passed.
+This prior closeout marked WI084 complete on the then-current evidence. The coordinator review subsequently reopened the same work item; the corrected closeout is recorded below.
+
+
+## Reopened correction closeout
+
+The coordinator review corrections are now reconciled against WI084's seven acceptance criteria. The work item retains all earlier evidence and failures, with the correction-specific results added:
+
+- `20261127-084-wi084-corrections-focused` — 42 mutation tests passed, including direct and descendant hard-link sentinels, the rollback hard-link recheck, valid external edits between stale check and capture, injected file-read failure, captured-state mismatch, exact rollback, and a real Windows junction.
+- `20261127-084-wi084-corrections-final-ci-validated` — all five required CI profile steps passed from clean commit `21d6f586343e65ae0262d64a76386a59ed56d792`; repository validation, Python tests, canonical conformance with complete process-image provenance, Rust workspace tests, spec freshness, and the frozen-surface report passed.
+- `20261127-084-wi084-corrections-legacy-python` — explicit Python compatibility comparator passed 43/43 alongside canonical Rust conformance 43/43, WI050 admission 8/8, and WI079 reference corpus 10/10 (instruction-only).
+- `20261127-084-wi084-corrections-closeout` — the canonical transaction moved WI084 to completed; post-transition repository validation, frozen-surface verification, and semantic-input freshness checks passed.
+
+The initial profile failure, provenance-only retry, and interrupted attempts remain separately recorded as failed or partial; none is counted as passing evidence. The dashboard is generated from the reconciled records. WI084 makes no guarantee for external writes after the last observation, process death, or power loss.
+

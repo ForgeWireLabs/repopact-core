@@ -2,7 +2,7 @@
   "$schema": "../../../repopact/schemas/work-item.schema.json",
   "id": "084",
   "title": "Preserve external data during failed mutations",
-  "status": "active",
+  "status": "completed",
   "owner_scope": "tooling",
   "affected_scopes": [
     "tooling",
@@ -20,7 +20,10 @@
     ],
     "evidence": [
       "20261127-084-mutation-preservation-final-ci-validated",
-      "20261127-084-mutation-preservation-legacy-python"
+      "20261127-084-mutation-preservation-legacy-python",
+      "20261127-084-wi084-corrections-final-ci-validated",
+      "20261127-084-wi084-corrections-legacy-python",
+      "20261127-084-wi084-corrections-closeout"
     ]
   },
   "preflight": {
@@ -32,65 +35,79 @@
     {
       "id": "AC-1",
       "text": "Incomplete or ambiguous preimage capture fails closed before the first mutation write; regression tests prove external bytes remain unchanged.",
-      "state": "pending",
+      "state": "satisfied",
       "evidence": [
         "20261127-084-mutation-preservation-focused-rust-corrected",
         "20261127-084-mutation-preservation-final-ci-validated",
-        "20261127-084-wi084-corrections-focused"
+        "20261127-084-wi084-corrections-focused",
+        "20261127-084-wi084-corrections-final-ci-validated"
       ]
     },
     {
       "id": "AC-2",
       "text": "Capture complete, consistent, repository-contained preimages under the mutation lock; distinguish absent paths from unreadable, failed enumeration, unsupported type, symlink/reparse, and inconsistent state, and reject before writes.",
-      "state": "pending",
+      "state": "satisfied",
       "evidence": [
         "20261127-084-mutation-preservation-focused-rust-corrected",
         "20261127-084-mutation-preservation-final-ci-validated",
-        "20261127-084-wi084-corrections-focused"
+        "20261127-084-wi084-corrections-focused",
+        "20261127-084-wi084-corrections-final-ci-validated"
       ]
     },
     {
       "id": "AC-3",
       "text": "Rollback changes only transaction-owned after-state, preserves external and unowned bytes/directories, reports conflicts as recovery-required failures, and never reports success or false rolled_back when restoration is unproven.",
-      "state": "pending",
+      "state": "satisfied",
       "evidence": [
         "20261127-084-mutation-preservation-focused-rust-corrected",
         "20261127-084-mutation-preservation-final-ci-validated",
-        "20261127-084-wi084-corrections-focused"
+        "20261127-084-wi084-corrections-focused",
+        "20261127-084-wi084-corrections-final-ci-validated"
       ]
     },
     {
       "id": "AC-4",
       "text": "Focused regression coverage verifies create/edit/transition success; capture failures; injected failures before and after writes/moves; external drift before operation zero and during apply; subtrees, unrelated content, and symlink/reparse outside sentinels.",
-      "state": "pending",
+      "state": "satisfied",
       "evidence": [
         "20261127-084-mutation-preservation-focused-rust-corrected",
         "20261127-084-mutation-preservation-final-ci-validated",
-        "20261127-084-wi084-corrections-focused"
+        "20261127-084-wi084-corrections-focused",
+        "20261127-084-wi084-corrections-final-ci-validated"
       ]
     },
     {
       "id": "AC-5",
       "text": "Run and record focused tests, the required local validation profile and legacy comparator, dashboard reconciliation, canonical validation, and frozen-surface check while preserving plan identity/read-set/lock/stale checks/postvalidation/proposal semantics. Do not claim process-death, power-loss, or arbitrary uncooperative-writer recovery.",
-      "state": "pending",
+      "state": "satisfied",
       "evidence": [
         "20261127-084-mutation-preservation-focused-rust-corrected",
         "20261127-084-mutation-preservation-legacy-python",
         "20261127-084-mutation-preservation-final-ci-validated",
-        "20261127-084-mutation-preservation-closeout-validate"
+        "20261127-084-mutation-preservation-closeout-validate",
+        "20261127-084-wi084-corrections-focused",
+        "20261127-084-wi084-corrections-final-ci-validated",
+        "20261127-084-wi084-corrections-legacy-python",
+        "20261127-084-wi084-corrections-closeout"
       ]
     },
     {
       "id": "AC-6",
       "text": "Reject multiply-linked regular files and unsupported reparse points at targeted roots, captured descendants, and rollback ownership rechecks; fail closed when link metadata is unavailable or unsupported. A same-volume hard-link outside sentinel remains byte-for-byte unchanged, with a host-supported junction/reparse negative case where available, and no new filesystem dependency is introduced.",
-      "state": "pending",
-      "evidence": ["20261127-084-wi084-corrections-focused"]
+      "state": "satisfied",
+      "evidence": [
+        "20261127-084-wi084-corrections-focused",
+        "20261127-084-wi084-corrections-final-ci-validated"
+      ]
     },
     {
       "id": "AC-7",
       "text": "Reconcile captured preimages and observed roots with original plan read facts and checked root states, reject unreadable or ambiguous observations as distinct from absence, and recheck applicable facts before the first write. Deterministic post-stale-check/pre-capture edits, direct file-read failure, captured-state mismatch, and exact rollback assertions prove fail-closed behavior while preserving external bytes.",
-      "state": "pending",
-      "evidence": ["20261127-084-wi084-corrections-focused"]
+      "state": "satisfied",
+      "evidence": [
+        "20261127-084-wi084-corrections-focused",
+        "20261127-084-wi084-corrections-final-ci-validated"
+      ]
     }
   ],
   "created": "2026-11-26",

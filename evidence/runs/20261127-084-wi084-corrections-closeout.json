@@ -1,0 +1,64 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "artifacts": [
+    "evidence/runs/20261127-084-wi084-corrections-focused.capture.txt",
+    "evidence/runs/20261127-084-wi084-corrections-final-ci-validated.json",
+    "evidence/runs/20261127-084-wi084-corrections-legacy-python.json"
+  ],
+  "commands": [
+    {
+      "command": "repopact-cli apply-transition --root . --id 084 --status completed",
+      "exit_code": 0,
+      "summary": "Transactional lifecycle transition succeeded; moved WI084 from work/active to work/completed and wrote completed status."
+    },
+    {
+      "command": "python -m repopact.cli validate --root .",
+      "exit_code": 0,
+      "summary": "Repository governance validation passed after transition."
+    },
+    {
+      "command": "python -m repopact.cli check-frozen --root . --base origin/main",
+      "exit_code": 0,
+      "summary": "No frozen-surface changes detected."
+    },
+    {
+      "command": "python scripts/generate_engine_semantic_identity.py --check",
+      "exit_code": 0,
+      "summary": "Semantic input manifest is current."
+    }
+  ],
+  "environment": {
+    "acceptance_criteria_satisfied": [
+      "AC-1",
+      "AC-2",
+      "AC-3",
+      "AC-4",
+      "AC-5",
+      "AC-6",
+      "AC-7"
+    ],
+    "candidate_at_validation": {
+      "commit": "f05788d0b80392ceb3ab72baddee2a75f48a7191",
+      "dirty": true,
+      "tree": "edbf5d0eb7fc03ca5192245b9165bb47ca8ac93c"
+    },
+    "executor": "local",
+    "lifecycle_transition": {
+      "changed_paths": [
+        "audits/reports/dashboard.md",
+        "work/active/084-preserve-external-data-during-failed-mutations",
+        "work/completed/084-preserve-external-data-during-failed-mutations",
+        "work/completed/084-preserve-external-data-during-failed-mutations/work-item.json"
+      ],
+      "plan_token": "9d979770726cd82a077232a5f54bbcb5cfee41e106f04bc349ffe156eb5d85cf",
+      "rolled_back": false,
+      "success": true
+    },
+    "platform": "windows"
+  },
+  "id": "20261127-084-wi084-corrections-closeout",
+  "provenance": "concrete",
+  "result": "passed",
+  "timestamp": "2026-11-27T20:16:13Z",
+  "work_item": "084"
+}
