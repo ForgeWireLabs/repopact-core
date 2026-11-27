@@ -76,11 +76,12 @@ fn main() {{
 
     @staticmethod
     def clean_git_env() -> dict[str, str]:
-        return {
+        env = {
             key: value
             for key, value in os.environ.items()
-            if not key.upper().startswith("GIT_")
+            if not key.upper().startswith("GIT_") and key.upper() != "CARGO_TARGET_DIR"
         }
+        return env
 
     def git(self, cwd: Path, *args: str) -> str:
         return subprocess.check_output(
