@@ -33,7 +33,8 @@
       "state": "pending",
       "evidence": [
         "20261127-wi085-ci-windows-passing",
-        "20261128-wi085-mutation-subprocess-platforms"
+        "20261128-wi085-mutation-subprocess-platforms",
+        "20261128-wi085-focused-corrections"
       ]
     },
     {
@@ -42,7 +43,8 @@
       "state": "pending",
       "evidence": [
         "20261128-wi085-mutation-subprocess-platforms",
-        "20261127-wi085-ci-windows-passing"
+        "20261127-wi085-ci-windows-passing",
+        "20261128-wi085-focused-corrections"
       ]
     },
     {
@@ -52,7 +54,8 @@
       "evidence": [
         "20261127-wi085-ci-windows-passing",
         "20261128-wi085-legacy-python-comparator",
-        "20261128-wi085-closeout-validation"
+      "20261128-wi085-closeout-validation",
+      "20261128-wi085-focused-corrections"
       ]
     }
   ],
@@ -68,7 +71,8 @@
     "evidence": [
       "20261127-wi085-ci-windows-passing",
       "20261128-wi085-legacy-python-comparator",
-      "20261128-wi085-closeout-validation"
+      "20261128-wi085-closeout-validation",
+      "20261128-wi085-focused-corrections"
     ]
   },
   "created": "2026-11-27",

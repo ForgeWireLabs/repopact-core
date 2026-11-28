@@ -1,0 +1,124 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261128-wi085-focused-corrections",
+  "timestamp": "2026-11-28T21:48:22Z",
+  "timestamp_basis": "git-recording",
+  "work_item": "085",
+  "result": "passed",
+  "provenance": "concrete",
+  "commands": [
+    {
+      "command": "Windows x86_64-pc-windows-msvc: cargo test --locked --manifest-path rust/Cargo.toml -p repopact-mutation -p repopact-repository",
+      "exit_code": 0,
+      "summary": "65 mutation unit, 3 boundary, 1 post-validation integration, and 19 repository tests passed; includes actual child-process kills, native Windows ACL rejection/positive cases, external-state preservation, and exact runtime-state exclusion."
+    },
+    {
+      "command": "WSL Debian: CARGO_TARGET_DIR=/tmp/repopact-core-wi085-mutation-linux-target cargo test --locked --manifest-path rust/Cargo.toml -p repopact-mutation -p repopact-repository",
+      "exit_code": 0,
+      "summary": "63 mutation unit, 3 boundary, 1 post-validation integration, and 19 repository tests passed; includes actual child-process kills, Unix path/perms coverage, external-state preservation, and exact runtime-state exclusion."
+    },
+    {
+      "command": "Windows x86_64-pc-windows-msvc: cargo test --locked --manifest-path rust/Cargo.toml -p repopact-engine",
+      "exit_code": 0,
+      "summary": "All 8 engine unit tests passed, including receipt-persistence uncertainty and nonblocking committed-cleanup response semantics."
+    },
+    {
+      "command": "WSL Debian: REPOPACT_PYTHON=/usr/bin/python3 cargo test --locked --manifest-path rust/Cargo.toml -p repopact-engine",
+      "exit_code": 0,
+      "summary": "All 8 engine unit tests passed, including receipt-persistence uncertainty and nonblocking committed-cleanup response semantics."
+    },
+    {
+      "command": "C:\\Projects\\repopact-core-wi083-optimization-venv-20261126\\Scripts\\python.exe -m unittest tests.test_engine_client -v",
+      "exit_code": 0,
+      "summary": "All 23 focused Python engine-client contract tests passed, including success/rollback consistency and cleanup-warning handling."
+    },
+    {
+      "command": "python scripts/generate_engine_semantic_identity.py --check",
+      "exit_code": 0,
+      "summary": "Semantic input manifest is current after the reviewed update."
+    },
+    {
+      "command": "Windows: cargo build --locked --manifest-path rust/Cargo.toml -p repopact-engine",
+      "exit_code": 0,
+      "summary": "Built the focused local engine used for the documentation snapshot and canonical checks."
+    },
+    {
+      "command": "$env:REPOPACT_ENGINE='D:\\Projects\\repopact-core-mutation-preservation-final-20261127\\rust\\target\\debug\\repopact-engine.exe'; & 'C:\\Projects\\repopact-core-wi083-optimization-venv-20261126\\Scripts\\repopact.exe' documentation snapshot mutation-transaction-safety",
+      "exit_code": 0,
+      "summary": "Reconciled the reviewed documentation mapping; source digest cd47976ef0cac1a3102a9a30ee95061ae7a1f29b4697b30de7c215d3dd3ee66d and documentation digest be079274543364d7331a3e52322adc185de0731e8a4e1155ba470f67b99a9b4a."
+    },
+    {
+      "command": "$env:REPOPACT_ENGINE='D:\\Projects\\repopact-core-mutation-preservation-final-20261127\\rust\\target\\debug\\repopact-engine.exe'; & 'C:\\Projects\\repopact-core-wi083-optimization-venv-20261126\\Scripts\\repopact.exe' documentation snapshot documentation-freshness-tooling",
+      "exit_code": 0,
+      "summary": "Reviewed the source-only changes against the unchanged adopter guide; source digest a88de9a90f63e51ca0b7aebb89b9b4b55851332fefcfd15ba225d0aa9c098610 and documentation digest 6a7b56a721f7965e9cafedb5f980758d186016f15bb4be426b429c9c0d8b618b."
+    },
+    {
+      "command": "$env:REPOPACT_ENGINE='D:\\Projects\\repopact-core-mutation-preservation-final-20261127\\rust\\target\\debug\\repopact-engine.exe'; & 'C:\\Projects\\repopact-core-wi083-optimization-venv-20261126\\Scripts\\repopact.exe' documentation snapshot engine-semantic-compatibility",
+      "exit_code": 0,
+      "summary": "Reviewed the identity/client updates against the unchanged installation guide; source digest 73c40d1cbe1393c9ad37a94f393fad9f5e4a3b21282338230d842675df8a7070 and documentation digest 882243d1ca40f60a54cf2d85527f571378e271eb4caf6fbf5347ba5e8e8db455."
+    },
+    {
+      "command": "$env:REPOPACT_ENGINE='D:\\Projects\\repopact-core-mutation-preservation-final-20261127\\rust\\target\\debug\\repopact-engine.exe'; & 'C:\\Projects\\repopact-core-wi083-optimization-venv-20261126\\Scripts\\repopact.exe' check-frozen --root . --base origin/main",
+      "exit_code": 0,
+      "summary": "No frozen-surface changes detected."
+    },
+    {
+      "command": "$env:REPOPACT_ENGINE='D:\\Projects\\repopact-core-mutation-preservation-final-20261127\\rust\\target\\debug\\repopact-engine.exe'; & 'C:\\Projects\\repopact-core-wi083-optimization-venv-20261126\\Scripts\\repopact.exe' dashboard --root .",
+      "exit_code": 0,
+      "summary": "Regenerated the dashboard after recording the focused corrections and refreshing the reviewed documentation mappings."
+    },
+    {
+      "command": "$env:REPOPACT_ENGINE='D:\\Projects\\repopact-core-mutation-preservation-final-20261127\\rust\\target\\debug\\repopact-engine.exe'; & 'C:\\Projects\\repopact-core-wi083-optimization-venv-20261126\\Scripts\\repopact.exe' validate --root .",
+      "exit_code": 0,
+      "summary": "Repository governance validation passed after evidence, dashboard, and documentation mapping reconciliation."
+    },
+    {
+      "command": "cargo fmt --all --check --manifest-path rust/Cargo.toml",
+      "exit_code": 0,
+      "summary": "Rust formatting check passed."
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "summary": "No whitespace errors detected."
+    }
+  ],
+  "artifacts": [
+    "rust/crates/repopact-mutation/src/lib.rs",
+    "rust/crates/repopact-mutation/src/transaction_store.rs",
+    "rust/crates/repopact-repository/src/lib.rs",
+    "rust/apps/repopact-engine/src/main.rs",
+    "repopact/engine_client.py",
+    "docs/guides/mutation-recovery.md",
+    "governance/documentation-mappings.json",
+    "evidence/runs/20261128-wi085-focused-corrections.json"
+  ],
+  "environment": {
+    "candidate": {
+      "commit": "fef89e1cd8203f7876bb038582f31f2c23e2e53d",
+      "tree": "6e16970c5e6507c21ebdbdd3523683104a062931",
+      "dirty_at_commit": false,
+      "note": "Focused runtime suites ran against the same Rust and Python source now in this commit. Documentation, semantic identity, and mapping snapshots were reconciled without further runtime-source edits."
+    },
+    "executions": [
+      {
+        "executor": "local",
+        "platform": "windows",
+        "rustc": "1.96.0",
+        "cargo": "1.96.0",
+        "target": "x86_64-pc-windows-msvc",
+        "cargo_target_dir": "D:\\Projects\\repopact-core-mutation-preservation-final-20261127\\rust\\target"
+      },
+      {
+        "executor": "local",
+        "platform": "linux (WSL Debian)",
+        "rustc": "1.97.1",
+        "cargo": "1.97.1",
+        "cargo_target_dir": "/tmp/repopact-core-wi085-mutation-linux-target",
+        "scope": "focused mutation, repository, and engine tests; not a full Linux CI profile"
+      }
+    ],
+    "full_ci_profile": "not run per coordinator review boundary",
+    "hosted_ci_cd": "not invoked"
+  }
+}

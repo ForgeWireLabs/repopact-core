@@ -21,7 +21,7 @@
       ],
       "description": "The opt-in mapping diagnostics and snapshot command are explained by the adopter-facing freshness guide.",
       "snapshot": {
-        "source_digest": "b451b1ebe19dea59039e60dead6449386b3cb91d9b155ec04b4164b5ea133e56",
+        "source_digest": "a88de9a90f63e51ca0b7aebb89b9b4b55851332fefcfd15ba225d0aa9c098610",
         "documentation_digest": "6a7b56a721f7965e9cafedb5f980758d186016f15bb4be426b429c9c0d8b618b"
       }
     },
@@ -80,7 +80,7 @@
       ],
       "description": "The installation and packaging guide explains semantic identity, same-process admission, exact runtime dependency checks, migration, no-replay handling for uncertain outcomes, wheel payload and packaged-engine verification, the separate WI079 self-audit reference corpus, and the limits of executable provenance.",
       "snapshot": {
-        "source_digest": "073ca4433d66f35c4d41f7a04997bb846b7a627ae1865afe5053a695538cd413",
+        "source_digest": "73c40d1cbe1393c9ad37a94f393fad9f5e4a3b21282338230d842675df8a7070",
         "documentation_digest": "882243d1ca40f60a54cf2d85527f571378e271eb4caf6fbf5347ba5e8e8db455"
       }
     },
