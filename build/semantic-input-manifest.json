@@ -484,7 +484,7 @@
     },
     {
       "path": "repopact/cli.py",
-      "sha256": "06302068188f97278d7797bb7ca8dddadf9b70dc2c6900054f3121faf86897ed"
+      "sha256": "fd3df08e8add83b6ddd94fd2ca22fb5ffc70f5c96d6e809dde21350dc9d94ea5"
     },
     {
       "path": "repopact/confinement.py",
@@ -508,7 +508,7 @@
     },
     {
       "path": "repopact/engine_client.py",
-      "sha256": "854199212595538ba63a659c377c8e03ad6ef75349be33d8a9247e483eda00a7"
+      "sha256": "357796527fe808da057771815a448fec1130329abac150d3d9daa7ea79a44a98"
     },
     {
       "path": "repopact/engine_session.py",
@@ -556,7 +556,7 @@
     },
     {
       "path": "repopact/new.py",
-      "sha256": "552c17625d6899b251bfa40f2be84dedb1601dc26f37d213d39a9b2a9c163282"
+      "sha256": "58c9b1ebec81a265c5d5dec459e81ca747b1b11d7a3f0591e192fa53e6c9c245"
     },
     {
       "path": "repopact/package_version.py",
@@ -784,7 +784,7 @@
     },
     {
       "path": "rust/apps/repopact-engine/src/main.rs",
-      "sha256": "795246ad6d565b162f39d6f70bb5f1e6f150b46d9c2e0653b84efc48634f0e49"
+      "sha256": "960fc612098686acc8add3d78461edc0bf2076ed6dbd20a571e149004e6fe1e8"
     },
     {
       "path": "rust/apps/repopact-engine/src/query_ops.rs",
@@ -952,11 +952,15 @@
     },
     {
       "path": "rust/crates/repopact-mutation/Cargo.toml",
-      "sha256": "fb8848159ef747f9e76562b15dbedf8c0b45a76a15f64edc65ff180b799317ac"
+      "sha256": "cac71e5d27145b89f6de86427f8f2857715b33e70154990fd25809b1fed5d17c"
     },
     {
       "path": "rust/crates/repopact-mutation/src/lib.rs",
-      "sha256": "2711ea4b2aeb389eee636e5f498d28dd0a779a95080ca7fe8ef76e334cb9ff8b"
+      "sha256": "8ea17cc610cae310db1be626cd05d80cd5f8220c52e01064be7c8cfec2a6cc59"
+    },
+    {
+      "path": "rust/crates/repopact-mutation/src/transaction_store.rs",
+      "sha256": "111b2eee314cb575539576e5501bd5b4d610f5013eb49dea327d838977492692"
     },
     {
       "path": "rust/crates/repopact-mutation/tests/fixtures/edit/after/work-item.json",
@@ -980,7 +984,7 @@
     },
     {
       "path": "rust/crates/repopact-mutation/tests/verification_post_validation.rs",
-      "sha256": "ff5f1319d77f48282b72315e85db05d08549c7b507a44086b93dd3be9f6c3c58"
+      "sha256": "5227230c4cc4ea216a8ebfc94f561a60ca27d192f19c26641d999e534c8146bd"
     },
     {
       "path": "rust/crates/repopact-protocol/Cargo.toml",
@@ -988,7 +992,7 @@
     },
     {
       "path": "rust/crates/repopact-protocol/src/lib.rs",
-      "sha256": "fa1388ffdbfdec431015a69b4d804f4288a2e71ffb0db9ee3989ab8911ff89fe"
+      "sha256": "c1d31b1f437e9540350ff600044821349917e66ce38f86d68cf6e7204847959e"
     },
     {
       "path": "rust/crates/repopact-repository/Cargo.toml",
@@ -1059,5 +1063,5 @@
       "sha256": "568ee233f91fcfc6afad4dfdb4fd6cbadd2761f0b795d91a089030c3b0b0bbb3"
     }
   ],
-  "semantic_identity": "repopact-semantic-v1:sha256:6e04a6a7896e5c3f772f4d7b5ff6c4d90064e90737af8100b3b3f3244a1655b0"
+  "semantic_identity": "repopact-semantic-v1:sha256:e2dde5dcf678858f49101e2b441587854151783b052ba255ceca4bc77927a139"
 }

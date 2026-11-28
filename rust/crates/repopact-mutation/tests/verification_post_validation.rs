@@ -40,6 +40,7 @@ fn mutation_post_validation_includes_shared_verification_contract_diagnostics() 
         repository_identity: identity.clone(),
         plan_token: read_set.token(&identity),
         read_set,
+        mutation_key: Some("post-validation-probe".to_owned()),
         request: MutationRequest::CreateWorkItem(CreateWorkItem::new("Parity probe", "2026-09-12")),
         file_operations: Vec::new(),
         generated_impacts: Vec::new(),

@@ -17,6 +17,12 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use sha2::{Digest, Sha256};
 
+mod transaction_store;
+use transaction_store::{
+    Journal as OrdinaryJournal, NativeRootIdentity, OrdinaryTransactionStore,
+    Phase as JournalPhase, Receipt as OrdinaryReceipt, StoredPreimages,
+};
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct CreateWorkItem {
     pub title: String,
@@ -228,6 +234,8 @@ pub struct MutationPlan {
     pub repository_identity: RepositoryIdentity,
     pub read_set: ReadSet,
     pub plan_token: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub mutation_key: Option<String>,
     pub request: MutationRequest,
     pub file_operations: Vec<PathOperation>,
     pub generated_impacts: Vec<GeneratedImpact>,
@@ -254,6 +262,14 @@ impl MutationPlan {
 
     pub fn apply_with_options(&self, options: &ApplyOptions) -> MutationResult {
         apply(self, options)
+    }
+
+    /// Bind this plan to a caller-supplied durable mutation key. The key is
+    /// independent of the deterministic plan token and is persisted with the
+    /// first transaction journal.
+    pub fn with_mutation_key(mut self, key: impl Into<String>) -> Self {
+        self.mutation_key = Some(key.into());
+        self
     }
 }
 
@@ -293,6 +309,10 @@ impl ApplyOptions {
 pub struct MutationResult {
     pub success: bool,
     pub rolled_back: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub mutation_key: Option<String>,
+    #[serde(default)]
+    pub transaction_outcome: String,
     pub plan_token: String,
     pub changed_paths: Vec<String>,
     pub diagnostics: Vec<MutationDiagnostic>,
@@ -300,6 +320,30 @@ pub struct MutationResult {
     pub replayed: bool,
     #[serde(default)]
     pub metrics: MutationMetrics,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct MutationReceiptSummary {
+    pub request_key: String,
+    pub plan_token: String,
+    pub outcome: String,
+    pub success: bool,
+    pub rolled_back: bool,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct MutationStatus {
+    /// `clear` means no active journal was observed; it does not prove that an
+    /// absent request key was never used or that an out-of-band writer is idle.
+    pub state: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub active_request_key: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub active_phase: Option<String>,
+    pub receipts: Vec<MutationReceiptSummary>,
+    pub unknown_artifacts: Vec<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub detail: Option<String>,
 }
 
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
@@ -632,9 +676,16 @@ pub fn plan_at(
         let graph = RepositoryGraph::build(snapshot);
         graph_impacts(&graph, &request_for_graph)
     };
+    let mutation_key = if matches!(&request, MutationRequest::CreateWorkItem(item) if item.status == "proposed")
+    {
+        None
+    } else {
+        Some(new_mutation_key())
+    };
     let mut plan = MutationPlan {
         repository_identity: identity.clone(),
         plan_token: read_set.token(&identity),
+        mutation_key,
         read_set,
         request,
         generated_impacts: impacts(repository, &operations),
@@ -713,6 +764,23 @@ pub fn propose_work_item(root: impl AsRef<Path>, mut request: CreateWorkItem) ->
         }
     };
     result.metrics.proposal_lock_wait_ms = lock_started.elapsed().as_millis();
+    let ordinary_store = match OrdinaryTransactionStore::open(repository.root()) {
+        Ok(store) => store,
+        Err(error) => {
+            result.diagnostics.push(MutationDiagnostic::error(
+                "mutation.transaction-store",
+                error,
+            ));
+            return result;
+        }
+    };
+    if let Err(error) = ensure_no_pending_ordinary_transaction(&ordinary_store) {
+        result.diagnostics.push(MutationDiagnostic::error(
+            "mutation.recovery-required",
+            error,
+        ));
+        return result;
+    }
     let cleanup_started = Instant::now();
     if let Err(error) = ensure_safe_repository_directory(repository.root(), Path::new("work")) {
         result.metrics.filesystem_staging_ms += cleanup_started.elapsed().as_millis();
@@ -786,6 +854,8 @@ fn empty_result() -> MutationResult {
     MutationResult {
         success: false,
         rolled_back: false,
+        mutation_key: None,
+        transaction_outcome: "not_applied".to_owned(),
         plan_token: String::new(),
         changed_paths: Vec::new(),
         diagnostics: Vec::new(),
@@ -794,12 +864,694 @@ fn empty_result() -> MutationResult {
     }
 }
 
+fn new_mutation_key() -> String {
+    static NEXT_MUTATION_KEY: AtomicU64 = AtomicU64::new(1);
+    let nanos = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_nanos();
+    format!(
+        "rp-{}-{nanos}-{}",
+        std::process::id(),
+        NEXT_MUTATION_KEY.fetch_add(1, Ordering::Relaxed)
+    )
+}
+
+/// Read transaction state without creating the storage anchor, taking a
+/// recovery action, or deleting a journal. A missing keyed receipt is reported
+/// as `unknown`, never as proof that the request did not run.
+pub fn mutation_status(root: impl AsRef<Path>, request_key: Option<&str>) -> MutationStatus {
+    if let Some(key) = request_key {
+        if let Err(error) = transaction_store::validate_key(key) {
+            return empty_mutation_status("recovery_required", Some(error));
+        }
+    }
+    let store = match OrdinaryTransactionStore::open_read_only(root.as_ref()) {
+        Ok(Some(store)) => store,
+        Ok(None) => {
+            return empty_mutation_status(
+                if request_key.is_some() {
+                    "unknown"
+                } else {
+                    "clear"
+                },
+                request_key
+                    .map(|_| "no matching durable receipt or active journal was found".to_owned()),
+            )
+        }
+        Err(error) => return empty_mutation_status("recovery_required", Some(error)),
+    };
+    let unknown_artifacts = match store.has_unknown_artifacts() {
+        Ok(items) => items,
+        Err(error) => return empty_mutation_status("recovery_required", Some(error)),
+    };
+    let journal = match store.load_journal() {
+        Ok(journal) => journal,
+        Err(error) => {
+            let mut status = empty_mutation_status("recovery_required", Some(error));
+            status.unknown_artifacts = unknown_artifacts;
+            return status;
+        }
+    };
+    let receipts = match store.receipts() {
+        Ok(receipts) => receipts
+            .into_iter()
+            .filter(|receipt| request_key.is_none_or(|key| receipt.request_key == key))
+            .map(|receipt| MutationReceiptSummary {
+                request_key: receipt.request_key,
+                plan_token: receipt.plan_token,
+                outcome: receipt.result.transaction_outcome,
+                success: receipt.result.success,
+                rolled_back: receipt.result.rolled_back,
+            })
+            .collect::<Vec<_>>(),
+        Err(error) => {
+            let mut status = empty_mutation_status("recovery_required", Some(error));
+            status.unknown_artifacts = unknown_artifacts;
+            return status;
+        }
+    };
+    let terminal_journal = match journal.as_ref() {
+        Some(journal) => match store.load_receipt(&journal.request_key) {
+            Ok(Some(receipt))
+                if receipt.payload_sha256 == journal.payload_sha256
+                    && receipt.plan_token == journal.plan_token
+                    && receipt.native_root == journal.native_root
+                    && receipt.storage_identity == journal.storage_identity =>
+            {
+                Some(journal)
+            }
+            Ok(Some(_)) => {
+                let mut status = empty_mutation_status(
+                    "recovery_required",
+                    Some("terminal receipt conflicts with the active journal".to_owned()),
+                );
+                status.unknown_artifacts = unknown_artifacts;
+                return status;
+            }
+            Ok(None) => None,
+            Err(error) => {
+                let mut status = empty_mutation_status("recovery_required", Some(error));
+                status.unknown_artifacts = unknown_artifacts;
+                return status;
+            }
+        },
+        None => None,
+    };
+    let (active_request_key, active_phase) = journal
+        .as_ref()
+        .map(|journal| {
+            let phase = if terminal_journal.is_some() {
+                "terminal"
+            } else {
+                match journal.phase {
+                    JournalPhase::Prepared => "prepared",
+                    JournalPhase::Applying => "applying",
+                    JournalPhase::RollingBack => "rolling_back",
+                }
+            };
+            (Some(journal.request_key.clone()), Some(phase.to_owned()))
+        })
+        .unwrap_or((None, None));
+    let matching_receipt =
+        request_key.is_some_and(|key| receipts.iter().any(|receipt| receipt.request_key == key));
+    let state = if !unknown_artifacts.is_empty() {
+        "recovery_required"
+    } else if terminal_journal.is_some() {
+        "terminal"
+    } else if journal.is_some() {
+        "pending"
+    } else if request_key.is_some() && !matching_receipt {
+        "unknown"
+    } else {
+        "clear"
+    };
+    MutationStatus {
+        state: state.to_owned(),
+        active_request_key,
+        active_phase,
+        receipts,
+        unknown_artifacts,
+        detail: if state == "unknown" {
+            Some(
+                "receipt absence is unknown and does not prove that the request did not run"
+                    .to_owned(),
+            )
+        } else if state == "terminal" {
+            Some("terminal receipt is durable; journal cleanup remains pending and status made no writes".to_owned())
+        } else {
+            None
+        },
+    }
+}
+
+fn empty_mutation_status(state: &str, detail: Option<String>) -> MutationStatus {
+    MutationStatus {
+        state: state.to_owned(),
+        active_request_key: None,
+        active_phase: None,
+        receipts: Vec::new(),
+        unknown_artifacts: Vec::new(),
+        detail,
+    }
+}
+
+/// Explicitly recover the one pending ordinary mutation, if its request key
+/// matches. This operation is the only public path that rolls back a journal.
+pub fn recover_mutation(root: impl AsRef<Path>, request_key: Option<&str>) -> MutationResult {
+    let mut result = empty_result();
+    result.transaction_outcome = "unknown".to_owned();
+    if let Some(key) = request_key {
+        if let Err(error) = transaction_store::validate_key(key) {
+            result.transaction_outcome = "rejected".to_owned();
+            result.diagnostics.push(MutationDiagnostic::error(
+                "mutation.request-key-invalid",
+                error,
+            ));
+            return result;
+        }
+    }
+    let repository = Repository::open(root);
+    let _lock = match RepositoryMutationLock::acquire(repository.root()) {
+        Ok(lock) => lock,
+        Err(error) => {
+            result.transaction_outcome = "recovery_required".to_owned();
+            result
+                .diagnostics
+                .push(MutationDiagnostic::error("mutation.lock-timeout", error));
+            return result;
+        }
+    };
+    let store = match OrdinaryTransactionStore::open(repository.root()) {
+        Ok(store) => store,
+        Err(error) => {
+            result.transaction_outcome = "recovery_required".to_owned();
+            result.diagnostics.push(MutationDiagnostic::error(
+                "mutation.transaction-store",
+                error,
+            ));
+            return result;
+        }
+    };
+    if let Err(error) = reconcile_terminal_journal(&store) {
+        result.transaction_outcome = "recovery_required".to_owned();
+        result.diagnostics.push(MutationDiagnostic::error(
+            "mutation.recovery-required",
+            error,
+        ));
+        return result;
+    }
+    match store.load_journal() {
+        Ok(Some(journal)) => {
+            if request_key.is_some_and(|key| key != journal.request_key) {
+                result.transaction_outcome = "recovery_required".to_owned();
+                result.mutation_key = Some(journal.request_key);
+                result.diagnostics.push(MutationDiagnostic::error(
+                    "mutation.recovery-key-mismatch",
+                    "the requested key does not match the active ordinary transaction",
+                ));
+                return result;
+            }
+            result.mutation_key = Some(journal.request_key.clone());
+            if let Err(error) = store.has_unknown_artifacts().and_then(|items| {
+                if items.is_empty() {
+                    Ok(())
+                } else {
+                    Err(format!(
+                        "unknown transaction artifacts were preserved: {}",
+                        items.join(", ")
+                    ))
+                }
+            }) {
+                result.transaction_outcome = "recovery_required".to_owned();
+                result.diagnostics.push(MutationDiagnostic::error(
+                    "mutation.recovery-required",
+                    error,
+                ));
+                return result;
+            }
+            match store.receipt_count() {
+                Ok(count) if count < transaction_store::MAX_RECEIPTS => {}
+                Ok(_) => {
+                    result.transaction_outcome = "recovery_required".to_owned();
+                    result.diagnostics.push(MutationDiagnostic::error(
+                        "mutation.receipt-capacity",
+                        "terminal receipt capacity is exhausted; the active journal was preserved",
+                    ));
+                    return result;
+                }
+                Err(error) => {
+                    result.transaction_outcome = "recovery_required".to_owned();
+                    result.diagnostics.push(MutationDiagnostic::error(
+                        "mutation.transaction-store",
+                        error,
+                    ));
+                    return result;
+                }
+            }
+            recover_journal(&repository, &store, journal, result)
+        }
+        Ok(None) => {
+            if let Some(key) = request_key {
+                match store.load_receipt(key) {
+                    Ok(Some(receipt)) => {
+                        result = receipt.result;
+                        result.mutation_key = Some(key.to_owned());
+                        result.replayed = true;
+                        result.transaction_outcome = "replayed".to_owned();
+                        result
+                    }
+                    Ok(None) => {
+                        result.transaction_outcome = "unknown".to_owned();
+                        result.mutation_key = Some(key.to_owned());
+                        result.diagnostics.push(MutationDiagnostic::error(
+                            "mutation.outcome-unknown",
+                            "no receipt is present; absence does not prove that the request did not run",
+                        ));
+                        result
+                    }
+                    Err(error) => {
+                        result.transaction_outcome = "recovery_required".to_owned();
+                        result.diagnostics.push(MutationDiagnostic::error(
+                            "mutation.transaction-store",
+                            error,
+                        ));
+                        result
+                    }
+                }
+            } else {
+                result.transaction_outcome = "unknown".to_owned();
+                result.diagnostics.push(MutationDiagnostic::error(
+                    "mutation.outcome-unknown",
+                    "no active journal was found; specify a request key to inspect its terminal receipt",
+                ));
+                result
+            }
+        }
+        Err(error) => {
+            result.transaction_outcome = "recovery_required".to_owned();
+            result.diagnostics.push(MutationDiagnostic::error(
+                "mutation.recovery-required",
+                error,
+            ));
+            result
+        }
+    }
+}
+
+/// Lock and pending-state guard for the one direct engine writer that shares
+/// an ordinary mutation target: dashboard projection generation.
+pub struct RepositoryMutationWriteGuard {
+    _lock: RepositoryMutationLock,
+}
+
+pub fn acquire_repository_mutation_write_guard(
+    root: impl AsRef<Path>,
+) -> Result<RepositoryMutationWriteGuard, String> {
+    let repository = Repository::open(root);
+    let lock = RepositoryMutationLock::acquire(repository.root())?;
+    let store = OrdinaryTransactionStore::open(repository.root())?;
+    reconcile_terminal_journal(&store)?;
+    if let Some(journal) = store.load_journal()? {
+        return Err(format!(
+            "ordinary mutation '{}' is pending; dashboard write is blocked until explicit recovery",
+            journal.request_key
+        ));
+    }
+    let unknown = store.has_unknown_artifacts()?;
+    if !unknown.is_empty() {
+        return Err(format!(
+            "transaction state has unknown artifacts; dashboard write is blocked: {}",
+            unknown.join(", ")
+        ));
+    }
+    Ok(RepositoryMutationWriteGuard { _lock: lock })
+}
+
+fn mutation_payload_digest(plan: &MutationPlan) -> String {
+    let payload =
+        serde_json::to_vec(&(&plan.repository_identity, &plan.request)).unwrap_or_default();
+    hex_digest(Sha256::digest(payload))
+}
+
+fn persist_terminal_result(
+    store: &OrdinaryTransactionStore,
+    repository: &Repository,
+    plan: &MutationPlan,
+    request_key: &str,
+    payload_sha256: &str,
+    mut result: MutationResult,
+    outcome: &str,
+) -> MutationResult {
+    result.mutation_key = Some(request_key.to_owned());
+    result.transaction_outcome = outcome.to_owned();
+    let receipt = OrdinaryReceipt {
+        version: transaction_store::STORE_VERSION,
+        request_key: request_key.to_owned(),
+        payload_sha256: payload_sha256.to_owned(),
+        repository_identity: plan.repository_identity.clone(),
+        native_root: match NativeRootIdentity::capture(repository.root()) {
+            Ok(identity) => identity,
+            Err(error) => {
+                result.transaction_outcome = "recovery_required".to_owned();
+                result.diagnostics.push(MutationDiagnostic::error(
+                    "mutation.transaction-root",
+                    error,
+                ));
+                return result;
+            }
+        },
+        storage_identity: match NativeRootIdentity::capture(store.anchor()) {
+            Ok(identity) => identity,
+            Err(error) => {
+                result.transaction_outcome = "recovery_required".to_owned();
+                result.diagnostics.push(MutationDiagnostic::error(
+                    "mutation.transaction-storage",
+                    error,
+                ));
+                return result;
+            }
+        },
+        plan_token: plan.plan_token.clone(),
+        result: result.clone(),
+    };
+    match store.write_receipt(&receipt) {
+        Ok(()) => result,
+        Err(error) => {
+            result.transaction_outcome = "unknown".to_owned();
+            result
+                .diagnostics
+                .push(MutationDiagnostic::error("mutation.receipt-persist", error));
+            result
+        }
+    }
+}
+
+fn reconcile_terminal_journal(store: &OrdinaryTransactionStore) -> Result<(), String> {
+    let Some(journal) = store.load_journal()? else {
+        return Ok(());
+    };
+    let Some(receipt) = store.load_receipt(&journal.request_key)? else {
+        return Ok(());
+    };
+    if receipt.payload_sha256 != journal.payload_sha256
+        || receipt.plan_token != journal.plan_token
+        || receipt.native_root != journal.native_root
+        || receipt.storage_identity != journal.storage_identity
+    {
+        return Err("terminal receipt does not match the remaining transaction journal".to_owned());
+    }
+    store.delete_journal()
+}
+
+fn journal_steps(
+    repository: &Repository,
+    journal: &OrdinaryJournal,
+) -> Result<Vec<Preimages>, String> {
+    let before = journal.before.to_live()?;
+    let listed_roots = journal
+        .roots
+        .iter()
+        .map(|value| {
+            validate_relative_path(Path::new(value))?;
+            Ok(PathBuf::from(value))
+        })
+        .collect::<Result<BTreeSet<_>, String>>()?;
+    if listed_roots != before.roots {
+        return Err("transaction journal root set does not match its complete preimage".to_owned());
+    }
+    if journal.operations.len() > 10_000 {
+        return Err("transaction journal operation count exceeds its bound".to_owned());
+    }
+    for operation in &journal.operations {
+        for path in operation_paths(operation) {
+            validate_relative_path(&path)?;
+            if path.starts_with(Path::new("work/.repopact-transactions")) {
+                return Err("transaction journal targets its own state directory".to_owned());
+            }
+            if !listed_roots.iter().any(|root| path.starts_with(root)) {
+                return Err(format!(
+                    "transaction path '{}' is outside the recorded root set",
+                    path_string(&path)
+                ));
+            }
+        }
+    }
+    let mut steps = vec![before.clone()];
+    let mut state = before;
+    for operation in &journal.operations {
+        state = project_operation(repository, &state, operation)?;
+        steps.push(state.clone());
+    }
+    if journal.step_sha256.len() != steps.len() {
+        return Err("transaction journal sequence digest count is inconsistent".to_owned());
+    }
+    for (step, expected_digest) in steps.iter().zip(&journal.step_sha256) {
+        if state_digest(step)? != *expected_digest {
+            return Err("transaction journal sequence integrity check failed".to_owned());
+        }
+    }
+    let after = journal.projected_after.to_live()?;
+    if steps
+        .last()
+        .is_none_or(|last| last.entries != after.entries || last.roots != after.roots)
+    {
+        return Err(
+            "transaction journal projected after-state does not match its operation sequence"
+                .to_owned(),
+        );
+    }
+    Ok(steps)
+}
+
+fn state_digest(preimages: &Preimages) -> Result<String, String> {
+    let stored = StoredPreimages::from_live(preimages)?;
+    let encoded = serde_json::to_vec(&stored)
+        .map_err(|error| format!("encode transaction state fingerprint: {error}"))?;
+    Ok(hex_digest(Sha256::digest(encoded)))
+}
+
+fn recover_journal(
+    repository: &Repository,
+    store: &OrdinaryTransactionStore,
+    mut journal: OrdinaryJournal,
+    mut result: MutationResult,
+) -> MutationResult {
+    result.mutation_key = Some(journal.request_key.clone());
+    result.plan_token = journal.plan_token.clone();
+    let steps = match journal_steps(repository, &journal) {
+        Ok(steps) => steps,
+        Err(error) => {
+            result.transaction_outcome = "recovery_required".to_owned();
+            result.diagnostics.push(MutationDiagnostic::error(
+                "mutation.recovery-required",
+                error,
+            ));
+            return result;
+        }
+    };
+    let roots = match journal
+        .roots
+        .iter()
+        .map(|value| validate_relative_path(Path::new(value)).map(|_| PathBuf::from(value)))
+        .collect::<Result<Vec<_>, _>>()
+    {
+        Ok(roots) => roots,
+        Err(error) => {
+            result.transaction_outcome = "recovery_required".to_owned();
+            result.diagnostics.push(MutationDiagnostic::error(
+                "mutation.recovery-required",
+                error,
+            ));
+            return result;
+        }
+    };
+    let current = match capture_preimages(repository, &roots) {
+        Ok(current) => current,
+        Err(error) => {
+            result.transaction_outcome = "recovery_required".to_owned();
+            result.diagnostics.push(MutationDiagnostic::error(
+                "mutation.recovery-required",
+                error,
+            ));
+            return result;
+        }
+    };
+    let before = &steps[0];
+    let completed = if current.entries == before.entries {
+        0
+    } else if let Some(index) = steps
+        .iter()
+        .enumerate()
+        .skip(1)
+        .find_map(|(index, state)| (state.entries == current.entries).then_some(index))
+    {
+        index
+    } else {
+        result.transaction_outcome = "recovery_required".to_owned();
+        result.diagnostics.push(MutationDiagnostic::error(
+            "mutation.recovery-required",
+            "live paths match neither the captured before-state nor a complete authorized operation sequence; uncertain data was preserved",
+        ));
+        return result;
+    };
+    for index in (1..=completed).rev() {
+        journal.phase = JournalPhase::RollingBack;
+        journal.next_operation = index - 1;
+        if let Err(error) = store.write_journal(&journal, false) {
+            result.transaction_outcome = "recovery_required".to_owned();
+            result.diagnostics.push(MutationDiagnostic::error(
+                "mutation.recovery-required",
+                error,
+            ));
+            return result;
+        }
+        let undo = UndoRecord {
+            operation: journal.operations[index - 1].clone(),
+            before: steps[index - 1].clone(),
+            after: steps[index].clone(),
+        };
+        if let Err(error) = restore_operation(repository, &undo) {
+            result.transaction_outcome = "recovery_required".to_owned();
+            result.diagnostics.push(MutationDiagnostic::error(
+                "mutation.recovery-required",
+                format!("owned reverse operation could not be proven safe; uncertain data was preserved: {error}"),
+            ));
+            return result;
+        }
+        pause_at_test_phase("during_rollback");
+        if let Err(error) = store.write_journal(&journal, false) {
+            result.transaction_outcome = "recovery_required".to_owned();
+            result.diagnostics.push(MutationDiagnostic::error(
+                "mutation.recovery-required",
+                error,
+            ));
+            return result;
+        }
+    }
+    result.success = false;
+    result.rolled_back = true;
+    result.transaction_outcome = "rolled_back".to_owned();
+    result.diagnostics.push(MutationDiagnostic::error(
+        "mutation.transaction-recovered",
+        if completed == 0 {
+            "the live write set was already at its captured before-state; no repository path was rewritten"
+        } else {
+            "the interrupted ordinary mutation was reversed from a verified operation sequence"
+        },
+    ));
+    persist_journal_receipt(store, &journal, result)
+}
+
+fn persist_journal_receipt(
+    store: &OrdinaryTransactionStore,
+    journal: &OrdinaryJournal,
+    mut result: MutationResult,
+) -> MutationResult {
+    result.mutation_key = Some(journal.request_key.clone());
+    result.plan_token = journal.plan_token.clone();
+    let receipt = OrdinaryReceipt {
+        version: transaction_store::STORE_VERSION,
+        request_key: journal.request_key.clone(),
+        payload_sha256: journal.payload_sha256.clone(),
+        repository_identity: journal.repository_identity.clone(),
+        native_root: journal.native_root.clone(),
+        storage_identity: journal.storage_identity.clone(),
+        plan_token: journal.plan_token.clone(),
+        result: result.clone(),
+    };
+    if let Err(error) = store.write_receipt(&receipt) {
+        result.transaction_outcome = "recovery_required".to_owned();
+        result
+            .diagnostics
+            .push(MutationDiagnostic::error("mutation.receipt-persist", error));
+        return result;
+    }
+    pause_at_test_phase("after_terminal_receipt_before_journal_cleanup");
+    if let Err(error) = store.delete_journal() {
+        result.diagnostics.push(MutationDiagnostic::error(
+            "mutation.terminal-cleanup-failed",
+            format!("terminal receipt is durable; journal cleanup remains pending: {error}"),
+        ));
+    }
+    result
+}
+
+fn durable_failure_with_rollback(
+    repository: &Repository,
+    mut undo: Vec<UndoRecord>,
+    mut result: MutationResult,
+    message: String,
+    ownership_conflict: Option<String>,
+    store: &OrdinaryTransactionStore,
+    journal: &mut OrdinaryJournal,
+) -> MutationResult {
+    result
+        .diagnostics
+        .push(MutationDiagnostic::error("mutation.apply-failed", message));
+    let changed = !undo.is_empty();
+    let mut errors = ownership_conflict.into_iter().collect::<Vec<_>>();
+    journal.phase = JournalPhase::RollingBack;
+    journal.next_operation = undo.len();
+    if let Err(error) = store.write_journal(journal, false) {
+        errors.push(format!("unable to persist rollback phase: {error}"));
+    }
+    let mut restored = 0usize;
+    while let Some(record) = undo.pop() {
+        if let Err(error) = restore_operation(repository, &record) {
+            errors.push(error);
+            break;
+        }
+        restored += 1;
+        if restored == 1 {
+            pause_at_test_phase("during_rollback");
+        }
+    }
+    if errors.is_empty() {
+        result.rolled_back = changed;
+        result.transaction_outcome = if changed { "rolled_back" } else { "rejected" }.to_owned();
+        if changed {
+            result.diagnostics.push(MutationDiagnostic::error(
+                "mutation.transaction-rolled-back",
+                "the in-process failure was reversed using captured ownership checks",
+            ));
+        }
+        return persist_journal_receipt(store, journal, result);
+    }
+    result.transaction_outcome = "recovery_required".to_owned();
+    for error in errors {
+        result.diagnostics.push(MutationDiagnostic::error(
+            "mutation.rollback-failed",
+            format!("recovery required; uncertain state was preserved: {error}"),
+        ));
+    }
+    result
+}
+
 fn validate_idempotency_key(key: &str) -> Result<(), String> {
     if key.is_empty() || key.trim() != key || key.len() > 128 {
         Err("proposal idempotency key must contain 1 to 128 non-whitespace characters".to_owned())
     } else {
         Ok(())
     }
+}
+
+fn ensure_no_pending_ordinary_transaction(store: &OrdinaryTransactionStore) -> Result<(), String> {
+    reconcile_terminal_journal(store)?;
+    if let Some(journal) = store.load_journal()? {
+        return Err(format!(
+            "ordinary mutation '{}' is pending; proposals are blocked until explicit recovery",
+            journal.request_key
+        ));
+    }
+    let unknown = store.has_unknown_artifacts()?;
+    if !unknown.is_empty() {
+        return Err(format!(
+            "transaction state contains unknown artifacts; preserved them: {}",
+            unknown.join(", ")
+        ));
+    }
+    Ok(())
 }
 
 fn proposal_payload_digest(request: &CreateWorkItem) -> String {
@@ -853,6 +1605,7 @@ fn resolve_proposal_receipt(
         .unwrap_or("work/proposed");
     result.success = true;
     result.replayed = true;
+    result.transaction_outcome = "replayed".to_owned();
     result.changed_paths = vec![format!("{path}/work-item.json")];
     Ok(false)
 }
@@ -1056,8 +1809,11 @@ static LOCAL_REPOSITORY_LOCKS: OnceLock<(Mutex<BTreeSet<String>>, Condvar)> = On
 
 impl RepositoryMutationLock {
     fn acquire(root: &Path) -> Result<Self, String> {
-        let identity = root.to_string_lossy().to_ascii_lowercase();
-        let key = hex_digest(Sha256::digest(identity.as_bytes()));
+        let store = OrdinaryTransactionStore::open(root)?;
+        let native_identity = NativeRootIdentity::capture(store.root())?;
+        let identity = serde_json::to_vec(&native_identity)
+            .map_err(|error| format!("encode working-root lock identity: {error}"))?;
+        let key = hex_digest(Sha256::digest(identity));
         let deadline = Instant::now() + Duration::from_secs(2);
         let (held_keys, changed) =
             LOCAL_REPOSITORY_LOCKS.get_or_init(|| (Mutex::new(BTreeSet::new()), Condvar::new()));
@@ -1078,27 +1834,57 @@ impl RepositoryMutationLock {
         held.insert(key.clone());
         drop(held);
 
-        let directory = std::env::temp_dir().join("repopact-proposal-locks");
-        if let Err(error) = fs::create_dir_all(&directory) {
-            release_local_repository_lock(&key);
-            return Err(format!(
-                "unable to prepare proposal lock directory: {error}"
-            ));
-        }
-        let path = directory.join(format!("{key}.lock"));
-        let file = match OpenOptions::new()
+        let path = store.anchor().join("repository.lock");
+        let mut lock_options = OpenOptions::new();
+        lock_options
             .read(true)
             .write(true)
             .create(true)
-            .truncate(false)
-            .open(&path)
+            .truncate(false);
+        #[cfg(unix)]
         {
+            use std::os::unix::fs::OpenOptionsExt;
+            lock_options.mode(0o600).custom_flags(libc::O_NOFOLLOW);
+        }
+        #[cfg(windows)]
+        {
+            use std::os::windows::fs::OpenOptionsExt;
+            lock_options.custom_flags(0x0020_0000); // FILE_FLAG_OPEN_REPARSE_POINT
+        }
+        let file = match lock_options.open(&path) {
             Ok(file) => file,
             Err(error) => {
                 release_local_repository_lock(&key);
                 return Err(format!("unable to open repository mutation lock: {error}"));
             }
         };
+        let metadata = match file.metadata() {
+            Ok(metadata) => metadata,
+            Err(error) => {
+                release_local_repository_lock(&key);
+                return Err(format!(
+                    "unable to inspect repository mutation lock: {error}"
+                ));
+            }
+        };
+        if !metadata.is_file() || is_symlink_or_reparse(&metadata) {
+            release_local_repository_lock(&key);
+            return Err("repository mutation lock is not a regular file".to_owned());
+        }
+        if let Err(error) = ensure_single_link(&path, &metadata) {
+            release_local_repository_lock(&key);
+            return Err(error);
+        }
+        #[cfg(unix)]
+        if let Err(error) = transaction_store::check_private_file(&path, &metadata) {
+            release_local_repository_lock(&key);
+            return Err(error);
+        }
+        #[cfg(windows)]
+        if let Err(error) = transaction_store::check_private_directory(store.anchor()) {
+            release_local_repository_lock(&key);
+            return Err(error);
+        }
         #[cfg(windows)]
         let mut overlapped = windows_sys::Win32::System::IO::OVERLAPPED::default();
         loop {
@@ -1260,6 +2046,12 @@ fn empty_plan(
         repository_identity: identity.clone(),
         read_set: read_set.clone(),
         plan_token: read_set.token(&identity),
+        mutation_key: if matches!(&request, MutationRequest::CreateWorkItem(item) if item.status == "proposed")
+        {
+            None
+        } else {
+            Some(new_mutation_key())
+        },
         request,
         file_operations: Vec::new(),
         generated_impacts: Vec::new(),
@@ -1560,10 +2352,16 @@ fn civil_from_days(days_since_epoch: i64) -> (i64, i64, i64) {
 }
 
 fn copy_tree(source: &Path, destination: &Path) -> Result<(), String> {
-    copy_tree_inner(source, destination, true)
+    let repository_root = fs::canonicalize(source).map_err(|error| error.to_string())?;
+    copy_tree_inner(source, destination, true, &repository_root)
 }
 
-fn copy_tree_inner(source: &Path, destination: &Path, repository_root: bool) -> Result<(), String> {
+fn copy_tree_inner(
+    source: &Path,
+    destination: &Path,
+    repository_root: bool,
+    canonical_root: &Path,
+) -> Result<(), String> {
     fs::create_dir_all(destination).map_err(|error| error.to_string())?;
     let mut entries = fs::read_dir(source)
         .map_err(|error| error.to_string())?
@@ -1573,6 +2371,9 @@ fn copy_tree_inner(source: &Path, destination: &Path, repository_root: bool) -> 
     for entry in entries {
         let name = entry.file_name().to_string_lossy().to_string();
         let from = entry.path();
+        if from == canonical_root.join("work/.repopact-transactions/ordinary-v1") {
+            continue;
+        }
         let kind = entry.file_type().map_err(|error| error.to_string())?;
         if name == "build" {
             if repository_root && kind.is_dir() {
@@ -1599,7 +2400,7 @@ fn copy_tree_inner(source: &Path, destination: &Path, repository_root: bool) -> 
             continue;
         }
         if kind.is_dir() {
-            copy_tree_inner(&from, &to, false)?;
+            copy_tree_inner(&from, &to, false, canonical_root)?;
         } else if kind.is_file() {
             fs::copy(&from, &to).map_err(|error| error.to_string())?;
         }
@@ -1737,6 +2538,8 @@ pub fn apply(plan: &MutationPlan, options: &ApplyOptions) -> MutationResult {
     let mut result = MutationResult {
         success: false,
         rolled_back: false,
+        mutation_key: plan.mutation_key.clone(),
+        transaction_outcome: "unknown".to_owned(),
         plan_token: plan.plan_token.clone(),
         changed_paths: Vec::new(),
         diagnostics: plan.diagnostics.clone(),
@@ -1746,25 +2549,177 @@ pub fn apply(plan: &MutationPlan, options: &ApplyOptions) -> MutationResult {
     if matches!(&plan.request, MutationRequest::CreateWorkItem(item) if item.status == "proposed") {
         return apply_proposal(plan, options, result);
     }
-    if !plan.is_applicable() {
+    let Some(request_key) = plan.mutation_key.as_deref() else {
+        result.transaction_outcome = "rejected".to_owned();
+        result.diagnostics.push(MutationDiagnostic::error(
+            "mutation.request-key-required",
+            "ordinary mutation plan has no durable request key; re-plan before applying",
+        ));
+        return result;
+    };
+    if let Err(error) = transaction_store::validate_key(request_key) {
+        result.transaction_outcome = "rejected".to_owned();
+        result.diagnostics.push(MutationDiagnostic::error(
+            "mutation.request-key-invalid",
+            error,
+        ));
         return result;
     }
     let repository = Repository::open(&plan.repository_identity.root);
     let _lock = match RepositoryMutationLock::acquire(repository.root()) {
         Ok(lock) => lock,
         Err(error) => {
+            result.transaction_outcome = "recovery_required".to_owned();
             result
                 .diagnostics
                 .push(MutationDiagnostic::error("mutation.lock-timeout", error));
             return result;
         }
     };
+    let store = match OrdinaryTransactionStore::open(repository.root()) {
+        Ok(store) => store,
+        Err(error) => {
+            result.transaction_outcome = "recovery_required".to_owned();
+            result.diagnostics.push(MutationDiagnostic::error(
+                "mutation.transaction-store",
+                error,
+            ));
+            return result;
+        }
+    };
+    let payload_sha256 = mutation_payload_digest(plan);
+    if let Err(error) = reconcile_terminal_journal(&store) {
+        result.transaction_outcome = "recovery_required".to_owned();
+        result.diagnostics.push(MutationDiagnostic::error(
+            "mutation.recovery-required",
+            error,
+        ));
+        return result;
+    }
+    match store.load_receipt(request_key) {
+        Ok(Some(receipt)) if receipt.payload_sha256 == payload_sha256 => {
+            let mut replay = receipt.result;
+            replay.replayed = true;
+            replay.mutation_key = Some(request_key.to_owned());
+            replay.transaction_outcome = "replayed".to_owned();
+            return replay;
+        }
+        Ok(Some(_)) => {
+            result.transaction_outcome = "conflict".to_owned();
+            result.diagnostics.push(MutationDiagnostic::error(
+                "mutation.request-key-conflict",
+                "this mutation request key is already bound to a different intent",
+            ));
+            return result;
+        }
+        Ok(None) => {}
+        Err(error) => {
+            result.transaction_outcome = "recovery_required".to_owned();
+            result.diagnostics.push(MutationDiagnostic::error(
+                "mutation.transaction-store",
+                error,
+            ));
+            return result;
+        }
+    }
+    match store.load_journal() {
+        Ok(Some(journal)) => {
+            result.transaction_outcome = "recovery_required".to_owned();
+            result.diagnostics.push(MutationDiagnostic::error(
+                "mutation.recovery-required",
+                format!("request '{}' has an unresolved ordinary mutation; inspect status and explicitly recover it", journal.request_key),
+            ));
+            return result;
+        }
+        Ok(None) => {}
+        Err(error) => {
+            result.transaction_outcome = "recovery_required".to_owned();
+            result.diagnostics.push(MutationDiagnostic::error(
+                "mutation.recovery-required",
+                error,
+            ));
+            return result;
+        }
+    }
+    match store.has_unknown_artifacts() {
+        Ok(unknown) if unknown.is_empty() => {}
+        Ok(unknown) => {
+            result.transaction_outcome = "recovery_required".to_owned();
+            result.diagnostics.push(MutationDiagnostic::error(
+                "mutation.recovery-required",
+                format!(
+                    "transaction storage contains an unknown artifact; preserved it: {}",
+                    unknown.join(", ")
+                ),
+            ));
+            return result;
+        }
+        Err(error) => {
+            result.transaction_outcome = "recovery_required".to_owned();
+            result.diagnostics.push(MutationDiagnostic::error(
+                "mutation.transaction-store",
+                error,
+            ));
+            return result;
+        }
+    }
+    match store.receipts() {
+        Ok(_) => {}
+        Err(error) => {
+            result.transaction_outcome = "recovery_required".to_owned();
+            result.diagnostics.push(MutationDiagnostic::error(
+                "mutation.transaction-store",
+                error,
+            ));
+            return result;
+        }
+    }
+    match store.receipt_count() {
+        Ok(count) if count < transaction_store::MAX_RECEIPTS => {}
+        Ok(_) => {
+            result.transaction_outcome = "rejected".to_owned();
+            result.diagnostics.push(MutationDiagnostic::error(
+                "mutation.receipt-capacity",
+                "terminal receipt capacity is exhausted; no history was evicted and no mutation was applied",
+            ));
+            return result;
+        }
+        Err(error) => {
+            result.transaction_outcome = "recovery_required".to_owned();
+            result.diagnostics.push(MutationDiagnostic::error(
+                "mutation.transaction-store",
+                error,
+            ));
+            return result;
+        }
+    }
+    if !plan.is_applicable() {
+        result.transaction_outcome = "rejected".to_owned();
+        return persist_terminal_result(
+            &store,
+            &repository,
+            plan,
+            request_key,
+            &payload_sha256,
+            result,
+            "rejected",
+        );
+    }
     if repository.identity() != plan.repository_identity {
         result.diagnostics.push(MutationDiagnostic::error(
             "mutation.repository-identity",
             "repository identity changed since planning",
         ));
-        return result;
+        result.transaction_outcome = "rejected".to_owned();
+        return persist_terminal_result(
+            &store,
+            &repository,
+            plan,
+            request_key,
+            &payload_sha256,
+            result,
+            "rejected",
+        );
     }
     match stale_read_fact(&repository, &plan.read_set) {
         Ok(Some(stale)) => {
@@ -1778,14 +2733,32 @@ pub fn apply(plan: &MutationPlan, options: &ApplyOptions) -> MutationResult {
                 )
                 .at(stale.path),
             );
-            return result;
+            result.transaction_outcome = "rejected".to_owned();
+            return persist_terminal_result(
+                &store,
+                &repository,
+                plan,
+                request_key,
+                &payload_sha256,
+                result,
+                "rejected",
+            );
         }
         Err(error) => {
             result.diagnostics.push(MutationDiagnostic::error(
                 "mutation.plan-stale",
                 format!("unable to safely verify the plan read set: {error}"),
             ));
-            return result;
+            result.transaction_outcome = "rejected".to_owned();
+            return persist_terminal_result(
+                &store,
+                &repository,
+                plan,
+                request_key,
+                &payload_sha256,
+                result,
+                "rejected",
+            );
         }
         Ok(None) => {}
     }
@@ -1797,14 +2770,32 @@ pub fn apply(plan: &MutationPlan, options: &ApplyOptions) -> MutationResult {
                 "mutation.preimage-failed",
                 format!("invalid injected drift path: {error}"),
             ));
-            return result;
+            result.transaction_outcome = "rejected".to_owned();
+            return persist_terminal_result(
+                &store,
+                &repository,
+                plan,
+                request_key,
+                &payload_sha256,
+                result,
+                "rejected",
+            );
         }
         if let Err(error) = validate_path_chain(repository.root(), relative) {
             result.diagnostics.push(MutationDiagnostic::error(
                 "mutation.preimage-failed",
                 format!("unsafe injected drift path: {error}"),
             ));
-            return result;
+            result.transaction_outcome = "rejected".to_owned();
+            return persist_terminal_result(
+                &store,
+                &repository,
+                plan,
+                request_key,
+                &payload_sha256,
+                result,
+                "rejected",
+            );
         }
         let absolute = repository.root().join(relative);
         if let Err(error) = fs::write(
@@ -1815,7 +2806,8 @@ pub fn apply(plan: &MutationPlan, options: &ApplyOptions) -> MutationResult {
                 "mutation.preimage-failed",
                 format!("unable to inject external drift after stale check: {error}"),
             ));
-            return result;
+            result.transaction_outcome = "rejected".to_owned();
+            return persist_terminal_result(&store, &repository, plan, request_key, &payload_sha256, result, "rejected");
         }
     }
 
@@ -1826,7 +2818,16 @@ pub fn apply(plan: &MutationPlan, options: &ApplyOptions) -> MutationResult {
                 "mutation.preimage-failed",
                 format!("unable to establish safe mutation paths: {error}"),
             ));
-            return result;
+            result.transaction_outcome = "rejected".to_owned();
+            return persist_terminal_result(
+                &store,
+                &repository,
+                plan,
+                request_key,
+                &payload_sha256,
+                result,
+                "rejected",
+            );
         }
     };
     let preimages = match capture_preimages(&repository, &roots) {
@@ -1836,7 +2837,16 @@ pub fn apply(plan: &MutationPlan, options: &ApplyOptions) -> MutationResult {
                 "mutation.preimage-failed",
                 format!("unable to capture complete mutation preimage: {error}"),
             ));
-            return result;
+            result.transaction_outcome = "rejected".to_owned();
+            return persist_terminal_result(
+                &store,
+                &repository,
+                plan,
+                request_key,
+                &payload_sha256,
+                result,
+                "rejected",
+            );
         }
     };
     if let Some(stale) = stale_read_fact_in_preimages(&repository, &plan.read_set, &preimages) {
@@ -1850,7 +2860,16 @@ pub fn apply(plan: &MutationPlan, options: &ApplyOptions) -> MutationResult {
             )
             .at(stale.path),
         );
-        return result;
+        result.transaction_outcome = "rejected".to_owned();
+        return persist_terminal_result(
+            &store,
+            &repository,
+            plan,
+            request_key,
+            &payload_sha256,
+            result,
+            "rejected",
+        );
     }
     match stale_read_fact(&repository, &plan.read_set) {
         Ok(Some(stale)) => {
@@ -1864,7 +2883,16 @@ pub fn apply(plan: &MutationPlan, options: &ApplyOptions) -> MutationResult {
                 )
                 .at(stale.path),
             );
-            return result;
+            result.transaction_outcome = "rejected".to_owned();
+            return persist_terminal_result(
+                &store,
+                &repository,
+                plan,
+                request_key,
+                &payload_sha256,
+                result,
+                "rejected",
+            );
         }
         Err(error) => {
             result.diagnostics.push(MutationDiagnostic::error(
@@ -1873,10 +2901,172 @@ pub fn apply(plan: &MutationPlan, options: &ApplyOptions) -> MutationResult {
                     "unable to safely recheck the plan read set before the first write: {error}"
                 ),
             ));
-            return result;
+            result.transaction_outcome = "rejected".to_owned();
+            return persist_terminal_result(
+                &store,
+                &repository,
+                plan,
+                request_key,
+                &payload_sha256,
+                result,
+                "rejected",
+            );
         }
         Ok(None) => {}
     }
+    let mut projected_steps = vec![preimages.clone()];
+    for operation in &plan.file_operations {
+        let Some(previous) = projected_steps.last() else {
+            unreachable!("the before-state is always the first projected step");
+        };
+        let projected = match project_operation(&repository, previous, operation) {
+            Ok(projected) => projected,
+            Err(error) => {
+                result.transaction_outcome = "rejected".to_owned();
+                result.diagnostics.push(MutationDiagnostic::error(
+                    "mutation.projection-failed",
+                    error,
+                ));
+                return persist_terminal_result(
+                    &store,
+                    &repository,
+                    plan,
+                    request_key,
+                    &payload_sha256,
+                    result,
+                    "rejected",
+                );
+            }
+        };
+        projected_steps.push(projected);
+    }
+    let before = match StoredPreimages::from_live(&preimages) {
+        Ok(before) => before,
+        Err(error) => {
+            result.transaction_outcome = "rejected".to_owned();
+            result
+                .diagnostics
+                .push(MutationDiagnostic::error("mutation.preimage-limit", error));
+            return persist_terminal_result(
+                &store,
+                &repository,
+                plan,
+                request_key,
+                &payload_sha256,
+                result,
+                "rejected",
+            );
+        }
+    };
+    let projected_after = match projected_steps
+        .last()
+        .and_then(|state| StoredPreimages::from_live(state).ok())
+    {
+        Some(after) => after,
+        None => {
+            result.transaction_outcome = "rejected".to_owned();
+            result.diagnostics.push(MutationDiagnostic::error(
+                "mutation.projection-limit",
+                "projected transaction state could not be bounded for journaling",
+            ));
+            return persist_terminal_result(
+                &store,
+                &repository,
+                plan,
+                request_key,
+                &payload_sha256,
+                result,
+                "rejected",
+            );
+        }
+    };
+    let step_sha256 = match projected_steps
+        .iter()
+        .map(state_digest)
+        .collect::<Result<Vec<_>, _>>()
+    {
+        Ok(digests) => digests,
+        Err(error) => {
+            result.transaction_outcome = "rejected".to_owned();
+            result.diagnostics.push(MutationDiagnostic::error(
+                "mutation.projection-limit",
+                error,
+            ));
+            return persist_terminal_result(
+                &store,
+                &repository,
+                plan,
+                request_key,
+                &payload_sha256,
+                result,
+                "rejected",
+            );
+        }
+    };
+    let native_root = match NativeRootIdentity::capture(repository.root()) {
+        Ok(identity) => identity,
+        Err(error) => {
+            result.transaction_outcome = "rejected".to_owned();
+            result.diagnostics.push(MutationDiagnostic::error(
+                "mutation.transaction-root",
+                error,
+            ));
+            return persist_terminal_result(
+                &store,
+                &repository,
+                plan,
+                request_key,
+                &payload_sha256,
+                result,
+                "rejected",
+            );
+        }
+    };
+    let mut journal = OrdinaryJournal {
+        version: transaction_store::STORE_VERSION,
+        request_key: request_key.to_owned(),
+        payload_sha256: payload_sha256.clone(),
+        repository_identity: plan.repository_identity.clone(),
+        native_root,
+        storage_identity: match NativeRootIdentity::capture(store.anchor()) {
+            Ok(identity) => identity,
+            Err(error) => {
+                result.transaction_outcome = "rejected".to_owned();
+                result.diagnostics.push(MutationDiagnostic::error(
+                    "mutation.transaction-storage",
+                    error,
+                ));
+                return persist_terminal_result(
+                    &store,
+                    &repository,
+                    plan,
+                    request_key,
+                    &payload_sha256,
+                    result,
+                    "rejected",
+                );
+            }
+        },
+        plan_token: plan.plan_token.clone(),
+        request: plan.request.clone(),
+        operations: plan.file_operations.clone(),
+        roots: before.roots.clone(),
+        before,
+        projected_after,
+        step_sha256,
+        phase: JournalPhase::Prepared,
+        next_operation: 0,
+    };
+    pause_at_test_phase("before_prepare");
+    if let Err(error) = store.write_journal(&journal, true) {
+        result.transaction_outcome = "unknown".to_owned();
+        result.diagnostics.push(MutationDiagnostic::error(
+            "mutation.transaction-prepare",
+            error,
+        ));
+        return result;
+    }
+    pause_at_test_phase("after_prepare_before_write");
     let mut expected = plan
         .file_operations
         .iter()
@@ -1892,6 +3082,22 @@ pub fn apply(plan: &MutationPlan, options: &ApplyOptions) -> MutationResult {
         .collect::<BTreeMap<_, _>>();
     let mut undo = Vec::<UndoRecord>::new();
     for (index, operation) in plan.file_operations.iter().enumerate() {
+        journal.phase = JournalPhase::Applying;
+        journal.next_operation = index;
+        if let Err(error) = store.write_journal(&journal, false) {
+            return durable_failure_with_rollback(
+                &repository,
+                undo,
+                result,
+                format!("unable to persist operation {index} checkpoint: {error}"),
+                None,
+                &store,
+                &mut journal,
+            );
+        }
+        if index > 0 {
+            pause_at_test_phase("between_writes");
+        }
         if options.external_drift_at == Some(index) {
             if let Some(path) = options.external_drift_path.as_deref() {
                 let absolute = repository.root().join(path);
@@ -1899,12 +3105,14 @@ pub fn apply(plan: &MutationPlan, options: &ApplyOptions) -> MutationResult {
                     let _ = fs::create_dir_all(parent);
                 }
                 if let Err(error) = fs::write(&absolute, b"external drift injected during apply") {
-                    return failure_with_rollback(
+                    return durable_failure_with_rollback(
                         &repository,
                         undo,
                         result,
                         format!("unable to inject external drift: {error}"),
                         None,
+                        &store,
+                        &mut journal,
                     );
                 }
             }
@@ -1912,54 +3120,64 @@ pub fn apply(plan: &MutationPlan, options: &ApplyOptions) -> MutationResult {
         let operation_roots = match checked_operation_roots(operation, &repository) {
             Ok(roots) => roots,
             Err(error) => {
-                return failure_with_rollback(
+                return durable_failure_with_rollback(
                     &repository,
                     undo,
                     result,
                     format!("unable to recheck operation paths before operation {index}: {error}"),
                     None,
+                    &store,
+                    &mut journal,
                 );
             }
         };
         let before = match capture_preimages(&repository, &operation_roots) {
             Ok(before) => before,
             Err(error) => {
-                return failure_with_rollback(
+                return durable_failure_with_rollback(
                     &repository,
                     undo,
                     result,
                     format!("unable to recheck preimage before operation {index}: {error}"),
                     None,
+                    &store,
+                    &mut journal,
                 );
             }
         };
         if let Some(stale_path) = operation_drift(operation, &repository, &before, &expected) {
-            return failure_with_rollback(
+            return durable_failure_with_rollback(
                 &repository,
                 undo,
                 result,
                 format!("target '{stale_path}' changed during apply; refusing to merge external content"),
                 None,
+                &store,
+                &mut journal,
             );
         }
         if options.fail_before_operation == Some(index) {
-            return failure_with_rollback(
+            return durable_failure_with_rollback(
                 &repository,
                 undo,
                 result,
                 format!("failure injected before operation {index}"),
                 None,
+                &store,
+                &mut journal,
             );
         }
         let expected_after = match project_operation(&repository, &before, operation) {
             Ok(after) => after,
             Err(error) => {
-                return failure_with_rollback(
+                return durable_failure_with_rollback(
                     &repository,
                     undo,
                     result,
                     format!("operation {index} cannot be applied safely: {error}"),
                     None,
+                    &store,
+                    &mut journal,
                 );
             }
         };
@@ -1967,7 +3185,7 @@ pub fn apply(plan: &MutationPlan, options: &ApplyOptions) -> MutationResult {
         let after = match capture_preimages(&repository, &operation_roots) {
             Ok(after) => after,
             Err(error) => {
-                return failure_with_rollback(
+                return durable_failure_with_rollback(
                     &repository,
                     undo,
                     result,
@@ -1975,6 +3193,8 @@ pub fn apply(plan: &MutationPlan, options: &ApplyOptions) -> MutationResult {
                     Some(format!(
                         "operation {index} after-state could not be inspected; recovery is required and its paths were left untouched"
                     )),
+                    &store,
+                    &mut journal,
                 );
             }
         };
@@ -1984,7 +3204,7 @@ pub fn apply(plan: &MutationPlan, options: &ApplyOptions) -> MutationResult {
                 Err(error) => format!("apply failed: {error}"),
                 Ok(()) => format!("operation {index} produced an unexpected after-state"),
             };
-            return failure_with_rollback(
+            return durable_failure_with_rollback(
                 &repository,
                 undo,
                 result,
@@ -1994,6 +3214,8 @@ pub fn apply(plan: &MutationPlan, options: &ApplyOptions) -> MutationResult {
                         "operation {index} after-state does not match the transaction's projected state; recovery is required and the uncertain paths were left untouched"
                     )
                 }),
+                &store,
+                &mut journal,
             );
         }
         let changed = after.entries != before.entries;
@@ -2005,12 +3227,14 @@ pub fn apply(plan: &MutationPlan, options: &ApplyOptions) -> MutationResult {
             });
         }
         if let Err(error) = apply_result {
-            return failure_with_rollback(
+            return durable_failure_with_rollback(
                 &repository,
                 undo,
                 result,
                 format!("apply failed: {error}"),
                 None,
+                &store,
+                &mut journal,
             );
         }
         for (path, state) in &mut expected {
@@ -2018,13 +3242,30 @@ pub fn apply(plan: &MutationPlan, options: &ApplyOptions) -> MutationResult {
                 *state = observed;
             }
         }
+        journal.next_operation = index + 1;
+        if let Err(error) = store.write_journal(&journal, false) {
+            return durable_failure_with_rollback(
+                &repository,
+                undo,
+                result,
+                format!("unable to persist completion checkpoint for operation {index}: {error}"),
+                None,
+                &store,
+                &mut journal,
+            );
+        }
+        if index + 1 == plan.file_operations.len() {
+            pause_at_test_phase("after_last_write_before_validation");
+        }
         if options.fail_after_operation == Some(index) {
-            return failure_with_rollback(
+            return durable_failure_with_rollback(
                 &repository,
                 undo,
                 result,
                 format!("failure injected after operation {index}"),
                 None,
+                &store,
+                &mut journal,
             );
         }
     }
@@ -2036,12 +3277,14 @@ pub fn apply(plan: &MutationPlan, options: &ApplyOptions) -> MutationResult {
             .map(|diagnostic| diagnostic.message.clone())
             .collect::<Vec<_>>()
             .join("; ");
-        return failure_with_rollback(
+        return durable_failure_with_rollback(
             &repository,
             undo,
             result,
             format!("post-state validation failed: {messages}"),
             None,
+            &store,
+            &mut journal,
         );
     }
     result.success = true;
@@ -2053,8 +3296,28 @@ pub fn apply(plan: &MutationPlan, options: &ApplyOptions) -> MutationResult {
         .collect::<BTreeSet<_>>()
         .into_iter()
         .collect();
-    result
+    result.transaction_outcome = "committed".to_owned();
+    pause_at_test_phase("after_validation_before_terminal_receipt");
+    let terminal = persist_journal_receipt(&store, &journal, result);
+    pause_at_test_phase("after_terminal_receipt_before_response");
+    terminal
 }
+
+#[cfg(test)]
+fn pause_at_test_phase(phase: &str) {
+    use std::io::{Read, Write};
+    if std::env::var("REPOPACT_MUTATION_PAUSE_AT").ok().as_deref() != Some(phase) {
+        return;
+    }
+    let mut stdout = std::io::stdout().lock();
+    let _ = writeln!(stdout, "REPOPACT_MUTATION_PHASE:{phase}");
+    let _ = stdout.flush();
+    let mut release = [0u8; 1];
+    let _ = std::io::stdin().lock().read(&mut release);
+}
+
+#[cfg(not(test))]
+fn pause_at_test_phase(_phase: &str) {}
 
 fn apply_proposal(
     plan: &MutationPlan,
@@ -2096,6 +3359,23 @@ fn apply_proposal(
         }
     };
     result.metrics.proposal_lock_wait_ms = lock_started.elapsed().as_millis();
+    let ordinary_store = match OrdinaryTransactionStore::open(repository.root()) {
+        Ok(store) => store,
+        Err(error) => {
+            result.diagnostics.push(MutationDiagnostic::error(
+                "mutation.transaction-store",
+                error,
+            ));
+            return result;
+        }
+    };
+    if let Err(error) = ensure_no_pending_ordinary_transaction(&ordinary_store) {
+        result.diagnostics.push(MutationDiagnostic::error(
+            "mutation.recovery-required",
+            error,
+        ));
+        return result;
+    }
     let cleanup_started = Instant::now();
     if let Err(error) = ensure_safe_repository_directory(repository.root(), Path::new("work")) {
         result.metrics.filesystem_staging_ms += cleanup_started.elapsed().as_millis();
@@ -2388,6 +3668,7 @@ where
         return result;
     }
     result.success = true;
+    result.transaction_outcome = "committed".to_owned();
     result.changed_paths = files.iter().map(|(path, _)| path.clone()).collect();
 
     let dashboard_started = Instant::now();
@@ -2504,37 +3785,6 @@ fn atomic_write_projection(path: &Path, content: &[u8]) -> Result<bool, String> 
         let _ = fs::remove_file(&temporary);
     }
     written.map(|_| true)
-}
-
-fn failure_with_rollback(
-    repository: &Repository,
-    mut undo: Vec<UndoRecord>,
-    mut result: MutationResult,
-    message: String,
-    ownership_conflict: Option<String>,
-) -> MutationResult {
-    result
-        .diagnostics
-        .push(MutationDiagnostic::error("mutation.apply-failed", message));
-    let had_owned_changes = !undo.is_empty();
-    let mut errors = ownership_conflict.into_iter().collect::<Vec<_>>();
-    while let Some(record) = undo.pop() {
-        if let Err(error) = restore_operation(repository, &record) {
-            errors.push(error);
-        }
-    }
-    if had_owned_changes && errors.is_empty() {
-        result.rolled_back = true;
-    } else {
-        result.rolled_back = false;
-    }
-    for error in errors {
-        result.diagnostics.push(MutationDiagnostic::error(
-            "mutation.rollback-failed",
-            format!("recovery required; no unowned after-state was overwritten: {error}"),
-        ));
-    }
-    result
 }
 
 fn stale_read_fact(
@@ -3437,8 +4687,7 @@ mod tests {
     #[cfg(windows)]
     use std::os::windows::fs::symlink_dir;
     use std::path::PathBuf;
-    #[cfg(windows)]
-    use std::process::Command;
+    use std::process::{Command, Stdio};
     use std::sync::atomic::{AtomicU64, Ordering};
     use std::sync::mpsc;
     use std::time::Duration;
@@ -3641,6 +4890,389 @@ mod tests {
                 evidence: Vec::new(),
                 provenance: "concrete".to_owned(),
             }])
+    }
+
+    fn terminate_mutation_child_at(root: &Path, key: &str, phase: &str, fail_after: Option<&str>) {
+        let mut command = Command::new(std::env::current_exe().unwrap());
+        command
+            .arg("--exact")
+            .arg("tests::mutation_process_termination_child_entry")
+            .arg("--nocapture")
+            .env("REPOPACT_MUTATION_PAUSE_AT", phase)
+            .env("REPOPACT_MUTATION_CHILD_ROOT", root)
+            .env("REPOPACT_MUTATION_CHILD_KEY", key)
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::inherit());
+        if let Some(index) = fail_after {
+            command.env("REPOPACT_MUTATION_CHILD_FAIL_AFTER", index);
+        }
+        let mut child = command.spawn().expect("spawn isolated mutation test child");
+        let stdout = child.stdout.take().unwrap();
+        let (line_tx, line_rx) = mpsc::channel();
+        std::thread::spawn(move || {
+            use std::io::BufRead;
+            for line in std::io::BufReader::new(stdout).lines() {
+                if line_tx.send(line).is_err() {
+                    break;
+                }
+            }
+        });
+        let expected_signal = format!("REPOPACT_MUTATION_PHASE:{phase}");
+        let mut observed = false;
+        let mut output = Vec::new();
+        while let Ok(line) = line_rx.recv_timeout(Duration::from_secs(20)) {
+            let line = line.expect("read child test output");
+            if line == expected_signal {
+                observed = true;
+                break;
+            }
+            output.push(line);
+        }
+        if !observed {
+            let _ = child.kill();
+            let _ = child.wait();
+            panic!("child did not reach synchronized phase {phase}; output: {output:?}");
+        }
+        child
+            .kill()
+            .expect("terminate only the synchronized child process");
+        let exit = child.wait().expect("wait for terminated child process");
+        assert!(
+            !exit.success(),
+            "synchronized child termination must interrupt the child"
+        );
+    }
+
+    #[test]
+    fn mutation_process_termination_child_entry() {
+        let Ok(root) = std::env::var("REPOPACT_MUTATION_CHILD_ROOT") else {
+            return;
+        };
+        let root = PathBuf::from(root);
+        let key = std::env::var("REPOPACT_MUTATION_CHILD_KEY").unwrap();
+        let snapshot = RepositorySession::open(&root).snapshot();
+        let plan = plan(
+            &snapshot,
+            MutationRequest::create_work_item(create_request(
+                "Process Recovery Probe",
+                "2026-11-27",
+            )),
+        )
+        .with_mutation_key(key);
+        let options = match std::env::var("REPOPACT_MUTATION_CHILD_FAIL_AFTER") {
+            Ok(value) => ApplyOptions {
+                fail_after_operation: Some(value.parse().expect("numeric child failure index")),
+                ..ApplyOptions::default()
+            },
+            Err(_) => ApplyOptions::default(),
+        };
+        let _result = plan.apply_with_options(&options);
+    }
+
+    #[test]
+    fn process_termination_recovery_uses_synchronized_child_kills() {
+        let cases = [
+            ("before_prepare", None),
+            ("after_prepare_before_write", None),
+            ("between_writes", None),
+            ("after_last_write_before_validation", None),
+            ("after_validation_before_terminal_receipt", None),
+            ("after_terminal_receipt_before_journal_cleanup", None),
+            ("after_terminal_receipt_before_response", None),
+            ("during_rollback", Some("0")),
+        ];
+        for (phase, fail_after) in cases {
+            let (root, snapshot) = fixture();
+            let key = format!("recovery-{phase}-{}", std::process::id());
+            let plan = plan(
+                &snapshot,
+                MutationRequest::create_work_item(create_request(
+                    "Process Recovery Probe",
+                    "2026-11-27",
+                )),
+            )
+            .with_mutation_key(key.clone());
+            let repository = Repository::open(&root);
+            let roots = operation_roots(&plan, &repository).unwrap();
+            let before = capture_preimages(&repository, &roots).unwrap();
+            assert!(
+                plan.file_operations.len() >= 2,
+                "the synchronized between-write case requires two operations"
+            );
+
+            terminate_mutation_child_at(&root, &key, phase, fail_after);
+
+            let status = mutation_status(&root, Some(&key));
+            if phase == "before_prepare" {
+                assert_eq!(status.state, "unknown", "pre-prepare absence is unknown");
+                assert_eq!(capture_preimages(&repository, &roots).unwrap(), before);
+                let committed = plan.apply();
+                assert!(
+                    committed.success,
+                    "known pre-prepare retry should commit: {:?}",
+                    committed.diagnostics
+                );
+                let replay = plan.apply();
+                assert!(replay.replayed, "the same durable key replays its receipt");
+                assert!(replay.success);
+            } else if phase == "after_terminal_receipt_before_journal_cleanup"
+                || phase == "after_terminal_receipt_before_response"
+            {
+                assert_eq!(
+                    status.state,
+                    if phase == "after_terminal_receipt_before_journal_cleanup" {
+                        "terminal"
+                    } else {
+                        "clear"
+                    }
+                );
+                assert!(status
+                    .receipts
+                    .iter()
+                    .any(|receipt| receipt.request_key == key));
+                let replay = recover_mutation(&root, Some(&key));
+                assert!(replay.success);
+                assert!(replay.replayed);
+                assert_eq!(replay.transaction_outcome, "replayed");
+            } else {
+                assert_eq!(
+                    status.state, "pending",
+                    "phase {phase} must leave a recoverable journal; status={status:?}"
+                );
+                assert_eq!(status.active_request_key.as_deref(), Some(key.as_str()));
+                let recovered = recover_mutation(&root, Some(&key));
+                assert_eq!(
+                    recovered.transaction_outcome, "rolled_back",
+                    "phase {phase}: {:?}",
+                    recovered.diagnostics
+                );
+                assert!(!recovered.success);
+                assert!(recovered.rolled_back);
+                assert_eq!(capture_preimages(&repository, &roots).unwrap(), before);
+                let replay = recover_mutation(&root, Some(&key));
+                assert!(replay.replayed, "recovery receipt must be idempotent");
+                assert_eq!(replay.transaction_outcome, "replayed");
+            }
+            let _ = fs::remove_dir_all(root);
+        }
+    }
+
+    #[test]
+    fn durable_mutation_key_replays_once_and_rejects_changed_intent() {
+        let (root, snapshot) = fixture();
+        let key = "same-request-key";
+        let first = plan(
+            &snapshot,
+            MutationRequest::create_work_item(create_request("First Durable Item", "2026-11-27")),
+        )
+        .with_mutation_key(key);
+        let committed = first.apply();
+        assert!(committed.success, "{:?}", committed.diagnostics);
+        assert_eq!(committed.transaction_outcome, "committed");
+        let replay = first.apply();
+        assert!(replay.success);
+        assert!(replay.replayed);
+        assert_eq!(replay.transaction_outcome, "replayed");
+        assert_eq!(replay.changed_paths, committed.changed_paths);
+
+        let changed = plan(
+            &RepositorySession::open(&root).snapshot(),
+            MutationRequest::create_work_item(create_request("Different Intent", "2026-11-27")),
+        )
+        .with_mutation_key(key);
+        let conflict = changed.apply();
+        assert!(!conflict.success);
+        assert_eq!(conflict.transaction_outcome, "conflict");
+        assert!(conflict
+            .diagnostics
+            .iter()
+            .any(|item| item.code == "mutation.request-key-conflict"));
+        assert_eq!(fs::read_dir(root.join("work/active")).unwrap().count(), 2);
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn recovery_preserves_external_edits_and_leaves_the_journal_pending() {
+        let (root, snapshot) = fixture();
+        let key = format!("external-edit-{}", std::process::id());
+        let plan = plan(
+            &snapshot,
+            MutationRequest::create_work_item(create_request(
+                "Process Recovery Probe",
+                "2026-11-27",
+            )),
+        )
+        .with_mutation_key(key.clone());
+        let operation_path = operation_paths(&plan.file_operations[0])[0].clone();
+        terminate_mutation_child_at(&root, &key, "between_writes", None);
+
+        let absolute = root.join(&operation_path);
+        let external = b"external user edit preserved after interrupted mutation\n";
+        fs::write(&absolute, external).unwrap();
+        let journal_path = root.join("work/.repopact-transactions/ordinary-v1/journal.json");
+        let before_status = fs::read(&journal_path).unwrap();
+        assert_eq!(mutation_status(&root, Some(&key)).state, "pending");
+        assert_eq!(
+            fs::read(&journal_path).unwrap(),
+            before_status,
+            "status must be read-only"
+        );
+        let recovered = recover_mutation(&root, Some(&key));
+        assert_eq!(recovered.transaction_outcome, "recovery_required");
+        assert_eq!(fs::read(&absolute).unwrap(), external);
+        assert!(
+            journal_path.is_file(),
+            "ambiguous journal remains for inspection"
+        );
+        assert!(root.join("work/active/001-one/extra.md").is_file());
+        let _ = fs::remove_dir_all(root);
+    }
+
+    #[test]
+    fn copied_and_corrupt_journals_are_reported_without_rewriting_them() {
+        let (root, _) = fixture();
+        let key = format!("copied-root-{}", std::process::id());
+        terminate_mutation_child_at(&root, &key, "after_prepare_before_write", None);
+        let source_journal = root.join("work/.repopact-transactions/ordinary-v1/journal.json");
+        let original = fs::read(&source_journal).unwrap();
+
+        let clone = create_fixture_root_under(
+            &std::env::temp_dir(),
+            "repopact-mutation-cloned-root",
+            &TEST_ROOT_COUNTER,
+        )
+        .unwrap();
+        copy_tree(&root, &clone).unwrap();
+        let clone_store = transaction_store::OrdinaryTransactionStore::open(&clone).unwrap();
+        let copied_journal = clone_store.anchor().join("journal.json");
+        fs::write(&copied_journal, &original).unwrap();
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            fs::set_permissions(&copied_journal, fs::Permissions::from_mode(0o600)).unwrap();
+        }
+        let copied_status = mutation_status(&clone, Some(&key));
+        assert_eq!(
+            copied_status.state, "recovery_required",
+            "copied root status: {copied_status:?}"
+        );
+        assert!(
+            copied_status
+                .detail
+                .as_deref()
+                .unwrap_or_default()
+                .contains("identity"),
+            "copied root detail: {copied_status:?}"
+        );
+        assert_eq!(fs::read(&copied_journal).unwrap(), original);
+
+        let corrupt = b"{corrupt journal evidence; preserve exactly";
+        fs::write(&source_journal, corrupt).unwrap();
+        let corrupt_status = mutation_status(&root, Some(&key));
+        assert_eq!(corrupt_status.state, "recovery_required");
+        assert_eq!(fs::read(&source_journal).unwrap(), corrupt);
+        let recovery = recover_mutation(&root, Some(&key));
+        assert_eq!(recovery.transaction_outcome, "recovery_required");
+        assert_eq!(fs::read(&source_journal).unwrap(), corrupt);
+        let _ = fs::remove_dir_all(root);
+        let _ = fs::remove_dir_all(clone);
+    }
+
+    #[test]
+    fn transaction_journal_hard_link_is_rejected_without_touching_its_external_name() {
+        let (root, _) = fixture();
+        let store = transaction_store::OrdinaryTransactionStore::open(&root).unwrap();
+        let external = root.join("external-user-data.txt");
+        let bytes = b"user data linked into transaction storage must survive";
+        fs::write(&external, bytes).unwrap();
+        let journal = store.anchor().join("journal.json");
+        fs::hard_link(&external, &journal).unwrap();
+
+        let status = mutation_status(&root, Some("link-probe"));
+        assert_eq!(status.state, "recovery_required");
+        assert_eq!(fs::read(&external).unwrap(), bytes);
+        assert_eq!(fs::read(&journal).unwrap(), bytes);
+        let _ = fs::remove_dir_all(root);
+    }
+
+    #[test]
+    fn receipt_capacity_failure_precedes_any_governed_write() {
+        let (root, snapshot) = fixture();
+        let repository = Repository::open(&root);
+        let store = transaction_store::OrdinaryTransactionStore::open(&root).unwrap();
+        let native_root = NativeRootIdentity::capture(&root).unwrap();
+        let storage_identity = NativeRootIdentity::capture(store.anchor()).unwrap();
+        let capacity_token = "00".repeat(32);
+        for index in 0..transaction_store::MAX_RECEIPTS {
+            let key = format!("capacity-{index}");
+            let receipt = OrdinaryReceipt {
+                version: transaction_store::STORE_VERSION,
+                request_key: key.clone(),
+                payload_sha256: capacity_token.clone(),
+                repository_identity: repository.identity().clone(),
+                native_root: native_root.clone(),
+                storage_identity: storage_identity.clone(),
+                plan_token: capacity_token.clone(),
+                result: MutationResult {
+                    success: false,
+                    rolled_back: false,
+                    mutation_key: Some(key.clone()),
+                    transaction_outcome: "rejected".to_owned(),
+                    plan_token: capacity_token.clone(),
+                    changed_paths: Vec::new(),
+                    diagnostics: Vec::new(),
+                    replayed: false,
+                    metrics: MutationMetrics::default(),
+                },
+            };
+            let payload = serde_json::to_vec(&receipt).unwrap();
+            let envelope = transaction_store::Envelope {
+                payload: receipt,
+                sha256: transaction_store::digest_hex(Sha256::digest(&payload)),
+            };
+            let name = format!(
+                "{}.json",
+                transaction_store::digest_hex(Sha256::digest(key.as_bytes()))
+            );
+            let path = store.anchor().join("receipts").join(name);
+            fs::write(&path, serde_json::to_vec(&envelope).unwrap()).unwrap();
+            #[cfg(unix)]
+            {
+                use std::os::unix::fs::PermissionsExt;
+                fs::set_permissions(&path, fs::Permissions::from_mode(0o600)).unwrap();
+            }
+        }
+        assert_eq!(
+            store.receipts().unwrap().len(),
+            transaction_store::MAX_RECEIPTS
+        );
+        let key = "capacity-overflow";
+        let pending = plan(
+            &snapshot,
+            MutationRequest::create_work_item(create_request("Must Not Be Written", "2026-11-27")),
+        )
+        .with_mutation_key(key);
+        let repository = Repository::open(&root);
+        let roots = operation_roots(&pending, &repository).unwrap();
+        let before = capture_preimages(&repository, &roots).unwrap();
+        let result = pending.apply();
+        assert!(!result.success);
+        assert_eq!(
+            result.transaction_outcome, "rejected",
+            "diagnostics={:?}",
+            result.diagnostics
+        );
+        assert!(result
+            .diagnostics
+            .iter()
+            .any(|item| item.code == "mutation.receipt-capacity"));
+        assert_eq!(capture_preimages(&repository, &roots).unwrap(), before);
+        assert_eq!(
+            store.receipt_count().unwrap(),
+            transaction_store::MAX_RECEIPTS
+        );
+        let _ = fs::remove_dir_all(root);
     }
 
     // ---- ROG-037/040 adversarial authority-boundary proof (Decision 0053

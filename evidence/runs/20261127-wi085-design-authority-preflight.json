@@ -1,0 +1,51 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "id": "20261127-wi085-design-authority-preflight",
+  "timestamp": "2026-11-28T00:08:00Z",
+  "work_item": "085",
+  "result": "partial",
+  "commands": [
+    {
+      "command": "repopact new work-item 'Recover interrupted ordinary mutations safely' --root . --status active",
+      "exit_code": 0,
+      "summary": "Canonical Rust allocator created WI085 before runtime edits."
+    },
+    {
+      "command": "python scripts/local_validation_storage.py --root . preflight",
+      "exit_code": 0,
+      "summary": "Preflight ready=true; D: volume has 117444538368 free bytes, above 12884901888 required. The repository and configured Cargo target are on D:."
+    },
+    {
+      "command": "repopact dashboard --root .",
+      "exit_code": 0,
+      "summary": "Regenerated the dashboard from current governed records."
+    },
+    {
+      "command": "repopact check-frozen --root . --base origin/main",
+      "exit_code": 0,
+      "summary": "No frozen-surface changes detected."
+    },
+    {
+      "command": "python -m repopact.cli validate --root .",
+      "exit_code": 1,
+      "summary": "Expected record-ordering gap: WI085 referenced this evidence identifier before its manifest had been created. The evidence manifest is now recorded; canonical validation will be rerun."
+    }
+  ],
+  "artifacts": [
+    "decisions/0080-ordinary-process-interruption-recovery-for-typed-mutations.md",
+    "work/active/085-recover-interrupted-ordinary-mutations-safely/work-item.json",
+    "work/active/085-recover-interrupted-ordinary-mutations-safely/README.md"
+  ],
+  "environment": {
+    "platform": "Windows x86_64-pc-windows-msvc",
+    "date_local": "2026-11-27 America/Chicago",
+    "source_base": "1223cab5562f2f4c5a77acb5e6ce8d033aa5a0cb",
+    "source_base_tree": "685528fcfc59601b6c32470d3cd07a43dfebf8b1",
+    "branch": "codex/ordinary-transaction-recovery",
+    "worktree": "D:\\Projects\\repopact-core-transaction-recovery-20261127",
+    "cargo_target_dir": "D:\\Projects\\repopact-core-mutation-preservation-final-20261127\\rust\\target",
+    "cargo_target_preflight_ready": true,
+    "linux_wsl_distribution": "Debian",
+    "operator_authority": "Current user request citing https://github.com/ForgeWireLabs/repopact-core/pull/15#issuecomment-7230402419; Decision 0080 records the author and bounded authority."
+  }
+}

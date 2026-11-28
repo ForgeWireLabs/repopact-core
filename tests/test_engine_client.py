@@ -261,6 +261,67 @@ class EngineClientContractTests(unittest.TestCase):
         self.assertEqual("retry-key", caught.exception.idempotency_key)
         self.assertIn("proposal-status retry-key", str(caught.exception))
 
+    def test_ordinary_mutation_timeout_reports_stable_key_and_status_command(self) -> None:
+        client = object.__new__(engine_client.EngineClient)
+        client.timeout = 0.01
+        client.engine = Path("fake-engine")
+        process = mock.Mock()
+        process.communicate.side_effect = [
+            subprocess.TimeoutExpired("fake-engine", 0.01),
+            ("", ""),
+        ]
+        with mock.patch.object(engine_client.subprocess, "Popen", return_value=process):
+            with self.assertRaises(engine_client.OperationOutcomeUnknownError) as caught:
+                client._invoke({
+                    "operation": "work.create",
+                    "request_id": "request-3",
+                    "params": {"mutation_key": "mutation-retry-key"},
+                })
+        self.assertEqual("mutation-retry-key", caught.exception.request_key)
+        self.assertIn("mutation-status --request-key mutation-retry-key", str(caught.exception))
+        self.assertIn("--mutation-key", str(caught.exception))
+
+    def test_new_work_item_flushes_mutation_key_before_engine_call(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            output = io.StringIO()
+            response = {
+                "ok": True,
+                "result": {
+                    "success": True,
+                    "mutation_key": "provided-key",
+                    "transaction_outcome": "committed",
+                    "changed_paths": ["work/active/001-probe/work-item.json"],
+                    "diagnostics": [],
+                },
+                "diagnostics": [],
+            }
+            with mock.patch.object(engine_client, "EngineClient") as client_type:
+                client_type.return_value.call.return_value = response
+                with redirect_stdout(output):
+                    self.assertEqual(0, cli.main([
+                        "new", "work-item", "Probe", "--root", str(root), "--mutation-key", "provided-key"
+                    ]))
+                args = client_type.return_value.call.call_args
+            self.assertIn("Mutation key: provided-key", output.getvalue())
+            self.assertEqual("work.create", args.args[0])
+            self.assertEqual("provided-key", args.kwargs["params"]["mutation_key"])
+
+    def test_mutation_status_is_read_only_cli_engine_operation(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            response = {"ok": True, "result": {"state": "pending", "receipts": [], "unknown_artifacts": []}}
+            with mock.patch.object(engine_client, "EngineClient") as client_type:
+                client_type.return_value.call.return_value = response
+                output = io.StringIO()
+                with redirect_stdout(output):
+                    self.assertEqual(0, cli.main([
+                        "work", "mutation-status", "--root", temp, "--request-key", "request-1"
+                    ]))
+            client_type.return_value.call.assert_called_once_with(
+                "work.mutation-status", root=Path(temp).resolve(), params={"request_key": "request-1"}
+            )
+            self.assertEqual("pending", json.loads(output.getvalue())["state"])
+
     def test_json_proposal_output_contains_only_structured_lines(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             response = {

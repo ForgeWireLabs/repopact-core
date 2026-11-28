@@ -499,3 +499,24 @@
   Decision0040 still governs the contract: this does not add durable journals
   or process-death/power-loss recovery, and it does not claim safety from every
   uncooperative writer racing inside a filesystem operation.
+
+## 2026-11-27 ordinary mutation process-interruption recovery
+
+- Decision 0080 adds one bounded `ordinary-v1` journal and immutable terminal
+  receipts beneath the working root. Typed ordinary create/edit/transition
+  mutations persist exact WI084 preimages, ordered operations, projected states,
+  and integrity digests before their first governed write. Stable request keys
+  distinguish replay from changed-intent conflict.
+- `work.mutation-status` is read-only. Recovery is a separate explicit
+  operation that reverses only a full live state matching the before-state or
+  one complete authorized operation prefix. Corrupt, linked, copied-root,
+  externally edited, or otherwise ambiguous state is preserved and blocks
+  cooperating mutations.
+- Proposals retain their existing receipts/staging cleanup while sharing the
+  same working-root lock. The overlapping dashboard writer uses that lock and
+  refuses pending recovery. Graph and evidence writers remain outside the lock
+  because their paths are disjoint. Uncoordinated external writers must pause.
+- Synchronized child-process termination tests cover prepared/write,
+  validation, receipt, and rollback boundaries. The proof is process-level for
+  a trusted local principal; it is not a power-loss guarantee or a defense
+  against same-principal tampering.

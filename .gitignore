@@ -11,6 +11,9 @@ release-out/
 installer-out/
 *.egg-info/
 
+# Private root-local journals for ordinary mutation process-interruption recovery
+/work/.repopact-transactions/
+
 # Rust workspace build output (rust/Cargo.toml is one workspace, one shared target dir)
 /rust/target/
 

@@ -50,6 +50,7 @@ def new_work_item(
     status: str = "active",
     *,
     client=None,
+    mutation_key: str | None = None,
 ) -> Path:
     from .engine_client import EngineClient, EngineProtocolError, validated_mutation_result
 
@@ -64,6 +65,10 @@ def new_work_item(
     }
     if proposal:
         params["idempotency_key"] = uuid.uuid4().hex
+    else:
+        if not mutation_key:
+            raise EngineProtocolError("ordinary work-item registration requires a caller-supplied mutation key")
+        params["mutation_key"] = mutation_key
     engine = client or EngineClient(timeout=10.0 if proposal else 30.0)
     operation = "work.propose" if proposal else "work.create"
     response = engine.call(operation, root=root, params=params)
@@ -104,13 +109,17 @@ def main() -> int:
     parser.add_argument("title")
     parser.add_argument("--status", choices=STATUSES, default="active",
                         help="Lifecycle status for a new work item")
+    parser.add_argument("--mutation-key", help="Reuse a printed ordinary mutation key after an interrupted response")
     args = parser.parse_args()
     today = date.today()
     from .engine_client import EngineClient, EngineError, render_validation
     engine = EngineClient()
     try:
         if args.kind == "work-item":
-            path = new_work_item(args.title, today, status=args.status, client=engine)
+            mutation_key = args.mutation_key or (None if args.status == "proposed" else uuid.uuid4().hex)
+            if mutation_key:
+                print(f"Mutation key: {mutation_key}", flush=True)
+            path = new_work_item(args.title, today, status=args.status, client=engine, mutation_key=mutation_key)
         else:
             path = new_markdown(args.kind, args.title, today, client=engine)
         result = render_validation(engine.call("validate", root=ROOT))

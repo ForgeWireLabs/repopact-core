@@ -13,16 +13,16 @@
 | Scope contracts | 5 |
 | Audit registry entries | 5 |
 | Audit findings | 3 |
-| Decision records | 79 |
+| Decision records | 80 |
 | Policy records | 2 |
-| Evidence runs | 370 |
+| Evidence runs | 373 |
 
 ## Work
 
 | Status | Count |
 | --- | ---: |
 | proposed | 4 |
-| active | 10 |
+| active | 11 |
 | blocked | 2 |
 | deferred | 1 |
 | completed | 67 |
@@ -43,5 +43,6 @@ All audit scopes are within their review cadence.
 - 074: Extract RepoPact Core and Independent Workbench (active)
 - 077: Verify RepoPact proposal reliability on the ForgeWire proving ground (active)
 - 083: Reduce governance debt and restore small-team throughput (active)
+- 085: Recover interrupted ordinary mutations safely (active)
 - 032: Restore remote cross-platform governance enforcement (blocked)
 - 080: Remediate Pre-Existing Validation Failures and Restore Green Local Baseline (blocked)

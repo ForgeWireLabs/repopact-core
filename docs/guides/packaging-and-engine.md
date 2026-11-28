@@ -50,6 +50,12 @@ must treat the result as unknown and inspect repository state before deciding
 what to do next. A keyboard interrupt remains a cancellation signal and carries
 the uncertain-outcome detail; it is not converted into a success or retried.
 
+For ordinary typed work-item mutations, keep the printed `--mutation-key`,
+inspect it with `repopact work mutation-status --request-key <key>`, and use
+`repopact work mutation-recover --request-key <key>` only when status reports a
+recoverable pending transaction. Proposal requests continue to use their
+separate `--idempotency-key` and proposal-status receipt.
+
 This session contract uses engine protocol major 2. Major 1 used one JSON
 request per process and read stdin through EOF; major 2 uses newline-framed
 requests in one persistent process for handshake, admission, and operations.
