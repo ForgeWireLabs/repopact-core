@@ -1,0 +1,45 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "artifacts": [
+    "audits/reports/dashboard.md",
+    "work/completed/085-recover-interrupted-ordinary-mutations-safely/work-item.json"
+  ],
+  "commands": [
+    {
+      "command": "repopact dashboard --root .",
+      "exit_code": 0,
+      "summary": "Regenerated the dashboard after completing and moving WI085."
+    },
+    {
+      "command": "repopact validate --root .",
+      "exit_code": 0,
+      "summary": "Repository governance validation passed with WI085 completed and the regenerated dashboard."
+    },
+    {
+      "command": "python scripts/generate_engine_semantic_identity.py --check",
+      "exit_code": 0,
+      "summary": "Semantic input manifest is current."
+    },
+    {
+      "command": "repopact check-frozen --root . --base origin/main",
+      "exit_code": 0,
+      "summary": "No frozen-surface changes detected."
+    }
+  ],
+  "environment": {
+    "candidate_at_validation": {
+      "commit": "17e828f1301699bb7ce692fecc5e7f6c58e0c576",
+      "dirty": true,
+      "note": "Exact staged tree at validation, containing completed WI085 and its generated dashboard; the evidence file itself was recorded immediately after the passing validation. Runtime code is unchanged from validated C1.",
+      "tree": "d48d2b951f4c54f1f852bca6b8beb5ac86e6dc83"
+    },
+    "executor": "local",
+    "platform": "windows"
+  },
+  "id": "20261128-wi085-closeout-validation",
+  "provenance": "concrete",
+  "result": "passed",
+  "timestamp": "2026-11-28T03:34:27Z",
+  "timestamp_basis": "git-recording",
+  "work_item": "085"
+}

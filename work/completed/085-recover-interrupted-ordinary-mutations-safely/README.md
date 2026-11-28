@@ -1,6 +1,6 @@
 # 085 — Recover interrupted ordinary mutations safely
 
-> **Status**: Active
+> **Status**: Completed
 > **Lead**: tooling-owner
 > **Owner scope**: tooling
 > **Affected scopes**: tooling, governance, work, docs, evidence
@@ -36,10 +36,24 @@ Historical PR15 sources may be consulted for isolated serialization/publication 
 ## Acceptance criteria
 
 - [x] **AC-1** — accepted authority, WI084-based design, writer overlap, states, bounds, and explicit non-goals are recorded before runtime edits. See `20261127-wi085-design-authority-preflight`.
-- [ ] **AC-2** — implement bounded journals, same-root admission and stable-key outcomes, explicit status/recovery, and scoped guards without changing proposal cleanup or receipts.
-- [ ] **AC-3** — prove synchronized real child-process termination, safe/idempotent recovery, key behavior, lock/root/path checks, and preservation of uncertain or unrelated data; report per-platform coverage honestly.
-- [ ] **AC-4** — run focused regressions and one clean declared local CI profile plus the required separate legacy Python comparator; reconcile semantic identity, docs, audits, evidence, dashboard, canonical validation and frozen checks; publish one draft PR with exact source/tree evidence.
+- [x] **AC-2** — implement bounded journals, same-root admission and stable-key outcomes, explicit status/recovery, and scoped guards without changing proposal cleanup or receipts.
+- [x] **AC-3** — prove synchronized real child-process termination, safe/idempotent recovery, key behavior, lock/root/path checks, and preservation of uncertain or unrelated data; report per-platform coverage honestly.
+- [x] **AC-4** — run focused regressions and one clean declared local CI profile plus the required separate legacy Python comparator; reconcile semantic identity, docs, audits, evidence, dashboard, canonical validation and frozen checks; publish one draft PR with exact source/tree evidence.
 
 ## Validation and closeout
 
-Evidence runs record exact command, executable/process-image provenance, source identity, exit status, and artifacts. A focused test run is not represented as the completion profile. The final report names any unavailable OS coverage and retains affected criteria pending if required evidence cannot be produced. The full directory remains active until all accepted criteria have linked evidence; then the coordinator can complete it and regenerate the dashboard.
+Evidence runs record exact command, executable/process-image provenance, source identity, exit status, and artifacts. A focused test run is not represented as the completion profile. Platform coverage is reported by environment and scope; the WSL run proves mutation-package behavior only, not a full Linux profile. All accepted criteria now have linked evidence, and the coordinator moved the completed directory and regenerated the dashboard.
+
+## Completed implementation and validation
+
+The bounded ordinary-v1 transaction store, root-bound admission lock, conservative explicit recovery, stable-key replay/conflict outcomes, and read-only status are implemented in the Rust mutation engine. Transaction ownership remains distinct from proposal receipts and proposal-stage cleanup. The private repository-local journal and lock directory is ignored by Git; it contains runtime state only.
+
+Synchronized child-process termination tests killed actual child processes across the transaction boundaries and verified explicit recovery on both Windows and WSL Debian. Evidence `20261128-wi085-mutation-subprocess-platforms` records the focused mutation-package runs; Linux coverage is package-only, not a full Linux profile.
+
+The clean C1 candidate (`17e828f1301699bb7ce692fecc5e7f6c58e0c576`, tree `32568a6640ee9acfbb36042d74a55448190f9bc6`) passed the local `ci` profile in 2,546.609 seconds. Its required validation, Python suite, canonical conformance, Rust workspace, and SPEC freshness stages passed; its optional frozen-surface report also passed. See `20261127-wi085-ci-windows-passing.json`.
+
+The separately required clean-source legacy comparator passed with complete engine process-image provenance: Rust 43/43, Python compatibility 43/43, WI050 8/8, and WI079 reference 10/10. WI079 remains instruction-only evidence. See `20261128-wi085-legacy-python-comparator.json` and its linked conformance artifact.
+
+A first post-profile legacy-comparator attempt passed the same vectors but returned incomplete provenance because the newly recorded profile evidence made the source tree dirty. Its partial artifact, `20261128T032540634595Z-wi076-ac6-engine-conformance.json`, is preserved. The comparator was rerun from clean C1 with matching engine build provenance and passed; the successful run is `20261128T032944884645Z-wi076-ac6-engine-conformance.json`.
+
+The complete local CI profile is `20261127-wi085-ci-windows-passing`; the focused cross-platform child-process evidence is `20261128-wi085-mutation-subprocess-platforms`. Final completed-work dashboard, canonical validation, semantic-identity check, and frozen-surface result are recorded in `20261128-wi085-closeout-validation`. No hosted CI/CD, merge, or release was performed.
