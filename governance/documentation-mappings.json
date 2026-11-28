@@ -97,8 +97,8 @@
       ],
       "description": "The recovery guides explain plan-fact reconciliation, path containment, hard-link and reparse rejection, exact rollback confirmation, and explicit process-interruption recovery for ordinary mutations.",
       "snapshot": {
-        "source_digest": "e77f0f80814fb21394a4b9df5a9a7e2e9d101e8197cdf207b521080f17b4d3cb",
-        "documentation_digest": "d0f832b42458dbb0df9aa4d88c577059a5c7f91ec810a92011078bfc9c29c92e"
+        "source_digest": "cd47976ef0cac1a3102a9a30ee95061ae7a1f29b4697b30de7c215d3dd3ee66d",
+        "documentation_digest": "be079274543364d7331a3e52322adc185de0731e8a4e1155ba470f67b99a9b4a"
       }
     },
     {

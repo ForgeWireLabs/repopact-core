@@ -40,6 +40,88 @@ class EngineClientContractTests(unittest.TestCase):
         with self.assertRaisesRegex(engine_client.EngineProtocolError, "success conflicts"):
             engine_client.validated_mutation_result(response)
 
+    def test_mutation_terminal_outcome_must_match_success_and_rollback(self) -> None:
+        for outcome, success, rolled_back in [
+            ("committed", False, False),
+            ("replayed", True, True),
+            ("rolled_back", False, False),
+            ("recovery_required", True, False),
+        ]:
+            diagnostics = [] if success else [{
+                "severity": "error",
+                "blocking": True,
+                "code": "mutation.failed",
+                "message": "mutation did not commit",
+            }]
+            response = {
+                "ok": True,
+                "result": {
+                    "success": success,
+                    "rolled_back": rolled_back,
+                    "transaction_outcome": outcome,
+                    "changed_paths": [],
+                    "diagnostics": diagnostics,
+                },
+                "diagnostics": diagnostics,
+            }
+            with self.subTest(outcome=outcome, success=success, rolled_back=rolled_back):
+                with self.assertRaisesRegex(engine_client.EngineProtocolError, "outcome conflicts"):
+                    engine_client.validated_mutation_result(response)
+
+    def test_mutation_cleanup_warning_keeps_committed_success(self) -> None:
+        response = {
+            "ok": True,
+            "result": {
+                "success": True,
+                "rolled_back": False,
+                "transaction_outcome": "committed",
+                "changed_paths": [],
+                "diagnostics": [{
+                    "severity": "warning",
+                    "blocking": False,
+                    "code": "mutation.terminal-cleanup-pending",
+                    "message": "receipt is durable; cleanup remains pending",
+                    "path": None,
+                }],
+            },
+            "diagnostics": [{
+                "severity": "warning",
+                "blocking": False,
+                "code": "mutation.terminal-cleanup-pending",
+                "message": "receipt is durable; cleanup remains pending",
+                "path": None,
+            }],
+        }
+        result = engine_client.validated_mutation_result(response)
+        self.assertTrue(result["success"])
+        self.assertEqual("committed", result["transaction_outcome"])
+
+    def test_replayed_rollback_preserves_the_terminal_rollback_result(self) -> None:
+        response = {
+            "ok": True,
+            "result": {
+                "success": False,
+                "rolled_back": True,
+                "transaction_outcome": "replayed",
+                "changed_paths": [],
+                "diagnostics": [{
+                    "severity": "error",
+                    "blocking": True,
+                    "code": "mutation.rolled-back",
+                    "message": "prior attempt was rolled back",
+                }],
+            },
+            "diagnostics": [{
+                "severity": "error",
+                "blocking": True,
+                "code": "mutation.rolled-back",
+                "message": "prior attempt was rolled back",
+            }],
+        }
+        result = engine_client.validated_mutation_result(response)
+        self.assertFalse(result["success"])
+        self.assertTrue(result["rolled_back"])
+
     def test_preflight_requires_advertised_canonical_operations(self) -> None:
         client = object.__new__(engine_client.EngineClient)
         client._handshaken = True
@@ -289,6 +371,7 @@ class EngineClientContractTests(unittest.TestCase):
                 "ok": True,
                 "result": {
                     "success": True,
+                    "rolled_back": False,
                     "mutation_key": "provided-key",
                     "transaction_outcome": "committed",
                     "changed_paths": ["work/active/001-probe/work-item.json"],

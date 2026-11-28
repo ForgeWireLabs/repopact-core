@@ -1017,6 +1017,30 @@ def validated_mutation_result(response: dict[str, Any]) -> dict[str, Any]:
         "replayed", "rolled_back", "committed",
     }:
         raise EngineProtocolError("Rust engine mutation returned an unknown transaction outcome")
+    rolled_back = result.get("rolled_back")
+    if rolled_back is not None and type(rolled_back) is not bool:
+        raise EngineProtocolError("Rust engine mutation returned malformed rollback state")
+    if outcome is not None:
+        if rolled_back is None:
+            raise EngineProtocolError("Rust engine mutation outcome omitted rollback state")
+        rolled_back = bool(rolled_back)
+        if outcome == "replayed":
+            consistent = not (result["success"] and rolled_back)
+        else:
+            expected = {
+                "committed": (True, False),
+                "rolled_back": (False, True),
+                "rejected": (False, False),
+                "not_applied": (False, False),
+                "unknown": (False, False),
+                "recovery_required": (False, False),
+                "conflict": (False, False),
+            }[outcome]
+            consistent = (result["success"], rolled_back) == expected
+        if not consistent:
+            raise EngineProtocolError(
+                "Rust engine mutation outcome conflicts with success or rollback state"
+            )
     return result
 
 

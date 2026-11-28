@@ -1,6 +1,6 @@
 # 085 — Recover interrupted ordinary mutations safely
 
-> **Status**: Completed
+> **Status**: Active
 > **Lead**: tooling-owner
 > **Owner scope**: tooling
 > **Affected scopes**: tooling, governance, work, docs, evidence
@@ -36,9 +36,9 @@ Historical PR15 sources may be consulted for isolated serialization/publication 
 ## Acceptance criteria
 
 - [x] **AC-1** — accepted authority, WI084-based design, writer overlap, states, bounds, and explicit non-goals are recorded before runtime edits. See `20261127-wi085-design-authority-preflight`.
-- [x] **AC-2** — implement bounded journals, same-root admission and stable-key outcomes, explicit status/recovery, and scoped guards without changing proposal cleanup or receipts.
-- [x] **AC-3** — prove synchronized real child-process termination, safe/idempotent recovery, key behavior, lock/root/path checks, and preservation of uncertain or unrelated data; report per-platform coverage honestly.
-- [x] **AC-4** — run focused regressions and one clean declared local CI profile plus the required separate legacy Python comparator; reconcile semantic identity, docs, audits, evidence, dashboard, canonical validation and frozen checks; publish one draft PR with exact source/tree evidence.
+- [ ] **AC-2** — implement bounded journals, same-root admission and stable-key outcomes, explicit status/recovery, and scoped guards without changing proposal cleanup or receipts.
+- [ ] **AC-3** — prove synchronized real child-process termination, safe/idempotent recovery, key behavior, lock/root/path checks, and preservation of uncertain or unrelated data; report per-platform coverage honestly.
+- [ ] **AC-4** — run focused regressions and one clean declared local CI profile plus the required separate legacy Python comparator; reconcile semantic identity, docs, audits, evidence, dashboard, canonical validation and frozen checks; publish one draft PR with exact source/tree evidence.
 
 ## Validation and closeout
 
@@ -57,3 +57,16 @@ The separately required clean-source legacy comparator passed with complete engi
 A first post-profile legacy-comparator attempt passed the same vectors but returned incomplete provenance because the newly recorded profile evidence made the source tree dirty. Its partial artifact, `20261128T032540634595Z-wi076-ac6-engine-conformance.json`, is preserved. The comparator was rerun from clean C1 with matching engine build provenance and passed; the successful run is `20261128T032944884645Z-wi076-ac6-engine-conformance.json`.
 
 The complete local CI profile is `20261127-wi085-ci-windows-passing`; the focused cross-platform child-process evidence is `20261128-wi085-mutation-subprocess-platforms`. Final completed-work dashboard, canonical validation, semantic-identity check, and frozen-surface result are recorded in `20261128-wi085-closeout-validation`. No hosted CI/CD, merge, or release was performed.
+
+## Coordinator corrections — active
+
+Coordinator review reopened this existing item via the Rust `repopact-mutation` transition API on 2026-11-28, moving the item from `completed` back to `active`. Previous validation evidence and the earlier closeout record remain preserved; AC-2 through AC-4 are pending the correction batch and later coordinator-authorized assurance.
+
+Correction authority: [PR #35 consolidated review](https://github.com/ForgeWireLabs/repopact-core/pull/35#issuecomment-7241654203). Required bounded changes:
+
+1. Constrain recovery decisions to durable phase/cursor state; preserve live states matching unissued future operations; make rollback cursors exact; checkpoint recovery before each action; test interrupted recovery, no-op/move and ambiguous ownership boundaries.
+2. Report false/unconfirmed receipt persistence as unsuccessful and nonterminal, distinguish durable receipt plus cleanup-pending from unknown receipt state, and test raw Rust, engine, and Python outcomes including after-publish errors and lost responses.
+3. Replace human `icacls` parsing with conservative native SID/ACE inspection for directories and files; secure new storage before writing; preserve existing unknown ACLs/contents; keep proposal-anchor migration separate; test disposable ACL negatives and normal permissions without altering real repository ACLs.
+4. Bound operation count and aggregate projection memory before allocation; validate typed paths, roots, parents, and lossless path representation; verify prepared read-back; check runtime-state exclusions with actual repository readers; document receipt-cap handling and measured existing-fixture storage overhead; add missing cross-process and child-transition interruption cases.
+
+No full CI profile or legacy comparator is authorized in this batch. The candidate is for coordinator review after focused Windows and Linux mutation-package regression evidence.

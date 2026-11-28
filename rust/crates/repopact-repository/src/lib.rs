@@ -817,7 +817,7 @@ impl Repository {
     }
 
     pub fn path_state(&self, path: &Path) -> PathState {
-        path_state(path)
+        path_state(&self.root, path)
     }
 
     pub fn read_set_for_paths(&self, paths: &[PathBuf]) -> ReadSet {
@@ -1121,7 +1121,7 @@ fn research_referenced_paths(metadata: &Value) -> Vec<String> {
     paths
 }
 
-fn walk_files(path: &Path) -> Vec<PathBuf> {
+fn walk_files(root: &Path, path: &Path) -> Vec<PathBuf> {
     let mut result = Vec::new();
     let mut stack = vec![path.to_path_buf()];
     while let Some(current) = stack.pop() {
@@ -1134,9 +1134,13 @@ fn walk_files(path: &Path) -> Vec<PathBuf> {
                 continue;
             };
             if kind.is_dir() && !kind.is_symlink() {
-                stack.push(path);
+                if !is_local_transaction_state(root, &path) {
+                    stack.push(path);
+                }
             } else if kind.is_file() {
-                result.push(path);
+                if !is_local_transaction_state(root, &path) {
+                    result.push(path);
+                }
             }
         }
     }
@@ -1199,7 +1203,7 @@ fn walk_files_inner(
         let path = entry.path();
         if kind.is_dir() && !kind.is_symlink() {
             let name = entry.file_name().to_string_lossy().to_string();
-            if !ignored_part(&name) {
+            if !ignored_part(&name) && !is_local_transaction_state(root, &path) {
                 walk_files_inner(root, &normalize_path(&path), linked, result, boundaries);
             } else if let Some(classification) = classify_boundary(&name) {
                 boundaries.push(ExcludedBoundary {
@@ -1217,14 +1221,17 @@ fn walk_files_inner(
             // in practice, so this file-side check only ever excludes a
             // same-named plain file, never a legitimate source file.
             let name = entry.file_name().to_string_lossy().to_string();
-            if !ignored_part(&name) {
+            if !ignored_part(&name) && !is_local_transaction_state(root, &path) {
                 result.push(normalize_path(&path));
             }
         }
     }
 }
 
-fn path_state(path: &Path) -> PathState {
+fn path_state(root: &Path, path: &Path) -> PathState {
+    if is_local_transaction_state(root, path) {
+        return PathState::Absent;
+    }
     let Ok(metadata) = fs::metadata(path) else {
         return PathState::Absent;
     };
@@ -1241,7 +1248,7 @@ fn path_state(path: &Path) -> PathState {
         };
     }
     if metadata.is_dir() {
-        let mut entries = walk_files(path);
+        let mut entries = walk_files(root, path);
         entries.sort_by(|left, right| path_string(left).cmp(&path_string(right)));
         let mut hasher = Sha256::new();
         for entry in entries {
@@ -1494,7 +1501,7 @@ fn walk_for_linked_worktrees(
             continue;
         }
         let name = entry.file_name().to_string_lossy().to_string();
-        if ignored_part(&name) {
+        if ignored_part(&name) || is_local_transaction_state(root, &entry.path()) {
             continue;
         }
         let candidate = normalize_path(&entry.path());
@@ -1536,7 +1543,7 @@ fn walk_contracts(
             result.push(path);
         } else if file_type.is_dir() && !file_type.is_symlink() {
             let name = entry.file_name().to_string_lossy().to_string();
-            if !ignored_part(&name) {
+            if !ignored_part(&name) && !is_local_transaction_state(root, &path) {
                 let candidate = normalize_path(&path);
                 if !is_within_known(&candidate, linked) {
                     directories.push(candidate);
@@ -1553,6 +1560,22 @@ fn ignored_part(name: &str) -> bool {
     IGNORED_PARTS.iter().any(|ignored| *ignored == name)
 }
 
+fn is_local_transaction_state(root: &Path, path: &Path) -> bool {
+    let relative = match path.strip_prefix(root) {
+        Ok(relative) => relative.to_path_buf(),
+        Err(_) => {
+            let normalized_root = normalize_path(root);
+            let normalized_path = normalize_path(path);
+            let Ok(relative) = normalized_path.strip_prefix(normalized_root) else {
+                return false;
+            };
+            relative.to_path_buf()
+        }
+    };
+    relative == Path::new("work/.repopact-transactions")
+        || relative.starts_with(Path::new("work/.repopact-transactions"))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1567,6 +1590,54 @@ mod tests {
         let root = std::env::temp_dir().join(format!("repopact-rust-{name}-{suffix}"));
         fs::create_dir_all(&root).unwrap();
         root
+    }
+
+    #[test]
+    fn exact_local_transaction_state_is_absent_from_repository_reads() {
+        let root = temp_root("local-transaction-exclusion");
+        fs::create_dir_all(root.join("work/active")).unwrap();
+        fs::create_dir_all(root.join("docs/.repopact-transactions")).unwrap();
+        fs::write(root.join("work/active/001-item.json"), "{}\n").unwrap();
+        fs::write(
+            root.join("docs/.repopact-transactions/keep.txt"),
+            "source\n",
+        )
+        .unwrap();
+        let repository = Repository::open(&root);
+        let before = repository.session().snapshot();
+        let work_before = repository.path_state(&root.join("work"));
+
+        fs::create_dir_all(root.join("work/.repopact-transactions/ordinary-v1")).unwrap();
+        fs::write(
+            root.join("work/.repopact-transactions/ordinary-v1/private.json"),
+            "runtime state must not become source\n",
+        )
+        .unwrap();
+        fs::write(
+            root.join("work/.repopact-transactions/AGENTS.md"),
+            "runtime state contract must not be discovered\n",
+        )
+        .unwrap();
+        let after = repository.session().snapshot();
+
+        assert_eq!(before.identity(), after.identity());
+        assert_eq!(before.read_set(), after.read_set());
+        assert_eq!(work_before, repository.path_state(&root.join("work")));
+        let mut files = Vec::new();
+        let mut boundaries = Vec::new();
+        walk_files_inner(&root, &root, &BTreeSet::new(), &mut files, &mut boundaries);
+        assert!(!files
+            .iter()
+            .any(|path| path.starts_with(root.join("work/.repopact-transactions"))));
+        assert!(files
+            .iter()
+            .any(|path| path.ends_with("docs/.repopact-transactions/keep.txt")));
+        let mut contracts = Vec::new();
+        walk_contracts(&root, &root, &BTreeSet::new(), &mut contracts);
+        assert!(!contracts
+            .iter()
+            .any(|path| path.ends_with("work/.repopact-transactions/AGENTS.md")));
+        let _ = fs::remove_dir_all(root);
     }
 
     #[test]

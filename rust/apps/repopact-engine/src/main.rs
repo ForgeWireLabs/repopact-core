@@ -1029,4 +1029,55 @@ mod tests {
         assert_eq!(response.result.unwrap()["valid"], false);
         fs::remove_dir_all(root).unwrap();
     }
+
+    #[test]
+    fn mutation_response_keeps_receipt_failure_unknown_and_cleanup_warning_nonblocking() {
+        let request = request("work.create");
+        let unconfirmed: MutationResult = serde_json::from_value(json!({
+            "success": false,
+            "rolled_back": false,
+            "mutation_key": "receipt-key",
+            "transaction_outcome": "recovery_required",
+            "plan_token": "plan",
+            "changed_paths": [],
+            "diagnostics": [{
+                "code": "mutation.receipt-persist",
+                "message": "receipt was not confirmed",
+                "path": null,
+                "blocking": true,
+                "related_records": []
+            }],
+            "replayed": false
+        }))
+        .unwrap();
+        let response = mutation_response(&request, unconfirmed);
+        assert!(response.ok);
+        let result = response.result.unwrap();
+        assert_eq!(result["success"], false);
+        assert_eq!(result["rolled_back"], false);
+        assert_eq!(result["transaction_outcome"], "recovery_required");
+
+        let committed: MutationResult = serde_json::from_value(json!({
+            "success": true,
+            "rolled_back": false,
+            "mutation_key": "cleanup-key",
+            "transaction_outcome": "committed",
+            "plan_token": "plan",
+            "changed_paths": [],
+            "diagnostics": [{
+                "code": "mutation.terminal-cleanup-pending",
+                "message": "durable receipt remains while cleanup is pending",
+                "path": null,
+                "blocking": false,
+                "related_records": []
+            }],
+            "replayed": false
+        }))
+        .unwrap();
+        let response = mutation_response(&request, committed);
+        let result = response.result.unwrap();
+        assert_eq!(result["success"], true);
+        assert_eq!(result["transaction_outcome"], "committed");
+        assert_eq!(response.diagnostics[0].severity, "warning");
+    }
 }

@@ -2,7 +2,7 @@
   "$schema": "../../../repopact/schemas/work-item.schema.json",
   "id": "085",
   "title": "Recover interrupted ordinary mutations safely",
-  "status": "completed",
+  "status": "active",
   "owner_scope": "tooling",
   "affected_scopes": [
     "tooling",
@@ -30,7 +30,7 @@
     {
       "id": "AC-2",
       "text": "Implement bounded root-bound ordinary-v1 journals and shared per-working-root admission for typed create/edit/transition, proposals, and the overlapping dashboard writer. Provide stable-key replay/conflict semantics, read-only status, explicit conservative recovery, and clear CLI/API outcomes without changing proposal receipts or cleanup semantics.",
-      "state": "satisfied",
+      "state": "pending",
       "evidence": [
         "20261127-wi085-ci-windows-passing",
         "20261128-wi085-mutation-subprocess-platforms"
@@ -39,7 +39,7 @@
     {
       "id": "AC-3",
       "text": "Prove process-interruption behavior with child processes synchronized at each prepared/write/move/validation/receipt/rollback boundary; cover idempotent recovery, key replay/conflict, lock release/contention, root identity, corrupt or ambiguous state, external edits, links/escapes, capacity failure, and preservation of unrelated user data. Use available Windows and Linux environments and keep unsupported-platform coverage explicitly pending.",
-      "state": "satisfied",
+      "state": "pending",
       "evidence": [
         "20261128-wi085-mutation-subprocess-platforms",
         "20261127-wi085-ci-windows-passing"
@@ -48,7 +48,7 @@
     {
       "id": "AC-4",
       "text": "Complete exact-source focused regressions, one clean declared local CI profile, the separately required legacy Python comparator, frozen-surface validation, canonical validation, semantic identity and documentation reconciliation, generated dashboard, and truthful evidence with final commit/tree provenance; prepare one draft PR without hosted CI/CD, merge, or release.",
-      "state": "satisfied",
+      "state": "pending",
       "evidence": [
         "20261127-wi085-ci-windows-passing",
         "20261128-wi085-legacy-python-comparator",

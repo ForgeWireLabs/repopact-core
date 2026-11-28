@@ -1,6 +1,6 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs::{self, File, OpenOptions};
-use std::io::Write;
+use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Condvar, Mutex, OnceLock};
@@ -22,6 +22,9 @@ use transaction_store::{
     Journal as OrdinaryJournal, NativeRootIdentity, OrdinaryTransactionStore,
     Phase as JournalPhase, Receipt as OrdinaryReceipt, StoredPreimages,
 };
+
+const MAX_TRANSACTION_OPERATIONS: usize = 3;
+const MAX_PROJECTED_PREIMAGE_BYTES: u64 = 16 * 1024 * 1024;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct CreateWorkItem {
@@ -1237,13 +1240,24 @@ fn persist_terminal_result(
     };
     match store.write_receipt(&receipt) {
         Ok(()) => result,
-        Err(error) => {
-            result.transaction_outcome = "unknown".to_owned();
-            result
-                .diagnostics
-                .push(MutationDiagnostic::error("mutation.receipt-persist", error));
-            result
-        }
+        Err(error) => match store.load_receipt(request_key) {
+            Ok(Some(published)) if published == receipt => result,
+            verification => {
+                result.success = false;
+                result.rolled_back = false;
+                result.transaction_outcome = "recovery_required".to_owned();
+                let detail = match verification {
+                    Ok(Some(_)) => "a different receipt is present".to_owned(),
+                    Ok(None) => "no terminal receipt is present".to_owned(),
+                    Err(verify_error) => format!("receipt verification failed: {verify_error}"),
+                };
+                result.diagnostics.push(MutationDiagnostic::error(
+                    "mutation.receipt-persist",
+                    format!("terminal receipt publication was not confirmed ({detail}): {error}; inspect transaction status before retrying"),
+                ));
+                result
+            }
+        },
     }
 }
 
@@ -1268,6 +1282,22 @@ fn journal_steps(
     repository: &Repository,
     journal: &OrdinaryJournal,
 ) -> Result<Vec<Preimages>, String> {
+    validate_typed_operation_shape(&journal.request, &journal.operations)?;
+    let stored_roots = journal
+        .roots
+        .iter()
+        .map(|value| {
+            validate_relative_path(Path::new(value))?;
+            Ok(PathBuf::from(value))
+        })
+        .collect::<Result<BTreeSet<_>, String>>()?;
+    validate_typed_roots(&journal.request, &journal.operations, &stored_roots)?;
+    let projected_bound = stored_projection_bound(&journal.before, &journal.operations)?;
+    if projected_bound > MAX_PROJECTED_PREIMAGE_BYTES {
+        return Err(
+            "transaction projected preimages exceed the 16 MiB aggregate recovery bound".to_owned(),
+        );
+    }
     let before = journal.before.to_live()?;
     let listed_roots = journal
         .roots
@@ -1280,8 +1310,12 @@ fn journal_steps(
     if listed_roots != before.roots {
         return Err("transaction journal root set does not match its complete preimage".to_owned());
     }
-    if journal.operations.len() > 10_000 {
-        return Err("transaction journal operation count exceeds its bound".to_owned());
+    if before
+        .entries
+        .keys()
+        .any(|path| !listed_roots.iter().any(|root| path.starts_with(root)))
+    {
+        return Err("transaction preimage contains an entry outside its recorded roots".to_owned());
     }
     for operation in &journal.operations {
         for path in operation_paths(operation) {
@@ -1324,11 +1358,313 @@ fn journal_steps(
     Ok(steps)
 }
 
+fn validate_typed_operation_shape(
+    request: &MutationRequest,
+    operations: &[PathOperation],
+) -> Result<(), String> {
+    if operations.is_empty() || operations.len() > MAX_TRANSACTION_OPERATIONS {
+        return Err(format!(
+            "typed ordinary transaction must contain 1 to {MAX_TRANSACTION_OPERATIONS} operations"
+        ));
+    }
+    for operation in operations {
+        for value in operation_paths(operation) {
+            let text = match operation {
+                PathOperation::Write { path, .. } => path,
+                PathOperation::Move { from, to } if value == PathBuf::from(from) => from,
+                PathOperation::Move { to, .. } => to,
+            };
+            let path = Path::new(text);
+            validate_relative_path(path)?;
+            if transaction_store::lossless_path_string(path)? != *text {
+                return Err(format!(
+                    "typed transaction path '{text}' is not in canonical lossless form"
+                ));
+            }
+        }
+    }
+    let write = |index: usize| -> Result<&str, String> {
+        match operations.get(index) {
+            Some(PathOperation::Write { path, .. }) => Ok(path),
+            _ => Err("typed transaction operation sequence has an invalid write shape".to_owned()),
+        }
+    };
+    let dashboard = |index: usize| -> Result<(), String> {
+        if write(index)? == "audits/reports/dashboard.md" {
+            Ok(())
+        } else {
+            Err("typed transaction omitted its exact dashboard projection path".to_owned())
+        }
+    };
+    let work_file = |value: &str, filename: &str| -> Result<(String, String), String> {
+        let parts = value.split('/').collect::<Vec<_>>();
+        if parts.len() != 4 || parts[0] != "work" || parts[3] != filename {
+            return Err("typed transaction path is outside the work-item file shape".to_owned());
+        }
+        if LifecycleStatus::parse(parts[1]).is_none() {
+            return Err("typed transaction path has an invalid lifecycle status".to_owned());
+        }
+        Ok((parts[1].to_owned(), parts[2].to_owned()))
+    };
+    let valid_item_dir =
+        |directory: &str, expected_id: Option<&str>, expected_slug: Option<&str>| {
+            let Some((id, slug)) = directory.split_once('-') else {
+                return false;
+            };
+            id.len() >= 3
+                && id.bytes().all(|byte| byte.is_ascii_digit())
+                && !slug.is_empty()
+                && expected_id.is_none_or(|expected| expected == id)
+                && expected_slug.is_none_or(|expected| expected == slug)
+        };
+    match request {
+        MutationRequest::CreateWorkItem(request) => {
+            if request.status == "proposed" || operations.len() != 3 {
+                return Err(
+                    "proposal or nonstandard create cannot use the ordinary transaction journal"
+                        .to_owned(),
+                );
+            }
+            let (status, directory) = work_file(write(0)?, "work-item.json")?;
+            let (readme_status, readme_directory) = work_file(write(1)?, "README.md")?;
+            if status != request.status
+                || readme_status != status
+                || readme_directory != directory
+                || !valid_item_dir(&directory, None, Some(&slugify(&request.title)))
+            {
+                return Err(
+                    "typed create operation paths do not match the captured request".to_owned(),
+                );
+            }
+            dashboard(2)
+        }
+        MutationRequest::EditWorkItem(request) => {
+            if operations.len() != 2 {
+                return Err(
+                    "typed edit must write one work-item manifest and one dashboard".to_owned(),
+                );
+            }
+            let (_, directory) = work_file(write(0)?, "work-item.json")?;
+            if !valid_item_dir(&directory, Some(&request.id), None) {
+                return Err("typed edit path does not match its work-item ID".to_owned());
+            }
+            dashboard(1)
+        }
+        MutationRequest::TransitionWorkItem(request) => {
+            if operations.len() == 2 {
+                let (status, directory) = work_file(write(0)?, "work-item.json")?;
+                if status != request.status || !valid_item_dir(&directory, Some(&request.id), None)
+                {
+                    return Err("typed transition write path does not match its request".to_owned());
+                }
+                dashboard(1)
+            } else if operations.len() == 3 {
+                let (from, to) = match &operations[0] {
+                    PathOperation::Move { from, to } => (from, to),
+                    _ => {
+                        return Err("typed transition must begin with its directory move".to_owned())
+                    }
+                };
+                let parse_directory = |value: &str| -> Result<(String, String), String> {
+                    let parts = value.split('/').collect::<Vec<_>>();
+                    if parts.len() != 3
+                        || parts[0] != "work"
+                        || LifecycleStatus::parse(parts[1]).is_none()
+                    {
+                        return Err(
+                            "typed transition move has an invalid work-item directory".to_owned()
+                        );
+                    }
+                    Ok((parts[1].to_owned(), parts[2].to_owned()))
+                };
+                let (source_status, source_directory) = parse_directory(from)?;
+                let (destination_status, destination_directory) = parse_directory(to)?;
+                let (write_status, write_directory) = work_file(write(1)?, "work-item.json")?;
+                if source_status == destination_status
+                    || destination_status != request.status
+                    || source_directory != destination_directory
+                    || write_status != destination_status
+                    || write_directory != destination_directory
+                    || !valid_item_dir(&source_directory, Some(&request.id), None)
+                {
+                    return Err(
+                        "typed transition move and manifest paths do not match their request"
+                            .to_owned(),
+                    );
+                }
+                dashboard(2)
+            } else {
+                Err("typed transition has an invalid operation count".to_owned())
+            }
+        }
+    }
+}
+
+fn validate_typed_roots(
+    request: &MutationRequest,
+    operations: &[PathOperation],
+    roots: &BTreeSet<PathBuf>,
+) -> Result<(), String> {
+    let dashboard = PathBuf::from("audits/reports/dashboard.md");
+    let mut valid_shapes = Vec::<BTreeSet<PathBuf>>::new();
+    match request {
+        MutationRequest::CreateWorkItem(_) => {
+            let directory = Path::new(match &operations[0] {
+                PathOperation::Write { path, .. } => path,
+                _ => unreachable!("typed shape validated before root validation"),
+            })
+            .parent()
+            .expect("work-item manifest has a parent")
+            .to_path_buf();
+            let status = directory
+                .parent()
+                .expect("work-item directory has a status")
+                .to_path_buf();
+            valid_shapes.push(BTreeSet::from([dashboard.clone(), directory]));
+            valid_shapes.push(BTreeSet::from([dashboard.clone(), status]));
+        }
+        MutationRequest::EditWorkItem(_) if operations.len() == 2 => {
+            let manifest = match &operations[0] {
+                PathOperation::Write { path, .. } => PathBuf::from(path),
+                _ => unreachable!("typed shape validated before root validation"),
+            };
+            valid_shapes.push(BTreeSet::from([dashboard.clone(), manifest]));
+        }
+        MutationRequest::EditWorkItem(_) => {
+            return Err("typed edit has an invalid root shape".to_owned());
+        }
+        MutationRequest::TransitionWorkItem(_) if operations.len() == 2 => {
+            let manifest = match &operations[0] {
+                PathOperation::Write { path, .. } => PathBuf::from(path),
+                _ => unreachable!("typed shape validated before root validation"),
+            };
+            valid_shapes.push(BTreeSet::from([dashboard.clone(), manifest]));
+        }
+        MutationRequest::TransitionWorkItem(_) => {
+            let (from, to) = match &operations[0] {
+                PathOperation::Move { from, to } => (PathBuf::from(from), PathBuf::from(to)),
+                _ => unreachable!("typed shape validated before root validation"),
+            };
+            let parent = to
+                .parent()
+                .expect("typed destination has a status parent")
+                .to_path_buf();
+            valid_shapes.push(BTreeSet::from([dashboard.clone(), from.clone(), to]));
+            valid_shapes.push(BTreeSet::from([dashboard, from, parent]));
+        }
+    }
+    if !valid_shapes.iter().any(|shape| shape == roots) {
+        return Err(
+            "transaction root set contains an unrelated path or omits an operation parent"
+                .to_owned(),
+        );
+    }
+    Ok(())
+}
+
+fn stored_projection_bound(
+    before: &StoredPreimages,
+    operations: &[PathOperation],
+) -> Result<u64, String> {
+    if before.entries.len() > transaction_store::MAX_PREIMAGE_ENTRIES {
+        return Err("transaction preimage exceeds the entry-count limit".to_owned());
+    }
+    let before_bytes = before.entries.iter().try_fold(0u64, |total, entry| {
+        let bytes = entry.bytes_hex.as_deref().unwrap_or_default().len() as u64 / 2;
+        total
+            .checked_add(bytes + (entry.path.len() as u64).saturating_mul(2) + 128)
+            .ok_or_else(|| "transaction preimage size overflow".to_owned())
+    })?;
+    let root_overhead = before
+        .roots
+        .iter()
+        .map(|path| path.len() as u64 + 64)
+        .sum::<u64>();
+    projection_bound(
+        before_bytes + root_overhead,
+        before.entries.len(),
+        operations,
+    )
+}
+
+fn live_projection_bound(before: &Preimages, operations: &[PathOperation]) -> Result<u64, String> {
+    if before.entries.len() > transaction_store::MAX_PREIMAGE_ENTRIES {
+        return Err("transaction preimage exceeds the entry-count limit".to_owned());
+    }
+    let bytes = before
+        .entries
+        .iter()
+        .try_fold(0u64, |total, (path, entry)| {
+            let size = match entry {
+                PreimageEntry::File(bytes) => bytes.len() as u64,
+                PreimageEntry::Directory => 0,
+            };
+            total
+                .checked_add(size + (path.to_string_lossy().len() as u64).saturating_mul(2) + 128)
+                .ok_or_else(|| "transaction preimage size overflow".to_owned())
+        })?;
+    let roots_size = before
+        .roots
+        .iter()
+        .map(|path| path.to_string_lossy().len() as u64 + 64)
+        .sum::<u64>();
+    projection_bound(bytes + roots_size, before.entries.len(), operations)
+}
+
+fn projection_bound(
+    before_bytes: u64,
+    entry_count: usize,
+    operations: &[PathOperation],
+) -> Result<u64, String> {
+    if operations.len() > MAX_TRANSACTION_OPERATIONS {
+        return Err(format!(
+            "transaction operation count exceeds {MAX_TRANSACTION_OPERATIONS}"
+        ));
+    }
+    let cumulative = operations
+        .iter()
+        .try_fold(before_bytes, |total, operation| {
+            let written = match operation {
+                PathOperation::Write { path, content } => {
+                    content.len() as u64 + (path.len() as u64).saturating_mul(2) + 256
+                }
+                PathOperation::Move { from, to } => {
+                    (from.len() as u64 + to.len() as u64).saturating_mul(2) + 256
+                }
+            };
+            total
+                .checked_add(written)
+                .ok_or_else(|| "transaction projection size overflow".to_owned())
+        })?;
+    let move_delta = operations.iter().try_fold(0u64, |total, operation| {
+        let extra = match operation {
+            PathOperation::Move { from, to } => (to.len().saturating_sub(from.len()) as u64)
+                .saturating_mul(entry_count as u64)
+                .saturating_mul(2),
+            PathOperation::Write { .. } => 0,
+        };
+        total
+            .checked_add(extra)
+            .ok_or_else(|| "transaction move projection size overflow".to_owned())
+    })?;
+    cumulative
+        .checked_add(move_delta)
+        .and_then(|total| total.checked_mul((operations.len() + 1) as u64))
+        .ok_or_else(|| "transaction projection size overflow".to_owned())
+}
+
 fn state_digest(preimages: &Preimages) -> Result<String, String> {
     let stored = StoredPreimages::from_live(preimages)?;
     let encoded = serde_json::to_vec(&stored)
         .map_err(|error| format!("encode transaction state fingerprint: {error}"))?;
     Ok(hex_digest(Sha256::digest(encoded)))
+}
+
+fn validate_live_preimage_paths(preimages: &Preimages) -> Result<(), String> {
+    for path in preimages.roots.iter().chain(preimages.entries.keys()) {
+        transaction_store::lossless_path_string(path)?;
+    }
+    Ok(())
 }
 
 fn recover_journal(
@@ -1377,27 +1713,75 @@ fn recover_journal(
             return result;
         }
     };
-    let before = &steps[0];
-    let completed = if current.entries == before.entries {
-        0
-    } else if let Some(index) = steps
-        .iter()
-        .enumerate()
-        .skip(1)
-        .find_map(|(index, state)| (state.entries == current.entries).then_some(index))
-    {
-        index
-    } else {
+    let operation_count = journal.operations.len();
+    let cursor = journal.next_operation;
+    let reachable_prefix = match journal.phase {
+        JournalPhase::Prepared if cursor == 0 && current.entries == steps[0].entries => Some(0),
+        JournalPhase::Applying if cursor < operation_count => {
+            if current.entries == steps[cursor].entries {
+                Some(cursor)
+            } else if current.entries == steps[cursor + 1].entries {
+                Some(cursor + 1)
+            } else {
+                None
+            }
+        }
+        JournalPhase::Applying
+            if cursor == operation_count && current.entries == steps[operation_count].entries =>
+        {
+            Some(operation_count)
+        }
+        JournalPhase::RollingBack if cursor < operation_count => {
+            if current.entries == steps[cursor + 1].entries {
+                Some(cursor + 1)
+            } else if current.entries == steps[cursor].entries {
+                Some(cursor)
+            } else {
+                None
+            }
+        }
+        _ => None,
+    };
+    let Some(mut remaining) = reachable_prefix else {
         result.transaction_outcome = "recovery_required".to_owned();
         result.diagnostics.push(MutationDiagnostic::error(
             "mutation.recovery-required",
-            "live paths match neither the captured before-state nor a complete authorized operation sequence; uncertain data was preserved",
+            "live paths are not reachable from the durable phase and operation cursor; uncertain data was preserved",
         ));
         return result;
     };
-    for index in (1..=completed).rev() {
-        journal.phase = JournalPhase::RollingBack;
-        journal.next_operation = index - 1;
+    let changed = current.entries != steps[0].entries
+        || (journal.phase == JournalPhase::RollingBack
+            && current.entries == steps[cursor].entries
+            && cursor < operation_count
+            && steps[cursor + 1].entries != steps[cursor].entries);
+    if remaining == 0 {
+        result.success = false;
+        result.rolled_back = changed;
+        result.transaction_outcome = if changed {
+            "rolled_back"
+        } else if journal.phase == JournalPhase::Prepared {
+            "not_applied"
+        } else {
+            "rejected"
+        }
+        .to_owned();
+        result.diagnostics.push(MutationDiagnostic::error(
+            "mutation.transaction-recovered",
+            if changed {
+                "the interrupted rollback cursor confirms that the write set has been restored"
+            } else if journal.phase == JournalPhase::Prepared {
+                "the durable prepared cursor confirms that no repository write occurred"
+            } else {
+                "the durable operation cursor confirms that no repository write needs reversal"
+            },
+        ));
+        return persist_journal_receipt(store, &journal, result);
+    }
+    journal.phase = JournalPhase::RollingBack;
+    while remaining > 0 {
+        let index = remaining - 1;
+        journal.next_operation = index;
         if let Err(error) = store.write_journal(&journal, false) {
             result.transaction_outcome = "recovery_required".to_owned();
             result.diagnostics.push(MutationDiagnostic::error(
@@ -1407,9 +1791,9 @@ fn recover_journal(
             return result;
         }
         let undo = UndoRecord {
-            operation: journal.operations[index - 1].clone(),
-            before: steps[index - 1].clone(),
-            after: steps[index].clone(),
+            operation: journal.operations[index].clone(),
+            before: steps[index].clone(),
+            after: steps[index + 1].clone(),
         };
         if let Err(error) = restore_operation(repository, &undo) {
             result.transaction_outcome = "recovery_required".to_owned();
@@ -1420,21 +1804,17 @@ fn recover_journal(
             return result;
         }
         pause_at_test_phase("during_rollback");
-        if let Err(error) = store.write_journal(&journal, false) {
-            result.transaction_outcome = "recovery_required".to_owned();
-            result.diagnostics.push(MutationDiagnostic::error(
-                "mutation.recovery-required",
-                error,
-            ));
-            return result;
-        }
+        // The durable cursor remains the exact forward operation index. If
+        // recovery stops here, the before-state at this cursor proves that
+        // this reverse operation completed; the next invocation advances.
+        remaining -= 1;
     }
     result.success = false;
-    result.rolled_back = true;
-    result.transaction_outcome = "rolled_back".to_owned();
+    result.rolled_back = changed;
+    result.transaction_outcome = if changed { "rolled_back" } else { "rejected" }.to_owned();
     result.diagnostics.push(MutationDiagnostic::error(
         "mutation.transaction-recovered",
-        if completed == 0 {
+        if !changed {
             "the live write set was already at its captured before-state; no repository path was rewritten"
         } else {
             "the interrupted ordinary mutation was reversed from a verified operation sequence"
@@ -1461,25 +1841,43 @@ fn persist_journal_receipt(
         result: result.clone(),
     };
     if let Err(error) = store.write_receipt(&receipt) {
-        result.transaction_outcome = "recovery_required".to_owned();
-        result
-            .diagnostics
-            .push(MutationDiagnostic::error("mutation.receipt-persist", error));
-        return result;
+        match store.load_receipt(&journal.request_key) {
+            Ok(Some(published)) if published == receipt => {}
+            verification => {
+                result.success = false;
+                result.rolled_back = false;
+                result.transaction_outcome = "recovery_required".to_owned();
+                let detail = match verification {
+                    Ok(Some(_)) => "a different receipt is present".to_owned(),
+                    Ok(None) => "no terminal receipt is present".to_owned(),
+                    Err(verify_error) => format!("receipt verification failed: {verify_error}"),
+                };
+                result.diagnostics.push(MutationDiagnostic::error(
+                    "mutation.receipt-persist",
+                    format!("terminal receipt publication was not confirmed ({detail}): {error}; the journal was preserved for status and recovery"),
+                ));
+                return result;
+            }
+        }
     }
     pause_at_test_phase("after_terminal_receipt_before_journal_cleanup");
     if let Err(error) = store.delete_journal() {
-        result.diagnostics.push(MutationDiagnostic::error(
-            "mutation.terminal-cleanup-failed",
-            format!("terminal receipt is durable; journal cleanup remains pending: {error}"),
-        ));
+        result.diagnostics.push(MutationDiagnostic {
+            code: "mutation.terminal-cleanup-pending".to_owned(),
+            message: format!(
+                "terminal receipt is durable; journal cleanup remains pending: {error}"
+            ),
+            path: None,
+            blocking: false,
+            related_records: Vec::new(),
+        });
     }
     result
 }
 
 fn durable_failure_with_rollback(
     repository: &Repository,
-    mut undo: Vec<UndoRecord>,
+    _undo: Vec<UndoRecord>,
     mut result: MutationResult,
     message: String,
     ownership_conflict: Option<String>,
@@ -1489,43 +1887,34 @@ fn durable_failure_with_rollback(
     result
         .diagnostics
         .push(MutationDiagnostic::error("mutation.apply-failed", message));
-    let changed = !undo.is_empty();
-    let mut errors = ownership_conflict.into_iter().collect::<Vec<_>>();
-    journal.phase = JournalPhase::RollingBack;
-    journal.next_operation = undo.len();
-    if let Err(error) = store.write_journal(journal, false) {
-        errors.push(format!("unable to persist rollback phase: {error}"));
-    }
-    let mut restored = 0usize;
-    while let Some(record) = undo.pop() {
-        if let Err(error) = restore_operation(repository, &record) {
-            errors.push(error);
-            break;
-        }
-        restored += 1;
-        if restored == 1 {
-            pause_at_test_phase("during_rollback");
-        }
-    }
-    if errors.is_empty() {
-        result.rolled_back = changed;
-        result.transaction_outcome = if changed { "rolled_back" } else { "rejected" }.to_owned();
-        if changed {
-            result.diagnostics.push(MutationDiagnostic::error(
-                "mutation.transaction-rolled-back",
-                "the in-process failure was reversed using captured ownership checks",
-            ));
-        }
-        return persist_journal_receipt(store, journal, result);
-    }
-    result.transaction_outcome = "recovery_required".to_owned();
-    for error in errors {
+    if let Some(conflict) = ownership_conflict {
         result.diagnostics.push(MutationDiagnostic::error(
             "mutation.rollback-failed",
-            format!("recovery required; uncertain state was preserved: {error}"),
+            format!("recovery required; uncertain state was preserved: {conflict}"),
         ));
+        result.transaction_outcome = "recovery_required".to_owned();
+        return result;
     }
-    result
+    let durable = match store.load_journal() {
+        Ok(Some(durable)) if durable.request_key == journal.request_key => durable,
+        Ok(_) => {
+            result.transaction_outcome = "recovery_required".to_owned();
+            result.diagnostics.push(MutationDiagnostic::error(
+                "mutation.rollback-failed",
+                "the durable operation checkpoint could not be reloaded; uncertain state was preserved",
+            ));
+            return result;
+        }
+        Err(error) => {
+            result.transaction_outcome = "recovery_required".to_owned();
+            result.diagnostics.push(MutationDiagnostic::error(
+                "mutation.rollback-failed",
+                format!("unable to reload durable operation checkpoint: {error}"),
+            ));
+            return result;
+        }
+    };
+    recover_journal(repository, store, durable, result)
 }
 
 fn validate_idempotency_key(key: &str) -> Result<(), String> {
@@ -1881,7 +2270,7 @@ impl RepositoryMutationLock {
             return Err(error);
         }
         #[cfg(windows)]
-        if let Err(error) = transaction_store::check_private_directory(store.anchor()) {
+        if let Err(error) = transaction_store::check_private_file(&path, &metadata) {
             release_local_repository_lock(&key);
             return Err(error);
         }
@@ -2371,7 +2760,7 @@ fn copy_tree_inner(
     for entry in entries {
         let name = entry.file_name().to_string_lossy().to_string();
         let from = entry.path();
-        if from == canonical_root.join("work/.repopact-transactions/ordinary-v1") {
+        if from == canonical_root.join("work/.repopact-transactions") {
             continue;
         }
         let kind = entry.file_type().map_err(|error| error.to_string())?;
@@ -2564,6 +2953,15 @@ pub fn apply(plan: &MutationPlan, options: &ApplyOptions) -> MutationResult {
             error,
         ));
         return result;
+    }
+    if plan.is_applicable() {
+        if let Err(error) = validate_typed_operation_shape(&plan.request, &plan.file_operations) {
+            result.transaction_outcome = "rejected".to_owned();
+            result
+                .diagnostics
+                .push(MutationDiagnostic::error("mutation.operation-shape", error));
+            return result;
+        }
     }
     let repository = Repository::open(&plan.repository_identity.root);
     let _lock = match RepositoryMutationLock::acquire(repository.root()) {
@@ -2871,6 +3269,55 @@ pub fn apply(plan: &MutationPlan, options: &ApplyOptions) -> MutationResult {
             "rejected",
         );
     }
+    match live_projection_bound(&preimages, &plan.file_operations) {
+        Ok(bound) if bound <= MAX_PROJECTED_PREIMAGE_BYTES => {}
+        Ok(_) => {
+            result.transaction_outcome = "rejected".to_owned();
+            result.diagnostics.push(MutationDiagnostic::error(
+                "mutation.preimage-limit",
+                "transaction projected preimages exceed the 16 MiB aggregate bound",
+            ));
+            return persist_terminal_result(
+                &store,
+                &repository,
+                plan,
+                request_key,
+                &payload_sha256,
+                result,
+                "rejected",
+            );
+        }
+        Err(error) => {
+            result.transaction_outcome = "rejected".to_owned();
+            result
+                .diagnostics
+                .push(MutationDiagnostic::error("mutation.preimage-limit", error));
+            return persist_terminal_result(
+                &store,
+                &repository,
+                plan,
+                request_key,
+                &payload_sha256,
+                result,
+                "rejected",
+            );
+        }
+    }
+    if let Err(error) = validate_live_preimage_paths(&preimages) {
+        result.transaction_outcome = "rejected".to_owned();
+        result
+            .diagnostics
+            .push(MutationDiagnostic::error("mutation.path-roundtrip", error));
+        return persist_terminal_result(
+            &store,
+            &repository,
+            plan,
+            request_key,
+            &payload_sha256,
+            result,
+            "rejected",
+        );
+    }
     match stale_read_fact(&repository, &plan.read_set) {
         Ok(Some(stale)) => {
             result.diagnostics.push(
@@ -3065,6 +3512,24 @@ pub fn apply(plan: &MutationPlan, options: &ApplyOptions) -> MutationResult {
             error,
         ));
         return result;
+    }
+    match store.load_journal() {
+        Ok(Some(persisted)) if persisted == journal => {}
+        verification => {
+            result.transaction_outcome = "recovery_required".to_owned();
+            let detail = match verification {
+                Ok(Some(_)) => {
+                    "prepared journal read-back did not match the exact payload".to_owned()
+                }
+                Ok(None) => "prepared journal is missing after publication".to_owned(),
+                Err(error) => format!("prepared journal read-back failed: {error}"),
+            };
+            result.diagnostics.push(MutationDiagnostic::error(
+                "mutation.transaction-prepare",
+                format!("{detail}; no governed path was written"),
+            ));
+            return result;
+        }
     }
     pause_at_test_phase("after_prepare_before_write");
     let mut expected = plan
@@ -3572,10 +4037,7 @@ where
         .duration_since(UNIX_EPOCH)
         .unwrap_or_default()
         .as_nanos();
-    let staging_root = match ensure_safe_repository_directory(
-        repository.root(),
-        Path::new("work/.repopact-transactions"),
-    ) {
+    let staging_root = match transaction_store::ensure_proposal_anchor(repository.root()) {
         Ok(path) => path,
         Err(error) => {
             result.metrics.filesystem_staging_ms += stage_started.elapsed().as_millis();
@@ -4110,9 +4572,23 @@ struct UndoRecord {
 }
 
 fn capture_preimages(repository: &Repository, roots: &[PathBuf]) -> Result<Preimages, String> {
-    let mut read_file = |path: &Path| fs::read(path);
+    let mut read_file = |path: &Path| read_preimage_file(path);
     let mut read_directory = |path: &Path| fs::read_dir(path);
     capture_preimages_with(repository, roots, &mut read_file, &mut read_directory)
+}
+
+fn read_preimage_file(path: &Path) -> std::io::Result<Vec<u8>> {
+    let file = File::open(path)?;
+    let mut bytes = Vec::new();
+    file.take(transaction_store::MAX_PREIMAGE_BYTES.saturating_add(1))
+        .read_to_end(&mut bytes)?;
+    if bytes.len() as u64 > transaction_store::MAX_PREIMAGE_BYTES {
+        return Err(std::io::Error::new(
+            std::io::ErrorKind::InvalidData,
+            "transaction preimage exceeds the 64 MiB byte limit",
+        ));
+    }
+    Ok(bytes)
 }
 
 fn capture_preimages_with(
@@ -4206,6 +4682,7 @@ fn capture_preimage_path(
         ));
     }
     if kind.is_file() {
+        ensure_capture_budget(preimages, metadata.len())?;
         if check_link_count {
             ensure_single_link(&absolute, &metadata)?;
         }
@@ -4227,21 +4704,16 @@ fn capture_preimage_path(
         if check_link_count {
             ensure_single_link(&absolute, &middle_metadata)?;
         }
-        let second = read_file(&absolute).map_err(|error| {
-            format!(
-                "cannot verify preimage '{}': {error}",
-                path_string(&absolute)
-            )
-        })?;
+        let unchanged = file_matches_snapshot(&absolute, &first)?;
         let final_metadata = fs::symlink_metadata(&absolute).map_err(|error| {
             format!(
                 "cannot recheck preimage '{}': {error}",
                 path_string(&absolute)
             )
         })?;
-        if first != second
+        if !unchanged
             || first.len() as u64 != metadata.len()
-            || second.len() as u64 != middle_metadata.len()
+            || first.len() as u64 != middle_metadata.len()
             || final_metadata.len() != middle_metadata.len()
             || !final_metadata.file_type().is_file()
             || is_symlink_or_reparse(&final_metadata)
@@ -4267,6 +4739,7 @@ fn capture_preimage_path(
             path_string(&absolute)
         ));
     }
+    ensure_capture_budget(preimages, 0)?;
     insert_preimage(preimages, relative.to_path_buf(), PreimageEntry::Directory)?;
     let before = directory_signature(&absolute, read_directory)?;
     for (name, expected_kind) in &before {
@@ -4300,6 +4773,53 @@ fn capture_preimage_path(
         ));
     }
     Ok(Some(1))
+}
+
+fn ensure_capture_budget(preimages: &Preimages, additional_bytes: u64) -> Result<(), String> {
+    if preimages.entries.len() >= transaction_store::MAX_PREIMAGE_ENTRIES {
+        return Err(
+            "transaction preimage exceeds the entry-count limit before reading more data"
+                .to_owned(),
+        );
+    }
+    let existing = preimages.entries.values().try_fold(0u64, |total, entry| {
+        total
+            .checked_add(match entry {
+                PreimageEntry::File(bytes) => bytes.len() as u64,
+                PreimageEntry::Directory => 0,
+            })
+            .ok_or_else(|| "transaction preimage size overflow".to_owned())
+    })?;
+    if existing
+        .checked_add(additional_bytes)
+        .is_none_or(|total| total > transaction_store::MAX_PREIMAGE_BYTES)
+    {
+        return Err(
+            "transaction preimage exceeds the 64 MiB byte limit before reading more data"
+                .to_owned(),
+        );
+    }
+    Ok(())
+}
+
+fn file_matches_snapshot(path: &Path, expected: &[u8]) -> Result<bool, String> {
+    let mut file = File::open(path)
+        .map_err(|error| format!("cannot verify preimage '{}': {error}", path_string(path)))?;
+    let mut buffer = [0u8; 64 * 1024];
+    let mut offset = 0usize;
+    loop {
+        let read = file
+            .read(&mut buffer)
+            .map_err(|error| format!("cannot verify preimage '{}': {error}", path_string(path)))?;
+        if read == 0 {
+            return Ok(offset == expected.len());
+        }
+        let end = offset.saturating_add(read);
+        if end > expected.len() || expected[offset..end] != buffer[..read] {
+            return Ok(false);
+        }
+        offset = end;
+    }
 }
 
 fn directory_signature(
@@ -4351,6 +4871,13 @@ fn insert_preimage(
     path: PathBuf,
     entry: PreimageEntry,
 ) -> Result<(), String> {
+    ensure_capture_budget(
+        preimages,
+        match &entry {
+            PreimageEntry::File(bytes) => bytes.len() as u64,
+            PreimageEntry::Directory => 0,
+        },
+    )?;
     if let Some(existing) = preimages.entries.insert(path.clone(), entry.clone()) {
         if existing != entry {
             return Err(format!(
@@ -4893,12 +5420,51 @@ mod tests {
     }
 
     fn terminate_mutation_child_at(root: &Path, key: &str, phase: &str, fail_after: Option<&str>) {
+        terminate_child_kind_at(root, key, phase, "apply", fail_after, None);
+    }
+
+    fn terminate_transition_child_at(root: &Path, key: &str, phase: &str) {
+        terminate_child_kind_at(root, key, phase, "transition", None, None);
+    }
+
+    fn terminate_recovery_child_at(root: &Path, key: &str, phase: &str) {
+        terminate_child_kind_at(root, key, phase, "recover", None, None);
+    }
+
+    fn terminate_child_kind_at(
+        root: &Path,
+        key: &str,
+        phase: &str,
+        mode: &str,
+        fail_after: Option<&str>,
+        alternate_temp: Option<&Path>,
+    ) {
+        let mut child = spawn_paused_child_at(root, key, phase, mode, fail_after, alternate_temp);
+        child
+            .kill()
+            .expect("terminate only the synchronized child process");
+        let exit = child.wait().expect("wait for terminated child process");
+        assert!(
+            !exit.success(),
+            "synchronized child termination must interrupt the child"
+        );
+    }
+
+    fn spawn_paused_child_at(
+        root: &Path,
+        key: &str,
+        phase: &str,
+        mode: &str,
+        fail_after: Option<&str>,
+        alternate_temp: Option<&Path>,
+    ) -> std::process::Child {
         let mut command = Command::new(std::env::current_exe().unwrap());
         command
             .arg("--exact")
             .arg("tests::mutation_process_termination_child_entry")
             .arg("--nocapture")
             .env("REPOPACT_MUTATION_PAUSE_AT", phase)
+            .env("REPOPACT_MUTATION_CHILD_MODE", mode)
             .env("REPOPACT_MUTATION_CHILD_ROOT", root)
             .env("REPOPACT_MUTATION_CHILD_KEY", key)
             .stdin(Stdio::piped())
@@ -4906,6 +5472,12 @@ mod tests {
             .stderr(Stdio::inherit());
         if let Some(index) = fail_after {
             command.env("REPOPACT_MUTATION_CHILD_FAIL_AFTER", index);
+        }
+        if let Some(path) = alternate_temp {
+            command
+                .env("TEMP", path)
+                .env("TMP", path)
+                .env("TMPDIR", path);
         }
         let mut child = command.spawn().expect("spawn isolated mutation test child");
         let stdout = child.stdout.take().unwrap();
@@ -4935,13 +5507,45 @@ mod tests {
             panic!("child did not reach synchronized phase {phase}; output: {output:?}");
         }
         child
-            .kill()
-            .expect("terminate only the synchronized child process");
-        let exit = child.wait().expect("wait for terminated child process");
+    }
+
+    fn run_mutation_child_with_fault(
+        root: &Path,
+        key: &str,
+        receipt_failure: Option<&str>,
+        cleanup_failure: bool,
+    ) -> MutationResult {
+        let output = Command::new(std::env::current_exe().unwrap())
+            .arg("--exact")
+            .arg("tests::mutation_process_termination_child_entry")
+            .arg("--nocapture")
+            .env("REPOPACT_MUTATION_CHILD_MODE", "apply")
+            .env("REPOPACT_MUTATION_CHILD_ROOT", root)
+            .env("REPOPACT_MUTATION_CHILD_KEY", key)
+            .env("REPOPACT_MUTATION_CHILD_EMIT_RESULT", "1")
+            .env_remove("REPOPACT_MUTATION_PAUSE_AT")
+            .env_remove("REPOPACT_MUTATION_CHILD_FAIL_AFTER")
+            .env(
+                "REPOPACT_TEST_RECEIPT_FAILURE",
+                receipt_failure.unwrap_or(""),
+            )
+            .env(
+                "REPOPACT_TEST_FAIL_JOURNAL_CLEANUP",
+                if cleanup_failure { "1" } else { "" },
+            )
+            .output()
+            .expect("run isolated mutation result child");
         assert!(
-            !exit.success(),
-            "synchronized child termination must interrupt the child"
+            output.status.success(),
+            "child mutation should return normally: {}",
+            String::from_utf8_lossy(&output.stderr)
         );
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        let json = stdout
+            .lines()
+            .find_map(|line| line.strip_prefix("REPOPACT_MUTATION_RESULT:"))
+            .unwrap_or_else(|| panic!("mutation child omitted its result: {stdout}"));
+        serde_json::from_str(json).expect("decode child mutation result")
     }
 
     #[test]
@@ -4951,15 +5555,37 @@ mod tests {
         };
         let root = PathBuf::from(root);
         let key = std::env::var("REPOPACT_MUTATION_CHILD_KEY").unwrap();
+        let mode =
+            std::env::var("REPOPACT_MUTATION_CHILD_MODE").unwrap_or_else(|_| "apply".to_owned());
+        if mode == "lock" {
+            let _lock = RepositoryMutationLock::acquire(&root).expect("child lock acquisition");
+            pause_at_test_phase("lock_held");
+            return;
+        }
+        if mode == "recover" {
+            let result = recover_mutation(&root, Some(&key));
+            if std::env::var("REPOPACT_MUTATION_CHILD_EMIT_RESULT")
+                .ok()
+                .as_deref()
+                == Some("1")
+            {
+                println!(
+                    "REPOPACT_MUTATION_RESULT:{}",
+                    serde_json::to_string(&result).unwrap()
+                );
+            }
+            return;
+        }
         let snapshot = RepositorySession::open(&root).snapshot();
-        let plan = plan(
-            &snapshot,
+        let request = if mode == "transition" {
+            MutationRequest::transition_work_item(TransitionWorkItem::new("001", "deferred"))
+        } else {
             MutationRequest::create_work_item(create_request(
                 "Process Recovery Probe",
                 "2026-11-27",
-            )),
-        )
-        .with_mutation_key(key);
+            ))
+        };
+        let plan = plan(&snapshot, request).with_mutation_key(key);
         let options = match std::env::var("REPOPACT_MUTATION_CHILD_FAIL_AFTER") {
             Ok(value) => ApplyOptions {
                 fail_after_operation: Some(value.parse().expect("numeric child failure index")),
@@ -4967,7 +5593,17 @@ mod tests {
             },
             Err(_) => ApplyOptions::default(),
         };
-        let _result = plan.apply_with_options(&options);
+        let result = plan.apply_with_options(&options);
+        if std::env::var("REPOPACT_MUTATION_CHILD_EMIT_RESULT")
+            .ok()
+            .as_deref()
+            == Some("1")
+        {
+            println!(
+                "REPOPACT_MUTATION_RESULT:{}",
+                serde_json::to_string(&result).unwrap()
+            );
+        }
     }
 
     #[test]
@@ -5042,13 +5678,18 @@ mod tests {
                 );
                 assert_eq!(status.active_request_key.as_deref(), Some(key.as_str()));
                 let recovered = recover_mutation(&root, Some(&key));
+                let expected_outcome = if phase == "after_prepare_before_write" {
+                    "not_applied"
+                } else {
+                    "rolled_back"
+                };
                 assert_eq!(
-                    recovered.transaction_outcome, "rolled_back",
+                    recovered.transaction_outcome, expected_outcome,
                     "phase {phase}: {:?}",
                     recovered.diagnostics
                 );
                 assert!(!recovered.success);
-                assert!(recovered.rolled_back);
+                assert_eq!(recovered.rolled_back, phase != "after_prepare_before_write");
                 assert_eq!(capture_preimages(&repository, &roots).unwrap(), before);
                 let replay = recover_mutation(&root, Some(&key));
                 assert!(replay.replayed, "recovery receipt must be idempotent");
@@ -5056,6 +5697,466 @@ mod tests {
             }
             let _ = fs::remove_dir_all(root);
         }
+    }
+
+    #[test]
+    fn prepared_and_earlier_cursor_reject_external_future_states() {
+        for (phase, future_operation_start) in [
+            ("after_prepare_before_write", 0usize),
+            ("between_writes", 1usize),
+        ] {
+            let (root, _) = fixture();
+            let key = format!("future-state-{phase}-{}", std::process::id());
+            terminate_mutation_child_at(&root, &key, phase, None);
+            let store = transaction_store::OrdinaryTransactionStore::open(&root).unwrap();
+            let journal = store
+                .load_journal()
+                .unwrap()
+                .expect("synchronized pending journal");
+            let operation_count = journal.operations.len();
+            assert_eq!(
+                operation_count, 3,
+                "create has manifest, README, and dashboard writes"
+            );
+
+            let operation_start = future_operation_start;
+            for operation in &journal.operations[operation_start..] {
+                if let PathOperation::Write { path, content } = operation {
+                    let absolute = root.join(path);
+                    fs::create_dir_all(absolute.parent().unwrap()).unwrap();
+                    fs::write(absolute, content).unwrap();
+                }
+            }
+            let journal_path = store.anchor().join("journal.json");
+            let journal_bytes = fs::read(&journal_path).unwrap();
+            let written = journal.operations[operation_start..]
+                .iter()
+                .filter_map(|operation| match operation {
+                    PathOperation::Write { path, content } => {
+                        Some((root.join(path), content.clone()))
+                    }
+                    PathOperation::Move { .. } => None,
+                })
+                .collect::<Vec<_>>();
+            let result = recover_mutation(&root, Some(&key));
+            assert_eq!(
+                result.transaction_outcome, "recovery_required",
+                "{phase}: {result:?}"
+            );
+            assert!(!result.success);
+            for (path, content) in written {
+                assert_eq!(fs::read_to_string(path).unwrap(), content);
+            }
+            assert_eq!(fs::read(&journal_path).unwrap(), journal_bytes);
+            let _ = fs::remove_dir_all(root);
+        }
+    }
+
+    #[test]
+    fn pre_prepare_external_future_state_is_not_overwritten_on_retry() {
+        let (root, snapshot) = fixture();
+        let key = format!("future-before-prepare-{}", std::process::id());
+        let request_plan = plan(
+            &snapshot,
+            MutationRequest::create_work_item(create_request(
+                "Future Before Prepare",
+                "2026-11-27",
+            )),
+        )
+        .with_mutation_key(key.clone());
+        terminate_mutation_child_at(&root, &key, "before_prepare", None);
+        assert_eq!(mutation_status(&root, Some(&key)).state, "unknown");
+        for operation in &request_plan.file_operations {
+            if let PathOperation::Write { path, content } = operation {
+                let absolute = root.join(path);
+                fs::create_dir_all(absolute.parent().unwrap()).unwrap();
+                fs::write(absolute, content).unwrap();
+            }
+        }
+        let writes = request_plan
+            .file_operations
+            .iter()
+            .filter_map(|operation| match operation {
+                PathOperation::Write { path, content } => Some((root.join(path), content.clone())),
+                PathOperation::Move { .. } => None,
+            })
+            .collect::<Vec<_>>();
+        let retry = request_plan.apply();
+        assert!(!retry.success);
+        assert_eq!(retry.transaction_outcome, "rejected");
+        for (path, content) in writes {
+            assert_eq!(fs::read_to_string(path).unwrap(), content);
+        }
+        let _ = fs::remove_dir_all(root);
+    }
+
+    #[test]
+    fn transition_move_child_termination_and_recovery_are_repeatable() {
+        let (root, snapshot) = fixture();
+        let key = format!("transition-move-kill-{}", std::process::id());
+        let transition = plan(
+            &snapshot,
+            MutationRequest::transition_work_item(TransitionWorkItem::new("001", "deferred")),
+        )
+        .with_mutation_key(key.clone());
+        assert!(matches!(
+            transition.file_operations.first(),
+            Some(PathOperation::Move { .. })
+        ));
+        let repository = Repository::open(&root);
+        let roots = operation_roots(&transition, &repository).unwrap();
+        let before = capture_preimages(&repository, &roots).unwrap();
+        terminate_transition_child_at(&root, &key, "between_writes");
+        assert_eq!(mutation_status(&root, Some(&key)).state, "pending");
+        let recovered = recover_mutation(&root, Some(&key));
+        assert_eq!(
+            recovered.transaction_outcome, "rolled_back",
+            "{recovered:?}"
+        );
+        assert!(!recovered.success);
+        assert!(recovered.rolled_back);
+        assert_eq!(capture_preimages(&repository, &roots).unwrap(), before);
+        assert!(root.join("work/active/001-one/work-item.json").is_file());
+        assert!(!root.join("work/deferred/001-one").exists());
+        let replay = recover_mutation(&root, Some(&key));
+        assert!(replay.replayed);
+        assert!(!replay.success);
+        assert!(replay.rolled_back);
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn explicit_recovery_child_kill_finishes_from_its_exact_rollback_cursor() {
+        let (root, _) = fixture();
+        let key = format!("recovery-interruption-{}", std::process::id());
+        terminate_mutation_child_at(&root, &key, "between_writes", None);
+        terminate_recovery_child_at(&root, &key, "during_rollback");
+        assert_eq!(mutation_status(&root, Some(&key)).state, "pending");
+        let recovered = recover_mutation(&root, Some(&key));
+        assert_eq!(
+            recovered.transaction_outcome, "rolled_back",
+            "{recovered:?}"
+        );
+        assert!(!recovered.success);
+        assert!(recovered.rolled_back);
+        assert!(root.join("work/active/001-one/work-item.json").is_file());
+        let _ = fs::remove_dir_all(root);
+    }
+
+    #[test]
+    fn no_op_forward_operation_keeps_the_exact_operation_cursor() {
+        let (root, _) = fixture();
+        let manifest = root.join("work/active/001-one/work-item.json");
+        let value: Value = serde_json::from_slice(&fs::read(&manifest).unwrap()).unwrap();
+        fs::write(&manifest, canonical_json(&value)).unwrap();
+        let request_plan = plan(
+            &RepositorySession::open(&root).snapshot(),
+            MutationRequest::transition_work_item(TransitionWorkItem::new("001", "active")),
+        )
+        .with_mutation_key(format!("noop-cursor-{}", std::process::id()));
+        assert!(matches!(
+            request_plan.file_operations.first(),
+            Some(PathOperation::Write { .. })
+        ));
+        if let PathOperation::Write { content, .. } = &request_plan.file_operations[0] {
+            assert_eq!(content.as_bytes(), fs::read(&manifest).unwrap());
+        }
+        let result = request_plan.apply_with_options(&ApplyOptions {
+            fail_after_operation: Some(0),
+            ..ApplyOptions::default()
+        });
+        assert!(!result.success);
+        assert!(!result.rolled_back);
+        assert_eq!(result.transaction_outcome, "rejected");
+        assert_eq!(
+            serde_json::from_slice::<Value>(&fs::read(&manifest).unwrap()).unwrap()["status"],
+            "active"
+        );
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn transaction_runtime_artifacts_do_not_change_snapshot_graph_or_candidate() {
+        let (root, _) = fixture();
+        let repository = Repository::open(&root);
+        let before = RepositorySession::open(&root).snapshot();
+        let graph_before = RepositoryGraph::build(&before);
+        let request = MutationRequest::create_work_item(create_request(
+            "Runtime Artifact Probe",
+            "2026-11-27",
+        ));
+        let candidate_before = plan(&before, request.clone());
+        let store = transaction_store::OrdinaryTransactionStore::open(&root).unwrap();
+        let runtime_file = store.anchor().join("receipts/runtime-probe.json");
+        fs::write(&runtime_file, "private ordinary transaction state\n").unwrap();
+
+        let after = RepositorySession::open(&root).snapshot();
+        let graph_after = RepositoryGraph::build(&after);
+        let candidate_after = plan(&after, request);
+        let candidate_paths = |plan: &MutationPlan| {
+            plan.file_operations
+                .iter()
+                .flat_map(operation_paths)
+                .map(|path| path_string(&path))
+                .collect::<Vec<_>>()
+        };
+        assert_eq!(before.identity(), after.identity());
+        assert_eq!(before.read_set(), after.read_set());
+        assert_eq!(graph_before, graph_after);
+        assert_eq!(candidate_before.diagnostics, candidate_after.diagnostics);
+        assert_eq!(
+            candidate_paths(&candidate_before),
+            candidate_paths(&candidate_after)
+        );
+        assert_eq!(
+            repository.path_state(&root.join("work/.repopact-transactions")),
+            PathState::Absent
+        );
+        assert!(
+            runtime_file.is_file(),
+            "source exclusion must not delete runtime state"
+        );
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn malformed_journal_paths_are_rejected_before_creating_transaction_state() {
+        let (root, snapshot) = fixture();
+        let mut request_plan = plan(
+            &snapshot,
+            MutationRequest::create_work_item(create_request("Path Roundtrip Probe", "2026-11-27")),
+        )
+        .with_mutation_key(format!("path-roundtrip-{}", std::process::id()));
+        let PathOperation::Write { path, .. } = &mut request_plan.file_operations[0] else {
+            panic!("create starts with a manifest write");
+        };
+        *path = path.replace('/', "\\");
+        let result = request_plan.apply();
+        assert!(!result.success);
+        assert_eq!(result.transaction_outcome, "rejected");
+        assert!(result
+            .diagnostics
+            .iter()
+            .any(|diagnostic| diagnostic.code == "mutation.operation-shape"));
+        assert!(!root.join("work/.repopact-transactions").exists());
+        assert!(!root.join("work/active/002-path-roundtrip-probe").exists());
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn lossy_unix_paths_are_rejected_before_journaling() {
+        use std::os::unix::ffi::OsStringExt;
+        let backslash = PathBuf::from("work/active/item\\name");
+        assert!(transaction_store::lossless_path_string(&backslash).is_err());
+        let non_utf8 = PathBuf::from(std::ffi::OsString::from_vec(vec![
+            b'w', b'o', b'r', b'k', b'/', b'x', 0xff,
+        ]));
+        assert!(transaction_store::lossless_path_string(&non_utf8).is_err());
+    }
+
+    #[test]
+    fn projected_preimage_bound_and_operation_count_fail_closed() {
+        assert_eq!(MAX_TRANSACTION_OPERATIONS, 3);
+        let operations = vec![
+            PathOperation::Write {
+                path: "a".to_owned(),
+                content: "x".repeat(1024 * 1024),
+            },
+            PathOperation::Write {
+                path: "b".to_owned(),
+                content: "x".repeat(1024 * 1024),
+            },
+            PathOperation::Write {
+                path: "c".to_owned(),
+                content: "x".repeat(1024 * 1024),
+            },
+        ];
+        assert!(projection_bound(0, 0, &operations).unwrap() <= MAX_PROJECTED_PREIMAGE_BYTES);
+        assert!(
+            projection_bound(1024 * 1024 + 1, 0, &operations).unwrap()
+                > MAX_PROJECTED_PREIMAGE_BYTES
+        );
+        let too_many = [
+            operations.as_slice(),
+            &[PathOperation::Write {
+                path: "d".to_owned(),
+                content: String::new(),
+            }],
+        ]
+        .concat();
+        assert!(projection_bound(0, 0, &too_many).is_err());
+    }
+
+    #[test]
+    fn receipt_failures_are_truthful_before_and_after_publication() {
+        let (root, _) = fixture();
+        let key = format!("receipt-before-publish-{}", std::process::id());
+        let result = run_mutation_child_with_fault(&root, &key, Some("before_publish"), false);
+        assert!(!result.success);
+        assert!(!result.rolled_back);
+        assert_eq!(result.transaction_outcome, "recovery_required");
+        assert!(root
+            .join("work/.repopact-transactions/ordinary-v1/journal.json")
+            .is_file());
+        assert!(
+            transaction_store::OrdinaryTransactionStore::open_read_only(&root)
+                .unwrap()
+                .unwrap()
+                .load_receipt(&key)
+                .unwrap()
+                .is_none()
+        );
+        fs::remove_dir_all(&root).unwrap();
+
+        let (root, _) = fixture();
+        let key = format!("receipt-after-publish-{}", std::process::id());
+        let result = run_mutation_child_with_fault(&root, &key, Some("after_publish"), false);
+        assert!(result.success, "published receipt was verified: {result:?}");
+        assert!(!result.rolled_back);
+        assert_eq!(result.transaction_outcome, "committed");
+        assert!(!root
+            .join("work/.repopact-transactions/ordinary-v1/journal.json")
+            .exists());
+        let status = mutation_status(&root, Some(&key));
+        assert_eq!(status.state, "clear");
+        assert!(status
+            .receipts
+            .iter()
+            .any(|receipt| receipt.request_key == key));
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn durable_commit_cleanup_failure_is_a_nonblocking_warning() {
+        let (root, _) = fixture();
+        let key = format!("cleanup-pending-{}", std::process::id());
+        let result = run_mutation_child_with_fault(&root, &key, None, true);
+        assert!(result.success, "receipt is the commit point: {result:?}");
+        assert!(!result.rolled_back);
+        assert_eq!(result.transaction_outcome, "committed");
+        assert!(result.diagnostics.iter().any(|diagnostic| {
+            diagnostic.code == "mutation.terminal-cleanup-pending" && !diagnostic.blocking
+        }));
+        let status = mutation_status(&root, Some(&key));
+        assert_eq!(status.state, "terminal");
+        let replay = plan(
+            &RepositorySession::open(&root).snapshot(),
+            MutationRequest::create_work_item(create_request(
+                "Process Recovery Probe",
+                "2026-11-27",
+            )),
+        )
+        .with_mutation_key(key)
+        .apply();
+        assert!(replay.success);
+        assert!(replay.replayed);
+        assert_eq!(replay.transaction_outcome, "replayed");
+        assert!(!root
+            .join("work/.repopact-transactions/ordinary-v1/journal.json")
+            .exists());
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn repository_lock_is_cross_process_and_scoped_by_native_working_root() {
+        let (root, _) = fixture();
+        let alternate_temp = create_fixture_root_under(
+            &std::env::temp_dir(),
+            "repopact-alternate-temp",
+            &TEST_ROOT_COUNTER,
+        )
+        .unwrap();
+        let key = format!("lock-contention-{}", std::process::id());
+        let mut child = spawn_paused_child_at(
+            &root,
+            &key,
+            "lock_held",
+            "lock",
+            None,
+            Some(&alternate_temp),
+        );
+        let started = Instant::now();
+        let contention = RepositoryMutationLock::acquire(&root);
+        assert!(contention.is_err());
+        assert!(started.elapsed() >= Duration::from_millis(1800));
+        child.kill().unwrap();
+        let _ = child.wait();
+        drop(RepositoryMutationLock::acquire(&root).expect("lock clears after child exit"));
+
+        let (other_root, _) = fixture();
+        let held = RepositoryMutationLock::acquire(&root).unwrap();
+        let mut independent = spawn_paused_child_at(
+            &other_root,
+            &format!("separate-root-{}", std::process::id()),
+            "lock_held",
+            "lock",
+            None,
+            Some(&alternate_temp),
+        );
+        independent.kill().unwrap();
+        let _ = independent.wait();
+        drop(held);
+        let _ = fs::remove_dir_all(root);
+        let _ = fs::remove_dir_all(other_root);
+        let _ = fs::remove_dir_all(alternate_temp);
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn native_windows_acl_check_preserves_an_unsafe_legacy_proposal_anchor() {
+        let (root, _) = fixture();
+        let store = transaction_store::OrdinaryTransactionStore::open(&root).unwrap();
+        let parent = root.join("work/.repopact-transactions");
+        let marker = parent.join("legacy-proposal-marker.json");
+        fs::write(&marker, b"preserve prior proposal state exactly").unwrap();
+        let icacls = PathBuf::from(std::env::var_os("SystemRoot").unwrap())
+            .join("System32")
+            .join("icacls.exe");
+        let output = Command::new(icacls)
+            .arg(&parent)
+            .arg("/grant")
+            .arg("*S-1-1-0:(OI)(CI)(F)")
+            .output()
+            .expect("icacls is used only to create an unsafe disposable test fixture");
+        assert!(
+            output.status.success(),
+            "{}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+        assert!(transaction_store::check_private_directory(&parent).is_err());
+        let proposal_error = transaction_store::ensure_proposal_anchor(&root)
+            .expect_err("proposal writers must reject an unsafe legacy anchor");
+        assert!(
+            proposal_error.contains("contents were preserved")
+                && proposal_error.contains("no repair was attempted"),
+            "{proposal_error}"
+        );
+        let reopened = transaction_store::OrdinaryTransactionStore::open(&root);
+        let error = match reopened {
+            Ok(_) => panic!("unsafe proposal ACL must fail closed without repair"),
+            Err(error) => error,
+        };
+        assert!(error.contains("no ACL repair was attempted"), "{error}");
+        assert!(transaction_store::check_private_directory(&parent).is_err());
+        assert_eq!(
+            fs::read(&marker).unwrap(),
+            b"preserve prior proposal state exactly"
+        );
+        assert!(store.anchor().is_dir());
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn newly_created_windows_receipt_files_inherit_a_valid_native_dacl() {
+        let (root, _) = fixture();
+        let store = transaction_store::OrdinaryTransactionStore::open(&root).unwrap();
+        let file = store.anchor().join("receipts/private-test.json");
+        fs::write(&file, b"native ACL fixture").unwrap();
+        let bytes = fs::read(&file).unwrap();
+        assert_eq!(bytes, b"native ACL fixture");
+        fs::remove_dir_all(root).unwrap();
     }
 
     #[test]
@@ -5144,6 +6245,10 @@ mod tests {
         )
         .unwrap();
         copy_tree(&root, &clone).unwrap();
+        let cloned_runtime = clone.join("work/.repopact-transactions");
+        if cloned_runtime.exists() {
+            fs::remove_dir_all(&cloned_runtime).unwrap();
+        }
         let clone_store = transaction_store::OrdinaryTransactionStore::open(&clone).unwrap();
         let copied_journal = clone_store.anchor().join("journal.json");
         fs::write(&copied_journal, &original).unwrap();
@@ -5684,8 +6789,8 @@ mod tests {
             result
                 .diagnostics
                 .iter()
-                .any(|item| item.code == "mutation.rollback-failed"
-                    && item.message.contains("recovery required")),
+                .any(|item| item.code == "mutation.recovery-required"
+                    && item.message.contains("uncertain data was preserved")),
             "{result:?}"
         );
         assert_eq!(fs::read(root.join(first_path)).unwrap(), external);
@@ -5759,11 +6864,18 @@ mod tests {
         fs::write(&sentinel, b"keep external bytes").unwrap();
         let repository = Repository::open(&root);
         let mut read_count = 0;
-        let mut read_file = |_path: &Path| {
+        let mut read_file = |path: &Path| {
             read_count += 1;
             let bytes = match read_count {
-                1 | 2 | 5 | 6 => b"AAAA".as_slice(),
-                3 | 4 => b"BBBB".as_slice(),
+                1 => b"AAAA".as_slice(),
+                2 => {
+                    fs::write(path, b"BBBB").unwrap();
+                    b"BBBB".as_slice()
+                }
+                3 => {
+                    fs::write(path, b"AAAA").unwrap();
+                    b"AAAA".as_slice()
+                }
                 _ => panic!("capture made an unexpected number of file reads"),
             };
             Ok(bytes.to_vec())
@@ -5779,7 +6891,7 @@ mod tests {
 
         let error = result.expect_err("middle B/B preimage must disagree with A/A boundaries");
         assert!(error.contains("target state changed"), "{error}");
-        assert_eq!(read_count, 6);
+        assert_eq!(read_count, 3);
         assert_eq!(fs::read(&target).unwrap(), b"AAAA");
         assert_eq!(fs::read(&sentinel).unwrap(), b"keep external bytes");
         fs::remove_dir_all(root).unwrap();

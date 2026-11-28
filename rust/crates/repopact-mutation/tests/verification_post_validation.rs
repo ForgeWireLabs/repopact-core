@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use repopact_mutation::{
-    apply, ApplyOptions, CreateWorkItem, MutationMetrics, MutationPlan, MutationRequest,
+    apply, plan, ApplyOptions, CreateWorkItem, MutationRequest, PathOperation,
 };
 use repopact_repository::Repository;
 
@@ -34,21 +34,21 @@ fn mutation_post_validation_includes_shared_verification_contract_diagnostics() 
 
     let repository = Repository::open(&root);
     let snapshot = repository.session().snapshot();
-    let identity = snapshot.identity();
-    let read_set = snapshot.read_set().clone();
-    let plan = MutationPlan {
-        repository_identity: identity.clone(),
-        plan_token: read_set.token(&identity),
-        read_set,
-        mutation_key: Some("post-validation-probe".to_owned()),
-        request: MutationRequest::CreateWorkItem(CreateWorkItem::new("Parity probe", "2026-09-12")),
-        file_operations: Vec::new(),
-        generated_impacts: Vec::new(),
-        graph_impacts: Vec::new(),
-        diagnostics: Vec::new(),
-        preview: String::new(),
-        metrics: MutationMetrics::default(),
-    };
+    let mut plan = plan(
+        &snapshot,
+        MutationRequest::CreateWorkItem(
+            CreateWorkItem::new("Parity probe", "2026-09-12")
+                .confirm_preflight_before_work_started(),
+        ),
+    );
+    assert_eq!(plan.file_operations.len(), 2);
+    plan.file_operations.push(PathOperation::Write {
+        path: "audits/reports/dashboard.md".to_owned(),
+        content: "post-validation probe\n".to_owned(),
+    });
+    // Isolate post-apply canonical validation from the planner diagnostics:
+    // the malformed verification contract above is the fact this test checks.
+    plan.diagnostics.clear();
 
     let result = apply(&plan, &ApplyOptions::default());
     assert!(!result.success);
