@@ -6,7 +6,8 @@ use std::process::ExitCode;
 use repopact_analysis::{AnalysisQuery, AnalysisReport};
 use repopact_core::RepoPactCore;
 use repopact_mutation::{
-    CreateWorkItem, EditWorkItem, MutationRequest, MutationResult, WorkItemEdits,
+    acquire_repository_mutation_write_guard, mutation_status, recover_mutation, CreateWorkItem,
+    EditWorkItem, MutationRequest, MutationResult, MutationStatus, WorkItemEdits,
 };
 use repopact_protocol::{
     capabilities, EngineBuildInfo, EngineRequest, EngineResponse, ProtocolDiagnostic, PROTOCOL,
@@ -48,6 +49,19 @@ struct CreateParams {
     acceptance_criteria: Vec<AcceptanceCriterion>,
     #[serde(default)]
     idempotency_key: Option<String>,
+    #[serde(default)]
+    mutation_key: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+struct MutationStatusParams {
+    #[serde(default)]
+    request_key: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+struct MutationRecoveryParams {
+    request_key: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -157,6 +171,8 @@ fn dispatch(request: EngineRequest, operation: &str) -> EngineResponse {
         "work.create" | "work.propose" => create_work(&request),
         "work.proposal-plan" => proposal_plan(&request),
         "work.proposal-status" => proposal_status(&request),
+        "work.mutation-status" => ordinary_mutation_status(&request),
+        "work.mutation-recover" => ordinary_mutation_recover(&request),
         "work.amend_proposal" => amend_proposal(&request),
         "graph" => graph(&request),
         "graph.status" => graph_status(&request),
@@ -301,6 +317,10 @@ fn dashboard_write(request: &EngineRequest) -> EngineResponse {
         Ok(root) => root,
         Err(response) => return response,
     };
+    let _write_guard = match acquire_repository_mutation_write_guard(&root) {
+        Ok(guard) => guard,
+        Err(error) => return semantic_failure(request, "dashboard.write-blocked", error),
+    };
     let core = RepoPactCore::open(&root);
     let snapshot = core.snapshot();
     let content = match repopact_validation::render_dashboard_snapshot(&snapshot) {
@@ -380,6 +400,10 @@ fn create_work(request: &EngineRequest) -> EngineResponse {
     }
     let planning_started = std::time::Instant::now();
     let plan = core.plan_mutation_snapshot(&snapshot, MutationRequest::create_work_item(intent));
+    let plan = match params.mutation_key {
+        Some(key) => plan.with_mutation_key(key),
+        None => plan,
+    };
     let planning_ms = planning_started.elapsed().as_millis();
     let operation_started = std::time::Instant::now();
     let result = plan.apply();
@@ -389,6 +413,35 @@ fn create_work(request: &EngineRequest) -> EngineResponse {
     result.metrics.engine_execution_ms =
         operation_started.elapsed().as_millis() + snapshot_ms + planning_ms;
     mutation_response(request, result)
+}
+
+fn ordinary_mutation_status(request: &EngineRequest) -> EngineResponse {
+    let root = match require_root(request) {
+        Ok(root) => root,
+        Err(response) => return response,
+    };
+    let params = match serde_json::from_value::<MutationStatusParams>(request.params.clone()) {
+        Ok(params) => params,
+        Err(error) => {
+            return semantic_failure(request, "mutation.invalid-parameters", error.to_string())
+        }
+    };
+    let status: MutationStatus = mutation_status(&root, params.request_key.as_deref());
+    EngineResponse::success(request.request_id.clone(), ENGINE_VERSION, json!(status))
+}
+
+fn ordinary_mutation_recover(request: &EngineRequest) -> EngineResponse {
+    let root = match require_root(request) {
+        Ok(root) => root,
+        Err(response) => return response,
+    };
+    let params = match serde_json::from_value::<MutationRecoveryParams>(request.params.clone()) {
+        Ok(params) => params,
+        Err(error) => {
+            return semantic_failure(request, "mutation.invalid-parameters", error.to_string())
+        }
+    };
+    mutation_response(request, recover_mutation(&root, Some(&params.request_key)))
 }
 
 fn proposal_plan(request: &EngineRequest) -> EngineResponse {
@@ -754,6 +807,8 @@ fn mutation_response(request: &EngineRequest, result: MutationResult) -> EngineR
     let value = json!({
         "success": result.success,
         "rolled_back": result.rolled_back,
+        "mutation_key": result.mutation_key,
+        "transaction_outcome": result.transaction_outcome,
         "plan_token": result.plan_token,
         "changed_paths": result.changed_paths,
         "diagnostics": result.diagnostics,
@@ -973,5 +1028,56 @@ mod tests {
         assert!(response.ok);
         assert_eq!(response.result.unwrap()["valid"], false);
         fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn mutation_response_keeps_receipt_failure_unknown_and_cleanup_warning_nonblocking() {
+        let request = request("work.create");
+        let unconfirmed: MutationResult = serde_json::from_value(json!({
+            "success": false,
+            "rolled_back": false,
+            "mutation_key": "receipt-key",
+            "transaction_outcome": "recovery_required",
+            "plan_token": "plan",
+            "changed_paths": [],
+            "diagnostics": [{
+                "code": "mutation.receipt-persist",
+                "message": "receipt was not confirmed",
+                "path": null,
+                "blocking": true,
+                "related_records": []
+            }],
+            "replayed": false
+        }))
+        .unwrap();
+        let response = mutation_response(&request, unconfirmed);
+        assert!(response.ok);
+        let result = response.result.unwrap();
+        assert_eq!(result["success"], false);
+        assert_eq!(result["rolled_back"], false);
+        assert_eq!(result["transaction_outcome"], "recovery_required");
+
+        let committed: MutationResult = serde_json::from_value(json!({
+            "success": true,
+            "rolled_back": false,
+            "mutation_key": "cleanup-key",
+            "transaction_outcome": "committed",
+            "plan_token": "plan",
+            "changed_paths": [],
+            "diagnostics": [{
+                "code": "mutation.terminal-cleanup-pending",
+                "message": "durable receipt remains while cleanup is pending",
+                "path": null,
+                "blocking": false,
+                "related_records": []
+            }],
+            "replayed": false
+        }))
+        .unwrap();
+        let response = mutation_response(&request, committed);
+        let result = response.result.unwrap();
+        assert_eq!(result["success"], true);
+        assert_eq!(result["transaction_outcome"], "committed");
+        assert_eq!(response.diagnostics[0].severity, "warning");
     }
 }

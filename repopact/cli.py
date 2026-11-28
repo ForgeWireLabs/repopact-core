@@ -64,13 +64,11 @@ def _rust_mutation(
     try:
         response = EngineClient(timeout=timeout).call(operation, root=root, params=params)
     except OperationOutcomeUnknownError as exc:
-        key = exc.idempotency_key or "<missing>"
-        message = (
-            f"Outcome unknown for {operation}; inspect `repopact work proposal-status {key}` "
-            f"before retrying with the same --idempotency-key. {exc}"
-        )
+        message = f"Outcome unknown for {operation}; {exc}"
         if json_output:
-            print(json.dumps({"outcome": "unknown", "idempotency_key": key, "message": message}))
+            field = "request_key" if operation == "work.create" else "idempotency_key"
+            key = exc.idempotency_key
+            print(json.dumps({"outcome": "unknown", field: key, "message": message}))
         else:
             print(message, file=sys.stderr)
         return 2
@@ -83,20 +81,30 @@ def _rust_mutation(
         print(f"Rust engine returned an invalid mutation result: {exc}", file=sys.stderr)
         return 1
     diagnostics = result["diagnostics"]
+    outcome = result.get("transaction_outcome") or ("committed" if result.get("success") else "rejected")
     if json_output:
         print(json.dumps({
-            "outcome": "committed" if result.get("success") else "rejected",
+            "outcome": outcome,
             "result": result,
             "client_metrics": response.get("client_metrics", {}),
         }, indent=2, sort_keys=True))
     if not result.get("success", False):
+        if operation == "work.mutation-recover" and outcome in {"rolled_back", "replayed"}:
+            if not json_output:
+                print(f"Mutation recovery outcome: {outcome}")
+            return 0
         if not json_output:
             for diagnostic in diagnostics:
                 code = diagnostic.get("code", "engine.diagnostic")
                 location = diagnostic.get("path") or diagnostic.get("record") or "<repository>"
                 level = "ERROR" if diagnostic.get("blocking", True) else "WARNING"
                 print(f"{level} [{code}] {location}: {diagnostic.get('message', '')}")
-            print("Proposal was rejected; no work-item record was committed.", file=sys.stderr)
+            if operation == "work.propose":
+                print("Proposal was rejected; no work-item record was committed.", file=sys.stderr)
+            elif operation == "work.mutation-recover":
+                print(f"Mutation recovery did not complete: {outcome}.", file=sys.stderr)
+            else:
+                print("Mutation was not committed.", file=sys.stderr)
         return 1
     if not json_output:
         for diagnostic in diagnostics:
@@ -207,6 +215,7 @@ def main(argv: list[str] | None = None) -> int:
     p_new.add_argument("--root", type=Path, default=Path.cwd())
     p_new.add_argument("--status", choices=STATUSES, default="active",
                        help="Lifecycle status for a new work item")
+    p_new.add_argument("--mutation-key", help="Reuse a printed ordinary mutation key after an interrupted response")
 
     p_frz = sub.add_parser("check-frozen", help="Report frozen-surface changes in a diff range")
     p_frz.add_argument("--root", type=Path, default=Path.cwd())
@@ -307,6 +316,12 @@ def main(argv: list[str] | None = None) -> int:
     p_plan.add_argument("--idempotency-key", help="Key to reuse when the proposal is submitted")
     p_status = work_sub.add_parser("proposal-status", help="Read-only lookup for a proposal key")
     p_status.add_argument("idempotency_key"); p_status.add_argument("--root", type=Path, default=Path.cwd())
+    p_mutation_status = work_sub.add_parser("mutation-status", help="Read-only ordinary mutation recovery status")
+    p_mutation_status.add_argument("--request-key", help="Inspect one previously printed mutation key")
+    p_mutation_status.add_argument("--root", type=Path, default=Path.cwd())
+    p_mutation_recover = work_sub.add_parser("mutation-recover", help="Explicitly recover a pending ordinary mutation")
+    p_mutation_recover.add_argument("--request-key", required=True)
+    p_mutation_recover.add_argument("--root", type=Path, default=Path.cwd())
     p_amend = work_sub.add_parser("amend-proposal", help="Change only the title of proposed work")
     p_amend.add_argument("work_item"); p_amend.add_argument("title"); p_amend.add_argument("--root", type=Path, default=Path.cwd())
 
@@ -499,6 +514,28 @@ def main(argv: list[str] | None = None) -> int:
                     return 1
                 print(json.dumps(response.get("result") or {}, indent=2, sort_keys=True))
                 return 0
+            if args.work_command == "mutation-status":
+                from .engine_client import EngineError, EngineClient
+
+                try:
+                    response = EngineClient(timeout=5.0).call(
+                        "work.mutation-status",
+                        root=root,
+                        params={"request_key": args.request_key} if args.request_key else {},
+                    )
+                except EngineError as exc:
+                    print(f"Mutation status lookup failed: {exc}", file=sys.stderr)
+                    return 1
+                print(json.dumps(response.get("result") or {}, indent=2, sort_keys=True))
+                return 0
+            if args.work_command == "mutation-recover":
+                return _rust_mutation(
+                    root,
+                    "work.mutation-recover",
+                    {"request_key": args.request_key},
+                    "Mutation recovery",
+                    timeout=30.0,
+                )
             return _rust_mutation(
                 root,
                 "work.amend_proposal",
@@ -735,6 +772,8 @@ def main(argv: list[str] | None = None) -> int:
                     "Created proposed",
                     timeout=10.0,
                 )
+            mutation_key = args.mutation_key or uuid.uuid4().hex
+            print(f"Mutation key: {mutation_key}", flush=True)
             return _rust_mutation(
                 root,
                 "work.create",
@@ -743,6 +782,7 @@ def main(argv: list[str] | None = None) -> int:
                     "date": date.today().isoformat(),
                     "status": args.status,
                     "preflight_confirmed_before_work_started": True,
+                    "mutation_key": mutation_key,
                 },
                 "Created",
             )

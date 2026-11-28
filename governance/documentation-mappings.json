@@ -21,7 +21,7 @@
       ],
       "description": "The opt-in mapping diagnostics and snapshot command are explained by the adopter-facing freshness guide.",
       "snapshot": {
-        "source_digest": "1a7c1e4574a34c9a9f530225b20cd7dccb0f843def72340748889cf2f9fa8899",
+        "source_digest": "a88de9a90f63e51ca0b7aebb89b9b4b55851332fefcfd15ba225d0aa9c098610",
         "documentation_digest": "6a7b56a721f7965e9cafedb5f980758d186016f15bb4be426b429c9c0d8b618b"
       }
     },
@@ -80,23 +80,25 @@
       ],
       "description": "The installation and packaging guide explains semantic identity, same-process admission, exact runtime dependency checks, migration, no-replay handling for uncertain outcomes, wheel payload and packaged-engine verification, the separate WI079 self-audit reference corpus, and the limits of executable provenance.",
       "snapshot": {
-        "source_digest": "667ccab31de86f7b6a30a7f858913951e39a772927375acf644e5491c4ae664e",
-        "documentation_digest": "a8bc0c1ef6847f544c2083ecd07dbd54cfd751f5f2f447ce99d1bc03e4e521a3"
+        "source_digest": "73c40d1cbe1393c9ad37a94f393fad9f5e4a3b21282338230d842675df8a7070",
+        "documentation_digest": "882243d1ca40f60a54cf2d85527f571378e271eb4caf6fbf5347ba5e8e8db455"
       }
     },
     {
       "id": "mutation-transaction-safety",
       "kind": "manual",
       "source_paths": [
-        "rust/crates/repopact-mutation/src/lib.rs"
+        "rust/crates/repopact-mutation/src/lib.rs",
+        "rust/crates/repopact-mutation/src/transaction_store.rs"
       ],
       "documentation_paths": [
-        "docs/guides/governance-recovery.md"
+        "docs/guides/governance-recovery.md",
+        "docs/guides/mutation-recovery.md"
       ],
-      "description": "The recovery guide explains plan-fact reconciliation, path containment checks, hard-link and reparse rejection, and exact rollback confirmation for ordinary mutation transactions.",
+      "description": "The recovery guides explain plan-fact reconciliation, path containment, hard-link and reparse rejection, exact rollback confirmation, and explicit process-interruption recovery for ordinary mutations.",
       "snapshot": {
-        "source_digest": "ba0ba489f27609cf02de9433b8fde97e13fb0ff7ff1fc97c9188af3633a620fb",
-        "documentation_digest": "4ea265ffbf2eea4bfd0c47604bdae40760258e5916a9f0f0a61e1064d9f54d4b"
+        "source_digest": "cd47976ef0cac1a3102a9a30ee95061ae7a1f29b4697b30de7c215d3dd3ee66d",
+        "documentation_digest": "be079274543364d7331a3e52322adc185de0731e8a4e1155ba470f67b99a9b4a"
       }
     },
     {
@@ -114,7 +116,7 @@
       ],
       "description": "The experimental self-audit CLI and opt-in instruction template explain candidate snapshots and freshness checks across committed, staged, unstaged, and nonignored untracked paths, controlled finding-status failures, and instruction-only limits.",
       "snapshot": {
-        "source_digest": "602976b565254acf20c26742f6194db19a414238793f38423a42c005612a4324",
+        "source_digest": "3c7db66a07d42b083de4fa988b95b81c0a62c4b8dc02c08a562bacf9b51f4507",
         "documentation_digest": "e37a66b4ce054f44f258a5070e84a35d0fa4aa93361c42d561fe6c6e67b32741"
       }
     }

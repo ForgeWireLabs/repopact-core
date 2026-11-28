@@ -1,0 +1,47 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "artifacts": [
+    "rust/crates/repopact-mutation/src/lib.rs",
+    "rust/crates/repopact-mutation/src/transaction_store.rs"
+  ],
+  "commands": [
+    {
+      "command": "cargo test --locked --manifest-path rust/Cargo.toml -p repopact-mutation (Windows x86_64-pc-windows-msvc)",
+      "exit_code": 0,
+      "summary": "52 unit, 3 boundary, and 1 integration tests passed; includes process_termination_recovery_uses_synchronized_child_kills across the synchronized transaction interruption phases."
+    },
+    {
+      "command": "WSL Debian: CARGO_TARGET_DIR=/tmp/repopact-core-wi085-mutation-linux-target cargo test --locked --manifest-path rust/Cargo.toml -p repopact-mutation",
+      "exit_code": 0,
+      "summary": "51 unit, 3 boundary, and 1 integration tests passed; includes synchronized child-process termination and explicit recovery coverage."
+    }
+  ],
+  "environment": {
+    "candidate": {
+      "commit": "17e828f1301699bb7ce692fecc5e7f6c58e0c576",
+      "dirty": false,
+      "tree": "32568a6640ee9acfbb36042d74a55448190f9bc6"
+    },
+    "executions": [
+      {
+        "executor": "local",
+        "platform": "windows",
+        "rustc": "1.96.0",
+        "target": "x86_64-pc-windows-msvc"
+      },
+      {
+        "cargo": "1.97.1",
+        "executor": "local",
+        "platform": "linux (WSL Debian)",
+        "rustc": "1.97.1",
+        "scope": "mutation package tests only; not a full Linux CI profile"
+      }
+    ]
+  },
+  "id": "20261128-wi085-mutation-subprocess-platforms",
+  "provenance": "concrete",
+  "result": "passed",
+  "timestamp": "2026-11-28T03:33:00Z",
+  "timestamp_basis": "git-recording",
+  "work_item": "085"
+}

@@ -14,6 +14,12 @@ directories. Stamp the common records with `repopact new`.
 repopact new work-item "Short imperative title"
 ```
 
+The command prints a mutation key before it sends the write request. Keep that
+key until the command returns; if the response is interrupted, use the same
+`--mutation-key` to retry the same intent or inspect it with
+[`mutation recovery`](mutation-recovery.md). Never replace the key with a new
+one while the original result is uncertain.
+
 Creates `work/active/NNN-slug/` with `work-item.json` and a README. Set at least
 one acceptance criterion stating an observable outcome. As work proceeds, keep the
 README current — show the evolution, do not overwrite it.

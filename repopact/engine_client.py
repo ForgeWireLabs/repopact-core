@@ -53,18 +53,30 @@ class _EngineRequestNotSentError(EngineProtocolError):
 
 
 class OperationOutcomeUnknownError(EngineOutcomeUnknownError):
-    """A proposal request started but its authoritative response was not received."""
+    """A keyed mutation started but its authoritative response was not received."""
 
     def __init__(self, operation: str, idempotency_key: str | None, detail: str):
         self.operation = operation
         self.idempotency_key = idempotency_key
-        recovery = (
-            f" Inspect `repopact work proposal-status {idempotency_key}` before retrying "
+        self.request_key = idempotency_key
+        inspection = (
+            f" Inspect `repopact work mutation-status --request-key {idempotency_key}` before retrying "
+            f"with the same --mutation-key."
+            if idempotency_key and operation == "work.create"
+            else f" Inspect `repopact work proposal-status {idempotency_key}` before retrying "
             f"with the same --idempotency-key."
             if idempotency_key
-            else " No retry key was returned; inspect the repository before attempting another proposal."
+            else " Inspect `repopact work mutation-status`; a missing receipt does not prove that the request did not run."
         )
-        super().__init__(f"{operation} response was not received; outcome is unknown: {detail}.{recovery}")
+        super().__init__(f"{operation} response was not received; outcome is unknown: {detail}.{inspection}")
+
+
+def _operation_request_key(operation: str, params: dict[str, Any] | None) -> str | None:
+    if not params:
+        return None
+    field = "mutation_key" if operation == "work.create" else "idempotency_key"
+    key = params.get(field)
+    return key if isinstance(key, str) else None
 
 
 def expected_product_version() -> str:
@@ -472,12 +484,14 @@ class EngineClient:
                 try:
                     response = self._call_admitted(operation, root=root, params=params)
                 except EngineOutcomeUnknownError as exc:
-                    if operation != "work.propose":
+                    if operation not in {"work.propose", "work.create"}:
                         raise
-                    key = (params or {}).get("idempotency_key")
+                    key = _operation_request_key(operation, params)
                     raise OperationOutcomeUnknownError(
-                        operation, key if isinstance(key, str) else None, str(exc)
+                        operation, key, str(exc)
                     ) from exc
+                except _EngineRequestNotSentError:
+                    raise
             else:
                 request = {
                     "protocol": PROTOCOL,
@@ -492,19 +506,19 @@ class EngineClient:
                 except OperationOutcomeUnknownError:
                     raise
                 except EngineProtocolError as exc:
-                    if operation != "work.propose":
+                    if operation not in {"work.propose", "work.create"}:
                         raise
-                    key = (params or {}).get("idempotency_key")
+                    key = _operation_request_key(operation, params)
                     raise OperationOutcomeUnknownError(
-                        operation, key if isinstance(key, str) else None, str(exc)
+                        operation, key, str(exc)
                     ) from exc
-            if operation == "work.propose" and response.get("ok", False):
+            if operation in {"work.propose", "work.create"} and response.get("ok", False):
                 try:
                     validated_mutation_result(response)
                 except EngineProtocolError as exc:
-                    key = (params or {}).get("idempotency_key")
+                    key = _operation_request_key(operation, params)
                     raise OperationOutcomeUnknownError(
-                        operation, key if isinstance(key, str) else None,
+                        operation, key,
                         f"engine returned an invalid mutation result: {exc}",
                     ) from exc
             operation_ms = int((time.perf_counter() - operation_started) * 1000)
@@ -761,7 +775,7 @@ class EngineClient:
                 response = self._session_exchange(request)
             except _EngineRequestNotSentError as exc:
                 self._poison_and_stop_session(exc)
-                raise EngineProtocolError(
+                raise _EngineRequestNotSentError(
                     "admitted Rust engine exited before operation dispatch; refusing to relaunch"
                 ) from exc
             if not response.get("ok", False):
@@ -809,11 +823,12 @@ class EngineClient:
         except subprocess.TimeoutExpired as exc:
             process.kill()
             process.communicate()
-            if request.get("operation") == "work.propose":
-                key = request.get("params", {}).get("idempotency_key")
+            operation = request.get("operation")
+            if operation in {"work.propose", "work.create"}:
+                key = _operation_request_key(operation, request.get("params"))
                 raise OperationOutcomeUnknownError(
-                    request["operation"],
-                    key if isinstance(key, str) else None,
+                    operation,
+                    key,
                     f"engine deadline of {self.timeout:g}s expired",
                 ) from exc
             raise EngineProtocolError(
@@ -829,12 +844,13 @@ class EngineClient:
             response = self._decode_response(stdout, stderr, request["request_id"])
             self._verify_response(response, request["operation"], request["request_id"])
         except EngineProtocolError as exc:
-            if request.get("operation") != "work.propose":
+            operation = request.get("operation")
+            if operation not in {"work.propose", "work.create"}:
                 raise
-            key = request.get("params", {}).get("idempotency_key")
+            key = _operation_request_key(operation, request.get("params"))
             raise OperationOutcomeUnknownError(
-                request["operation"],
-                key if isinstance(key, str) else None,
+                operation,
+                key,
                 str(exc),
             ) from exc
         self._last_peak_working_set_bytes = peak_memory
@@ -993,6 +1009,38 @@ def validated_mutation_result(response: dict[str, Any]) -> dict[str, Any]:
     )
     if result["success"] != (not has_errors):
         raise EngineProtocolError("Rust engine mutation success conflicts with its diagnostics")
+    if "mutation_key" in result and result["mutation_key"] is not None and not isinstance(result["mutation_key"], str):
+        raise EngineProtocolError("Rust engine mutation returned a malformed request key")
+    outcome = result.get("transaction_outcome")
+    if outcome is not None and outcome not in {
+        "not_applied", "unknown", "rejected", "recovery_required", "conflict",
+        "replayed", "rolled_back", "committed",
+    }:
+        raise EngineProtocolError("Rust engine mutation returned an unknown transaction outcome")
+    rolled_back = result.get("rolled_back")
+    if rolled_back is not None and type(rolled_back) is not bool:
+        raise EngineProtocolError("Rust engine mutation returned malformed rollback state")
+    if outcome is not None:
+        if rolled_back is None:
+            raise EngineProtocolError("Rust engine mutation outcome omitted rollback state")
+        rolled_back = bool(rolled_back)
+        if outcome == "replayed":
+            consistent = not (result["success"] and rolled_back)
+        else:
+            expected = {
+                "committed": (True, False),
+                "rolled_back": (False, True),
+                "rejected": (False, False),
+                "not_applied": (False, False),
+                "unknown": (False, False),
+                "recovery_required": (False, False),
+                "conflict": (False, False),
+            }[outcome]
+            consistent = (result["success"], rolled_back) == expected
+        if not consistent:
+            raise EngineProtocolError(
+                "Rust engine mutation outcome conflicts with success or rollback state"
+            )
     return result
 
 

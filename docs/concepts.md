@@ -151,6 +151,13 @@ RepoPact's canonical semantic authority is the Rust engine and its versioned lan
 
 Workbench and other clients should consume the canonical semantic operations instead of reimplementing repository meaning in each UI or integration.
 
+Typed ordinary work-item mutations also have bounded process-interruption
+recovery. The engine records the request key and exact write sequence, exposes
+read-only status, and requires an explicit recovery command. This is scoped to
+the cooperating typed writers; it is not a general repository lock or a
+power-loss guarantee. See [Recover an interrupted typed mutation](guides/mutation-recovery.md)
+and [Decision 0080](../decisions/0080-ordinary-process-interruption-recovery-for-typed-mutations.md).
+
 ## The Repository Orientation Graph is derived
 
 The Repository Orientation Graph can preserve deterministic, incremental semantic and metadata relationships and expose bounded orientation queries. It is still a projection.

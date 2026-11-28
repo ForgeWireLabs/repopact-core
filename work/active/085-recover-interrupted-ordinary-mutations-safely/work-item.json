@@ -1,0 +1,81 @@
+{
+  "$schema": "../../../repopact/schemas/work-item.schema.json",
+  "id": "085",
+  "title": "Recover interrupted ordinary mutations safely",
+  "status": "active",
+  "owner_scope": "tooling",
+  "affected_scopes": [
+    "tooling",
+    "governance",
+    "work",
+    "docs",
+    "evidence"
+  ],
+  "depends_on": [],
+  "provenance": "concrete",
+  "preflight": {
+    "created_before_work_started": true,
+    "created_at": "2026-11-28T00:01:38Z",
+    "note": "Allocated by the canonical Rust work.create path on a clean isolated worktree at WI084 main 1223cab5562f2f4c5a77acb5e6ce8d033aa5a0cb (tree 685528fcfc59601b6c32470d3cd07a43dfebf8b1). Existing dirty historical PR15 checkout was left untouched. Reused the preflighted local validation target only after scripts/local_validation_storage.py reported ready on the same D: volume with more than the required 12 GiB free. Design and acceptance criteria were recorded before runtime changes."
+  },
+  "acceptance_criteria": [
+    {
+      "id": "AC-1",
+      "text": "Before runtime edits, record operator authority, the accepted WI084-based recovery boundary, exact ordinary/proposal/dashboard writer overlap, state and terminal outcomes, storage bounds, ownership rules, and explicit non-goals in WI085 and Decision 0080.",
+      "state": "satisfied",
+      "evidence": [
+        "20261127-wi085-design-authority-preflight"
+      ]
+    },
+    {
+      "id": "AC-2",
+      "text": "Implement bounded root-bound ordinary-v1 journals and shared per-working-root admission for typed create/edit/transition, proposals, and the overlapping dashboard writer. Provide stable-key replay/conflict semantics, read-only status, explicit conservative recovery, and clear CLI/API outcomes without changing proposal receipts or cleanup semantics.",
+      "state": "pending",
+      "evidence": [
+        "20261127-wi085-ci-windows-passing",
+        "20261128-wi085-mutation-subprocess-platforms",
+        "20261128-wi085-focused-corrections"
+      ]
+    },
+    {
+      "id": "AC-3",
+      "text": "Prove process-interruption behavior with child processes synchronized at each prepared/write/move/validation/receipt/rollback boundary; cover idempotent recovery, key replay/conflict, lock release/contention, root identity, corrupt or ambiguous state, external edits, links/escapes, capacity failure, and preservation of unrelated user data. Use available Windows and Linux environments and keep unsupported-platform coverage explicitly pending.",
+      "state": "pending",
+      "evidence": [
+        "20261128-wi085-mutation-subprocess-platforms",
+        "20261127-wi085-ci-windows-passing",
+        "20261128-wi085-focused-corrections"
+      ]
+    },
+    {
+      "id": "AC-4",
+      "text": "Complete exact-source focused regressions, one clean declared local CI profile, the separately required legacy Python comparator, frozen-surface validation, canonical validation, semantic identity and documentation reconciliation, generated dashboard, and truthful evidence with final commit/tree provenance; prepare one draft PR without hosted CI/CD, merge, or release.",
+      "state": "pending",
+      "evidence": [
+        "20261127-wi085-ci-windows-passing",
+        "20261128-wi085-legacy-python-comparator",
+      "20261128-wi085-closeout-validation",
+      "20261128-wi085-focused-corrections"
+      ]
+    }
+  ],
+  "documentation_impact": {
+    "state": "affected",
+    "surfaces": [
+      "user_behavior",
+      "api_cli",
+      "architecture",
+      "operations",
+      "contributor_workflow"
+    ],
+    "evidence": [
+      "20261127-wi085-ci-windows-passing",
+      "20261128-wi085-legacy-python-comparator",
+      "20261128-wi085-closeout-validation",
+      "20261128-wi085-focused-corrections"
+    ]
+  },
+  "created": "2026-11-27",
+  "updated": "2026-11-28",
+  "lead": "tooling-owner"
+}

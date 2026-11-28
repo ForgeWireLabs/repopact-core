@@ -1,0 +1,34 @@
+{
+  "$schema": "../../repopact/schemas/evidence-run.schema.json",
+  "artifacts": [
+    "evidence/runs/20261128T032944884645Z-wi076-ac6-engine-conformance.json"
+  ],
+  "commands": [
+    {
+      "command": "C:\\Projects\\repopact-core-wi083-optimization-venv-20261126\\Scripts\\python.exe -m repopact.run_conformance --legacy-python",
+      "exit_code": 0,
+      "summary": "Canonical Rust 43/43, Python compatibility comparator 43/43, WI050 8/8, and WI079 reference 10/10 passed; canonical process-image provenance complete."
+    }
+  ],
+  "environment": {
+    "candidate_at_start": {
+      "commit": "17e828f1301699bb7ce692fecc5e7f6c58e0c576",
+      "dirty": false,
+      "tree": "32568a6640ee9acfbb36042d74a55448190f9bc6"
+    },
+    "engine_profile": "release",
+    "engine_semantic_identity": "repopact-semantic-v1:sha256:e2dde5dcf678858f49101e2b441587854151783b052ba255ceca4bc77927a139",
+    "engine_source_revision": "17e828f1301699bb7ce692fecc5e7f6c58e0c576",
+    "engine_target": "x86_64-pc-windows-msvc",
+    "executor": "local",
+    "platform": "windows",
+    "python": "CPython 3.12.4",
+    "wi079_assurance": "instruction-only"
+  },
+  "id": "20261128-wi085-legacy-python-comparator",
+  "provenance": "concrete",
+  "result": "passed",
+  "timestamp": "2026-11-28T03:29:44Z",
+  "timestamp_basis": "git-recording",
+  "work_item": "085"
+}

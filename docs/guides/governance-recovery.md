@@ -57,8 +57,10 @@ authorize bypassing protected mutations.
    after-state no longer proves transaction ownership; RepoPact leaves those
    paths intact and reports that recovery is required. Inspect affected paths
    before retrying. These checks detect drift observed during ordinary
-   execution; they do not guarantee safety against a writer after the last
-   observation, or provide process-death or power-loss recovery.
+   execution. The separate [interrupted-mutation recovery guide](mutation-recovery.md)
+   explains explicit process-interruption recovery. Neither guide promises
+   recovery from power loss or safety against an uncoordinated writer after the
+   last observation.
 5. **Derived-state inconsistency.** A stale or missing dashboard is a
    maintenance diagnostic for proposal admission. After the source change,
    run `repopact dashboard` and `repopact validate`; never edit generated

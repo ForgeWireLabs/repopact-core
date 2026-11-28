@@ -40,6 +40,88 @@ class EngineClientContractTests(unittest.TestCase):
         with self.assertRaisesRegex(engine_client.EngineProtocolError, "success conflicts"):
             engine_client.validated_mutation_result(response)
 
+    def test_mutation_terminal_outcome_must_match_success_and_rollback(self) -> None:
+        for outcome, success, rolled_back in [
+            ("committed", False, False),
+            ("replayed", True, True),
+            ("rolled_back", False, False),
+            ("recovery_required", True, False),
+        ]:
+            diagnostics = [] if success else [{
+                "severity": "error",
+                "blocking": True,
+                "code": "mutation.failed",
+                "message": "mutation did not commit",
+            }]
+            response = {
+                "ok": True,
+                "result": {
+                    "success": success,
+                    "rolled_back": rolled_back,
+                    "transaction_outcome": outcome,
+                    "changed_paths": [],
+                    "diagnostics": diagnostics,
+                },
+                "diagnostics": diagnostics,
+            }
+            with self.subTest(outcome=outcome, success=success, rolled_back=rolled_back):
+                with self.assertRaisesRegex(engine_client.EngineProtocolError, "outcome conflicts"):
+                    engine_client.validated_mutation_result(response)
+
+    def test_mutation_cleanup_warning_keeps_committed_success(self) -> None:
+        response = {
+            "ok": True,
+            "result": {
+                "success": True,
+                "rolled_back": False,
+                "transaction_outcome": "committed",
+                "changed_paths": [],
+                "diagnostics": [{
+                    "severity": "warning",
+                    "blocking": False,
+                    "code": "mutation.terminal-cleanup-pending",
+                    "message": "receipt is durable; cleanup remains pending",
+                    "path": None,
+                }],
+            },
+            "diagnostics": [{
+                "severity": "warning",
+                "blocking": False,
+                "code": "mutation.terminal-cleanup-pending",
+                "message": "receipt is durable; cleanup remains pending",
+                "path": None,
+            }],
+        }
+        result = engine_client.validated_mutation_result(response)
+        self.assertTrue(result["success"])
+        self.assertEqual("committed", result["transaction_outcome"])
+
+    def test_replayed_rollback_preserves_the_terminal_rollback_result(self) -> None:
+        response = {
+            "ok": True,
+            "result": {
+                "success": False,
+                "rolled_back": True,
+                "transaction_outcome": "replayed",
+                "changed_paths": [],
+                "diagnostics": [{
+                    "severity": "error",
+                    "blocking": True,
+                    "code": "mutation.rolled-back",
+                    "message": "prior attempt was rolled back",
+                }],
+            },
+            "diagnostics": [{
+                "severity": "error",
+                "blocking": True,
+                "code": "mutation.rolled-back",
+                "message": "prior attempt was rolled back",
+            }],
+        }
+        result = engine_client.validated_mutation_result(response)
+        self.assertFalse(result["success"])
+        self.assertTrue(result["rolled_back"])
+
     def test_preflight_requires_advertised_canonical_operations(self) -> None:
         client = object.__new__(engine_client.EngineClient)
         client._handshaken = True
@@ -260,6 +342,68 @@ class EngineClientContractTests(unittest.TestCase):
                 })
         self.assertEqual("retry-key", caught.exception.idempotency_key)
         self.assertIn("proposal-status retry-key", str(caught.exception))
+
+    def test_ordinary_mutation_timeout_reports_stable_key_and_status_command(self) -> None:
+        client = object.__new__(engine_client.EngineClient)
+        client.timeout = 0.01
+        client.engine = Path("fake-engine")
+        process = mock.Mock()
+        process.communicate.side_effect = [
+            subprocess.TimeoutExpired("fake-engine", 0.01),
+            ("", ""),
+        ]
+        with mock.patch.object(engine_client.subprocess, "Popen", return_value=process):
+            with self.assertRaises(engine_client.OperationOutcomeUnknownError) as caught:
+                client._invoke({
+                    "operation": "work.create",
+                    "request_id": "request-3",
+                    "params": {"mutation_key": "mutation-retry-key"},
+                })
+        self.assertEqual("mutation-retry-key", caught.exception.request_key)
+        self.assertIn("mutation-status --request-key mutation-retry-key", str(caught.exception))
+        self.assertIn("--mutation-key", str(caught.exception))
+
+    def test_new_work_item_flushes_mutation_key_before_engine_call(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            output = io.StringIO()
+            response = {
+                "ok": True,
+                "result": {
+                    "success": True,
+                    "rolled_back": False,
+                    "mutation_key": "provided-key",
+                    "transaction_outcome": "committed",
+                    "changed_paths": ["work/active/001-probe/work-item.json"],
+                    "diagnostics": [],
+                },
+                "diagnostics": [],
+            }
+            with mock.patch.object(engine_client, "EngineClient") as client_type:
+                client_type.return_value.call.return_value = response
+                with redirect_stdout(output):
+                    self.assertEqual(0, cli.main([
+                        "new", "work-item", "Probe", "--root", str(root), "--mutation-key", "provided-key"
+                    ]))
+                args = client_type.return_value.call.call_args
+            self.assertIn("Mutation key: provided-key", output.getvalue())
+            self.assertEqual("work.create", args.args[0])
+            self.assertEqual("provided-key", args.kwargs["params"]["mutation_key"])
+
+    def test_mutation_status_is_read_only_cli_engine_operation(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            response = {"ok": True, "result": {"state": "pending", "receipts": [], "unknown_artifacts": []}}
+            with mock.patch.object(engine_client, "EngineClient") as client_type:
+                client_type.return_value.call.return_value = response
+                output = io.StringIO()
+                with redirect_stdout(output):
+                    self.assertEqual(0, cli.main([
+                        "work", "mutation-status", "--root", temp, "--request-key", "request-1"
+                    ]))
+            client_type.return_value.call.assert_called_once_with(
+                "work.mutation-status", root=Path(temp).resolve(), params={"request_key": "request-1"}
+            )
+            self.assertEqual("pending", json.loads(output.getvalue())["state"])
 
     def test_json_proposal_output_contains_only_structured_lines(self) -> None:
         with tempfile.TemporaryDirectory() as temp:

@@ -142,6 +142,8 @@ pub fn capabilities() -> Capabilities {
             "work.propose".to_owned(),
             "work.proposal-plan".to_owned(),
             "work.proposal-status".to_owned(),
+            "work.mutation-status".to_owned(),
+            "work.mutation-recover".to_owned(),
             "work.amend_proposal".to_owned(),
             "graph".to_owned(),
             "graph.status".to_owned(),
@@ -174,6 +176,7 @@ pub fn capabilities() -> Capabilities {
             "orientation-graph-query".to_owned(),
             "analysis".to_owned(),
             "typed-work-item-mutation".to_owned(),
+            "ordinary-mutation-recovery".to_owned(),
         ],
     }
 }
